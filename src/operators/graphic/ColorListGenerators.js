@@ -166,7 +166,8 @@ ColorListGenerators.createCategoricalColors = function(mode, nColors, colorScale
       var nGenerations = Math.floor(nColors * 2) + 100;
       var nChildren = Math.floor(nColors * 0.6) + 5;
       var bCircular = mode == 4;
-      var bestEvaluation = ColorListGenerators._evaluationFunction(randomPositions,bCircular);
+      var bExtendedNeighbourhood = mode == 4;
+      var bestEvaluation = ColorListGenerators._evaluationFunction(randomPositions,bCircular,bExtendedNeighbourhood);
       var child;
       var bestChildren = randomPositions;
       var j;
@@ -177,7 +178,7 @@ ColorListGenerators.createCategoricalColors = function(mode, nColors, colorScale
         for(j = 0; j < nChildren; j++) {
           child = ColorListGenerators._sortingVariation(randomPositions, randomNumbersSource[nr], randomNumbersSource[nr + 1]);
           nr = (nr + 2) % 1001;
-          evaluation = ColorListGenerators._evaluationFunction(child,bCircular,bCircular);
+          evaluation = ColorListGenerators._evaluationFunction(child,bCircular,bExtendedNeighbourhood);
           if(evaluation > bestEvaluation) {
             bestChildren = child;
             bestEvaluation = evaluation;
@@ -226,18 +227,23 @@ ColorListGenerators._sortingVariation = function(numberList, rnd0, rnd1) { //pri
 /**
  * @ignore
  */
-ColorListGenerators._evaluationFunction = function(numberList, bCircular) { //private
+ColorListGenerators._evaluationFunction = function(numberList, bCircular, bExtendedNeighbourhood) { //private
   // bCircular == true means distance between 0 and n-1 is 1
+  // bExtendedNeighbourhood == true means consider diffs beyond adjacent pairs
   var sum = 0;
-  var i,d,
+  var i,d,r2,
     len=numberList.length,
     h=Math.floor(len/2);
-  for(i = 0; numberList[i + 1] != null; i++) {
-    d = Math.abs(numberList[i + 1] - numberList[i]);
-    if(bCircular && d > h){
-      d = len-d;
+  var range = bExtendedNeighbourhood ? 4 : 1;
+  for(var r=1; r <= range; r++){
+    r2 = r*r;
+    for(i = 0; numberList[i + r] != null; i++) {
+      d = Math.abs(numberList[i + r] - numberList[i]);
+      if(bCircular && d > h){
+        d = len-d;
+      }
+      sum += Math.sqrt(d/r2);
     }
-    sum += Math.sqrt(d);
   }
   return sum;
 };
