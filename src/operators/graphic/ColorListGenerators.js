@@ -122,7 +122,7 @@ ColorListGenerators.createColorListSpectrum = function(nColors, saturation,value
 
 /**
  * Creates a ColorList of categorical colors
- * @param {Number} mode 0:simple picking from color scale function, 1:random (with seed), 2:hardcoded colors, 3:, 4:, 5:evolutionary algorithm, guarantees non consecutive similar colors
+ * @param {Number} mode 0:simple picking from color scale function, 1:random (with seed), 2:hardcoded colors, 3:spectrum colors, 4:evolutionary algorithm, guarantees non consecutive similar colors(spectrum), 5:evolutionary algorithm, guarantees non consecutive similar colors(colorScale)
  * @param {Number} nColors
  *
  * @param {ColorScale} colorScaleFunction
