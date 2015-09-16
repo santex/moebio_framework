@@ -7,9 +7,14 @@ import Table from "src/dataTypes/lists/Table";
 import List from "src/dataTypes/lists/List";
 import NumberListOperators from "src/operators/numeric/numberList/NumberListOperators";
 
+// ColorListGenerators._HARDCODED_CATEGORICAL_COLORS = new ColorList(
+//   "#dd4411", "#2200bb", "#1f77b4", "#ff660e", "#2ca02c", "#d62728", "#9467bd", "#8c564b", "#e377c2", "#7f7f7f", "#bcbd22", "#17becf", "#dd8811",
+//   "#dd0011", "#221140", "#1f66a3", "#ff220e", "#2ba01c", "#442728", "#945600", "#8c453a", "#e37700"
+// );
+
 ColorListGenerators._HARDCODED_CATEGORICAL_COLORS = new ColorList(
-  "#dd4411", "#2200bb", "#1f77b4", "#ff660e", "#2ca02c", "#d62728", "#9467bd", "#8c564b", "#e377c2", "#7f7f7f", "#bcbd22", "#17becf", "#dd8811",
-  "#dd0011", "#221140", "#1f66a3", "#ff220e", "#2ba01c", "#442728", "#945600", "#8c453a", "#e37700"
+  "#e03030", "#1f7ab8", "#10bb20", "#ffe500", "#9467bd", "#ff7700", "#2232ff", "#206010", "#e388d2", "#a66020",
+  "#ff5555", "#17becc", "#20df33", "#dfc500", "#ccaaff", "#ffaa44", "#66bbff", "#a5ffa5", "#ffbbdd", "#ddc277"
 );
 
 /**
@@ -155,6 +160,9 @@ ColorListGenerators.createCategoricalColors = function(mode, nColors, colorScale
       for(i = 0; i < nColors; i++) {
         newColorList[i] = colorList[i%colorList.length];
       }
+      break;
+    case 3:
+      newColorList = ColorListGenerators.createColorListSpectrum(nColors);
       break;
     case 4:
     case 5:
