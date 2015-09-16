@@ -332,8 +332,7 @@ List.prototype.getReversed = function() {
 
 /**
  * returns a sub-list, params could be: tw numbers, an interval or a NumberList.
- * @param {Number|Interval} argument0 number, interval (in this it will
- * include elements with initial and end indexes) or numberList
+ * @param {Number} argument0 number, interval (in this it will include elements with initial and end indexes) or numberList
  * @param {Number} argument1 second index
  * @return {List}
  * tags:filter
@@ -355,6 +354,7 @@ List.prototype.getSubList = function() {
   } else {
     interval = arguments[0];
   }
+
 
   var newInterval = new Interval(Math.max(Math.min(Math.floor(interval.x), this.length), 0), Math.max(Math.min(Math.floor(interval.y), this.length - 1), 0));
   var newList;
