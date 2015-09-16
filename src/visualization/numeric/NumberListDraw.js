@@ -52,6 +52,7 @@ NumberListDraw.drawSimpleGraph = function(frame, numberList, margin, xValues, gr
   subframe.bottom = subframe.getBottom();
   var x;
   var dx = subframe.width / numberList.length;
+  var w = Math.max(1, dx);
   var overI = -1;
 
   var mouseOnFrame = subframe.containsPoint(graphics.mP);
@@ -67,7 +68,7 @@ NumberListDraw.drawSimpleGraph = function(frame, numberList, margin, xValues, gr
       } else {
         graphics.setFill(normalColor);
       }
-      graphics.fRect(subframe.x + i * dx, zeroY, dx, -subframe.height * (frame.memory.normalizedList[i] - frame.memory.zero));
+      graphics.fRect(subframe.x + i * dx, zeroY, w, -subframe.height * (frame.memory.normalizedList[i] - frame.memory.zero));
     }
   } else {
     for(i = 0; numberList[i] != null; i++) {
@@ -78,7 +79,7 @@ NumberListDraw.drawSimpleGraph = function(frame, numberList, margin, xValues, gr
       } else {
         graphics.setFill(normalColor);
       }
-      graphics.fRect(x, subframe.bottom, dx, -subframe.height * frame.memory.normalizedList[i]);
+      graphics.fRect(x, subframe.bottom, w, -subframe.height * frame.memory.normalizedList[i]);
     }
   }
 

@@ -659,6 +659,8 @@ TableOperators.filterTableByElementInList = function(table, nList, element, keep
   if(table == null ||  table.length <= 0 || nList == null) return;
   if(element == null) return table;
 
+  keepRowIfElementIsPresent = keepRowIfElementIsPresent==null?true:keepRowIfElementIsPresent;
+
 
   var newTable = new Table();
   var i, j;
