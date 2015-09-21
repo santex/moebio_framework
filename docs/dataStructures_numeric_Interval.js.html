@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>Moebio Framework: Source: visualization/numeric/NumberListDraw.js</title>
+    <title>Moebio Framework: Source: dataStructures/numeric/Interval.js</title>
     <link href='http://fonts.googleapis.com/css?family=Open+Sans:700italic,400,700' rel='stylesheet' type='text/css'>
     <!--[if lt IE 9]>
       <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
@@ -44,7 +44,7 @@
 <li class="code"><a href="DateListConversions.html">DateListConversions</a></li><li class="code"><a href="DateListOperators.html">DateListOperators</a></li><li class="code"><a href="DateOperators.html">DateOperators</a></li></ul></div><h3>Drawing</h3>
 <div class="space-bottom1"><div class="pad0y"><strong class="capitalize" keyline-all>Classes</strong></div><ul>
 <li class="code"><a href="DragDetection.html">DragDetection</a></li><li class="code"><a href="Graphics.html">Graphics</a></li><li class="code"><a href="InputTextFieldHTML.html">InputTextFieldHTML</a></li><li class="code"><a href="TextBox.html">TextBox</a></li><li class="code"><a href="TextFieldHTML.html">TextFieldHTML</a></li></ul></div><div class="space-bottom1"><div class="pad0y"><strong class="capitalize" keyline-all>Namespaces</strong></div><ul>
-<li class="code"><a href="CircleDraw.html">CircleDraw</a></li><li class="code"><a href="ColorsDraw.html">ColorsDraw</a></li><li class="code"><a href="Draw.html">Draw</a></li><li class="code"><a href="DrawTexts.html">DrawTexts</a></li><li class="code"><a href="DrawTextsAdvanced.html">DrawTextsAdvanced</a></li><li class="code"><a href="ListDraw.html">ListDraw</a></li><li class="code"><a href="NetworkDraw.html">NetworkDraw</a></li><li class="code"><a href="ObjectDraw.html">ObjectDraw</a></li><li class="code"><a href="StringDraw.html">StringDraw</a></li><li class="code"><a href="StringListDraw.html">StringListDraw</a></li><li class="code"><a href="TreeDraw.html">TreeDraw</a></li></ul></div><h3>Geometry</h3>
+<li class="code"><a href="ColorsDraw.html">ColorsDraw</a></li><li class="code"><a href="Draw.html">Draw</a></li><li class="code"><a href="DrawTexts.html">DrawTexts</a></li><li class="code"><a href="DrawTextsAdvanced.html">DrawTextsAdvanced</a></li><li class="code"><a href="ListDraw.html">ListDraw</a></li><li class="code"><a href="NetworkDraw.html">NetworkDraw</a></li><li class="code"><a href="ObjectDraw.html">ObjectDraw</a></li><li class="code"><a href="StringDraw.html">StringDraw</a></li><li class="code"><a href="StringListDraw.html">StringListDraw</a></li><li class="code"><a href="TreeDraw.html">TreeDraw</a></li></ul></div><h3>Geometry</h3>
 <div class="space-bottom1"><div class="pad0y"><strong class="capitalize" keyline-all>Classes</strong></div><ul>
 <li class="code"><a href="Engine3D.html">Engine3D</a></li><li class="code"><a href="Point.html">Point</a></li><li class="code"><a href="Point3D.html">Point3D</a></li><li class="code"><a href="Polygon.html">Polygon</a></li><li class="code"><a href="Polygon3D.html">Polygon3D</a></li><li class="code"><a href="Polygon3DList.html">Polygon3DList</a></li><li class="code"><a href="PolygonList.html">PolygonList</a></li><li class="code"><a href="Rectangle.html">Rectangle</a></li><li class="code"><a href="RectangleList.html">RectangleList</a></li><li class="code"><a href="Space2D.html">Space2D</a></li></ul></div><div class="space-bottom1"><div class="pad0y"><strong class="capitalize" keyline-all>Namespaces</strong></div><ul>
 <li class="code"><a href="GeometryConversions.html">GeometryConversions</a></li><li class="code"><a href="GeometryOperators.html">GeometryOperators</a></li><li class="code"><a href="PointOperators.html">PointOperators</a></li><li class="code"><a href="PolygonGenerators.html">PolygonGenerators</a></li><li class="code"><a href="PolygonListEncodings.html">PolygonListEncodings</a></li><li class="code"><a href="PolygonListOperators.html">PolygonListOperators</a></li><li class="code"><a href="PolygonOperators.html">PolygonOperators</a></li><li class="code"><a href="RectangleOperators.html">RectangleOperators</a></li></ul></div><h3>Networks</h3>
@@ -64,7 +64,7 @@
     <div class='pad1y pad2x fill-white'>
       <div class='prose'>
         <div class='pad2y'>
-          <h1 class='code'>Source: visualization/numeric/NumberListDraw.js</h1>
+          <h1 class='code'>Source: dataStructures/numeric/Interval.js</h1>
         </div>
         
 
@@ -73,114 +73,213 @@
     
     <section>
         <article>
-            <pre class="prettyprint source linenums"><code>import Rectangle from "src/dataTypes/geometry/Rectangle";
-import StringList from "src/dataTypes/strings/StringList";
-import NumberListOperators from "src/operators/numeric/numberList/NumberListOperators";
+            <pre class="prettyprint source linenums"><code>import DataModel from "src/dataStructures/DataModel";
+import Point from "src/dataStructures/geometry/Point";
 
-function NumberListDraw() {}
-export default NumberListDraw;
+Interval.prototype = new Point();
+Interval.prototype.constructor = Interval;
 
 /**
- * draws a simple graph
- * @param  {Rectangle} frame
- * @param  {NumberList} numberList
+ * @classdesc Provide reasoning around numeric intervals.
  *
- * @param {Number} margin
- * @param {Object} xValues horizontal values, could be a stringList, a numberList or an Interval
- * @return {Number} index of element clicked
- * tags:draw
+ * @constructor
+ * @param {Number} x Interval's start value.
+ * @param {Number} y Interval's end value.
+ * @description Creates a new Interval.
+ * @category numbers
  */
-NumberListDraw.drawSimpleGraph = function(frame, numberList, margin, xValues, graphics) {
-  if(numberList == null || NumberListOperators.normalized(numberList) == null) return;
+function Interval(x, y) {
+  DataModel.apply(this, arguments);
+  this.x = Number(x);
+  this.y = Number(y);
+  this.type = "Interval";
+}
+export default Interval;
 
-  if(graphics==null) graphics = frame.graphics; //momentary fix
+/**
+ * Finds the minimum value of the Interval.
+ *
+ * @return {Number} the minimum value in the interval
+ */
+Interval.prototype.getMin = function() {
+  return Math.min(this.x, this.y);
+};
 
-  margin = margin || 0;
+/**
+ * Finds the maximum value of the Interval.
+ *
+ * @return {Number} the max value in the interval
+ */
+Interval.prototype.getMax = function() {
+  return Math.max(this.x, this.y);
+};
 
-  //setup
-  if(frame.memory == null || numberList != frame.memory.numberList) {
-    frame.memory = {
-      numberList: numberList,
-      minmax: numberList.getMinMaxInterval(),
-      zero: null
-    };
-    if(frame.memory.minmax.x > 0 &amp;&amp; frame.memory.minmax.y > 0) {
-      frame.memory.normalizedList = NumberListOperators.normalizedToMax(numberList);
-    } else {
-      frame.memory.normalizedList =  NumberListOperators.normalized(numberList);
-      frame.memory.zero = -frame.memory.minmax.x / frame.memory.minmax.getAmplitude();
-    }
+/**
+ * Finds the range between the min and max of the Interval.
+ *
+ * @return {Number} the absolute difference between the starting and ending values.
+ */
+Interval.prototype.getAmplitude = function() {
+  return Math.abs(this.x - this.y);
+};
 
-    frame.memory.xTexts = new StringList();
+/**
+ * Finds the range between the min and max of the Interval.
+ * If the starting value of the Interval is less then the ending value,
+ * this will return a negative value.
+ *
+ * @return {Number} the difference between the starting and ending values.
+ */
+Interval.prototype.getSignedAmplitude = function() {
+  return this.x - this.y;
+};
 
-    if(xValues != null &amp;&amp; xValues.type == "Interval") {
-      var kx = (xValues.getAmplitude() + 1) / numberList.length;
-    }
+/**
+* @todo write docs
+*/
+Interval.prototype.getMiddle = function() {
+  return(this.x + this.y) * 0.5;
+};
 
-    numberList.forEach(function(val, i) {
-      frame.memory.xTexts[i] = (xValues == null) ? String(numberList[i]) : ((kx == null ? xValues[i] : (xValues.x + i * kx)) + ":" + numberList[i]);
-    });
+/**
+* @todo write docs
+*/
+Interval.prototype.getSign = function() {
+  if(this.x == this.y) return 0;
+  return this.getAmplitude() / this.getSignedAmplitude();
+};
+
+/**
+ * Scales a value
+ * @todo finish docs
+ *
+ * @return {Interval}
+ */
+Interval.prototype.getScaled = function(value) {
+  var midAmp = 0.5 * (this.y - this.x);
+  var middle = (this.x + this.y) * 0.5;
+  return new Interval(middle - midAmp * value, middle + midAmp * value);
+};
+
+/**
+* @todo write docs
+*/
+Interval.prototype.getScaledFromProportion = function(value, proportion) {
+  var antiP = 1 - proportion;
+  var amp0 = proportion * (this.y - this.x);
+  var amp1 = antiP * (this.y - this.x);
+  var middle = antiP * this.x + proportion * this.y;
+  return new Interval(middle - amp0 * value, middle + amp1 * value);
+};
+
+/**
+* @todo write docs
+*/
+Interval.prototype.add = function(value) {
+  return new Interval(this.x + value, this.y + value);
+};
+
+/**
+* @todo write docs
+*/
+Interval.prototype.invert = function() {
+  var swap = this.x;
+  this.x = this.y;
+  this.y = swap;
+};
+
+/**
+ * Returns a value in interval range
+ * 0 -> min
+ * 1 -> max
+ * @param value between 0 and 1 (to obtain values between min and max)
+ *
+ */
+Interval.prototype.getInterpolatedValue = function(value) {
+  //TODO: should this be unsigned amplitude?
+  return value * Number(this.getSignedAmplitude()) + this.x;
+};
+
+/**
+* @todo write docs
+*/
+Interval.prototype.getInverseInterpolatedValue = function(value) {
+  return(value - this.x) / this.getSignedAmplitude();
+};
+
+/**
+* @todo write docs
+*/
+Interval.prototype.getInterpolatedValues = function(numberList) {
+  var newNumberList = [];
+  var nElements = numberList.length;
+  for(var i = 0; i &lt; nElements; i++) {
+    newNumberList.push(this.getInterpolatedValue(numberList[i]));
   }
+  return newNumberList;
+};
 
-  var i;
-  var subframe = new Rectangle(frame.x + margin, frame.y + margin, frame.width - margin * 2, frame.height - margin * 2);
-  subframe.bottom = subframe.getBottom();
-  var x;
-  var dx = subframe.width / numberList.length;
-  var w = Math.max(1, dx);
-  var overI = -1;
-
-  var mouseOnFrame = subframe.containsPoint(graphics.mP);
-  var normalColor = mouseOnFrame ? 'rgb(160,160,160)' : 'black';
-
-  if(frame.memory.zero) {
-    var zeroY = subframe.bottom - subframe.height * frame.memory.zero; //Math.max(subframe.bottom - subframe.height*frame.memory.zero, subframe.y);
-    for(i = 0; numberList[i] != null; i++) {
-      x = subframe.x + i * dx;
-      if(mouseOnFrame &amp;&amp; graphics.mX > x &amp;&amp; graphics.mX &lt; x + dx) {
-        overI = i;
-        graphics.setFill('black');
-      } else {
-        graphics.setFill(normalColor);
-      }
-      graphics.fRect(subframe.x + i * dx, zeroY, w, -subframe.height * (frame.memory.normalizedList[i] - frame.memory.zero));
-    }
-  } else {
-    for(i = 0; numberList[i] != null; i++) {
-      x = subframe.x + i * dx;
-      if(mouseOnFrame &amp;&amp; graphics.mX > x &amp;&amp; graphics.mX &lt; x + dx) {
-        overI = i;
-        graphics.setFill('black');
-      } else {
-        graphics.setFill(normalColor);
-      }
-      graphics.fRect(x, subframe.bottom, w, -subframe.height * frame.memory.normalizedList[i]);
-    }
+/**
+* @todo write docs
+*/
+Interval.prototype.getInverseInterpolatedValues = function(numberList) {
+  var newNumberList = [];
+  var nElements = numberList.length;
+  for(var i = 0; i &lt; nElements; i++) {
+    newNumberList.push(this.getInverseInterpolatedValue(numberList[i]));
   }
+  return newNumberList;
+};
 
-  var clicked;
+/**
+* @todo write docs
+*/
+Interval.prototype.intersect = function(interval) {
+  return new Interval(Math.max(this.x, interval.x), Math.min(this.y, interval.y));
+};
 
-  if(overI != -1) {
-    graphics.setText('white', 12);
-    var text = frame.memory.xTexts[overI];
-    var w = graphics.getTextW(text);
-    graphics.setFill('rgb(100,100,100)');
-    graphics.fLines(
-      graphics.mX, graphics.mY,
-      graphics.mX + 16, graphics.mY - 10,
-      graphics.mX + w + 16, graphics.mY - 10,
-      graphics.mX + w + 16, graphics.mY - 30,
-      graphics.mX + 6, graphics.mY - 30,
-      graphics.mX + 6, graphics.mY - 10
-    );
-    graphics.setFill('white');
-    graphics.fText(text, graphics.mX + 10, graphics.mY - 26);
-    if(graphics.MOUSE_DOWN) {
-      clicked = overI;
-    }
-  }
+/**
+ * create a new interval with the same proporties values
+ * @return {Interval}
+ *
+ */
+Interval.prototype.clone = function() {
+  var newInterval = new Interval(this.x, this.y);
+  newInterval.name = name;
+  return newInterval;
+};
 
-  return clicked;
+/**
+ * Indicates if a number is included in the Interval.
+ *
+ * @param value Number to test.
+ * @return {Boolean} True if the value is inside the Interval.
+ *
+ */
+Interval.prototype.contains = function(value) {
+  if(this.y > this.x) return value >= this.x &amp;&amp; value &lt;= this.y;
+  return value >= this.y &amp;&amp; value &lt;= this.y;
+};
+
+/**
+ * Indicates if provided interval contains the same values
+ *
+ * @param interval
+ * @return {Boolean}
+ *
+ */
+Interval.prototype.isEquivalent = function(interval) {
+  return this.x == interval.x &amp;&amp; this.y == interval.y;
+};
+
+/**
+ * creates a new interval with the same proporties values
+ * @return {String}
+ *
+ */
+
+Interval.prototype.toString = function() {
+  return "Interval[x:" + this.x + "| y:" + this.y + "| amplitude:" + this.getAmplitude() + "]";
 };
 </code></pre>
         </article>

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>Moebio Framework: Source: visualization/numeric/NumberListDraw.js</title>
+    <title>Moebio Framework: Source: dataStructures/geometry/Point.js</title>
     <link href='http://fonts.googleapis.com/css?family=Open+Sans:700italic,400,700' rel='stylesheet' type='text/css'>
     <!--[if lt IE 9]>
       <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
@@ -44,7 +44,7 @@
 <li class="code"><a href="DateListConversions.html">DateListConversions</a></li><li class="code"><a href="DateListOperators.html">DateListOperators</a></li><li class="code"><a href="DateOperators.html">DateOperators</a></li></ul></div><h3>Drawing</h3>
 <div class="space-bottom1"><div class="pad0y"><strong class="capitalize" keyline-all>Classes</strong></div><ul>
 <li class="code"><a href="DragDetection.html">DragDetection</a></li><li class="code"><a href="Graphics.html">Graphics</a></li><li class="code"><a href="InputTextFieldHTML.html">InputTextFieldHTML</a></li><li class="code"><a href="TextBox.html">TextBox</a></li><li class="code"><a href="TextFieldHTML.html">TextFieldHTML</a></li></ul></div><div class="space-bottom1"><div class="pad0y"><strong class="capitalize" keyline-all>Namespaces</strong></div><ul>
-<li class="code"><a href="CircleDraw.html">CircleDraw</a></li><li class="code"><a href="ColorsDraw.html">ColorsDraw</a></li><li class="code"><a href="Draw.html">Draw</a></li><li class="code"><a href="DrawTexts.html">DrawTexts</a></li><li class="code"><a href="DrawTextsAdvanced.html">DrawTextsAdvanced</a></li><li class="code"><a href="ListDraw.html">ListDraw</a></li><li class="code"><a href="NetworkDraw.html">NetworkDraw</a></li><li class="code"><a href="ObjectDraw.html">ObjectDraw</a></li><li class="code"><a href="StringDraw.html">StringDraw</a></li><li class="code"><a href="StringListDraw.html">StringListDraw</a></li><li class="code"><a href="TreeDraw.html">TreeDraw</a></li></ul></div><h3>Geometry</h3>
+<li class="code"><a href="ColorsDraw.html">ColorsDraw</a></li><li class="code"><a href="Draw.html">Draw</a></li><li class="code"><a href="DrawTexts.html">DrawTexts</a></li><li class="code"><a href="DrawTextsAdvanced.html">DrawTextsAdvanced</a></li><li class="code"><a href="ListDraw.html">ListDraw</a></li><li class="code"><a href="NetworkDraw.html">NetworkDraw</a></li><li class="code"><a href="ObjectDraw.html">ObjectDraw</a></li><li class="code"><a href="StringDraw.html">StringDraw</a></li><li class="code"><a href="StringListDraw.html">StringListDraw</a></li><li class="code"><a href="TreeDraw.html">TreeDraw</a></li></ul></div><h3>Geometry</h3>
 <div class="space-bottom1"><div class="pad0y"><strong class="capitalize" keyline-all>Classes</strong></div><ul>
 <li class="code"><a href="Engine3D.html">Engine3D</a></li><li class="code"><a href="Point.html">Point</a></li><li class="code"><a href="Point3D.html">Point3D</a></li><li class="code"><a href="Polygon.html">Polygon</a></li><li class="code"><a href="Polygon3D.html">Polygon3D</a></li><li class="code"><a href="Polygon3DList.html">Polygon3DList</a></li><li class="code"><a href="PolygonList.html">PolygonList</a></li><li class="code"><a href="Rectangle.html">Rectangle</a></li><li class="code"><a href="RectangleList.html">RectangleList</a></li><li class="code"><a href="Space2D.html">Space2D</a></li></ul></div><div class="space-bottom1"><div class="pad0y"><strong class="capitalize" keyline-all>Namespaces</strong></div><ul>
 <li class="code"><a href="GeometryConversions.html">GeometryConversions</a></li><li class="code"><a href="GeometryOperators.html">GeometryOperators</a></li><li class="code"><a href="PointOperators.html">PointOperators</a></li><li class="code"><a href="PolygonGenerators.html">PolygonGenerators</a></li><li class="code"><a href="PolygonListEncodings.html">PolygonListEncodings</a></li><li class="code"><a href="PolygonListOperators.html">PolygonListOperators</a></li><li class="code"><a href="PolygonOperators.html">PolygonOperators</a></li><li class="code"><a href="RectangleOperators.html">RectangleOperators</a></li></ul></div><h3>Networks</h3>
@@ -64,7 +64,7 @@
     <div class='pad1y pad2x fill-white'>
       <div class='prose'>
         <div class='pad2y'>
-          <h1 class='code'>Source: visualization/numeric/NumberListDraw.js</h1>
+          <h1 class='code'>Source: dataStructures/geometry/Point.js</h1>
         </div>
         
 
@@ -73,114 +73,173 @@
     
     <section>
         <article>
-            <pre class="prettyprint source linenums"><code>import Rectangle from "src/dataTypes/geometry/Rectangle";
-import StringList from "src/dataTypes/strings/StringList";
-import NumberListOperators from "src/operators/numeric/numberList/NumberListOperators";
+            <pre class="prettyprint source linenums"><code>import DataModel from "src/dataStructures/DataModel";
 
-function NumberListDraw() {}
-export default NumberListDraw;
+Point.prototype = new DataModel();
+Point.prototype.constructor = Point;
 
 /**
- * draws a simple graph
- * @param  {Rectangle} frame
- * @param  {NumberList} numberList
+ * @classdesc Represents an individual 2D point in space.
  *
- * @param {Number} margin
- * @param {Object} xValues horizontal values, could be a stringList, a numberList or an Interval
- * @return {Number} index of element clicked
- * tags:draw
+ * @description Creates a new Point
+ * @param {Number} x
+ * @param {Number} y
+ * @constructor
+ * @category geometry
  */
-NumberListDraw.drawSimpleGraph = function(frame, numberList, margin, xValues, graphics) {
-  if(numberList == null || NumberListOperators.normalized(numberList) == null) return;
+function Point(x, y) {
+  DataModel.apply(this, arguments);
+  this.type = "Point";
+  this.x = Number(x) || 0;
+  this.y = Number(y) || 0;
+}
+export default Point;
 
-  if(graphics==null) graphics = frame.graphics; //momentary fix
 
-  margin = margin || 0;
+/**
+* @todo write docs
+*/
+Point.prototype.getNorm = function() {
+  return Math.sqrt(Math.pow(this.x, 2) + Math.pow(this.y, 2));
+};
 
-  //setup
-  if(frame.memory == null || numberList != frame.memory.numberList) {
-    frame.memory = {
-      numberList: numberList,
-      minmax: numberList.getMinMaxInterval(),
-      zero: null
-    };
-    if(frame.memory.minmax.x > 0 &amp;&amp; frame.memory.minmax.y > 0) {
-      frame.memory.normalizedList = NumberListOperators.normalizedToMax(numberList);
-    } else {
-      frame.memory.normalizedList =  NumberListOperators.normalized(numberList);
-      frame.memory.zero = -frame.memory.minmax.x / frame.memory.minmax.getAmplitude();
-    }
+/**
+* @todo write docs
+*/
+Point.prototype.getAngle = function() {
+  return Math.atan2(this.y, this.x);
+};
 
-    frame.memory.xTexts = new StringList();
 
-    if(xValues != null &amp;&amp; xValues.type == "Interval") {
-      var kx = (xValues.getAmplitude() + 1) / numberList.length;
-    }
 
-    numberList.forEach(function(val, i) {
-      frame.memory.xTexts[i] = (xValues == null) ? String(numberList[i]) : ((kx == null ? xValues[i] : (xValues.x + i * kx)) + ":" + numberList[i]);
-    });
-  }
+/**
+* @todo write docs
+*/
+Point.prototype.factor = function(k) {
+  if(k >= 0 || k &lt; 0) return new Point(this.x * k, this.y * k);
+  if(k.type != null &amp;&amp; k.type == 'Point') return new Point(this.x * k.x, this.y * k.y);
+};
 
-  var i;
-  var subframe = new Rectangle(frame.x + margin, frame.y + margin, frame.width - margin * 2, frame.height - margin * 2);
-  subframe.bottom = subframe.getBottom();
-  var x;
-  var dx = subframe.width / numberList.length;
-  var w = Math.max(1, dx);
-  var overI = -1;
+/**
+* @todo write docs
+*/
+Point.prototype.normalize = function() {
+  var norm = Math.sqrt(Math.pow(this.x, 2) + Math.pow(this.y, 2));
+  return new Point(this.x / norm, this.y / norm);
+};
 
-  var mouseOnFrame = subframe.containsPoint(graphics.mP);
-  var normalColor = mouseOnFrame ? 'rgb(160,160,160)' : 'black';
+/**
+* @todo write docs
+*/
+Point.prototype.normalizeToValue = function(k) {
+  var factor = k / Math.sqrt(Math.pow(this.x, 2) + Math.pow(this.y, 2));
+  return new Point(this.x * factor, this.y * factor);
+};
 
-  if(frame.memory.zero) {
-    var zeroY = subframe.bottom - subframe.height * frame.memory.zero; //Math.max(subframe.bottom - subframe.height*frame.memory.zero, subframe.y);
-    for(i = 0; numberList[i] != null; i++) {
-      x = subframe.x + i * dx;
-      if(mouseOnFrame &amp;&amp; graphics.mX > x &amp;&amp; graphics.mX &lt; x + dx) {
-        overI = i;
-        graphics.setFill('black');
-      } else {
-        graphics.setFill(normalColor);
-      }
-      graphics.fRect(subframe.x + i * dx, zeroY, w, -subframe.height * (frame.memory.normalizedList[i] - frame.memory.zero));
-    }
-  } else {
-    for(i = 0; numberList[i] != null; i++) {
-      x = subframe.x + i * dx;
-      if(mouseOnFrame &amp;&amp; graphics.mX > x &amp;&amp; graphics.mX &lt; x + dx) {
-        overI = i;
-        graphics.setFill('black');
-      } else {
-        graphics.setFill(normalColor);
-      }
-      graphics.fRect(x, subframe.bottom, w, -subframe.height * frame.memory.normalizedList[i]);
-    }
-  }
 
-  var clicked;
 
-  if(overI != -1) {
-    graphics.setText('white', 12);
-    var text = frame.memory.xTexts[overI];
-    var w = graphics.getTextW(text);
-    graphics.setFill('rgb(100,100,100)');
-    graphics.fLines(
-      graphics.mX, graphics.mY,
-      graphics.mX + 16, graphics.mY - 10,
-      graphics.mX + w + 16, graphics.mY - 10,
-      graphics.mX + w + 16, graphics.mY - 30,
-      graphics.mX + 6, graphics.mY - 30,
-      graphics.mX + 6, graphics.mY - 10
-    );
-    graphics.setFill('white');
-    graphics.fText(text, graphics.mX + 10, graphics.mY - 26);
-    if(graphics.MOUSE_DOWN) {
-      clicked = overI;
-    }
-  }
+/**
+* @todo write docs
+*/
+Point.prototype.subtract = function(point) {
+  return new Point(this.x - point.x, this.y - point.y);
+};
 
-  return clicked;
+/**
+* @todo write docs
+*/
+Point.prototype.add = function(point) {
+  return new Point(point.x + this.x, point.y + this.y);
+};
+
+/**
+* @todo write docs
+*/
+Point.prototype.addCoordinates = function(x, y) {
+  return new Point(x + this.x, y + this.y);
+};
+
+/**
+* @todo write docs
+*/
+Point.prototype.distanceToPoint = function(point) {
+  return Math.sqrt(Math.pow(this.x - point.x, 2) + Math.pow(this.y - point.y, 2));
+};
+
+/**
+* @todo write docs
+*/
+Point.prototype.distanceToPointSquared = function(point) {
+  return Math.pow(this.x - point.x, 2) + Math.pow(this.y - point.y, 2);
+};
+
+/**
+* @todo write docs
+*/
+Point.prototype.angleToPoint = function(point) {
+  return Math.atan2(point.y - this.y, point.x - this.x);
+};
+
+/**
+* @todo write docs
+*/
+Point.prototype.expandFromPoint = function(point, factor) {
+  return new Point(point.x + factor * (this.x - point.x), point.y + factor * (this.y - point.y));
+};
+
+
+/**
+* @todo write docs
+*/
+Point.prototype.interpolate = function(point, t) {
+  return new Point((1 - t) * this.x + t * point.x, (1 - t) * this.y + t * point.y);
+};
+
+/**
+* @todo write docs
+*/
+Point.prototype.cross = function(point) {
+  return this.x * point.y - this.y * point.x;
+};
+
+/**
+* @todo write docs
+*/
+Point.prototype.dot = function(point) {
+  return this.x * point.x + this.y * point.y;
+};
+
+/**
+* @todo write docs
+*/
+Point.prototype.getRotated = function(angle, center) {
+  center = center == null ? new Point() : center;
+
+  return new Point(Math.cos(angle) * (this.x - center.x) - Math.sin(angle) * (this.y - center.y) + center.x, Math.sin(angle) * (this.x - center.x) + Math.cos(angle) * (this.y - center.y) + center.y);
+};
+
+/**
+* @todo write docs
+*/
+Point.prototype.clone = function() {
+  return new Point(this.x, this.y);
+};
+
+/**
+* @todo write docs
+*/
+Point.prototype.toString = function() {
+  return "(x=" + this.x + ", y=" + this.y + ")";
+};
+
+/**
+* @todo write docs
+*/
+Point.prototype.destroy = function() {
+  delete this.type;
+  delete this.name;
+  delete this.x;
+  delete this.y;
 };
 </code></pre>
         </article>

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>Moebio Framework: Source: visualization/numeric/NumberListDraw.js</title>
+    <title>Moebio Framework: Source: dataStructures/geometry/Rectangle.js</title>
     <link href='http://fonts.googleapis.com/css?family=Open+Sans:700italic,400,700' rel='stylesheet' type='text/css'>
     <!--[if lt IE 9]>
       <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
@@ -44,7 +44,7 @@
 <li class="code"><a href="DateListConversions.html">DateListConversions</a></li><li class="code"><a href="DateListOperators.html">DateListOperators</a></li><li class="code"><a href="DateOperators.html">DateOperators</a></li></ul></div><h3>Drawing</h3>
 <div class="space-bottom1"><div class="pad0y"><strong class="capitalize" keyline-all>Classes</strong></div><ul>
 <li class="code"><a href="DragDetection.html">DragDetection</a></li><li class="code"><a href="Graphics.html">Graphics</a></li><li class="code"><a href="InputTextFieldHTML.html">InputTextFieldHTML</a></li><li class="code"><a href="TextBox.html">TextBox</a></li><li class="code"><a href="TextFieldHTML.html">TextFieldHTML</a></li></ul></div><div class="space-bottom1"><div class="pad0y"><strong class="capitalize" keyline-all>Namespaces</strong></div><ul>
-<li class="code"><a href="CircleDraw.html">CircleDraw</a></li><li class="code"><a href="ColorsDraw.html">ColorsDraw</a></li><li class="code"><a href="Draw.html">Draw</a></li><li class="code"><a href="DrawTexts.html">DrawTexts</a></li><li class="code"><a href="DrawTextsAdvanced.html">DrawTextsAdvanced</a></li><li class="code"><a href="ListDraw.html">ListDraw</a></li><li class="code"><a href="NetworkDraw.html">NetworkDraw</a></li><li class="code"><a href="ObjectDraw.html">ObjectDraw</a></li><li class="code"><a href="StringDraw.html">StringDraw</a></li><li class="code"><a href="StringListDraw.html">StringListDraw</a></li><li class="code"><a href="TreeDraw.html">TreeDraw</a></li></ul></div><h3>Geometry</h3>
+<li class="code"><a href="ColorsDraw.html">ColorsDraw</a></li><li class="code"><a href="Draw.html">Draw</a></li><li class="code"><a href="DrawTexts.html">DrawTexts</a></li><li class="code"><a href="DrawTextsAdvanced.html">DrawTextsAdvanced</a></li><li class="code"><a href="ListDraw.html">ListDraw</a></li><li class="code"><a href="NetworkDraw.html">NetworkDraw</a></li><li class="code"><a href="ObjectDraw.html">ObjectDraw</a></li><li class="code"><a href="StringDraw.html">StringDraw</a></li><li class="code"><a href="StringListDraw.html">StringListDraw</a></li><li class="code"><a href="TreeDraw.html">TreeDraw</a></li></ul></div><h3>Geometry</h3>
 <div class="space-bottom1"><div class="pad0y"><strong class="capitalize" keyline-all>Classes</strong></div><ul>
 <li class="code"><a href="Engine3D.html">Engine3D</a></li><li class="code"><a href="Point.html">Point</a></li><li class="code"><a href="Point3D.html">Point3D</a></li><li class="code"><a href="Polygon.html">Polygon</a></li><li class="code"><a href="Polygon3D.html">Polygon3D</a></li><li class="code"><a href="Polygon3DList.html">Polygon3DList</a></li><li class="code"><a href="PolygonList.html">PolygonList</a></li><li class="code"><a href="Rectangle.html">Rectangle</a></li><li class="code"><a href="RectangleList.html">RectangleList</a></li><li class="code"><a href="Space2D.html">Space2D</a></li></ul></div><div class="space-bottom1"><div class="pad0y"><strong class="capitalize" keyline-all>Namespaces</strong></div><ul>
 <li class="code"><a href="GeometryConversions.html">GeometryConversions</a></li><li class="code"><a href="GeometryOperators.html">GeometryOperators</a></li><li class="code"><a href="PointOperators.html">PointOperators</a></li><li class="code"><a href="PolygonGenerators.html">PolygonGenerators</a></li><li class="code"><a href="PolygonListEncodings.html">PolygonListEncodings</a></li><li class="code"><a href="PolygonListOperators.html">PolygonListOperators</a></li><li class="code"><a href="PolygonOperators.html">PolygonOperators</a></li><li class="code"><a href="RectangleOperators.html">RectangleOperators</a></li></ul></div><h3>Networks</h3>
@@ -64,7 +64,7 @@
     <div class='pad1y pad2x fill-white'>
       <div class='prose'>
         <div class='pad2y'>
-          <h1 class='code'>Source: visualization/numeric/NumberListDraw.js</h1>
+          <h1 class='code'>Source: dataStructures/geometry/Rectangle.js</h1>
         </div>
         
 
@@ -73,114 +73,233 @@
     
     <section>
         <article>
-            <pre class="prettyprint source linenums"><code>import Rectangle from "src/dataTypes/geometry/Rectangle";
-import StringList from "src/dataTypes/strings/StringList";
-import NumberListOperators from "src/operators/numeric/numberList/NumberListOperators";
+            <pre class="prettyprint source linenums"><code>import DataModel from "src/dataStructures/DataModel";
+import Point from "src/dataStructures/geometry/Point";
 
-function NumberListDraw() {}
-export default NumberListDraw;
+Rectangle.prototype = new DataModel();
+Rectangle.prototype.constructor = Rectangle;
 
 /**
- * draws a simple graph
- * @param  {Rectangle} frame
- * @param  {NumberList} numberList
+ * @classdesc Rectangle shape
  *
- * @param {Number} margin
- * @param {Object} xValues horizontal values, could be a stringList, a numberList or an Interval
- * @return {Number} index of element clicked
- * tags:draw
+ * @description Creates a new Rectangle.
+ * @param {Number} x
+ * @param {Number} y
+ * @param {Number} width
+ * @param {Number} height
+ * @constructor
+ * @category geometry
  */
-NumberListDraw.drawSimpleGraph = function(frame, numberList, margin, xValues, graphics) {
-  if(numberList == null || NumberListOperators.normalized(numberList) == null) return;
+function Rectangle(x, y, width, height) {
+  DataModel.apply(this);
+  this.name = "";
+  this.type = "Rectangle";
+  this.x = Number(x) || 0;
+  this.y = Number(y) || 0;
+  this.width = Number(width) || 0;
+  this.height = Number(height) || 0;
+}
+export default Rectangle;
 
-  if(graphics==null) graphics = frame.graphics; //momentary fix
+/**
+ * @todo write docs
+ */
+Rectangle.prototype.getRight = function() {
+  return this.x + this.width;
+};
 
-  margin = margin || 0;
+/**
+ * @todo write docs
+ */
+Rectangle.prototype.getBottom = function() {
+  return this.y + this.height;
+};
 
-  //setup
-  if(frame.memory == null || numberList != frame.memory.numberList) {
-    frame.memory = {
-      numberList: numberList,
-      minmax: numberList.getMinMaxInterval(),
-      zero: null
-    };
-    if(frame.memory.minmax.x > 0 &amp;&amp; frame.memory.minmax.y > 0) {
-      frame.memory.normalizedList = NumberListOperators.normalizedToMax(numberList);
-    } else {
-      frame.memory.normalizedList =  NumberListOperators.normalized(numberList);
-      frame.memory.zero = -frame.memory.minmax.x / frame.memory.minmax.getAmplitude();
+/**
+ * @todo write docs
+ */
+Rectangle.prototype.setRight = function(value) {
+  this.width = value - this.x;
+};
+
+/**
+ * @todo write docs
+ */
+Rectangle.prototype.setBottom = function(value) {
+  this.height = value - this.y;
+};
+
+
+
+/**
+ * @todo write docs
+ */
+Rectangle.prototype.getTopLeft = function() {
+  return new Point(this.x, this.y);
+};
+
+/**
+ * @todo write docs
+ */
+Rectangle.prototype.getTopRight = function() {
+  return new Point(this.x + this.width, this.y);
+};
+
+/**
+ * @todo write docs
+ */
+Rectangle.prototype.getBottomRight = function() {
+  return new Point(this.x + this.width, this.y + this.height);
+};
+
+/**
+ * @todo write docs
+ */
+Rectangle.prototype.getBottomLeft = function() {
+  return new Point(this.x, this.y + this.height);
+};
+
+/**
+ * @todo write docs
+ */
+Rectangle.prototype.getCenter = function() {
+  return new Point(this.x + 0.5 * this.width, this.y + 0.5 * this.height);
+};
+
+/**
+ * @todo write docs
+ */
+Rectangle.prototype.getRandomPoint = function() {
+  return new Point(this.x + Math.random() * this.width, this.y + Math.random() * this.height);
+};
+
+/**
+ * @todo write docs
+ */
+Rectangle.prototype.getIntersection = function(rectangle) {
+  if(rectangle.x + rectangle.width &lt; this.x || rectangle.x > this.x + this.width || rectangle.y + rectangle.height &lt; this.y || rectangle.y > this.y + this.height) return null;
+  var xR = Math.max(rectangle.x, this.x);
+  var yR = Math.max(rectangle.y, this.y);
+  return new Rectangle(xR, yR, Math.min(rectangle.x + rectangle.width, this.x + this.width) - xR, Math.min(rectangle.y + rectangle.height, this.y + this.height) - yR);
+};
+
+/**
+ * @todo write docs
+ */
+Rectangle.prototype.interpolate = function(rectangle, t) {
+  var mint = 1 - t;
+  return new Rectangle(mint * this.x + t * rectangle.x, mint * this.y + t * rectangle.y, mint * this.width + t * rectangle.width, mint * this.height + t * rectangle.height);
+};
+
+/**
+ * @todo write docs
+ */
+Rectangle.prototype.getRatio = function() {
+  return Math.max(this.width, this.height) / Math.min(this.width, this.height);
+};
+
+/**
+ * @todo write docs
+ */
+Rectangle.prototype.getArea = function() {
+  return this.width * this.height;
+};
+
+/**
+ * check if a point belong to the rectangle
+ * @param  {Point} point
+ * @return {Boolean}
+ * tags:geometry
+ */
+Rectangle.prototype.containsPoint = function(point) {
+  return(this.x &lt;= point.x &amp;&amp; this.x + this.width >= point.x &amp;&amp; this.y &lt;= point.y &amp;&amp; this.y + this.height >= point.y);
+};
+
+
+/**
+ * @todo write docs
+ */
+Rectangle.prototype.pointIsOnBorder = function(point, margin) {
+  margin = margin == null ? 1 : margin;
+  if(point.x >= this.x - margin &amp;&amp; point.x &lt;= this.x + this.width + margin) {
+    if(point.y >= this.y - margin &amp;&amp; point.y &lt;= this.y + margin) return true;
+    if(point.y >= this.y + this.height - margin &amp;&amp; point.y &lt;= this.y + this.height + margin) return true;
+    if(point.y >= this.y - margin &amp;&amp; point.y &lt;= this.y + this.height + margin) {
+      if(point.x &lt; this.x + margin || point.x > this.x + this.width - margin) return true;
     }
-
-    frame.memory.xTexts = new StringList();
-
-    if(xValues != null &amp;&amp; xValues.type == "Interval") {
-      var kx = (xValues.getAmplitude() + 1) / numberList.length;
-    }
-
-    numberList.forEach(function(val, i) {
-      frame.memory.xTexts[i] = (xValues == null) ? String(numberList[i]) : ((kx == null ? xValues[i] : (xValues.x + i * kx)) + ":" + numberList[i]);
-    });
   }
+  return false;
+};
 
-  var i;
-  var subframe = new Rectangle(frame.x + margin, frame.y + margin, frame.width - margin * 2, frame.height - margin * 2);
-  subframe.bottom = subframe.getBottom();
-  var x;
-  var dx = subframe.width / numberList.length;
-  var w = Math.max(1, dx);
-  var overI = -1;
 
-  var mouseOnFrame = subframe.containsPoint(graphics.mP);
-  var normalColor = mouseOnFrame ? 'rgb(160,160,160)' : 'black';
 
-  if(frame.memory.zero) {
-    var zeroY = subframe.bottom - subframe.height * frame.memory.zero; //Math.max(subframe.bottom - subframe.height*frame.memory.zero, subframe.y);
-    for(i = 0; numberList[i] != null; i++) {
-      x = subframe.x + i * dx;
-      if(mouseOnFrame &amp;&amp; graphics.mX > x &amp;&amp; graphics.mX &lt; x + dx) {
-        overI = i;
-        graphics.setFill('black');
-      } else {
-        graphics.setFill(normalColor);
-      }
-      graphics.fRect(subframe.x + i * dx, zeroY, w, -subframe.height * (frame.memory.normalizedList[i] - frame.memory.zero));
-    }
-  } else {
-    for(i = 0; numberList[i] != null; i++) {
-      x = subframe.x + i * dx;
-      if(mouseOnFrame &amp;&amp; graphics.mX > x &amp;&amp; graphics.mX &lt; x + dx) {
-        overI = i;
-        graphics.setFill('black');
-      } else {
-        graphics.setFill(normalColor);
-      }
-      graphics.fRect(x, subframe.bottom, w, -subframe.height * frame.memory.normalizedList[i]);
-    }
-  }
 
-  var clicked;
+/**
+ * @todo write docs
+ */
+Rectangle.prototype.getNormalRectangle = function() {
+  return new Rectangle(Math.min(this.x, this.x + this.width), Math.min(this.y, this.y + this.height), Math.abs(this.width), Math.abs(this.height));
+};
 
-  if(overI != -1) {
-    graphics.setText('white', 12);
-    var text = frame.memory.xTexts[overI];
-    var w = graphics.getTextW(text);
-    graphics.setFill('rgb(100,100,100)');
-    graphics.fLines(
-      graphics.mX, graphics.mY,
-      graphics.mX + 16, graphics.mY - 10,
-      graphics.mX + w + 16, graphics.mY - 10,
-      graphics.mX + w + 16, graphics.mY - 30,
-      graphics.mX + 6, graphics.mY - 30,
-      graphics.mX + 6, graphics.mY - 10
-    );
-    graphics.setFill('white');
-    graphics.fText(text, graphics.mX + 10, graphics.mY - 26);
-    if(graphics.MOUSE_DOWN) {
-      clicked = overI;
-    }
-  }
+/**
+ * return true if it interstects a rectangle
+ * @param  {Rectangle} rectangle
+ * @return {Boolean}
+ * tags:geometry
+ */
+Rectangle.prototype.intersectsRectangle = function(rectangle) {
+  return !(this.x + this.width &lt; rectangle.x) &amp;&amp; !(this.y + this.height &lt; rectangle.y) &amp;&amp; !(rectangle.x + rectangle.width &lt; this.x) &amp;&amp; !(rectangle.y + rectangle.height &lt; this.y);
 
-  return clicked;
+
+  if(this.x + this.width &lt; rectangle.x) return false;
+  if(this.y + this.height &lt; rectangle.y) return false;
+  if(rectangle.x + rectangle.width &lt; this.x) return false;
+  if(rectangle.y + rectangle.height &lt; this.y) return false;
+  return true;
+
+
+
+	return this.containsPoint(rectangle.getTopLeft()) || this.containsPoint(rectangle.getTopRight()) || this.containsPoint(rectangle.getBottomLeft()) || this.containsPoint(rectangle.getBottomRight())
+	|| rectangle.containsPoint(this.getTopLeft()) || rectangle.containsPoint(this.getTopRight()) || rectangle.containsPoint(this.getBottomLeft()) || rectangle.containsPoint(this.getBottomRight());
+};
+
+/**
+ * @todo write docs
+ */
+Rectangle.prototype.expand = function(expantion, centerPoint) {
+  centerPoint = centerPoint || new Point(this.x + 0.5 * this.width, this.y + 0.5 * this.height);
+  return new Rectangle((this.x - centerPoint.x) * expantion + centerPoint.x, (this.y - centerPoint.y) * expantion + centerPoint.y, this.width * expantion, this.height * expantion);
+};
+
+/**
+ * @todo write docs
+ */
+Rectangle.prototype.isEqual = function(rectangle) {
+  return this.x == rectangle.x &amp;&amp; this.y == rectangle.y &amp;&amp; this.width == rectangle.width &amp;&amp; this.height == rectangle.height;
+};
+
+/**
+ * @todo write docs
+ */
+Rectangle.prototype.clone = function() {
+  return new Rectangle(this.x, this.y, this.width, this.height);
+};
+
+/**
+ * @todo write docs
+ */
+Rectangle.prototype.toString = function() {
+  return "(x=" + this.x + ", y=" + this.y + ", w=" + this.width + ", h=" + this.height + ")";
+};
+
+/**
+ * @todo write docs
+ */
+Rectangle.prototype.destroy = function() {
+  delete this.x;
+  delete this.y;
+  delete this.width;
+  delete this.height;
 };
 </code></pre>
         </article>

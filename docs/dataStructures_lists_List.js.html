@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>Moebio Framework: Source: dataTypes/lists/List.js</title>
+    <title>Moebio Framework: Source: dataStructures/lists/List.js</title>
     <link href='http://fonts.googleapis.com/css?family=Open+Sans:700italic,400,700' rel='stylesheet' type='text/css'>
     <!--[if lt IE 9]>
       <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
@@ -44,7 +44,7 @@
 <li class="code"><a href="DateListConversions.html">DateListConversions</a></li><li class="code"><a href="DateListOperators.html">DateListOperators</a></li><li class="code"><a href="DateOperators.html">DateOperators</a></li></ul></div><h3>Drawing</h3>
 <div class="space-bottom1"><div class="pad0y"><strong class="capitalize" keyline-all>Classes</strong></div><ul>
 <li class="code"><a href="DragDetection.html">DragDetection</a></li><li class="code"><a href="Graphics.html">Graphics</a></li><li class="code"><a href="InputTextFieldHTML.html">InputTextFieldHTML</a></li><li class="code"><a href="TextBox.html">TextBox</a></li><li class="code"><a href="TextFieldHTML.html">TextFieldHTML</a></li></ul></div><div class="space-bottom1"><div class="pad0y"><strong class="capitalize" keyline-all>Namespaces</strong></div><ul>
-<li class="code"><a href="CircleDraw.html">CircleDraw</a></li><li class="code"><a href="ColorsDraw.html">ColorsDraw</a></li><li class="code"><a href="Draw.html">Draw</a></li><li class="code"><a href="DrawTexts.html">DrawTexts</a></li><li class="code"><a href="DrawTextsAdvanced.html">DrawTextsAdvanced</a></li><li class="code"><a href="ListDraw.html">ListDraw</a></li><li class="code"><a href="NetworkDraw.html">NetworkDraw</a></li><li class="code"><a href="ObjectDraw.html">ObjectDraw</a></li><li class="code"><a href="StringDraw.html">StringDraw</a></li><li class="code"><a href="StringListDraw.html">StringListDraw</a></li><li class="code"><a href="TreeDraw.html">TreeDraw</a></li></ul></div><h3>Geometry</h3>
+<li class="code"><a href="ColorsDraw.html">ColorsDraw</a></li><li class="code"><a href="Draw.html">Draw</a></li><li class="code"><a href="DrawTexts.html">DrawTexts</a></li><li class="code"><a href="DrawTextsAdvanced.html">DrawTextsAdvanced</a></li><li class="code"><a href="ListDraw.html">ListDraw</a></li><li class="code"><a href="NetworkDraw.html">NetworkDraw</a></li><li class="code"><a href="ObjectDraw.html">ObjectDraw</a></li><li class="code"><a href="StringDraw.html">StringDraw</a></li><li class="code"><a href="StringListDraw.html">StringListDraw</a></li><li class="code"><a href="TreeDraw.html">TreeDraw</a></li></ul></div><h3>Geometry</h3>
 <div class="space-bottom1"><div class="pad0y"><strong class="capitalize" keyline-all>Classes</strong></div><ul>
 <li class="code"><a href="Engine3D.html">Engine3D</a></li><li class="code"><a href="Point.html">Point</a></li><li class="code"><a href="Point3D.html">Point3D</a></li><li class="code"><a href="Polygon.html">Polygon</a></li><li class="code"><a href="Polygon3D.html">Polygon3D</a></li><li class="code"><a href="Polygon3DList.html">Polygon3DList</a></li><li class="code"><a href="PolygonList.html">PolygonList</a></li><li class="code"><a href="Rectangle.html">Rectangle</a></li><li class="code"><a href="RectangleList.html">RectangleList</a></li><li class="code"><a href="Space2D.html">Space2D</a></li></ul></div><div class="space-bottom1"><div class="pad0y"><strong class="capitalize" keyline-all>Namespaces</strong></div><ul>
 <li class="code"><a href="GeometryConversions.html">GeometryConversions</a></li><li class="code"><a href="GeometryOperators.html">GeometryOperators</a></li><li class="code"><a href="PointOperators.html">PointOperators</a></li><li class="code"><a href="PolygonGenerators.html">PolygonGenerators</a></li><li class="code"><a href="PolygonListEncodings.html">PolygonListEncodings</a></li><li class="code"><a href="PolygonListOperators.html">PolygonListOperators</a></li><li class="code"><a href="PolygonOperators.html">PolygonOperators</a></li><li class="code"><a href="RectangleOperators.html">RectangleOperators</a></li></ul></div><h3>Networks</h3>
@@ -64,7 +64,7 @@
     <div class='pad1y pad2x fill-white'>
       <div class='prose'>
         <div class='pad2y'>
-          <h1 class='code'>Source: dataTypes/lists/List.js</h1>
+          <h1 class='code'>Source: dataStructures/lists/List.js</h1>
         </div>
         
 
@@ -73,19 +73,18 @@
     
     <section>
         <article>
-            <pre class="prettyprint source linenums"><code>import DataModel from "src/dataTypes/DataModel";
-import NumberList from "src/dataTypes/numeric/NumberList";
-import ColorList from "src/dataTypes/graphic/ColorList";
-import StringList from "src/dataTypes/strings/StringList";
-import DateList from "src/dataTypes/dates/DateList";
-import NodeList from "src/dataTypes/structures/lists/NodeList";
-import RelationList from "src/dataTypes/structures/lists/RelationList";
-import Polygon from "src/dataTypes/geometry/Polygon";
-import PolygonList from "src/dataTypes/geometry/PolygonList";
-import Table from "src/dataTypes/lists/Table";
-import NumberTable from "src/dataTypes/numeric/NumberTable";
-import Interval from "src/dataTypes/numeric/Interval";
-import ListOperators from "src/operators/lists/ListOperators";
+            <pre class="prettyprint source linenums"><code>import DataModel from "src/dataStructures/DataModel";
+import NumberList from "src/dataStructures/numeric/NumberList";
+import ColorList from "src/dataStructures/graphic/ColorList";
+import StringList from "src/dataStructures/strings/StringList";
+import DateList from "src/dataStructures/dates/DateList";
+import NodeList from "src/dataStructures/structures/lists/NodeList";
+import RelationList from "src/dataStructures/structures/lists/RelationList";
+import Polygon from "src/dataStructures/geometry/Polygon";
+import PolygonList from "src/dataStructures/geometry/PolygonList";
+import Table from "src/dataStructures/lists/Table";
+import NumberTable from "src/dataStructures/numeric/NumberTable";
+import Interval from "src/dataStructures/numeric/Interval";
 import ColorListGenerators from "src/operators/graphic/ColorListGenerators";
 import NumberListOperators from "src/operators/numeric/numberList/NumberListOperators";
 import { instantiateWithSameType, typeOf, instantiate } from "src/tools/utils/code/ClassUtils";
@@ -115,8 +114,7 @@ function List() {
   DataModel.apply(this);
   var array = [];
   var i;
-  var nArguments = arguments.length;
-  for(i = 0; i &lt; nArguments; i++) {
+  for(i = 0; i &lt; arguments.length; i++) {
     array.push(arguments[i]);
   }
   array = List.fromArray(array);
@@ -271,13 +269,12 @@ List.prototype.getImproved = function() {
       break;
   }
 
-  var l = this.length;
   if(newList === null ||  newList === "") {
     //c.l('getImproved | all elelemnts no same type')
 
     var allLists = true;
     var i;
-    for(i = 0; i&lt;l; i++) {
+    for(i = 0; this[i] != null; i++) {
       //c.l('isList?', i, this[i].isList);
       if(!(this[i].isList)) {
         allLists = false;
@@ -305,8 +302,7 @@ List.prototype.isEquivalent = function(list) {
   if(this.length != list.length) return false;
 
   var i;
-  var l = this.length;
-  for(i = 0; i&lt;l; i++) {
+  for(i = 0; this[i] != null; i++) {
     if(this[i] != list[i]) return false;
   }
 
@@ -341,8 +337,7 @@ List.prototype.getLengths = function() {
  */
 List.prototype.getTypeOfElements = function() {
   var typeOfElements = typeOf(this[0]);
-  var l = this.length;
-  for(var i = 1; i&lt;l; i++) {
+  for(var i = 1; this[i] != null; i++) {
     if(typeOf(this[i]) != typeOfElements) return "";
   }
   return typeOfElements;
@@ -356,8 +351,7 @@ List.prototype.getTypeOfElements = function() {
  */
 List.prototype.getTypes = function() {
   var types = new StringList();
-  var l = this.length;
-  for(var i = 0; i&lt;l; i++) {
+  for(var i = 0; this[i] != null; i++) {
     types[i] = typeOf(this[i]);
   }
   return types;
@@ -384,8 +378,7 @@ List.prototype.toString = function() {
  */
 List.prototype.getNames = function() {
   var stringList = new StringList();
-  var l = this.length;
-  for(var i = 0; i&lt;l; i++) {
+  for(var i = 0; this[i] != null; i++) {
     stringList[i] = this[i].name;
   }
   return stringList;
@@ -398,8 +391,7 @@ List.prototype.getNames = function() {
  */
 List.prototype.getReversed = function() {
   var newList = instantiateWithSameType(this);
-  var l = this.length;
-  for(var i = 0; i&lt;l; i++) {
+  for(var i = 0; this[i] != null; i++) {
     newList.unshift(this[i]);
   }
   return newList;
@@ -407,7 +399,8 @@ List.prototype.getReversed = function() {
 
 /**
  * returns a sub-list, params could be: tw numbers, an interval or a NumberList.
- * @param {Number} argument0 number, interval (in this it will include elements with initial and end indexes) or numberList
+ * @param {Number|Interval} argument0 number, interval (in this it will
+ * include elements with initial and end indexes) or numberList
  * @param {Number} argument1 second index
  * @return {List}
  * tags:filter
@@ -429,7 +422,6 @@ List.prototype.getSubList = function() {
   } else {
     interval = arguments[0];
   }
-
 
   var newInterval = new Interval(Math.max(Math.min(Math.floor(interval.x), this.length), 0), Math.max(Math.min(Math.floor(interval.y), this.length - 1), 0));
   var newList;
@@ -564,9 +556,8 @@ List.prototype.clone = function() {
   //TODO:check this! fromArray should suffice
   var clonedList = instantiateWithSameType(this);
   var i;
-  var l = this.length;
 
-  for(i = 0; i&lt;l; i++) {
+  for(i = 0; this[i] != null; i++) {
     clonedList.push(this[i]);
   }
   clonedList.name = this.name;
@@ -583,13 +574,11 @@ List.prototype.getWithoutRepetitions = function() {
   var dictionary;
 
   var newList = instantiateWithSameType(this);
-  var l = this.length;
-
   newList.name = this.name;
 
   //if(this.type == 'NumberList' || this.type == 'StringList') {//TODO:check other cases
   dictionary = {};
-  for(i = 0; i&lt;l; i++) {
+  for(i = 0; this[i] != null; i++) {
     if(!dictionary[this[i]]) {
       newList.push(this[i]);
       dictionary[this[i]] = true;
@@ -617,22 +606,16 @@ List.prototype.getSimplified = function(nCategories, othersElement) {
   if(!nCategories) return;
 
   var freqTable = this.getFrequenciesTable();
-  var frequencyIndexesDictionary = ListOperators.getSingleIndexDictionaryForList(freqTable[0]);
-  var i;
-  var l = this.length;
 
   if(othersElement==null) othersElement = "other";
 
-  var newList = this.type=="StringList"?new StringList():new List();
+  var newList = new List();
   newList.name = this.name;
 
-  for(i=0; i&lt;l; i++){
-    newList.push(frequencyIndexesDictionary[this[i]]&lt;nCategories-1?this[i]:othersElement);
-  }
-  // this.forEach(function(element){
-  //   newList.push(freqTable._indexesDictionary[element]&lt;nCategories-1?element:othersElement);
-  // });
-  
+  this.forEach(function(element){
+    newList.push(freqTable._indexesDictionary[element]&lt;nCategories-1?element:othersElement);
+  });
+
   return newList;
 };
 
@@ -645,13 +628,11 @@ List.prototype.getSimplified = function(nCategories, othersElement) {
  */
 List.prototype.countElement = function(element) {
   var n = 0;
-  //this.forEach(function(elementInList) {
-  var l = this.length;
-
-  for(var i = 0; i&lt;l; i++) {
-    if(element == this[i]) n++;
-  }
-
+  this.forEach(function(elementInList) {
+    if(element == elementInList) {
+      n++;
+    }
+  });
   return n;
 };
 
@@ -662,8 +643,7 @@ List.prototype.countElement = function(element) {
  */
 List.prototype.countOccurrences = function() { //TODO: more efficient
   var occurrences = new NumberList();
-  var l = this.length;
-  for(var i = 0; i&lt;l; i++) {
+  for(var i = 0; this[i] != null; i++) {
     occurrences[i] = this.indexesOf(this[i]).length;
   }
   return occurrences;
@@ -693,21 +673,20 @@ List.prototype.getFrequenciesTable = function(sortListsByOccurrences, addWeights
   table[1] = numberList;
 
   //if(this.type == 'NumberList' || this.type == 'StringList') {//TODO:check other cases
-  table._indexesDictionary = {};
+  var dictionary = {};
 
-  var l = this.length;
-
-  for(i=0; i&lt;l; i++){
-    index = table._indexesDictionary[this[i]];
+  for(i=0; this[i]!=null; i++){
+    index = dictionary[this[i]];
     if(index==null){
       index = elementList.length;
       elementList[index] = this[i];
       numberList[index] = 0;
-      table._indexesDictionary[this[i]]= index;
+      dictionary[this[i]]= index;
     }
     numberList[index]++;
   }
 
+  table._indexesDictionary = dictionary;
 
 
   // } else {
@@ -732,10 +711,9 @@ List.prototype.getFrequenciesTable = function(sortListsByOccurrences, addWeights
   if(addWeightsNormalizedToSum) table[2] = NumberListOperators.normalizedToSum(table[1]);
   if(addCategoricalColors){
     var colors = new ColorList();
-    l = table[0].length;
-    for(i = 0; i&lt;l; i++) {
-      colors[i] = ColorListGenerators._HARDCODED_CATEGORICAL_COLORS[i%ColorListGenerators._HARDCODED_CATEGORICAL_COLORS.length];
-    }
+    for(i = 0; table[0][i]!=null; i++) {
+        colors[i] = ColorListGenerators._HARDCODED_CATEGORICAL_COLORS[i%ColorListGenerators._HARDCODED_CATEGORICAL_COLORS.length];
+      }
     table.push(colors);
   }
 
@@ -751,9 +729,8 @@ List.prototype.allElementsEqual = function() {
   if(this.length &lt; 2) return true;
 
   var first = this[0];
-  var l = this.length;
 
-  for(i = 1; i&lt;l; i++) {
+  for(i = 1; this[i] != null; i++) {
     if(this[i] != first) return false;
   }
 
@@ -780,8 +757,7 @@ List.prototype.getMin = function() {
   if(this.length === 0) return null;
   var min = this[0];
   var i;
-  var l = this.length;
-  for(i = 1; i &lt; l; i++) {
+  for(i = 1; i &lt; this.length; i++) {
     min = Math.min(min, this[i]);
   }
   return min;
@@ -796,8 +772,7 @@ List.prototype.getMax = function() {
   if(this.length === 0) return null;
   var max = this[0];
   var i;
-  var l = this.length;
-  for(i = 1; i &lt; l; i++) {
+  for(i = 1; i &lt; this.length; i++) {
     max = Math.max(max, this[i]);
   }
   return max;
@@ -816,9 +791,8 @@ List.prototype.getMax = function() {
 List.prototype.add = function(value) {
   if(value.constructor == Number) {
     var i;
-    var l = this.length;
     var array = instantiateWithSameType(this);
-    for(i = 0; i &lt; l; i++) {
+    for(i = 0; i &lt; this.length; i++) {
       array.push(this[i] + value);
     }
     return array;
@@ -863,8 +837,7 @@ List.prototype.getRandomElements = function(n, avoidRepetitions) {
  */
 List.prototype.containsElement = function(element) { //TODO: test if this is faster than indexOf
   var i;
-  var l = this.length;
-  for(i = 0; i&lt;l; i++) {
+  for(i = 0; this[i] != null; i++) {
     if(this[i] == element) return true;
   }
   return false;
@@ -878,8 +851,7 @@ List.prototype.containsElement = function(element) { //TODO: test if this is fas
  */
 List.prototype.indexOfElement = function(element) { //TODO: test if this is faster than indexOf
   var i;
-  var l = this.length;
-  for(i = 0; i&lt;l; i++) {
+  for(i = 0; this[i] != null; i++) {
     if(this[i] == element) return i;
   }
   return -1;
@@ -898,8 +870,7 @@ List.prototype.getPropertyValues = function(propertyName, valueIfNull) {
   var newList = new List();
   newList.name = propertyName;
   var val;
-  var l = this.length;
-  for(var i = 0; i&lt;l; i++) {
+  for(var i = 0; this[i] != null; i++) {
     val = this[i][propertyName];
     newList[i] = (val == null ? valueIfNull : val);
   }
@@ -909,8 +880,7 @@ List.prototype.getPropertyValues = function(propertyName, valueIfNull) {
 List.prototype.sortIndexed = function() {
   var index = [];
   var i;
-  var l = this.length;
-  for(i = 0; i &lt; l; i++) {
+  for(i = 0; i &lt; this.length; i++) {
     index.push({
       index: i,
       value: this[i]
@@ -981,9 +951,8 @@ List.prototype.getSortedByList = function(list, ascending) {
 
   var pairsArray = [];
   var i;
-  var l = this.length;
 
-  for(i = 0; i&lt;l; i++) {
+  for(i = 0; this[i] != null; i++) {
     pairsArray[i] = [this[i], list[i]];
   }
 
@@ -1003,7 +972,7 @@ List.prototype.getSortedByList = function(list, ascending) {
   var newList = instantiateWithSameType(this);
   newList.name = this.name;
 
-  for(i = 0; i&lt;l; i++) {
+  for(i = 0; this[i] != null; i++) {
     newList[i] = pairsArray[i][0];
   }
 
@@ -1052,8 +1021,7 @@ List.prototype.indexesOf = function(element) {
  */
 List.prototype.indexOfElements = function(elements) {
   var numberList = new NumberList();
-  var l = elements.length;
-  for(var i = 0; i&lt;l; i++) {
+  for(var i = 0; elements[i] != null; i++) {
     numberList[i] = this.indexOf(elements[i]);
   }
   return numberList;
@@ -1068,8 +1036,7 @@ List.prototype.indexOfElements = function(elements) {
  * tags: filter
  */
 List.prototype.getFirstElementByName = function(name, returnIndex) {
-  var l = this.length;
-  for(var i = 0; i&lt;l; i++) {
+  for(var i = 0; this[i] != null; i++) {
     if(this[i].name == name) return returnIndex ? i : this[i];
   }
   return returnIndex ? -1 : null;
@@ -1086,10 +1053,9 @@ List.prototype.getFirstElementByName = function(name, returnIndex) {
 List.prototype.getElementsByNames = function(names, returnIndex) {
   var list = returnIndex ? new NumberList() : new List();
   var i;
-  var l = this.length;
 
   names.forEach(function(name) {
-    for(i = 0; i&lt;l; i++) {
+    for(i = 0; this[i] != null; i++) {
       if(this[i].name == name) {
         list.push(returnIndex ? i : this[i]);
         break;
@@ -1111,16 +1077,14 @@ List.prototype.getElementsByNames = function(names, returnIndex) {
  * tags:
  */
 List.prototype.getFirstElementByPropertyValue = function(propertyName, value) {
-  var l = this.length;
-  for(var i = 0; i&lt;l; i++) {
+  for(var i = 0; this[i] != null; i++) {
     if(this[i][propertyName] == value) return this[i];
   }
   return null;
 };
 
 List.prototype.indexOfByPropertyValue = function(propertyName, value) {
-  var l = this.length;
-  for(var i = 0; i&lt;l; i++) {
+  for(var i = 0; this[i] != null; i++) {
     if(this[i][propertyName] == value) return i;
   }
   return -1;
@@ -1139,8 +1103,7 @@ List.prototype.getFilteredByBooleanList = function(booleanList) {
   var newList = new List();
   newList.name = this.name;
   var i;
-  var l = this.length;
-  for(i = 0; i&lt;l; i++) {
+  for(i = 0; this[i] != null; i++) {
     if(booleanList[i]) newList.push(this[i]);
   }
   return newList.getImproved();
@@ -1203,25 +1166,24 @@ List.prototype.getFilteredByPropertyValue = function(propertyName, propertyValue
   var newList = new List();
   newList.name = "filtered_" + this.name;
   var i;
-  var l = this.length;
   switch(comparison) {
     case "equal":
-      for(i = 0; i&lt;l; i++) {
+      for(i = 0; this[i] != null; i++) {
       if(this[i][propertyName] == propertyValue) newList.push(this[i]);
     }
     break;
     case "different":
-      for(i = 0; i&lt;l; i++) {
+      for(i = 0; this[i] != null; i++) {
       if(this[i][propertyName] != propertyValue) newList.push(this[i]);
     }
     break;
     case "greater":
-      for(i = 0; i&lt;l; i++) {
+      for(i = 0; this[i] != null; i++) {
       if(this[i][propertyName] > propertyValue) newList.push(this[i]);
     }
     break;
     case "lower":
-      for(i = 0; i&lt;l; i++) {
+      for(i = 0; this[i] != null; i++) {
       if(this[i][propertyName] > propertyValue) newList.push(this[i]);
     }
     break;
@@ -1235,8 +1197,7 @@ List.prototype.applyFunction = function(func) {
   var newList = new List();
   newList.name = this.name;
   var i;
-  var l = this.length;
-  for(i = 0; i&lt;l; i++) {
+  for(i = 0; this[i] != null; i++) {
     newList[i] = func(this[i]);
   }
   return newList.getImproved();
@@ -1245,16 +1206,15 @@ List.prototype.applyFunction = function(func) {
 
 //filtering
 
-List.prototype.getWithoutElementsAtIndexes = function(indexes) {
+List.prototype.getWithoutElementsAtIndexes = function(indexes) { //[!] This DOESN'T transforms the List
   var i;
   var newList;
-  var l = this.length;
   if(this.type == 'List') {
     newList = new List();
   } else {
     newList = instantiate(typeOf(this));
   }
-  for(i = 0; i &lt; l; i++) {
+  for(i = 0; i &lt; this.length; i++) {
     if(indexes.indexOf(i) == -1) {
       newList.push(this[i]);
     }
@@ -1272,13 +1232,12 @@ List.prototype.getWithoutElementsAtIndexes = function(indexes) {
  */
 List.prototype.getWithoutElementAtIndex = function(index) {
   var newList;
-  var l = this.length;
   if(this.type == 'List') {
     newList = new List();
   } else {
     newList = instantiateWithSameType(this);
   }
-  for(var i = 0; i&lt;l; i++) {
+  for(var i = 0; this[i] != null; i++) {
     if(i != index) {
       newList.push(this[i]);
     }
@@ -1310,8 +1269,7 @@ List.prototype.getWithoutElement = function(element) {
   newList.name = this.name;
 
   var i;
-  var l = this.length;
-  for(i = 0; i&lt;l; i++) {
+  for(i = 0; this[i] != null; i++) {
     if(i != index) newList.push(this[i]);
   }
 
@@ -1319,16 +1277,15 @@ List.prototype.getWithoutElement = function(element) {
   return newList;
 };
 
-List.prototype.getWithoutElements = function(list) {//TODO: more efficiency with dictionary
+List.prototype.getWithoutElements = function(list) {
   var newList;
-  var l = this.length;
   if(this.type == 'List') {
     newList = new List();
   } else {
     newList = instantiateWithSameType(this);
   }
 
-  for(var i = 0; i&lt;l; i++) {
+  for(var i = 0; this[i] != null; i++) {
     if(list.indexOf(this[i]) == -1) {
       newList.push(this[i]);
     }
@@ -1350,8 +1307,7 @@ List.prototype.getWithoutElements = function(list) {//TODO: more efficiency with
  */
 List.prototype.getFilteredByFunction = function(func) {
   var newList = instantiateWithSameType(this);
-  var l = this.length;
-  for(var i = 0; i&lt;l; i++) {
+  for(var i = 0; this[i] != null; i++) {
     if(func(this[i])) {
       newList.push(this[i]);
     }
@@ -1383,8 +1339,7 @@ List.prototype.concat = function() {
       var newList = this.clone();
       var args = arguments[0];
       var i;
-      var l = args.length;
-      for(i=0; i&lt;l; i++){
+      for(i=0; args[i]!=null; i++){
         // c.l('   +_+_+_+args[i]',args[i]);
         newList.addNode(args[i]);
       }
@@ -1393,7 +1348,6 @@ List.prototype.concat = function() {
   }
   return List.fromArray(this._concat.apply(this, arguments)).getImproved();
 };
-
 
 
 ////transformations
@@ -1406,14 +1360,12 @@ List.prototype.pushIfUnique = function(element) {
 List.prototype.removeElements = function(elements) { //TODO: make it more efficient (avoiding the splice method)
   var i;
   var dictionary = {};
-  var l = this.length;
-  var nElements = elements.length;
 
-  for(i=0; i&lt;nElements; i++){
+  for(i=0; elements[i]!=null; i++){
     dictionary[elements[i]] = true;
   }
 
-  for(i = 0; i&lt;l; i++) {
+  for(i = 0; this[i]!=null; i++) {
     //if(elements.indexOf(this[i]) > -1) {
     if(dictionary[this[i]]) {
       this.splice(i, 1);
@@ -1442,8 +1394,7 @@ List.prototype.removeElementsAtIndexes = function(indexes) {
 };
 
 List.prototype.removeRepetitions = function() {
-  var l = this.length;
-  for(var i = 0; i&lt;l; i++) {
+  for(var i = 0; this[i] != null; i++) {
     if(this.indexOf(this[i], i + 1) != -1) {
       this.splice(i, 1);
     }
@@ -1466,13 +1417,10 @@ List.prototype.replace = function(elementToFind, elementToInsert) {
 List.prototype.assignNames = function(names) {
   if(names == null) return this;
   var n = names.length;
-  var l = this.length;
-  var i;
 
-  //this.forEach(function(element, i) {
-  for(i=0; i&lt;l; i++){
-    this[i].name = names[i % n];
-  }
+  this.forEach(function(element, i) {
+    element.name = names[i % n];
+  });
 
   return this;
 };
@@ -1493,8 +1441,7 @@ List.prototype.splice = function() { //TODO: replace
 };
 
 List.prototype.destroy = function() {
-  var l = this.length;
-  for(var i = 0; i&lt;l; i++) {
+  for(var i = 0; this[i] != null; i++) {
     delete this[i];
   }
 };

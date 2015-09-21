@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>Moebio Framework: Source: visualization/numeric/NumberListDraw.js</title>
+    <title>Moebio Framework: Source: dataStructures/dates/DateList.js</title>
     <link href='http://fonts.googleapis.com/css?family=Open+Sans:700italic,400,700' rel='stylesheet' type='text/css'>
     <!--[if lt IE 9]>
       <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
@@ -44,7 +44,7 @@
 <li class="code"><a href="DateListConversions.html">DateListConversions</a></li><li class="code"><a href="DateListOperators.html">DateListOperators</a></li><li class="code"><a href="DateOperators.html">DateOperators</a></li></ul></div><h3>Drawing</h3>
 <div class="space-bottom1"><div class="pad0y"><strong class="capitalize" keyline-all>Classes</strong></div><ul>
 <li class="code"><a href="DragDetection.html">DragDetection</a></li><li class="code"><a href="Graphics.html">Graphics</a></li><li class="code"><a href="InputTextFieldHTML.html">InputTextFieldHTML</a></li><li class="code"><a href="TextBox.html">TextBox</a></li><li class="code"><a href="TextFieldHTML.html">TextFieldHTML</a></li></ul></div><div class="space-bottom1"><div class="pad0y"><strong class="capitalize" keyline-all>Namespaces</strong></div><ul>
-<li class="code"><a href="CircleDraw.html">CircleDraw</a></li><li class="code"><a href="ColorsDraw.html">ColorsDraw</a></li><li class="code"><a href="Draw.html">Draw</a></li><li class="code"><a href="DrawTexts.html">DrawTexts</a></li><li class="code"><a href="DrawTextsAdvanced.html">DrawTextsAdvanced</a></li><li class="code"><a href="ListDraw.html">ListDraw</a></li><li class="code"><a href="NetworkDraw.html">NetworkDraw</a></li><li class="code"><a href="ObjectDraw.html">ObjectDraw</a></li><li class="code"><a href="StringDraw.html">StringDraw</a></li><li class="code"><a href="StringListDraw.html">StringListDraw</a></li><li class="code"><a href="TreeDraw.html">TreeDraw</a></li></ul></div><h3>Geometry</h3>
+<li class="code"><a href="ColorsDraw.html">ColorsDraw</a></li><li class="code"><a href="Draw.html">Draw</a></li><li class="code"><a href="DrawTexts.html">DrawTexts</a></li><li class="code"><a href="DrawTextsAdvanced.html">DrawTextsAdvanced</a></li><li class="code"><a href="ListDraw.html">ListDraw</a></li><li class="code"><a href="NetworkDraw.html">NetworkDraw</a></li><li class="code"><a href="ObjectDraw.html">ObjectDraw</a></li><li class="code"><a href="StringDraw.html">StringDraw</a></li><li class="code"><a href="StringListDraw.html">StringListDraw</a></li><li class="code"><a href="TreeDraw.html">TreeDraw</a></li></ul></div><h3>Geometry</h3>
 <div class="space-bottom1"><div class="pad0y"><strong class="capitalize" keyline-all>Classes</strong></div><ul>
 <li class="code"><a href="Engine3D.html">Engine3D</a></li><li class="code"><a href="Point.html">Point</a></li><li class="code"><a href="Point3D.html">Point3D</a></li><li class="code"><a href="Polygon.html">Polygon</a></li><li class="code"><a href="Polygon3D.html">Polygon3D</a></li><li class="code"><a href="Polygon3DList.html">Polygon3DList</a></li><li class="code"><a href="PolygonList.html">PolygonList</a></li><li class="code"><a href="Rectangle.html">Rectangle</a></li><li class="code"><a href="RectangleList.html">RectangleList</a></li><li class="code"><a href="Space2D.html">Space2D</a></li></ul></div><div class="space-bottom1"><div class="pad0y"><strong class="capitalize" keyline-all>Namespaces</strong></div><ul>
 <li class="code"><a href="GeometryConversions.html">GeometryConversions</a></li><li class="code"><a href="GeometryOperators.html">GeometryOperators</a></li><li class="code"><a href="PointOperators.html">PointOperators</a></li><li class="code"><a href="PolygonGenerators.html">PolygonGenerators</a></li><li class="code"><a href="PolygonListEncodings.html">PolygonListEncodings</a></li><li class="code"><a href="PolygonListOperators.html">PolygonListOperators</a></li><li class="code"><a href="PolygonOperators.html">PolygonOperators</a></li><li class="code"><a href="RectangleOperators.html">RectangleOperators</a></li></ul></div><h3>Networks</h3>
@@ -64,7 +64,7 @@
     <div class='pad1y pad2x fill-white'>
       <div class='prose'>
         <div class='pad2y'>
-          <h1 class='code'>Source: visualization/numeric/NumberListDraw.js</h1>
+          <h1 class='code'>Source: dataStructures/dates/DateList.js</h1>
         </div>
         
 
@@ -73,114 +73,101 @@
     
     <section>
         <article>
-            <pre class="prettyprint source linenums"><code>import Rectangle from "src/dataTypes/geometry/Rectangle";
-import StringList from "src/dataTypes/strings/StringList";
-import NumberListOperators from "src/operators/numeric/numberList/NumberListOperators";
+            <pre class="prettyprint source linenums"><code>import List from "src/dataStructures/lists/List";
+import NumberList from "src/dataStructures/numeric/NumberList";
+import StringList from "src/dataStructures/strings/StringList";
+import DateOperators from "src/operators/dates/DateOperators";
 
-function NumberListDraw() {}
-export default NumberListDraw;
+DateList.prototype = new List();
+DateList.prototype.constructor = DateList;
 
 /**
- * draws a simple graph
- * @param  {Rectangle} frame
- * @param  {NumberList} numberList
+ * @classdesc A {@link List} for storing Dates.
  *
- * @param {Number} margin
- * @param {Object} xValues horizontal values, could be a stringList, a numberList or an Interval
- * @return {Number} index of element clicked
- * tags:draw
+ * Additional functions that work on DateList can be found in:
+ * &lt;ul>
+ *  &lt;li>Operators:   {@link DateListOperators}&lt;/li>
+ *  &lt;li>Conversions: {@link DateListConversions}&lt;/li>
+ * &lt;/ul>
+ *
+ * @description Creates a new DateList.
+ * @constructor
+ * @category dates
  */
-NumberListDraw.drawSimpleGraph = function(frame, numberList, margin, xValues, graphics) {
-  if(numberList == null || NumberListOperators.normalized(numberList) == null) return;
+function DateList() {
+  var args = [];
+  for(var i = 0; i &lt; arguments.length; i++) {
+    args[i] = Number(arguments[i]);
+  }
+  var array = List.apply(this, args);
+  array = DateList.fromArray(array);
+  //
+  return array;
+}
+export default DateList;
 
-  if(graphics==null) graphics = frame.graphics; //momentary fix
 
-  margin = margin || 0;
+/**
+* @todo write docs
+*/
+DateList.fromArray = function(array, forceToDate) {
+  forceToDate = forceToDate == null ? true : forceToDate;
+  var result = List.fromArray(array);
 
-  //setup
-  if(frame.memory == null || numberList != frame.memory.numberList) {
-    frame.memory = {
-      numberList: numberList,
-      minmax: numberList.getMinMaxInterval(),
-      zero: null
-    };
-    if(frame.memory.minmax.x > 0 &amp;&amp; frame.memory.minmax.y > 0) {
-      frame.memory.normalizedList = NumberListOperators.normalizedToMax(numberList);
-    } else {
-      frame.memory.normalizedList =  NumberListOperators.normalized(numberList);
-      frame.memory.zero = -frame.memory.minmax.x / frame.memory.minmax.getAmplitude();
+  if(forceToDate) {
+    for(var i = 0; i &lt; result.length; i++) {
+      result[i] = new Date(result[i]);
     }
-
-    frame.memory.xTexts = new StringList();
-
-    if(xValues != null &amp;&amp; xValues.type == "Interval") {
-      var kx = (xValues.getAmplitude() + 1) / numberList.length;
-    }
-
-    numberList.forEach(function(val, i) {
-      frame.memory.xTexts[i] = (xValues == null) ? String(numberList[i]) : ((kx == null ? xValues[i] : (xValues.x + i * kx)) + ":" + numberList[i]);
-    });
   }
 
+  result.type = "DateList";
+  //assign methods to array:
+  result.getTimes = DateList.prototype.getTimes;
+  result.getMin = DateList.prototype.getMin;
+  result.getMax = DateList.prototype.getMax;
+  return result;
+};
+
+/**
+ * get a numberList of time (milliseconds) values
+ * @return {NumberList}
+ * tags:conversor
+ */
+DateList.prototype.getTimes = function() {
   var i;
-  var subframe = new Rectangle(frame.x + margin, frame.y + margin, frame.width - margin * 2, frame.height - margin * 2);
-  subframe.bottom = subframe.getBottom();
-  var x;
-  var dx = subframe.width / numberList.length;
-  var w = Math.max(1, dx);
-  var overI = -1;
-
-  var mouseOnFrame = subframe.containsPoint(graphics.mP);
-  var normalColor = mouseOnFrame ? 'rgb(160,160,160)' : 'black';
-
-  if(frame.memory.zero) {
-    var zeroY = subframe.bottom - subframe.height * frame.memory.zero; //Math.max(subframe.bottom - subframe.height*frame.memory.zero, subframe.y);
-    for(i = 0; numberList[i] != null; i++) {
-      x = subframe.x + i * dx;
-      if(mouseOnFrame &amp;&amp; graphics.mX > x &amp;&amp; graphics.mX &lt; x + dx) {
-        overI = i;
-        graphics.setFill('black');
-      } else {
-        graphics.setFill(normalColor);
-      }
-      graphics.fRect(subframe.x + i * dx, zeroY, w, -subframe.height * (frame.memory.normalizedList[i] - frame.memory.zero));
-    }
-  } else {
-    for(i = 0; numberList[i] != null; i++) {
-      x = subframe.x + i * dx;
-      if(mouseOnFrame &amp;&amp; graphics.mX > x &amp;&amp; graphics.mX &lt; x + dx) {
-        overI = i;
-        graphics.setFill('black');
-      } else {
-        graphics.setFill(normalColor);
-      }
-      graphics.fRect(x, subframe.bottom, w, -subframe.height * frame.memory.normalizedList[i]);
-    }
+  var numberList = new NumberList();
+  for(i = 0; this[i] != null; i++) {
+    numberList.push(this[i].getTime());
   }
+  return numberList;
+};
 
-  var clicked;
 
-  if(overI != -1) {
-    graphics.setText('white', 12);
-    var text = frame.memory.xTexts[overI];
-    var w = graphics.getTextW(text);
-    graphics.setFill('rgb(100,100,100)');
-    graphics.fLines(
-      graphics.mX, graphics.mY,
-      graphics.mX + 16, graphics.mY - 10,
-      graphics.mX + w + 16, graphics.mY - 10,
-      graphics.mX + w + 16, graphics.mY - 30,
-      graphics.mX + 6, graphics.mY - 30,
-      graphics.mX + 6, graphics.mY - 10
-    );
-    graphics.setFill('white');
-    graphics.fText(text, graphics.mX + 10, graphics.mY - 26);
-    if(graphics.MOUSE_DOWN) {
-      clicked = overI;
-    }
+
+/**
+* @todo write docs
+*/
+DateList.prototype.getMin = function() {
+  if(this.length === 0) return null;
+  var min = this[0];
+  var i;
+  for(i = 1; this[i] != null; i++) {
+    min = min &lt; this[i] ? min : this[i];
   }
+  return min;
+};
 
-  return clicked;
+/**
+* @todo write docs
+*/
+DateList.prototype.getMax = function() {
+  if(this.length === 0) return null;
+  var max = this[0];
+  var i;
+  for(i = 1; this[i] != null; i++) {
+    max = max > this[i] ? max : this[i];
+  }
+  return max;
 };
 </code></pre>
         </article>

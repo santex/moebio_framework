@@ -103,7 +103,7 @@ DateOperators.WEEK_NAMES = ['monday', 'tuesday', 'wednesday', 'thursday', 'frida
  * @return {Date}
  * tags:decoder
  */
-DateOperators.stringToDate = function(string, formatCase, separator) {
+DateOperators.stringToDate = function(string, formatCase, separator) {// @todo: move to StringConversions
   separator = separator == null ? "-" : separator;
   formatCase = formatCase == null ? 1 : formatCase;
 
@@ -142,7 +142,7 @@ DateOperators.stringToDate = function(string, formatCase, separator) {
  * 0: MM-DD-YYYY
  * 1: YYYY-MM-DD
  */
-DateOperators.dateToString = function(date, formatCase, separator) {
+DateOperators.dateToString = function(date, formatCase, separator) {// @todo: move to DateConversions
   separator = separator == null ? "-" : separator;
   formatCase = formatCase == null ? 0 : formatCase;
   var year = date.getFullYear();
