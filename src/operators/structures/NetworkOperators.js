@@ -96,7 +96,7 @@ NetworkOperators.getNodesBetweenTwoNodes = function(network, node0, node1){
 
 /**
  * Returns a NodeList with the Nodes in the Network that are part of the
- * first shortest path found between the two input nodes.
+ * first shortest path found between the two input nodes. Aka geodesic path between two nodes
  *
  * @param {Network} network Network to work on.
  * @param {Node} node0 Source Node.
@@ -912,15 +912,14 @@ NetworkOperators._strengthBetweenSets = function(nodeList0, nodeList1, pRelation
 
   return strength / (nodeList0.length * nodeList1.length * pRelationPair);
 };
-
-
+ 
 
 /**
  * Builds a Table of clusters, based on an dendrogram Tree (if not provided it will be calculated), and a weight bias
  * @param  {Network} network
  *
  * @param  {Tree} dendrogramTree Dendrogram Tree, if precalculated, changes in weight bias will perform faster
- * @param  {Number} minWeight Weight bias, criteria to group clusters (0.5 default)
+ * @param  {Number} minWeight Weight bias, criteria to group clusters (0.5 default, the higher the value, the higer the number of clusters)
  * @return {Table} List of NodeLists
  * tags:analysis
  */

@@ -83,22 +83,117 @@ StringListOperators.filterStringListByString = function(stringList, string, asWo
 /**
  * replaces in each string, a sub-string by a string
  *
- * @param  {StringList} stringList  StringList to work on.
- * @param  {String} subString sub-string to be replaced in each string
+ * @param  {StringList} texts  where to replace strings
+ * @param  {StringList} strings to be replaced (could be Regular Expressions)
  * @param  {String} replacement string to be placed instead
  * @return {StringList}
  * tags:
  */
-StringListOperators.replaceSubStringsInStrings = function(stringlist, subString, replacement) {
-  var newStringList = new StringList();
-  newStringList.name = stringlist.name;
+StringListOperators.replaceStringsInTexts = function(texts, strings, replacement) {
+  if(texts==null || strings==null || replacement==null) return null;
 
-  for(var i = 0; stringlist[i] != null; i++) {
-    newStringList[i] = StringOperators.replaceSubString(stringlist[i], subString, replacement);
+  var newTexts = new StringList();
+  newTexts.name = texts.name;
+  var nTexts = texts.length;
+  var nStrings = strings.length;
+  var i, j;
+  var string;
+
+  for(i = 0; i<nTexts; i++) {
+    newTexts[i] = texts[i];
+    for(j=0; j<nStrings; j++){
+      string = strings[j];
+      if(!(string instanceof RegExp)) string = new RegExp(string, "g");
+      newTexts[i] = newTexts[i].replace(string, replacement);
+    }
   }
 
-  return newStringList;
+  return newTexts;
 };
+
+/**
+ * replaces in each string, a sub-string by a string
+ *
+ * @param  {StringList} stringList  StringList to work on.
+ * @param  {String} string to be replaced (could be Regular Expression)
+ * @param  {String} replacement string to be placed instead
+ * @return {StringList}
+ * tags:
+ */
+StringListOperators.replaceStringInTexts = function(texts, string, replacement) {
+  if(texts==null || string==null || replacement==null) return null;
+
+  if(!(string instanceof RegExp)) string = new RegExp(string, "g");
+
+  var newTexts = new StringList();
+  newTexts.name = texts.name;
+  var nTexts = texts.length;
+  var i;
+
+  for(i = 0; i<nTexts; i++) {
+    newTexts[i] = texts[i].replace(string, replacement);
+  }
+
+  return newTexts;
+};
+
+/**
+ * replaces in each string, a sub-string by a string
+ *
+ * @param  {String} text where to replaces strings
+ * @param  {StringList} strings to be replaced (could be Regular Expressions)
+ * @param  {String} replacement string to be placed instead
+ * @return {String}
+ * tags:
+ */
+StringListOperators.replaceStringsInText = function(text, strings, replacement) {
+  if(text==null || strings==null || replacement==null) return null;
+
+  var newText = text;
+  var nStrings = strings.length;
+  var j;
+  var string;
+
+  for(j=0; j<nStrings; j++){
+    string = strings[j];
+    if(!(string instanceof RegExp)) string = new RegExp(string, "g");
+    newText = newText.replace(string, replacement);
+  }
+
+  return newText;
+};
+
+/**
+ * replaces in each string, a sub-string by a string
+ *
+ * @param  {StringList} texts  where to replace strings
+ * @param  {StringList} strings to be replaced (could be Regular Expressions)
+ * @param  {StringList} replacements strings to be placed instead (should have same length as strings)
+ * @return {StringList}
+ * tags:
+ */
+StringListOperators.replaceStringsInTextsByStrings = function(texts, strings, replacements) {
+  if(texts==null || strings==null || replacements==null) return null;
+
+  var newTexts = new StringList();
+  newTexts.name = texts.name;
+  var nTexts = texts.length;
+  var nStrings = strings.length;
+  var i, j;
+  var string;
+
+  for(i = 0; i<nTexts; i++) {
+    newTexts[i] = texts[i];
+    for(j=0; j<nStrings; j++){
+      string = strings[j];
+      if(!(string instanceof RegExp)) string = new RegExp(string, "g");
+      newTexts[i] = newTexts[i].replace(string, replacements[j]);
+    }
+  }
+
+  return newTexts;
+};
+
 
 
 
@@ -112,6 +207,14 @@ StringListOperators.replaceSubStringsInStrings = function(stringlist, subString,
 /**
  * @todo finish docs
  */
+
+/**
+* finds strings from a list in strings in another list (typically the strings in the first list are short, and in the second longer texts)
+* @param {StringList} list of strings or list of Regular Expressions
+* @param {StringList} list of texts were to search
+* @return {NumberTable} matrix of results, each column being the vector of occurrences for each string
+* tags:count
+*/
 StringListOperators.countStringsOccurrencesOnTexts = function(strings, texts) {
   var occurrencesTable = new NumberTable();
 

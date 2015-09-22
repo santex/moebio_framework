@@ -56,6 +56,12 @@ FastHtml.expand = function(abreviatedHTML) {
 
   bit = "";
   while(bit != null) {
+    bit = StringOperators.getFirstTextBetweenStrings(newText, "<fccolor", ">");
+    if(bit != null) newText = newText.replace("<fccolor" + bit + ">", "<font color=\"" + ColorOperators.colorStringToHEX(bit) + "\">");
+  }
+
+  bit = "";
+  while(bit != null) {
     bit = StringOperators.getFirstTextBetweenStrings(newText, "<frgb", ">");
     if(bit != null) {
       var rgb = bit.split(".");
