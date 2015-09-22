@@ -925,7 +925,6 @@ NetworkEncodings.decodeSYM = function(symCode) {
           if(node.group != null) {
             group = groups.getFirstElementByPropertyValue("name", node.group);
             if(group == null) {
-              console.log("NODES new group:[" + node.group + "]");
               group = new NodeList();
               group.name = node.group;
               group.name = group.name.replace(/\\n/g, '\n').replace(/\\'/g, "'");
