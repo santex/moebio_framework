@@ -4,6 +4,8 @@
 
 Moebio Framework is a JavaScript toolkit for performing data analysis and creating visualizations. It provides a canvas based graphics framework and data structures and operators for manipulating data.
 
+_Copyright © 2015 Moebio Labs, a Reddrummer division_
+
 ## Features
 
 * Fast canvas based 2D and 3D drawing api with mouse interaction
