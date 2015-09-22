@@ -82,7 +82,6 @@ StringListOperators.filterStringListByString = function(stringList, string, asWo
 
 /**
  * replaces in each string, a sub-string by a string
- *
  * @param  {StringList} texts  where to replace strings
  * @param  {StringList} strings to be replaced (could be Regular Expressions)
  * @param  {String} replacement string to be placed instead
@@ -113,7 +112,6 @@ StringListOperators.replaceStringsInTexts = function(texts, strings, replacement
 
 /**
  * replaces in each string, a sub-string by a string
- *
  * @param  {StringList} stringList  StringList to work on.
  * @param  {String} string to be replaced (could be Regular Expression)
  * @param  {String} replacement string to be placed instead
@@ -139,7 +137,6 @@ StringListOperators.replaceStringInTexts = function(texts, string, replacement) 
 
 /**
  * replaces in each string, a sub-string by a string
- *
  * @param  {String} text where to replaces strings
  * @param  {StringList} strings to be replaced (could be Regular Expressions)
  * @param  {String} replacement string to be placed instead
@@ -165,7 +162,6 @@ StringListOperators.replaceStringsInText = function(text, strings, replacement) 
 
 /**
  * replaces in each string, a sub-string by a string
- *
  * @param  {StringList} texts  where to replace strings
  * @param  {StringList} strings to be replaced (could be Regular Expressions)
  * @param  {StringList} replacements strings to be placed instead (should have same length as strings)

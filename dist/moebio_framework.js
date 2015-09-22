@@ -1423,8 +1423,7 @@
 
   /**
    * returns a sub-list, params could be: tw numbers, an interval or a NumberList.
-   * @param {Number|Interval} argument0 number, interval (in this it will
-   * include elements with initial and end indexes) or numberList
+   * @param {Number} argument0 number, interval (in this it will include elements with initial and end indexes) or numberList
    * @param {Number} argument1 second index
    * @return {List}
    * tags:filter
@@ -1446,6 +1445,7 @@
     } else {
       interval = arguments[0];
     }
+
 
     var newInterval = new Interval(Math.max(Math.min(Math.floor(interval.x), this.length), 0), Math.max(Math.min(Math.floor(interval.y), this.length - 1), 0));
     var newList;
@@ -8579,36 +8579,38 @@
 
   /**
    * replaces in a string ocurrences of a sub-string by another string (base in replace JavaScript method)
-   * @param  {String} string to be modified
-   * @param  {String} subString sub-string to be replaced
+   * @param  {String} text to be modified
+   * @param  {String} string string to be replaced (could be Regular Expression)
    * @param  {String} replacement string to be placed instead
    * @return {String}
    * tags:
    */
-  StringOperators.replaceSubString = function(string, subString, replacement) {
-    if(string == null || subString == null || replacement == null) return null;
-    return string.replace(new RegExp(subString, "g"), replacement);
+  StringOperators.replaceStringInText = function(text, string, replacement) {
+    if(text == null || string == null || replacement == null) return null;
+
+    if(!(string instanceof RegExp)) string = new RegExp(string, "g");
+
+    return text.replace(string, replacement);
   };
 
-  /**
+  /** depracted, replaced by StringListOperators.replaceStringsInText
    * replaces in a string ocurrences of sub-strings by a string
    * @param  {String} string to be modified
    * @param  {StringList} subStrings sub-strings to be replaced
    * @param  {String} replacement string to be placed instead
    * @return {String}
-   * tags:
    */
-  StringOperators.replaceSubStringsByString = function(string, subStrings, replacement) {
-    if(subStrings == null) return;
+  // StringOperators.replaceSubStringsByString = function(string, subStrings, replacement) {
+  //   if(subStrings == null) return;
 
-    subStrings.forEach(function(subString) {
-      string = StringOperators.replaceSubString(string, subString, replacement);
-    });
+  //   subStrings.forEach(function(subString) {
+  //     string = StringOperators.replaceStringInText(string, subString, replacement);
+  //   });
 
-    return string;
-  };
+  //   return string;
+  // };
 
-  /**
+  /** deprecated, replaced by: 
    * replaces in a string ocurrences of sub-strings by strings (1-1)
    * @param  {String} string to be modified
    * @param  {StringList} subStrings sub-strings to be replaced
@@ -8616,18 +8618,18 @@
    * @return {String}
    * tags:
    */
-  StringOperators.replaceSubStringsByStrings = function(string, subStrings, replacements) {
-    if(subStrings == null || replacements == null) return;
+  // StringOperators.replaceSubStringsByStrings = function(string, subStrings, replacements) {
+  //   if(subStrings == null || replacements == null) return;
 
-    var nElements = Math.min(subStrings.length, replacements.length);
-    var i;
+  //   var nElements = Math.min(subStrings.length, replacements.length);
+  //   var i;
 
-    for(i = 0; i < nElements; i++) {
-      string = StringOperators.replaceSubString(string, subStrings[i], replacements[i]);
-    }
+  //   for(i = 0; i < nElements; i++) {
+  //     string = StringOperators.replaceStringInText(string, subStrings[i], replacements[i]);
+  //   }
 
-    return string;
-  };
+  //   return string;
+  // };
 
   /**
    * builds a stringList of words contained in the text
@@ -9552,7 +9554,7 @@
    * @return {Date}
    * tags:decoder
    */
-  DateOperators.stringToDate = function(string, formatCase, separator) {
+  DateOperators.stringToDate = function(string, formatCase, separator) {// @todo: move to StringConversions
     separator = separator == null ? "-" : separator;
     formatCase = formatCase == null ? 1 : formatCase;
 
@@ -9591,7 +9593,7 @@
    * 0: MM-DD-YYYY
    * 1: YYYY-MM-DD
    */
-  DateOperators.dateToString = function(date, formatCase, separator) {
+  DateOperators.dateToString = function(date, formatCase, separator) {// @todo: move to DateConversions
     separator = separator == null ? "-" : separator;
     formatCase = formatCase == null ? 0 : formatCase;
     var year = date.getFullYear();
@@ -10623,7 +10625,6 @@
             if(node.group != null) {
               group = groups.getFirstElementByPropertyValue("name", node.group);
               if(group == null) {
-                console.log("NODES new group:[" + node.group + "]");
                 group = new NodeList();
                 group.name = node.group;
                 group.name = group.name.replace(/\\n/g, '\n').replace(/\\'/g, "'");
@@ -12406,7 +12407,7 @@
   Matrix.prototype.constructor = Matrix;
 
 
-  //all Matrix objects and methods should be ported to NumberTable (same at MatrixGenerators.json)
+  //@todo all Matrix objects and methods should be ported to NumberTable (same at MatrixGenerators.json)
 
   /**
    * @classdesc Matrix implementation.
@@ -16340,6 +16341,8 @@
     if(table == null ||  table.length <= 0 || nList == null) return;
     if(element == null) return table;
 
+    keepRowIfElementIsPresent = keepRowIfElementIsPresent==null?true:keepRowIfElementIsPresent;
+
 
     var newTable = new Table();
     var i, j;
@@ -19176,23 +19179,114 @@
 
   /**
    * replaces in each string, a sub-string by a string
-   *
-   * @param  {StringList} stringList  StringList to work on.
-   * @param  {String} subString sub-string to be replaced in each string
+   * @param  {StringList} texts  where to replace strings
+   * @param  {StringList} strings to be replaced (could be Regular Expressions)
    * @param  {String} replacement string to be placed instead
    * @return {StringList}
    * tags:
    */
-  StringListOperators.replaceSubStringsInStrings = function(stringlist, subString, replacement) {
-    var newStringList = new StringList();
-    newStringList.name = stringlist.name;
+  StringListOperators.replaceStringsInTexts = function(texts, strings, replacement) {
+    if(texts==null || strings==null || replacement==null) return null;
 
-    for(var i = 0; stringlist[i] != null; i++) {
-      newStringList[i] = StringOperators.replaceSubString(stringlist[i], subString, replacement);
+    var newTexts = new StringList();
+    newTexts.name = texts.name;
+    var nTexts = texts.length;
+    var nStrings = strings.length;
+    var i, j;
+    var string;
+
+    for(i = 0; i<nTexts; i++) {
+      newTexts[i] = texts[i];
+      for(j=0; j<nStrings; j++){
+        string = strings[j];
+        if(!(string instanceof RegExp)) string = new RegExp(string, "g");
+        newTexts[i] = newTexts[i].replace(string, replacement);
+      }
     }
 
-    return newStringList;
+    return newTexts;
   };
+
+  /**
+   * replaces in each string, a sub-string by a string
+   * @param  {StringList} stringList  StringList to work on.
+   * @param  {String} string to be replaced (could be Regular Expression)
+   * @param  {String} replacement string to be placed instead
+   * @return {StringList}
+   * tags:
+   */
+  StringListOperators.replaceStringInTexts = function(texts, string, replacement) {
+    if(texts==null || string==null || replacement==null) return null;
+
+    if(!(string instanceof RegExp)) string = new RegExp(string, "g");
+
+    var newTexts = new StringList();
+    newTexts.name = texts.name;
+    var nTexts = texts.length;
+    var i;
+
+    for(i = 0; i<nTexts; i++) {
+      newTexts[i] = texts[i].replace(string, replacement);
+    }
+
+    return newTexts;
+  };
+
+  /**
+   * replaces in each string, a sub-string by a string
+   * @param  {String} text where to replaces strings
+   * @param  {StringList} strings to be replaced (could be Regular Expressions)
+   * @param  {String} replacement string to be placed instead
+   * @return {String}
+   * tags:
+   */
+  StringListOperators.replaceStringsInText = function(text, strings, replacement) {
+    if(text==null || strings==null || replacement==null) return null;
+
+    var newText = text;
+    var nStrings = strings.length;
+    var j;
+    var string;
+
+    for(j=0; j<nStrings; j++){
+      string = strings[j];
+      if(!(string instanceof RegExp)) string = new RegExp(string, "g");
+      newText = newText.replace(string, replacement);
+    }
+
+    return newText;
+  };
+
+  /**
+   * replaces in each string, a sub-string by a string
+   * @param  {StringList} texts  where to replace strings
+   * @param  {StringList} strings to be replaced (could be Regular Expressions)
+   * @param  {StringList} replacements strings to be placed instead (should have same length as strings)
+   * @return {StringList}
+   * tags:
+   */
+  StringListOperators.replaceStringsInTextsByStrings = function(texts, strings, replacements) {
+    if(texts==null || strings==null || replacements==null) return null;
+
+    var newTexts = new StringList();
+    newTexts.name = texts.name;
+    var nTexts = texts.length;
+    var nStrings = strings.length;
+    var i, j;
+    var string;
+
+    for(i = 0; i<nTexts; i++) {
+      newTexts[i] = texts[i];
+      for(j=0; j<nStrings; j++){
+        string = strings[j];
+        if(!(string instanceof RegExp)) string = new RegExp(string, "g");
+        newTexts[i] = newTexts[i].replace(string, replacements[j]);
+      }
+    }
+
+    return newTexts;
+  };
+
 
 
 
@@ -19206,6 +19300,14 @@
   /**
    * @todo finish docs
    */
+
+  /**
+  * finds strings from a list in strings in another list (typically the strings in the first list are short, and in the second longer texts)
+  * @param {StringList} list of strings or list of Regular Expressions
+  * @param {StringList} list of texts were to search
+  * @return {NumberTable} matrix of results, each column being the vector of occurrences for each string
+  * tags:count
+  */
   StringListOperators.countStringsOccurrencesOnTexts = function(strings, texts) {
     var occurrencesTable = new NumberTable();
 
@@ -19728,7 +19830,7 @@
 
   /**
    * Returns a NodeList with the Nodes in the Network that are part of the
-   * first shortest path found between the two input nodes.
+   * first shortest path found between the two input nodes. Aka geodesic path between two nodes
    *
    * @param {Network} network Network to work on.
    * @param {Node} node0 Source Node.
@@ -20544,15 +20646,14 @@
 
     return strength / (nodeList0.length * nodeList1.length * pRelationPair);
   };
-
-
+   
 
   /**
    * Builds a Table of clusters, based on an dendrogram Tree (if not provided it will be calculated), and a weight bias
    * @param  {Network} network
    *
    * @param  {Tree} dendrogramTree Dendrogram Tree, if precalculated, changes in weight bias will perform faster
-   * @param  {Number} minWeight Weight bias, criteria to group clusters (0.5 default)
+   * @param  {Number} minWeight Weight bias, criteria to group clusters (0.5 default, the higher the value, the higer the number of clusters)
    * @return {Table} List of NodeLists
    * tags:analysis
    */
@@ -24791,6 +24892,12 @@
 
     bit = "";
     while(bit != null) {
+      bit = StringOperators.getFirstTextBetweenStrings(newText, "<fccolor", ">");
+      if(bit != null) newText = newText.replace("<fccolor" + bit + ">", "<font color=\"" + ColorOperators.colorStringToHEX(bit) + "\">");
+    }
+
+    bit = "";
+    while(bit != null) {
       bit = StringOperators.getFirstTextBetweenStrings(newText, "<frgb", ">");
       if(bit != null) {
         var rgb = bit.split(".");
@@ -27156,6 +27263,7 @@
     subframe.bottom = subframe.getBottom();
     var x;
     var dx = subframe.width / numberList.length;
+    var w = Math.max(1, dx);
     var overI = -1;
 
     var mouseOnFrame = subframe.containsPoint(graphics.mP);
@@ -27171,7 +27279,7 @@
         } else {
           graphics.setFill(normalColor);
         }
-        graphics.fRect(subframe.x + i * dx, zeroY, dx, -subframe.height * (frame.memory.normalizedList[i] - frame.memory.zero));
+        graphics.fRect(subframe.x + i * dx, zeroY, w, -subframe.height * (frame.memory.normalizedList[i] - frame.memory.zero));
       }
     } else {
       for(i = 0; numberList[i] != null; i++) {
@@ -27182,7 +27290,7 @@
         } else {
           graphics.setFill(normalColor);
         }
-        graphics.fRect(x, subframe.bottom, dx, -subframe.height * frame.memory.normalizedList[i]);
+        graphics.fRect(x, subframe.bottom, w, -subframe.height * frame.memory.normalizedList[i]);
       }
     }
 
