@@ -114,37 +114,6 @@ StringListOperators.replaceStringsInTexts = function(texts, strings, replacement
 /**
  * replaces in each string, a sub-string by a string
  *
- * @param  {StringList} texts  where to replace strings
- * @param  {StringList} strings to be replaced (could be Regular Expressions)
- * @param  {String} replacements strings to be placed instead (should have same length as strings)
- * @return {StringList}
- * tags:
- */
-StringListOperators.replaceStringsInTextsByStrings = function(texts, strings, replacements) {
-  if(texts==null || strings==null || replacements==null) return null;
-
-  var newTexts = new StringList();
-  newTexts.name = texts.name;
-  var nTexts = texts.length;
-  var nStrings = strings.length;
-  var i, j;
-  var string;
-
-  for(i = 0; i<nTexts; i++) {
-    newTexts[i] = texts[i];
-    for(j=0; j<nStrings; j++){
-      string = strings[j];
-      if(!(string instanceof RegExp)) string = new RegExp(string, "g");
-      newTexts[i] = newTexts[i].replace(string, replacements[j]);
-    }
-  }
-
-  return newTexts;
-};
-
-/**
- * replaces in each string, a sub-string by a string
- *
  * @param  {StringList} stringList  StringList to work on.
  * @param  {String} string to be replaced (could be Regular Expression)
  * @param  {String} replacement string to be placed instead
@@ -194,6 +163,36 @@ StringListOperators.replaceStringsInText = function(text, strings, replacement) 
   return newText;
 };
 
+/**
+ * replaces in each string, a sub-string by a string
+ *
+ * @param  {StringList} texts  where to replace strings
+ * @param  {StringList} strings to be replaced (could be Regular Expressions)
+ * @param  {StringList} replacements strings to be placed instead (should have same length as strings)
+ * @return {StringList}
+ * tags:
+ */
+StringListOperators.replaceStringsInTextsByStrings = function(texts, strings, replacements) {
+  if(texts==null || strings==null || replacements==null) return null;
+
+  var newTexts = new StringList();
+  newTexts.name = texts.name;
+  var nTexts = texts.length;
+  var nStrings = strings.length;
+  var i, j;
+  var string;
+
+  for(i = 0; i<nTexts; i++) {
+    newTexts[i] = texts[i];
+    for(j=0; j<nStrings; j++){
+      string = strings[j];
+      if(!(string instanceof RegExp)) string = new RegExp(string, "g");
+      newTexts[i] = newTexts[i].replace(string, replacements[j]);
+    }
+  }
+
+  return newTexts;
+};
 
 
 
