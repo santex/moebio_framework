@@ -103,36 +103,38 @@ StringOperators.splitByEnter = function(string) {
 
 /**
  * replaces in a string ocurrences of a sub-string by another string (base in replace JavaScript method)
- * @param  {String} string to be modified
- * @param  {String} subString sub-string to be replaced
+ * @param  {String} text to be modified
+ * @param  {String} string string to be replaced (could be Regular Expression)
  * @param  {String} replacement string to be placed instead
  * @return {String}
  * tags:
  */
-StringOperators.replaceSubString = function(string, subString, replacement) {
-  if(string == null || subString == null || replacement == null) return null;
-  return string.replace(new RegExp(subString, "g"), replacement);
+StringOperators.replaceStringInText = function(text, string, replacement) {
+  if(text == null || string == null || replacement == null) return null;
+
+  if(!(string instanceof RegExp)) string = new RegExp(string, "g");
+
+  return text.replace(string, replacement);
 };
 
-/**
+/** depracted, replaced by StringListOperators.replaceStringsInText
  * replaces in a string ocurrences of sub-strings by a string
  * @param  {String} string to be modified
  * @param  {StringList} subStrings sub-strings to be replaced
  * @param  {String} replacement string to be placed instead
  * @return {String}
- * tags:
  */
-StringOperators.replaceSubStringsByString = function(string, subStrings, replacement) {
-  if(subStrings == null) return;
+// StringOperators.replaceSubStringsByString = function(string, subStrings, replacement) {
+//   if(subStrings == null) return;
 
-  subStrings.forEach(function(subString) {
-    string = StringOperators.replaceSubString(string, subString, replacement);
-  });
+//   subStrings.forEach(function(subString) {
+//     string = StringOperators.replaceStringInText(string, subString, replacement);
+//   });
 
-  return string;
-};
+//   return string;
+// };
 
-/**
+/** deprecated, replaced by: 
  * replaces in a string ocurrences of sub-strings by strings (1-1)
  * @param  {String} string to be modified
  * @param  {StringList} subStrings sub-strings to be replaced
@@ -140,18 +142,18 @@ StringOperators.replaceSubStringsByString = function(string, subStrings, replace
  * @return {String}
  * tags:
  */
-StringOperators.replaceSubStringsByStrings = function(string, subStrings, replacements) {
-  if(subStrings == null || replacements == null) return;
+// StringOperators.replaceSubStringsByStrings = function(string, subStrings, replacements) {
+//   if(subStrings == null || replacements == null) return;
 
-  var nElements = Math.min(subStrings.length, replacements.length);
-  var i;
+//   var nElements = Math.min(subStrings.length, replacements.length);
+//   var i;
 
-  for(i = 0; i < nElements; i++) {
-    string = StringOperators.replaceSubString(string, subStrings[i], replacements[i]);
-  }
+//   for(i = 0; i < nElements; i++) {
+//     string = StringOperators.replaceStringInText(string, subStrings[i], replacements[i]);
+//   }
 
-  return string;
-};
+//   return string;
+// };
 
 /**
  * builds a stringList of words contained in the text
