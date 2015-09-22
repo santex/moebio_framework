@@ -65,3 +65,10 @@ h3 {
   color: #268bd2;
   text-decoration: underline;
 }
+
+.copyright-text
+{
+    color: #000;
+    font-size: 0.7em;
+    font-style: italic;
+}
