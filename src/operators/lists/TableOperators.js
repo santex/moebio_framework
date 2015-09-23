@@ -96,6 +96,10 @@ TableOperators.filterTable = function(table, operator, value, nList, value2, bIg
   var cStart=0;
   var cEnd=table.length;
   var type = typeOf(value);
+  if(type == 'string' && !isNaN(value)){
+    type='number';
+    value=Number(value);
+  }
   if(nList != null){
     cStart=nList;
     cEnd=nList+1;
@@ -143,10 +147,33 @@ TableOperators.filterTable = function(table, operator, value, nList, value2, bIg
       }
       break;
     case "<":
+    case "<=":
       for(r=0; r<nRows; r++){
         for(c=cStart; c<cEnd; c++){
+          if(type != typeOf(table[c][r])) continue;
           val = bIgnoreCase ? String(table[c][r]).toLowerCase() : String(table[c][r]);
           if(val < value){
+            nLKeep.push(r);
+            break;
+          }
+          else if(val == value && operator == '<='){
+            nLKeep.push(r);
+            break;
+          }
+        }
+      }
+      break;
+    case ">":
+    case ">=":
+      for(r=0; r<nRows; r++){
+        for(c=cStart; c<cEnd; c++){
+          if(type != typeOf(table[c][r])) continue;
+          val = bIgnoreCase ? String(table[c][r]).toLowerCase() : String(table[c][r]);
+          if(val > value){
+            nLKeep.push(r);
+            break;
+          }
+          else if(val == value && operator == '>='){
             nLKeep.push(r);
             break;
           }
