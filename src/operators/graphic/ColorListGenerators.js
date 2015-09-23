@@ -8,8 +8,8 @@ import List from "src/dataTypes/lists/List";
 import NumberListOperators from "src/operators/numeric/numberList/NumberListOperators";
 
 ColorListGenerators._HARDCODED_CATEGORICAL_COLORS = new ColorList(
-  "#e03030", "#1f7ab8", "#10bb20", "#ffe500", "#9467bd", "#ff7700", "#2232ff", "#206010", "#e388d2", "#a66020",
-  "#ff5555", "#17becc", "#20df33", "#dfc500", "#ccaaff", "#ffaa44", "#66bbff", "#a5ffa5", "#ffbbdd", "#ddc277"
+  "#d62728", "#1f77b4", "#2ca02c", "#ff7f00", "#9467bd", "#bcbd22", "#8c564b", "#17becf", "#dd4411", "#206010", "#e377c2",
+  "#2200bb", "#dd8811", "#ff220e", "#1f66a3", "#8c453a", "#2ba01c", "#dfc500", "#945600", "#ff008b", "#e37700", "#7f7f7f"
 );
 
 /**
