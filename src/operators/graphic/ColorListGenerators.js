@@ -2,13 +2,14 @@ import ColorList from "src/dataTypes/graphic/ColorList";
 import ColorScales from "src/operators/graphic/ColorScales";
 import NumberListGenerators from "src/operators/numeric/numberList/NumberListGenerators";
 import ListOperators from "src/operators/lists/ListOperators";
+import ColorOperators from "src/operators/graphic/ColorOperators";
 import Table from "src/dataTypes/lists/Table";
 import List from "src/dataTypes/lists/List";
 import NumberListOperators from "src/operators/numeric/numberList/NumberListOperators";
 
 ColorListGenerators._HARDCODED_CATEGORICAL_COLORS = new ColorList(
-  "#dd4411", "#2200bb", "#1f77b4", "#ff660e", "#2ca02c", "#d62728", "#9467bd", "#8c564b", "#e377c2", "#7f7f7f", "#bcbd22", "#17becf", "#dd8811",
-  "#dd0011", "#221140", "#1f66a3", "#ff220e", "#2ba01c", "#442728", "#945600", "#8c453a", "#e37700"
+  "#d62728", "#1f77b4", "#2ca02c", "#ff7f00", "#9467bd", "#bcbd22", "#8c564b", "#17becf", "#dd4411", "#206010", "#e377c2",
+  "#2200bb", "#dd8811", "#ff220e", "#1f66a3", "#8c453a", "#2ba01c", "#dfc500", "#945600", "#ff008b", "#e37700", "#7f7f7f"
 );
 
 /**
@@ -31,7 +32,7 @@ export default ColorListGenerators;
  */
 ColorListGenerators.createDefaultCategoricalColorList = function(nColors, alpha, invert) {
   alpha = alpha == null ? 1 : alpha;
-  var colors = ColorListGenerators.createCategoricalColors(1, nColors).getInterpolated('black', 0.15);
+  var colors = ColorListGenerators.createCategoricalColors(2, nColors);
   if(alpha < 1) colors = colors.addAlpha(alpha);
 
   if(invert) colors = colors.getInverted();
@@ -94,8 +95,34 @@ ColorListGenerators.createColorListWithSingleColor = function(nColors, color) {
 
 
 /**
+ * Creates a new ColorList from the full spectrum. Size of the List
+ * is controlled by the nColors input.
+ *
+ * @param {Number} nColors Length of the list (default 8).
+ * @param {Number} saturation in range [0,1]
+ * @param {Number} value in range [0,1]
+ * @return {ColorList} ColorList with spectrum colors
+ * tags:generator
+*/
+ColorListGenerators.createColorListSpectrum = function(nColors, saturation,value) {
+  // use HSV and rotate through hues
+  nColors = nColors == null? 8:nColors;
+  saturation = saturation == null? 1:saturation;
+  value = value == null? 1:value;
+  var colorList = new ColorList();
+  var hue;
+  for(var i = 0; i < nColors; i++) {
+    // hue of 0 == hue of 360 so we go to nColors-1
+    hue = 360*i/nColors;
+    colorList.push(ColorOperators.HSVtoHEX(hue,saturation,value));
+  }
+  return colorList;
+};
+
+
+/**
  * Creates a ColorList of categorical colors
- * @param {Number} mode 0:simple picking from color scale function, 1:random (with seed), 2:hardcoded colors, 3:, 4:, 5:evolutionary algorithm, guarantees non consecutive similar colors
+ * @param {Number} mode 0:simple picking from color scale function, 1:random (with seed), 2:hardcoded colors, 3:spectrum colors, 4:evolutionary algorithm, guarantees non consecutive similar colors(spectrum), 5:evolutionary algorithm, guarantees non consecutive similar colors(colorScale)
  * @param {Number} nColors
  *
  * @param {ColorScale} colorScaleFunction
@@ -125,10 +152,22 @@ ColorListGenerators.createCategoricalColors = function(mode, nColors, colorScale
       break;
     case 2:
       colorList = colorList==null?ColorListGenerators._HARDCODED_CATEGORICAL_COLORS:colorList;
+      var nInterpolate;
       for(i = 0; i < nColors; i++) {
         newColorList[i] = colorList[i%colorList.length];
+        if(i >= colorList.length){
+          // move towards black
+          nInterpolate = Math.floor(i/colorList.length);
+          for(var j=0; j < nInterpolate;j++){
+            newColorList[i]= ColorOperators.interpolateColors(newColorList[i],'black',0.20);
+          }
+        }
       }
       break;
+    case 3:
+      newColorList = ColorListGenerators.createColorListSpectrum(nColors);
+      break;
+    case 4:
     case 5:
       var randomNumbersSource = NumberListGenerators.createRandomNumberList(1001, null, 0);
       var positions = NumberListGenerators.createSortedNumberList(nColors);
@@ -137,7 +176,9 @@ ColorListGenerators.createCategoricalColors = function(mode, nColors, colorScale
 
       var nGenerations = Math.floor(nColors * 2) + 100;
       var nChildren = Math.floor(nColors * 0.6) + 5;
-      var bestEvaluation = ColorListGenerators._evaluationFunction(randomPositions);
+      var bCircular = mode == 4;
+      var bExtendedNeighbourhood = mode == 4;
+      var bestEvaluation = ColorListGenerators._evaluationFunction(randomPositions,bCircular,bExtendedNeighbourhood);
       var child;
       var bestChildren = randomPositions;
       var j;
@@ -148,7 +189,7 @@ ColorListGenerators.createCategoricalColors = function(mode, nColors, colorScale
         for(j = 0; j < nChildren; j++) {
           child = ColorListGenerators._sortingVariation(randomPositions, randomNumbersSource[nr], randomNumbersSource[nr + 1]);
           nr = (nr + 2) % 1001;
-          evaluation = ColorListGenerators._evaluationFunction(child);
+          evaluation = ColorListGenerators._evaluationFunction(child,bCircular,bExtendedNeighbourhood);
           if(evaluation > bestEvaluation) {
             bestChildren = child;
             bestEvaluation = evaluation;
@@ -156,9 +197,16 @@ ColorListGenerators.createCategoricalColors = function(mode, nColors, colorScale
         }
         randomPositions = bestChildren;
       }
-
-      for(i = 0; i < nColors; i++) {
-        newColorList.push(colorScaleFunction((1 / nColors) + randomPositions[i] / (nColors + 1))); //TODO: make more efficient by pre-nuilding the colorList
+      if(mode == 4){
+        var colorListSpectrum = ColorListGenerators.createColorListSpectrum(nColors);
+        for(i = 0; i < nColors; i++) {
+          newColorList.push(colorListSpectrum[randomPositions[i]]);
+        }
+      }
+      else{ // 5
+        for(i = 0; i < nColors; i++) {
+          newColorList.push(colorScaleFunction((1 / nColors) + randomPositions[i] / (nColors + 1))); //TODO: make more efficient by pre-nuilding the colorList
+        }
       }
       break;
   }
@@ -190,11 +238,23 @@ ColorListGenerators._sortingVariation = function(numberList, rnd0, rnd1) { //pri
 /**
  * @ignore
  */
-ColorListGenerators._evaluationFunction = function(numberList) { //private
+ColorListGenerators._evaluationFunction = function(numberList, bCircular, bExtendedNeighbourhood) { //private
+  // bCircular == true means distance between 0 and n-1 is 1
+  // bExtendedNeighbourhood == true means consider diffs beyond adjacent pairs
   var sum = 0;
-  var i;
-  for(i = 0; numberList[i + 1] != null; i++) {
-    sum += Math.sqrt(Math.abs(numberList[i + 1] - numberList[i]));
+  var i,d,r2,
+    len=numberList.length,
+    h=Math.floor(len/2);
+  var range = bExtendedNeighbourhood ? 4 : 1;
+  for(var r=1; r <= range; r++){
+    r2 = r*r;
+    for(i = 0; numberList[i + r] != null; i++) {
+      d = Math.abs(numberList[i + r] - numberList[i]);
+      if(bCircular && d > h){
+        d = len-d;
+      }
+      sum += Math.sqrt(d/r2);
+    }
   }
   return sum;
 };
@@ -274,7 +334,7 @@ ColorListGenerators.createCategoricalColorListForList = function(list, colorList
   var fullColorList = ListOperators.translateWithDictionary(list, colorDictTable, 'black');
 
   fullColorList = ColorList.fromArray(fullColorList);
-  
+
   return [
     {
       value: fullColorList,
