@@ -79,7 +79,7 @@ TableOperators.getSubTable = function(table, x, y, width, height) {
 /**
  * filter the rows of a table
  * @param  {Table} table Table.
- * @param  {String} operator "=="(default), "<", "<=", ">", ">=", "!=", "contains", "between"
+ * @param  {String} operator "=c"(default, exact match for numbers, contains for strings), "==", "<", "<=", ">", ">=", "!=", "contains", "between"
  * @param  {Object} value to compare against, can be String or Number
  * @param  {Number} nList null(default) means check every column, otherwise column index to test
  * @param  {Object} value2 only used for "between" operator
@@ -90,16 +90,23 @@ TableOperators.getSubTable = function(table, x, y, width, height) {
 TableOperators.filterTable = function(table, operator, value, nList, value2, bIgnoreCase){
   // input validation and defaults
   if(table==null || table.length === 0 || value == null) return;
-  if(operator==null || operator == '=') operator='==';
+  if(operator==null) operator='=c';
+  if(operator == '=') operator = '==';
   var nLKeep = new NumberList();
   var nRows = table.getListLength();
   var r,c,val,bKeep;
   var cStart=0;
   var cEnd=table.length;
   var type = typeOf(value);
-  if(type == 'string' && !isNaN(value)){
+  if(type == 'string' && !isNaN(value) && value.trim() !== ''){
     type='number';
     value=Number(value);
+  }
+  if(operator == '=c'){
+    if(type == 'string')
+      operator = 'contains';
+    else
+      operator = '==';
   }
   if(type == 'number' && operator == 'between'){
     if(isNaN(value2))
