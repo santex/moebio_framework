@@ -80,7 +80,7 @@ TableOperators.getSubTable = function(table, x, y, width, height) {
  * filter the rows of a table
  * @param  {Table} table Table.
  * @param  {String} operator "=="(default), "<", "<=", ">", ">=", "!=", "contains", "between"
- * @param  {Object} value to compare against, can be String, Number, StringList, or NumberList
+ * @param  {Object} value to compare against, can be String or Number
  * @param  {Number} nList null(default) means check every column, otherwise column index to test
  * @param  {Object} value2 only used for "between" operator
  * @param  {Boolean} bIgnoreCase for string compares, defaults to true
@@ -90,10 +90,10 @@ TableOperators.getSubTable = function(table, x, y, width, height) {
 TableOperators.filterTable = function(table, operator, value, nList, value2, bIgnoreCase){
   // input validation and defaults
   if(table==null || table.length === 0 || value == null) return;
-  if(operator==null) operator='==';
+  if(operator==null || operator == '=') operator='==';
   var nLKeep = new NumberList();
   var nRows = table.getListLength();
-  var r,c,val;
+  var r,c,val,bKeep;
   var cStart=0;
   var cEnd=table.length;
   var type = typeOf(value);
@@ -122,6 +122,8 @@ TableOperators.filterTable = function(table, operator, value, nList, value2, bIg
   }
   if(operator == '==' && bIgnoreCase)
     operator = '==i';
+  if(operator == '!=' && bIgnoreCase)
+    operator = '!=i';
   // row matching, not using RegExp because value can contain control characters
   switch(operator){
     case "==":
@@ -143,6 +145,33 @@ TableOperators.filterTable = function(table, operator, value, nList, value2, bIg
             break;
           }
         }
+      }
+      break;
+    case "!=":
+      for(r=0; r<nRows; r++){
+        bKeep=true;
+        for(c=cStart; c<cEnd; c++){
+          if(table[c][r] == value){
+            bKeep=false;
+            break;
+          }
+        }
+        if(bKeep)
+          nLKeep.push(r);
+      }
+      break;
+    case "!=i":
+      for(r=0; r<nRows; r++){
+        bKeep=true;
+        for(c=cStart; c<cEnd; c++){
+          val = String(table[c][r]).toLowerCase();
+          if(val == value){
+            bKeep=false;
+            break;
+          }
+        }
+        if(bKeep)
+          nLKeep.push(r);
       }
       break;
     case "contains":
