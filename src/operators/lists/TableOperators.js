@@ -90,6 +90,7 @@ TableOperators.getSubTable = function(table, x, y, width, height) {
 TableOperators.filterTable = function(table, operator, value, nList, value2, bIgnoreCase){
   // input validation and defaults
   if(table==null || table.length === 0 || value == null) return;
+  if(operator==null) operator='==';
   var nLKeep = new NumberList();
   var nRows = table.getListLength();
   var r,c,val;
@@ -100,6 +101,15 @@ TableOperators.filterTable = function(table, operator, value, nList, value2, bIg
     type='number';
     value=Number(value);
   }
+  if(type == 'number' && operator == 'between'){
+    if(isNaN(value2))
+      operator='noop';
+    else {
+      value2 = Number(value2);
+    }
+  }
+  if(operator == 'between' && value2 == null)
+    operator='noop';
   if(nList != null){
     cStart=nList;
     cEnd=nList+1;
@@ -108,7 +118,7 @@ TableOperators.filterTable = function(table, operator, value, nList, value2, bIg
     bIgnoreCase = true;
   if(type == 'string' && bIgnoreCase){
     value = value.toLowerCase();
-    value2 = value2 ? value2.toLowerCase() : value2;
+    value2 = value2 ? String(value2).toLowerCase() : value2;
   }
   if(operator == '==' && bIgnoreCase)
     operator = '==i';
@@ -174,6 +184,20 @@ TableOperators.filterTable = function(table, operator, value, nList, value2, bIg
             break;
           }
           else if(val == value && operator == '>='){
+            nLKeep.push(r);
+            break;
+          }
+        }
+      }
+      break;
+    case "between":
+      for(r=0; r<nRows; r++){
+        for(c=cStart; c<cEnd; c++){
+          if(type != typeOf(table[c][r])) continue;
+          val = bIgnoreCase ? String(table[c][r]).toLowerCase() : String(table[c][r]);
+          if(type == 'number')
+            val = Number(val);
+          if(value <= val && val <= value2){
             nLKeep.push(r);
             break;
           }
