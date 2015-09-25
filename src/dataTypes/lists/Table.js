@@ -143,7 +143,7 @@ Table.prototype.getLengths = function() {
   var l = this.length;
 
   for(var i = 0; i<l; i++) {
-    lengths[i] = this[i].length;
+    lengths[i] = this[i]==null?0:this[i].length;
   }
   return lengths;
 };

@@ -15,10 +15,18 @@ export default IntervalTableOperators;
  * @todo write docs
  */
 IntervalTableOperators.scaleIntervals = function(intervalTable, value) {
+	if(intervalTable==null) return null;
+
   var newIntervalTable = new Table();
+
   newIntervalTable.name = intervalTable.name;
-  for(var i = 0; intervalTable[i] !== null; i++) {
+
+  var l = intervalTable.length;
+  var i;
+
+  for(i = 0; i<l; i++) {
     newIntervalTable[i] = IntervalListOperators.scaleIntervals(intervalTable[i], value);
   }
+
   return newIntervalTable;
 };

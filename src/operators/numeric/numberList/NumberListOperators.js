@@ -409,6 +409,10 @@ NumberListOperators.averageSmoother = function(numberList, intensity, nIteration
   return newNumberList;
 };
 
+
+NumberListOperators.filterNumberListByInterval = function(numberList, min, max, includeMin, includeMax, returnMode) {
+}
+
 /**
  * accepted comparison operators: "<", "<=", ">", ">=", "==", "!="
  */

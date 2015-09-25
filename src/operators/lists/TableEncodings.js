@@ -65,8 +65,10 @@ TableEncodings.CSVtoTable = function(csvString, firstRowIsHeader, separator, val
     }
   }
 
+  separator = separator==null?",":separator;
+
   var table = new Table();
-  var comaCharacter = separator != undefined ? separator : ",";
+  var comaCharacter = separator;
 
   if(csvString == null || csvString === "" || csvString == " " || lines.length === 0) return null;
 
@@ -80,6 +82,9 @@ TableEncodings.CSVtoTable = function(csvString, firstRowIsHeader, separator, val
   var element;
   var cellContent;
   var numberCandidate;
+
+  console.log("|||||||||||||||"+separator+"|");
+
   for(i = startIndex; i < lines.length; i++) {
     if(lines[i].length < 2) continue;
 

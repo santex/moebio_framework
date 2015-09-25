@@ -105,6 +105,9 @@ NumberTableFlowOperators.getFlowTable = function(numberTable, normalized, includ
       flowTable[j + include0Add][i] = ((numberList[i] - minToNormalize) / maxToNormalize) + flowTable[j - 1 + include0Add][i];
     }
   }
+
+  console.log('flowTable', flowTable);
+
   return flowTable;
 };
 
@@ -169,7 +172,6 @@ NumberTableFlowOperators.getFlowTableIntervals = function(numberTable, normalize
         } else {
           intervalTable[i][j] = interval.add((1 - maxCols[j]) * 0.5);
         }
-
       }
     }
   }

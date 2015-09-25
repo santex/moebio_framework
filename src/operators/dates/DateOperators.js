@@ -23,7 +23,7 @@ DateOperators.WEEK_NAMES = ['monday', 'tuesday', 'wednesday', 'thursday', 'frida
 /**
  * parses a Date
  * @param  {String} string date in string format
- * @param  {String} formatCase <br>0: MM-DD-YYYY<br>1: YYYY-MM-DD<br>2: MM-DD-YY<br>3: YY-MM-DD<br>4: DD-MM-YY<br>5: DD-MM-YYYY
+ * @param  {Number} formatCase <br>0: MM-DD-YYYY<br>1: YYYY-MM-DD<br>2: MM-DD-YY<br>3: YY-MM-DD<br>4: DD-MM-YY<br>5: DD-MM-YYYY
  * @param  {String} separator
  * @return {Date}
  * tags:decoder
@@ -31,6 +31,8 @@ DateOperators.WEEK_NAMES = ['monday', 'tuesday', 'wednesday', 'thursday', 'frida
 DateOperators.stringToDate = function(string, formatCase, separator) {// @todo: move to StringConversions
   separator = separator == null ? "-" : separator;
   formatCase = formatCase == null ? 1 : formatCase;
+
+  formatCase = Number(formatCase);
 
   if(formatCase == 1) {
     if(separator != "-") string = string.replace(new RegExp(string, "g"), "-");
