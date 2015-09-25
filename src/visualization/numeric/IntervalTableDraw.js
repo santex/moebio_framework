@@ -20,6 +20,8 @@ IntervalTableDraw.drawIntervalsFlowTable = function(intervalsFlowTable, frame, c
   bezier = bezier || false;
   offValue = offValue == null ? 0.45 : offValue;
 
+  if(graphics==null) graphics = frame.graphics;
+
   var i;
   var j;
 
