@@ -4529,7 +4529,7 @@
     var l = this.length;
 
     for(var i = 0; i<l; i++) {
-      lengths[i] = this[i].length;
+      lengths[i] = this[i]==null?0:this[i].length;
     }
     return lengths;
   };
@@ -5611,6 +5611,51 @@
     return relation;
   };
 
+  /**
+   * @classdesc List Operators
+   *
+   * @namespace
+   * @category basics
+   */
+  function ListConversions() {}
+  /**
+   * Converts the List into a NumberList.
+   *
+   * @param  {List} list
+   * @return {NumberList}
+   * tags:conversion
+   */
+  ListConversions.toNumberList = function(list) {
+    var numberList = new NumberList();
+    numberList.name = list.name;
+    var i;
+    for(i = 0; list[i] != null; i++) {
+      numberList[i] = Number(list[i]);
+    }
+    return numberList;
+  };
+
+  /**
+   * Converts the List into a StringList.
+   *
+   * @param  {List} list
+   * @return {StringList}
+   * tags:conversion
+   */
+  ListConversions.toStringList = function(list) {
+    var i;
+    var stringList = new StringList();
+    stringList.name = list.name;
+    for(i = 0; list[i] != null; i++) {
+      if(typeof list[i] == 'number') {
+        stringList[i] = String(list[i]);
+      } else {
+        stringList[i] = list[i].toString();
+      }
+    }
+    return stringList;
+  };
+
   RectangleList.prototype = new List();
   RectangleList.prototype.constructor = RectangleList;
   /**
@@ -6170,6 +6215,10 @@
     return newNumberList;
   };
 
+
+  NumberListOperators.filterNumberListByInterval = function(numberList, min, max, includeMin, includeMax, returnMode) {
+  }
+
   /**
    * accepted comparison operators: "<", "<=", ">", ">=", "==", "!="
    */
@@ -6361,6 +6410,181 @@
     var intX = numberListX.getInterval();
     var intY = numberListY.getInterval();
     return new Rectangle(intX.x, intY.x, intX.getAmplitude(), intY.getAmplitude());
+  };
+
+  /**
+   * @classdesc Provides a set of tools that work with Numbers.
+   *
+   * @namespace
+   * @category numbers
+   */
+  function NumberOperators() {}
+  /**
+   * converts number into a string
+   *
+   * @param {Number} value The number to convert
+   * @param {Number} nDecimals Number of decimals to include. Defaults to 0.
+   */
+  NumberOperators.numberToString = function(value, nDecimals ) {
+    var string = value.toFixed(nDecimals);
+    while(string.charAt(string.length - 1) == '0') {
+      string = string.substring(0, string.length - 1);
+    }
+    if(string.charAt(string.length - 1) == '.') string = string.substring(0, string.length - 1);
+    return string;
+  };
+
+  /**
+   * decent method to create pseudo random numbers
+   * @param {Object} seed
+   */
+  NumberOperators.getRandomWithSeed = function(seed) {
+    seed = (seed * 9301 + 49297) % 233280;
+    return seed / (233280.0);
+  };
+
+  /**
+   * @todo write docs
+   */
+  NumberOperators.numberFromBinaryPositions = function(binaryPositions) {
+    var i;
+    var n = 0;
+    for(i = 0; binaryPositions[i] != null; i++) {
+      n += Math.pow(2, binaryPositions[i]);
+    }
+    return n;
+  };
+
+  /**
+   * @todo write docs
+   */
+  NumberOperators.numberFromBinaryValues = function(binaryValues) {
+    var n = 0;
+    var l = binaryValues.length;
+    for(var i = 0; i < l; i++) {
+      n += binaryValues[i] == 1 ? Math.pow(2, (l - (i + 1))) : 0;
+    }
+    return n;
+  };
+
+  /**
+   * @todo write docs
+   */
+  NumberOperators.powersOfTwoDecomposition = function(number, length) {
+
+    var powers = new NumberList();
+
+    var constructingNumber = 0;
+    var biggestPower;
+
+    while(constructingNumber < number) {
+      biggestPower = Math.floor(Math.log(number) / Math.LN2);
+      powers[biggestPower] = 1;
+      number -= Math.pow(2, biggestPower);
+    }
+
+    length = Math.max(powers.length, length == null ? 0 : length);
+
+    for(var i = 0; i < length; i++) {
+      powers[i] = powers[i] == 1 ? 1 : 0;
+    }
+
+    return powers;
+  };
+
+  /**
+   * @todo write docs
+   */
+  NumberOperators.positionsFromBinaryValues = function(binaryValues) {
+    var i;
+    var positions = new NumberList();
+    for(i = 0; binaryValues[i] != null; i++) {
+      if(binaryValues[i] == 1) positions.push(i);
+    }
+    return positions;
+  };
+
+  //////////Random Generator with Seed, From http://baagoe.org/en/w/index.php/Better_random_numbers_for_javascript
+
+  /**
+   * @ignore
+   */
+  NumberOperators._Alea = function() {
+    return(function(args) {
+      // Johannes Baagøe <baagoe@baagoe.com>, 2010
+      var s0 = 0;
+      var s1 = 0;
+      var s2 = 0;
+      var c = 1;
+
+      if(args.length === 0) {
+        args = [+new Date()];
+      }
+      var mash = NumberOperators._Mash();
+      s0 = mash(' ');
+      s1 = mash(' ');
+      s2 = mash(' ');
+
+      for(var i = 0; i < args.length; i++) {
+        s0 -= mash(args[i]);
+        if(s0 < 0) {
+          s0 += 1;
+        }
+        s1 -= mash(args[i]);
+        if(s1 < 0) {
+          s1 += 1;
+        }
+        s2 -= mash(args[i]);
+        if(s2 < 0) {
+          s2 += 1;
+        }
+      }
+      mash = null;
+
+      var random = function() {
+        var t = 2091639 * s0 + c * 2.3283064365386963e-10; // 2^-32
+        s0 = s1;
+        s1 = s2;
+        // https://github.com/nquinlan/better-random-numbers-for-javascript-mirror/blob/master/support/js/Alea.js#L38
+        return s2 = t - (c = t | 0);
+      };
+      random.uint32 = function() {
+        return random() * 0x100000000; // 2^32
+      };
+      random.fract53 = function() {
+        return random() +
+          (random() * 0x200000 | 0) * 1.1102230246251565e-16; // 2^-53
+      };
+      random.version = 'Alea 0.9';
+      random.args = args;
+      return random;
+
+    }(Array.prototype.slice.call(arguments)));
+  };
+
+  /**
+   * @ignore
+   */
+  NumberOperators._Mash = function() {
+    var n = 0xefc8249d;
+
+    var mash = function(data) {
+      data = data.toString();
+      for(var i = 0; i < data.length; i++) {
+        n += data.charCodeAt(i);
+        var h = 0.02519603282416938 * n;
+        n = h >>> 0;
+        h -= n;
+        h *= n;
+        n = h >>> 0;
+        h -= n;
+        n += h * 0x100000000; // 2^32
+      }
+      return(n >>> 0) * 2.3283064365386963e-10; // 2^-32
+    };
+
+    mash.version = 'Mash 0.9';
+    return mash;
   };
 
   /**
@@ -6569,226 +6793,6 @@
    */
   ColorScales.antiSolar = function(value) {
     return ColorOperators.invertColor(ColorScales.solar(value));
-  };
-
-  /**
-   * @classdesc List Operators
-   *
-   * @namespace
-   * @category basics
-   */
-  function ListConversions() {}
-  /**
-   * Converts the List into a NumberList.
-   *
-   * @param  {List} list
-   * @return {NumberList}
-   * tags:conversion
-   */
-  ListConversions.toNumberList = function(list) {
-    var numberList = new NumberList();
-    numberList.name = list.name;
-    var i;
-    for(i = 0; list[i] != null; i++) {
-      numberList[i] = Number(list[i]);
-    }
-    return numberList;
-  };
-
-  /**
-   * Converts the List into a StringList.
-   *
-   * @param  {List} list
-   * @return {StringList}
-   * tags:conversion
-   */
-  ListConversions.toStringList = function(list) {
-    var i;
-    var stringList = new StringList();
-    stringList.name = list.name;
-    for(i = 0; list[i] != null; i++) {
-      if(typeof list[i] == 'number') {
-        stringList[i] = String(list[i]);
-      } else {
-        stringList[i] = list[i].toString();
-      }
-    }
-    return stringList;
-  };
-
-  /**
-   * @classdesc Provides a set of tools that work with Numbers.
-   *
-   * @namespace
-   * @category numbers
-   */
-  function NumberOperators() {}
-  /**
-   * converts number into a string
-   *
-   * @param {Number} value The number to convert
-   * @param {Number} nDecimals Number of decimals to include. Defaults to 0.
-   */
-  NumberOperators.numberToString = function(value, nDecimals ) {
-    var string = value.toFixed(nDecimals);
-    while(string.charAt(string.length - 1) == '0') {
-      string = string.substring(0, string.length - 1);
-    }
-    if(string.charAt(string.length - 1) == '.') string = string.substring(0, string.length - 1);
-    return string;
-  };
-
-  /**
-   * decent method to create pseudo random numbers
-   * @param {Object} seed
-   */
-  NumberOperators.getRandomWithSeed = function(seed) {
-    seed = (seed * 9301 + 49297) % 233280;
-    return seed / (233280.0);
-  };
-
-  /**
-   * @todo write docs
-   */
-  NumberOperators.numberFromBinaryPositions = function(binaryPositions) {
-    var i;
-    var n = 0;
-    for(i = 0; binaryPositions[i] != null; i++) {
-      n += Math.pow(2, binaryPositions[i]);
-    }
-    return n;
-  };
-
-  /**
-   * @todo write docs
-   */
-  NumberOperators.numberFromBinaryValues = function(binaryValues) {
-    var n = 0;
-    var l = binaryValues.length;
-    for(var i = 0; i < l; i++) {
-      n += binaryValues[i] == 1 ? Math.pow(2, (l - (i + 1))) : 0;
-    }
-    return n;
-  };
-
-  /**
-   * @todo write docs
-   */
-  NumberOperators.powersOfTwoDecomposition = function(number, length) {
-
-    var powers = new NumberList();
-
-    var constructingNumber = 0;
-    var biggestPower;
-
-    while(constructingNumber < number) {
-      biggestPower = Math.floor(Math.log(number) / Math.LN2);
-      powers[biggestPower] = 1;
-      number -= Math.pow(2, biggestPower);
-    }
-
-    length = Math.max(powers.length, length == null ? 0 : length);
-
-    for(var i = 0; i < length; i++) {
-      powers[i] = powers[i] == 1 ? 1 : 0;
-    }
-
-    return powers;
-  };
-
-  /**
-   * @todo write docs
-   */
-  NumberOperators.positionsFromBinaryValues = function(binaryValues) {
-    var i;
-    var positions = new NumberList();
-    for(i = 0; binaryValues[i] != null; i++) {
-      if(binaryValues[i] == 1) positions.push(i);
-    }
-    return positions;
-  };
-
-  //////////Random Generator with Seed, From http://baagoe.org/en/w/index.php/Better_random_numbers_for_javascript
-
-  /**
-   * @ignore
-   */
-  NumberOperators._Alea = function() {
-    return(function(args) {
-      // Johannes Baagøe <baagoe@baagoe.com>, 2010
-      var s0 = 0;
-      var s1 = 0;
-      var s2 = 0;
-      var c = 1;
-
-      if(args.length === 0) {
-        args = [+new Date()];
-      }
-      var mash = NumberOperators._Mash();
-      s0 = mash(' ');
-      s1 = mash(' ');
-      s2 = mash(' ');
-
-      for(var i = 0; i < args.length; i++) {
-        s0 -= mash(args[i]);
-        if(s0 < 0) {
-          s0 += 1;
-        }
-        s1 -= mash(args[i]);
-        if(s1 < 0) {
-          s1 += 1;
-        }
-        s2 -= mash(args[i]);
-        if(s2 < 0) {
-          s2 += 1;
-        }
-      }
-      mash = null;
-
-      var random = function() {
-        var t = 2091639 * s0 + c * 2.3283064365386963e-10; // 2^-32
-        s0 = s1;
-        s1 = s2;
-        // https://github.com/nquinlan/better-random-numbers-for-javascript-mirror/blob/master/support/js/Alea.js#L38
-        return s2 = t - (c = t | 0);
-      };
-      random.uint32 = function() {
-        return random() * 0x100000000; // 2^32
-      };
-      random.fract53 = function() {
-        return random() +
-          (random() * 0x200000 | 0) * 1.1102230246251565e-16; // 2^-53
-      };
-      random.version = 'Alea 0.9';
-      random.args = args;
-      return random;
-
-    }(Array.prototype.slice.call(arguments)));
-  };
-
-  /**
-   * @ignore
-   */
-  NumberOperators._Mash = function() {
-    var n = 0xefc8249d;
-
-    var mash = function(data) {
-      data = data.toString();
-      for(var i = 0; i < data.length; i++) {
-        n += data.charCodeAt(i);
-        var h = 0.02519603282416938 * n;
-        n = h >>> 0;
-        h -= n;
-        h *= n;
-        n = h >>> 0;
-        h -= n;
-        n += h * 0x100000000; // 2^32
-      }
-      return(n >>> 0) * 2.3283064365386963e-10; // 2^-32
-    };
-
-    mash.version = 'Mash 0.9';
-    return mash;
   };
 
   /**
@@ -8197,8 +8201,8 @@
   };
 
   ColorListGenerators._HARDCODED_CATEGORICAL_COLORS = new ColorList(
-    "#dd4411", "#2200bb", "#1f77b4", "#ff660e", "#2ca02c", "#d62728", "#9467bd", "#8c564b", "#e377c2", "#7f7f7f", "#bcbd22", "#17becf", "#dd8811",
-    "#dd0011", "#221140", "#1f66a3", "#ff220e", "#2ba01c", "#442728", "#945600", "#8c453a", "#e37700"
+    "#d62728", "#1f77b4", "#2ca02c", "#ff7f00", "#9467bd", "#bcbd22", "#8c564b", "#17becf", "#dd4411", "#206010", "#e377c2",
+    "#2200bb", "#dd8811", "#ff220e", "#1f66a3", "#8c453a", "#2ba01c", "#dfc500", "#945600", "#ff008b", "#e37700", "#7f7f7f"
   );
 
   /**
@@ -8219,12 +8223,79 @@
    */
   ColorListGenerators.createDefaultCategoricalColorList = function(nColors, alpha, invert) {
     alpha = alpha == null ? 1 : alpha;
-    var colors = ColorListGenerators.createCategoricalColors(1, nColors).getInterpolated('black', 0.15);
+    var colors = ColorListGenerators.createCategoricalColors(2, nColors);
     if(alpha < 1) colors = colors.addAlpha(alpha);
 
     if(invert) colors = colors.getInverted();
 
     return colors;
+  };
+
+  /**
+   * Creates a ColorList of categorical colors based on an input List. All entries with the same value will get the same color.
+   * @param {List} the list containing categorical data
+   *
+   * @param {ColorList} ColorList with categorical colors
+   * @param {Number} alpha transparency
+   * @param {String} color to mix
+   * @param {Number} interpolation value (0-1) for color mix
+   * @param {Boolean} invert invert colors
+   * @return {ColorList} ColorList with categorical colors that match the given list
+   * @return {List} elements list of elemnts that match colors (equivalent to getWithoutRepetions)
+   * @return {ColorList} ColorList with different categorical colors
+   * @return {Table} dictionary dictionary table with elemnts and matching colors
+   * @return {Object} citionaryObject (relational array, from objects to colors)
+   * tags:generator
+   */
+  ColorListGenerators.createCategoricalColorListForList = function(list, colorList, alpha, color, interpolate, invert)
+  {
+
+    if(!list)
+      return new ColorList();
+    if(!alpha)
+      alpha = 1;
+    if(!color)
+      color = "#fff";
+    if(!interpolate)
+      interpolate = 0;
+
+    list = List.fromArray(list);
+    var diffValues = list.getWithoutRepetitions();
+    var diffColors;
+    if(colorList && interpolate !== 0) {
+      diffColors = colorList.getInterpolated(color, interpolate);
+    } else {
+      diffColors = ColorListGenerators.createCategoricalColors(2, diffValues.length, null, alpha, color, interpolate, colorList);
+    }
+    if(alpha<1) diffColors = diffColors.addAlpha(alpha);
+
+    if(invert) diffColors = diffColors.getInverted();
+
+    var colorDictTable = Table.fromArray([diffValues, diffColors]);
+    var dictionaryObject = ListOperators.buildDictionaryObjectForDictionary(colorDictTable);
+
+    var fullColorList = ListOperators.translateWithDictionary(list, colorDictTable, 'black');
+
+    fullColorList = ColorList.fromArray(fullColorList);
+
+    return [
+      {
+        value: fullColorList,
+        type: 'ColorList'
+      }, {
+        value: diffValues,
+        type: diffValues.type
+      }, {
+        value: diffColors,
+        type: 'ColorList'
+      }, {
+        value: new Table(diffValues, fullColorList),
+        type: 'Table'
+      }, {
+        value: dictionaryObject,
+        type: 'Object'
+      }
+    ];
   };
 
 
@@ -8282,8 +8353,34 @@
 
 
   /**
+   * Creates a new ColorList from the full spectrum. Size of the List
+   * is controlled by the nColors input.
+   *
+   * @param {Number} nColors Length of the list (default 8).
+   * @param {Number} saturation in range [0,1]
+   * @param {Number} value in range [0,1]
+   * @return {ColorList} ColorList with spectrum colors
+   * tags:generator
+  */
+  ColorListGenerators.createColorListSpectrum = function(nColors, saturation,value) {
+    // use HSV and rotate through hues
+    nColors = nColors == null? 8:nColors;
+    saturation = saturation == null? 1:saturation;
+    value = value == null? 1:value;
+    var colorList = new ColorList();
+    var hue;
+    for(var i = 0; i < nColors; i++) {
+      // hue of 0 == hue of 360 so we go to nColors-1
+      hue = 360*i/nColors;
+      colorList.push(ColorOperators.HSVtoHEX(hue,saturation,value));
+    }
+    return colorList;
+  };
+
+
+  /**
    * Creates a ColorList of categorical colors
-   * @param {Number} mode 0:simple picking from color scale function, 1:random (with seed), 2:hardcoded colors, 3:, 4:, 5:evolutionary algorithm, guarantees non consecutive similar colors
+   * @param {Number} mode 0:simple picking from color scale function, 1:random (with seed), 2:hardcoded colors, 3:spectrum colors, 4:evolutionary algorithm, guarantees non consecutive similar colors(spectrum), 5:evolutionary algorithm, guarantees non consecutive similar colors(colorScale)
    * @param {Number} nColors
    *
    * @param {ColorScale} colorScaleFunction
@@ -8313,10 +8410,22 @@
         break;
       case 2:
         colorList = colorList==null?ColorListGenerators._HARDCODED_CATEGORICAL_COLORS:colorList;
+        var nInterpolate;
         for(i = 0; i < nColors; i++) {
           newColorList[i] = colorList[i%colorList.length];
+          if(i >= colorList.length){
+            // move towards black
+            nInterpolate = Math.floor(i/colorList.length);
+            for(var j=0; j < nInterpolate;j++){
+              newColorList[i]= ColorOperators.interpolateColors(newColorList[i],'black',0.20);
+            }
+          }
         }
         break;
+      case 3:
+        newColorList = ColorListGenerators.createColorListSpectrum(nColors);
+        break;
+      case 4:
       case 5:
         var randomNumbersSource = NumberListGenerators.createRandomNumberList(1001, null, 0);
         var positions = NumberListGenerators.createSortedNumberList(nColors);
@@ -8325,7 +8434,9 @@
 
         var nGenerations = Math.floor(nColors * 2) + 100;
         var nChildren = Math.floor(nColors * 0.6) + 5;
-        var bestEvaluation = ColorListGenerators._evaluationFunction(randomPositions);
+        var bCircular = mode == 4;
+        var bExtendedNeighbourhood = mode == 4;
+        var bestEvaluation = ColorListGenerators._evaluationFunction(randomPositions,bCircular,bExtendedNeighbourhood);
         var child;
         var bestChildren = randomPositions;
         var j;
@@ -8336,7 +8447,7 @@
           for(j = 0; j < nChildren; j++) {
             child = ColorListGenerators._sortingVariation(randomPositions, randomNumbersSource[nr], randomNumbersSource[nr + 1]);
             nr = (nr + 2) % 1001;
-            evaluation = ColorListGenerators._evaluationFunction(child);
+            evaluation = ColorListGenerators._evaluationFunction(child,bCircular,bExtendedNeighbourhood);
             if(evaluation > bestEvaluation) {
               bestChildren = child;
               bestEvaluation = evaluation;
@@ -8344,9 +8455,16 @@
           }
           randomPositions = bestChildren;
         }
-
-        for(i = 0; i < nColors; i++) {
-          newColorList.push(colorScaleFunction((1 / nColors) + randomPositions[i] / (nColors + 1))); //TODO: make more efficient by pre-nuilding the colorList
+        if(mode == 4){
+          var colorListSpectrum = ColorListGenerators.createColorListSpectrum(nColors);
+          for(i = 0; i < nColors; i++) {
+            newColorList.push(colorListSpectrum[randomPositions[i]]);
+          }
+        }
+        else{ // 5
+          for(i = 0; i < nColors; i++) {
+            newColorList.push(colorScaleFunction((1 / nColors) + randomPositions[i] / (nColors + 1))); //TODO: make more efficient by pre-nuilding the colorList
+          }
         }
         break;
     }
@@ -8378,11 +8496,23 @@
   /**
    * @ignore
    */
-  ColorListGenerators._evaluationFunction = function(numberList) { //private
+  ColorListGenerators._evaluationFunction = function(numberList, bCircular, bExtendedNeighbourhood) { //private
+    // bCircular == true means distance between 0 and n-1 is 1
+    // bExtendedNeighbourhood == true means consider diffs beyond adjacent pairs
     var sum = 0;
-    var i;
-    for(i = 0; numberList[i + 1] != null; i++) {
-      sum += Math.sqrt(Math.abs(numberList[i + 1] - numberList[i]));
+    var i,d,r2,
+      len=numberList.length,
+      h=Math.floor(len/2);
+    var range = bExtendedNeighbourhood ? 4 : 1;
+    for(var r=1; r <= range; r++){
+      r2 = r*r;
+      for(i = 0; numberList[i + r] != null; i++) {
+        d = Math.abs(numberList[i + r] - numberList[i]);
+        if(bCircular && d > h){
+          d = len-d;
+        }
+        sum += Math.sqrt(d/r2);
+      }
     }
     return sum;
   };
@@ -8403,84 +8533,26 @@
     if(list==null) return;
 
     var diffValues = list.getWithoutRepetitions();
+
     var diffColors = ColorListGenerators.createCategoricalColors(2, diffValues.length, null, alpha, color, interpolate, colorList);
+
     if(invert) diffColors = diffColors.getInverted();
 
     var dictionaryObject = {};
 
-    diffValues.forEach(function(element, i){
-      dictionaryObject[element] = diffColors[i];
-    });
+    var l = diffColors.length;
+    var i;
+
+    for(i=0; i<l; i++){
+      dictionaryObject[diffValues[i]] = diffColors[i];
+    }
+
+    // diffValues.forEach(function(element, i){
+    //   dictionaryObject[element] = diffColors[i];
+    // });
 
     return dictionaryObject;
 
-  };
-
-  /**
-   * Creates a ColorList of categorical colors based on an input List. All entries with the same value will get the same color.
-   * @param {List} the list containing categorical data
-   *
-   * @param {ColorList} ColorList with categorical colors
-   * @param {Number} alpha transparency
-   * @param {String} color to mix
-   * @param {Number} interpolation value (0-1) for color mix
-   * @param {Boolean} invert invert colors
-   * @return {ColorList} ColorList with categorical colors that match the given list
-   * @return {List} elements list of elemnts that match colors (equivalent to getWithoutRepetions)
-   * @return {ColorList} ColorList with different categorical colors
-   * @return {Table} dictionary dictionary table with elemnts and matching colors
-   * @return {Object} citionaryObject (relational array, from objects to colors)
-   * tags:generator
-   */
-  ColorListGenerators.createCategoricalColorListForList = function(list, colorList, alpha, color, interpolate, invert)
-  {
-
-    if(!list)
-      return new ColorList();
-    if(!alpha)
-      alpha = 1;
-    if(!color)
-      color = "#fff";
-    if(!interpolate)
-      interpolate = 0;
-
-    list = List.fromArray(list);
-    var diffValues = list.getWithoutRepetitions();
-    var diffColors;
-    if(colorList && interpolate !== 0) {
-      diffColors = colorList.getInterpolated(color, interpolate);
-    } else {
-      diffColors = ColorListGenerators.createCategoricalColors(2, diffValues.length, null, alpha, color, interpolate, colorList);
-    }
-    if(alpha<1) diffColors = diffColors.addAlpha(alpha);
-
-    if(invert) diffColors = diffColors.getInverted();
-
-    var colorDictTable = Table.fromArray([diffValues, diffColors]);
-    var dictionaryObject = ListOperators.buildDictionaryObjectForDictionary(colorDictTable);
-
-    var fullColorList = ListOperators.translateWithDictionary(list, colorDictTable, 'black');
-
-    fullColorList = ColorList.fromArray(fullColorList);
-    
-    return [
-      {
-        value: fullColorList,
-        type: 'ColorList'
-      }, {
-        value: diffValues,
-        type: diffValues.type
-      }, {
-        value: diffColors,
-        type: 'ColorList'
-      }, {
-        value: new Table(diffValues, fullColorList),
-        type: 'Table'
-      }, {
-        value: dictionaryObject,
-        type: 'Object'
-      }
-    ];
   };
 
   /**
@@ -9549,7 +9621,7 @@
   /**
    * parses a Date
    * @param  {String} string date in string format
-   * @param  {String} formatCase <br>0: MM-DD-YYYY<br>1: YYYY-MM-DD<br>2: MM-DD-YY<br>3: YY-MM-DD<br>4: DD-MM-YY<br>5: DD-MM-YYYY
+   * @param  {Number} formatCase <br>0: MM-DD-YYYY<br>1: YYYY-MM-DD<br>2: MM-DD-YY<br>3: YY-MM-DD<br>4: DD-MM-YY<br>5: DD-MM-YYYY
    * @param  {String} separator
    * @return {Date}
    * tags:decoder
@@ -9557,6 +9629,8 @@
   DateOperators.stringToDate = function(string, formatCase, separator) {// @todo: move to StringConversions
     separator = separator == null ? "-" : separator;
     formatCase = formatCase == null ? 1 : formatCase;
+
+    formatCase = Number(formatCase);
 
     if(formatCase == 1) {
       if(separator != "-") string = string.replace(new RegExp(string, "g"), "-");
@@ -12293,8 +12367,10 @@
       }
     }
 
+    separator = separator==null?",":separator;
+
     var table = new Table();
-    var comaCharacter = separator != undefined ? separator : ",";
+    var comaCharacter = separator;
 
     if(csvString == null || csvString === "" || csvString == " " || lines.length === 0) return null;
 
@@ -12308,6 +12384,9 @@
     var element;
     var cellContent;
     var numberCandidate;
+
+    console.log("|||||||||||||||"+separator+"|");
+
     for(i = startIndex; i < lines.length; i++) {
       if(lines[i].length < 2) continue;
 
@@ -17669,6 +17748,9 @@
         flowTable[j + include0Add][i] = ((numberList[i] - minToNormalize) / maxToNormalize) + flowTable[j - 1 + include0Add][i];
       }
     }
+
+    console.log('flowTable', flowTable);
+
     return flowTable;
   };
 
@@ -17733,7 +17815,6 @@
           } else {
             intervalTable[i][j] = interval.add((1 - maxCols[j]) * 0.5);
           }
-
         }
       }
     }
@@ -18017,11 +18098,20 @@
    * @todo write docs
    */
   IntervalListOperators.scaleIntervals = function(intervalList, value) {
+  	if(intervalList==null) return;
+
+  	value = value==null?1:value;
+
     var newIntervalList = new List();
+    var l = intervalList.length;
+    var i;
+
     newIntervalList.name = intervalList.name;
-    for(var i = 0; intervalList[i] !== null; i++) {
+
+    for(i = 0; i<l; i++) {
       newIntervalList[i] = intervalList[i].getScaled(value);
     }
+
     return newIntervalList;
   };
 
@@ -18037,11 +18127,19 @@
    * @todo write docs
    */
   IntervalTableOperators.scaleIntervals = function(intervalTable, value) {
+  	if(intervalTable==null) return null;
+
     var newIntervalTable = new Table();
+
     newIntervalTable.name = intervalTable.name;
-    for(var i = 0; intervalTable[i] !== null; i++) {
+
+    var l = intervalTable.length;
+    var i;
+
+    for(i = 0; i<l; i++) {
       newIntervalTable[i] = IntervalListOperators.scaleIntervals(intervalTable[i], value);
     }
+
     return newIntervalTable;
   };
 
@@ -19695,11 +19793,13 @@
   function TreeConversions() {}
   /**
    * convert a table that describes a tree (higher hierarchies in first lists) into a Tree
+   * count ocurrences of leaves in the table and assigns value to nodes weight
+   * assigns the index of row associated to leaves in properties: firstIndexInTable and indexesInTable
    * @param {Table} table
    *
    * @param {String} fatherName name of father node
    * @return {Tree}
-   * tags:convertion
+   * tags:conversion
    */
   TreeConversions.TableToTree = function(table, fatherName)  {
     if(table == null) return;
@@ -19713,21 +19813,54 @@
     var father = new _Node(fatherName, fatherName);
     tree.addNodeToTree(father, null);
 
-    table.forEach(function(list, i) {
-      table[i].forEach(function(element, j) {
-        id = TreeConversions.getId(table, i, j);
+    var nLists = table.length;
+    var nElements = table[0].length;
+    var i, j;
+    var list, element;
+
+    for(i=0; i<nLists; i++){
+      list = table[i];
+      if(list.length!=nElements) return null;
+      for(j=0; j<nElements; j++){
+        element = list[j];
+        
+        id = TreeConversions._getId(table, i, j);
         node = tree.nodeList.getNodeById(id);
         if(node == null) {
           node = new _Node(id, String(element));
           if(i === 0) {
             tree.addNodeToTree(node, father);
           } else {
-            parent = tree.nodeList.getNodeById(TreeConversions.getId(table, i - 1, j));
+            parent = tree.nodeList.getNodeById(TreeConversions._getId(table, i - 1, j));
             tree.addNodeToTree(node, parent);
           }
+
+          node.firstIndexInTable = j;
+          node.indexesInTable = new NumberList(j);
+
+        } else {
+          node.weight++;
+          node.indexesInTable.push(j);
         }
-      });
-    });
+      }
+    }
+
+
+    // table.forEach(function(list, i) {
+    //   table[i].forEach(function(element, j) {
+    //     id = TreeConversions._getId(table, i, j);
+    //     node = tree.nodeList.getNodeById(id);
+    //     if(node == null) {
+    //       node = new Node(id, String(element));
+    //       if(i === 0) {
+    //         tree.addNodeToTree(node, father);
+    //       } else {
+    //         parent = tree.nodeList.getNodeById(TreeConversions._getId(table, i - 1, j));
+    //         tree.addNodeToTree(node, parent);
+    //       }
+    //     }
+    //   });
+    // });
 
     tree.assignDescentWeightsToNodes();
 
@@ -19737,7 +19870,7 @@
   /**
    * @todo write docs
    */
-  TreeConversions.getId = function(table, i, j) {
+  TreeConversions._getId = function(table, i, j) {
     var iCol = 1;
     var id = String(table[0][j]);
     while(iCol <= i) {
@@ -20623,7 +20756,6 @@
     nodes = new NodeList(nodeList[indexes[0]], nodeList[indexes[1]]);
     nodes.strength = maxStrength;
     return nodes;
-
   };
 
   /**
@@ -20650,25 +20782,48 @@
 
   /**
    * Builds a Table of clusters, based on an dendrogram Tree (if not provided it will be calculated), and a weight bias
-   * @param  {Network} network
+   * @param {Network} network
    *
-   * @param  {Tree} dendrogramTree Dendrogram Tree, if precalculated, changes in weight bias will perform faster
-   * @param  {Number} minWeight Weight bias, criteria to group clusters (0.5 default, the higher the value, the higer the number of clusters)
+   * @param {Number} mode cluster mode, 0: Louvain (default), 1: Moebio algorithm
+   * @param {Tree} dendrogramTree Dendrogram Tree, if precalculated, changes in weight bias will perform faster (not required for Louvain)
+   * @param {Number} minWeight Weight bias, criteria to group clusters (0.5 default, the higher the value, the higer the number of clusters, not required for Louvain)
+   * @param {Boolean} addColorToNodes if true, adds a color associated to cluster, [!] modifies nodes color property
    * @return {Table} List of NodeLists
    * tags:analysis
    */
-  NetworkOperators.buildNetworkClusters = function(network, dendrogramTree, minWeight) {
+  NetworkOperators.buildNetworkClusters = function(network, mode, dendrogramTree, minWeight, addColorToNodes) {
     if(network == null) return;
 
-    if(dendrogramTree == null) dendrogramTree = NetworkOperators.buildDendrogram(network);
-    minWeight = minWeight || 0.5;
+    var clusters;
+    var colors;
+    var i, j;
+    var nClusters, nNodes;
 
-    var clusters = new Table();
+    if(mode==null || mode===0){
+      clusters = NetworkOperators._buildNetworkClustersLouvain(network);
+    } else {
+      if(dendrogramTree == null) dendrogramTree = NetworkOperators.buildDendrogram(network);
+      minWeight = minWeight || 0.5;
 
-    NetworkOperators._iterativeBuildClusters(dendrogramTree.nodeList[dendrogramTree.nodeList.length - 1], clusters, minWeight);
+      clusters = new Table();
+
+      NetworkOperators._iterativeBuildClusters(dendrogramTree.nodeList[dendrogramTree.nodeList.length - 1], clusters, minWeight);
+    }
+
+    if(addColorToNodes){
+      colors = ColorListGenerators.createDefaultCategoricalColorList(clusters.length);
+      nClusters = clusters.length;
+      for(i=0; i<nClusters; i++){
+        nNodes = clusters[i].length;
+        for(j=0; j<nNodes; j++){
+          clusters[i][j].color = colors[i];
+        }
+      }
+    }
 
     return clusters;
   };
+
 
   /**
    * @ignore
@@ -20690,6 +20845,49 @@
     } else {
       NetworkOperators._iterativeBuildClusters(node.nodeList[1], clusters, minWeight);
     }
+  };
+
+  /**
+   * Builds a Table of clusters based on Louvain community detection.
+   * @param {Network} network
+   * @return {Table} List of NodeLists
+   */
+  NetworkOperators._buildNetworkClustersLouvain = function(network) {
+    if(network==null) return network;
+
+    var node_data = [];
+    var i;
+    for(i=0; i < network.nodeList.length; i++){
+      // force nodes to be stringlike since they get used as properties in result
+      node_data.push('n'+network.nodeList[i].id);
+    }
+    var edge_data = [];
+    for(i=0; i < network.relationList.length; i++){
+      var obj = {source: 'n'+network.relationList[i].node0.id,
+                 target: 'n'+network.relationList[i].node1.id,
+                 weight:network.relationList[i].weight};
+      edge_data.push(obj);
+    }
+
+    // Object with ids of nodes as properties and community number assigned as value.
+    var community = NetworkOperators._jLouvain().nodes(node_data).edges(edge_data);
+    var result  = community();
+    var clusters = new Table();
+
+    if(result)
+      for(i=0; i < network.nodeList.length; i++){
+        var j = result['n'+network.nodeList[i].id];
+        if(clusters[j] == undefined)
+          clusters[j]= new NodeList();
+        clusters[j].addNode(network.nodeList[i]);
+      }
+    else{
+      // no results mean no communities, make them all unique
+      for(i=0; i < network.nodeList.length; i++){
+        clusters.push(new NodeList(network.nodeList[i]));
+      }
+    }
+    return clusters;
   };
 
 
@@ -21240,49 +21438,6 @@
     return core;
   };
 
-  /**
-   * Builds a Table of clusters based on Louvain community detection.
-   * @param {Network} network
-   * @return {Table} List of NodeLists
-   * tags:analysis
-   */
-  NetworkOperators.buildNetworkClustersLouvain = function(network) {
-    if(network==null) return network;
-
-    var node_data = [];
-    var i;
-    for(i=0; i < network.nodeList.length; i++){
-      // force nodes to be stringlike since they get used as properties in result
-      node_data.push('n'+network.nodeList[i].id);
-    }
-    var edge_data = [];
-    for(i=0; i < network.relationList.length; i++){
-      var obj = {source: 'n'+network.relationList[i].node0.id,
-                 target: 'n'+network.relationList[i].node1.id,
-                 weight:network.relationList[i].weight};
-      edge_data.push(obj);
-    }
-
-    // Object with ids of nodes as properties and community number assigned as value.
-    var community = NetworkOperators._jLouvain().nodes(node_data).edges(edge_data);
-    var result  = community();
-    var clusters = new Table();
-
-    if(result)
-      for(i=0; i < network.nodeList.length; i++){
-        var j = result['n'+network.nodeList[i].id];
-        if(clusters[j] == undefined)
-          clusters[j]= new NodeList();
-        clusters[j].addNode(network.nodeList[i]);
-      }
-    else{
-      // no results mean no communities, make them all unique
-      for(i=0; i < network.nodeList.length; i++){
-        clusters.push(new NodeList(network.nodeList[i]));
-      }
-    }
-    return clusters;
-  };
 
 
   /**
@@ -27328,6 +27483,8 @@
     bezier = bezier || false;
     offValue = offValue == null ? 0.45 : offValue;
 
+    if(graphics==null) graphics = frame.graphics;
+
     var i;
     var j;
 
@@ -27806,6 +27963,8 @@
   NumberTableDraw.drawSimpleScatterPlot = function(frame, numberTable, texts, colors, maxRadius, loglog, margin, graphics) {
     if(frame == null ||  numberTable == null || numberTable.type != "NumberTable" ||  numberTable.length < 2 ||  numberTable[0].length === 0 || numberTable[1].length === 0) return; //todo:provisional, this is System's work
 
+    if(graphics==null) graphics = frame.graphics; //momentary fix
+
     if(numberTable.length < 2) return;
 
     maxRadius = maxRadius || 20;
@@ -28072,6 +28231,8 @@
   NumberTableDraw.drawStreamgraph = function(frame, numberTable, normalized, sorted, intervalsFactor, bezier, colorList, horizontalLabels, showValues, logFactor, graphics) {
     if(numberTable == null ||  numberTable.length < 2 || numberTable.type != "NumberTable") return;
 
+    if(graphics==null) graphics = frame.graphics; //momentary fix
+
     bezier = bezier == null ? true : bezier;
 
     //var self = NumberTableDraw.drawStreamgraph;
@@ -28097,6 +28258,7 @@
         logFactor: logFactor,
         image: null
       };
+
     }
 
     if(colorList && frame.memory.colorList != colorList) frame.memory.image = null;
@@ -28107,21 +28269,23 @@
     }
 
     var flowFrame = new Rectangle(0, 0, frame.width, horizontalLabels == null ? frame.height : (frame.height - 14));
+    flowFrame.graphics = graphics;
 
     if(frame.memory.image == null) {
+      //frame.memory.image = new Image(10,10);
       // TODO refactor to not reassign context
       ///// capture image
-      // var newCanvas = document.createElement("canvas");
-      // newCanvas.width = frame.width;
-      // newCanvas.height = frame.height;
-      // var newContext = newCanvas.getContext("2d");
-      // newContext.clearRect(0, 0, frame.width, frame.height);
-      // var mainContext = context;
-      // context = newContext;
-      // IntervalTableDraw.drawIntervalsFlowTable(frame.memory.flowIntervals, flowFrame, frame.memory.actualColorList, bezier, 0.3);
-      // context = mainContext;
-      // frame.memory.image = new Image();
-      // frame.memory.image.src = newCanvas.toDataURL();
+      var newCanvas = document.createElement("canvas");
+      newCanvas.width = frame.width;
+      newCanvas.height = frame.height;
+      var newContext = newCanvas.getContext("2d");
+      newContext.clearRect(0, 0, frame.width, frame.height);
+      var mainContext = graphics.context;
+      graphics.context = newContext;
+      IntervalTableDraw.drawIntervalsFlowTable(frame.memory.flowIntervals, flowFrame, frame.memory.actualColorList, bezier, 0.3);
+      graphics.context = mainContext;
+      frame.memory.image = new Image();
+      frame.memory.image.src = newCanvas.toDataURL();
       /////
     }
 
@@ -28153,6 +28317,8 @@
   };
 
   NumberTableDraw._drawHorizontalLabels = function(frame, y, numberTable, horizontalLabels, x0, x1, graphics) {
+    if(graphics==null) graphics = frame.graphics; //momentary fix
+
     var dx = frame.width / (numberTable[0].length - 1);
     var x;
     var mX2 = Math.min(Math.max(graphics.mX, frame.x + 1), frame.getRight() - 1);
@@ -28182,6 +28348,8 @@
   };
 
   NumberTableDraw._drawPartialFlow = function(frame, flowIntervals, labels, colors, x, x0, x1, OFF_X, sorted, numberTable, graphics) {
+    if(graphics==null) graphics = frame.graphics; //momentary fix
+
     var w = x1 - x0;
     var wForText = numberTable == null ? (x1 - x0) : (x1 - x0) * 0.85;
 
@@ -28285,6 +28453,8 @@
   NumberTableDraw.drawCircularStreamgraph = function(frame, numberTable, normalized, sorted, intervalsFactor, colorList, names, graphics) {
     if(numberTable == null ||  numberTable.length < 2 || numberTable[0].length < 2 || numberTable.type != "NumberTable") return;
 
+    if(graphics==null) graphics = frame.graphics; //momentary fix
+
     intervalsFactor = intervalsFactor == null ? 1 : intervalsFactor;
 
     //setup
@@ -28349,14 +28519,15 @@
 
     if(mouseOnFrame) frame.memory.image = null;
 
-    var captureImage = frame.memory.image == null && !mouseOnFrame;
-    var drawingImage = !mouseOnFrame && frame.memory.image != null &&  !captureImage;
+    var captureImage = false;// frame.memory.image == null && !mouseOnFrame;
+    var drawingImage = false;// !mouseOnFrame && frame.memory.image != null &&  !captureImage;
 
     if(drawingImage) {
       graphics.drawImage(frame.memory.image, frame.x, frame.y, frame.width, frame.height);
     } else {
       if(captureImage) {
         // TODO refactor to not reassign context
+
         // var newCanvas = document.createElement("canvas");
         // newCanvas.width = frame.width;
         // newCanvas.height = frame.height;
