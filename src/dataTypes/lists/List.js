@@ -241,7 +241,6 @@ List.prototype.isEquivalent = function(list) {
 /**
  * Returns the number of elements of the list.
  * @return {Number} Length of the list.
- * tags:
  */
 List.prototype.getLength = function() {
   return this.length;
@@ -1218,7 +1217,8 @@ List.prototype.getWithoutElementAtIndex = function(index) {
  * If multiple copies of the element exist, only exlcudes first copy.
  *
  * @param {Number|String|Object} element Element to exclude in the new List.
- * @return {List} New List missing the given element.
+ * @return {List} new List missing the given element
+ * tags:
  */
 List.prototype.getWithoutElement = function(element) {
   var index = this.indexOf(element);
@@ -1244,8 +1244,15 @@ List.prototype.getWithoutElement = function(element) {
   return newList;
 };
 
+/**
+ * removes elements from a list
+ * @param {List} list with elements to be removed
+ * @return {List} new List missing the given elements
+ * tags:
+*/
 List.prototype.getWithoutElements = function(list) {//TODO: more efficiency with dictionary
   var newList;
+  var i;
   var l = this.length;
   if(this.type == 'List') {
     newList = new List();
@@ -1253,9 +1260,12 @@ List.prototype.getWithoutElements = function(list) {//TODO: more efficiency with
     newList = instantiateWithSameType(this);
   }
 
-  for(var i = 0; i<l; i++) {
-    if(list.indexOf(this[i]) == -1) {
-      newList.push(this[i]);
+  var booleanDictionary = ListOperators.getBooleanDictionaryForList(list);
+
+  for(i = 0; i<l; i++) {
+    //if(list.indexOf(this[i]) == -1) {
+    if(!booleanDictionary[this[i]]) {
+      newList.push(this[i]);//@todo: solve NodeList case
     }
   }
   newList.name = this.name;

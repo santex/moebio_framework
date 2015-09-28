@@ -117,6 +117,31 @@ StringOperators.replaceStringInText = function(text, string, replacement) {
   return text.replace(string, replacement);
 };
 
+/**
+ * replaces in each string, a sub-string by a string
+ * @param  {String} text where to replaces strings
+ * @param  {StringList} strings to be replaced (could be Regular Expressions)
+ * @param  {String} replacement string to be placed instead
+ * @return {String}
+ * tags:
+ */
+StringOperators.replaceStringsInText = function(text, strings, replacement) {
+  if(text==null || strings==null || replacement==null) return null;
+
+  var newText = text;
+  var nStrings = strings.length;
+  var j;
+  var string;
+
+  for(j=0; j<nStrings; j++){
+    string = strings[j];
+    if(!(string instanceof RegExp)) string = new RegExp(string, "g");
+    newText = newText.replace(string, replacement);
+  }
+
+  return newText;
+};
+
 /** depracted, replaced by StringListOperators.replaceStringsInText
  * replaces in a string ocurrences of sub-strings by a string
  * @param  {String} string to be modified
@@ -189,23 +214,29 @@ StringOperators.getWords = function(string, withoutRepetitions, stopWords, sorte
   var list = string.match(/\w+/g);
   if(list == null) return new StringList();
 
+  list = StringList.fromArray(list);
+
   if(includeLinks && links != null) list = list.concat(links);
   list = StringList.fromArray(list).replace(/ /g, "");
 
+  var nMatches;
+
   if(stopWords != null) { //TODO:check before if all stopwrds are strings
     //list.removeElements(stopWords);
-
-    for(i = 0; list[i] != null; i++) {
+    nMatches = list.length;
+    for(i = 0; i<nMatches; i++) {
       for(j = 0; stopWords[j] != null; j++) {
         if((typeof stopWords[j]) == 'string') {
           if(stopWords[j] == list[i]) {
             list.splice(i, 1);
             i--;
+            nMatches = list.length;
             break;
           }
         } else if(stopWords[j].test(list[i])) {
           list.splice(i, 1);
           i--;
+          nMatches = list.length;
           break;
         }
       }
@@ -214,10 +245,12 @@ StringOperators.getWords = function(string, withoutRepetitions, stopWords, sorte
   }
 
   if(minSizeWords > 0) {
+    nMatches = list.length;
     for(i = 0; list[i] != null; i++) {
       if(list[i].length < minSizeWords) {
         list.splice(i, 1);
         i--;
+        nMatches = list.length;
       }
     }
   }
@@ -230,7 +263,7 @@ StringOperators.getWords = function(string, withoutRepetitions, stopWords, sorte
       return list;
     }
 
-    var occurrences = ListOperators.countOccurrencesOnList(list);
+    var occurrences = list.getFrequenciesTable();
     list = list.getSortedByList(occurrences);
     if(limit !== 0) list = list.substr(0, limit);
 
@@ -568,21 +601,71 @@ StringOperators.insertString = function(string, stringToInsert, index) {
 };
 
 /**
- * @todo finish docs
+ * transforms a text by performing multiple optional cleaning operations (applied in the same order as parameters suggest)
+ * @param {String} string to be transformed
+ *
+ * @param {Boolean} removeEnters
+ * @param {Boolean} removeTabs
+ * @param {String} replaceTabsAndEntersBy
+ * @param {Boolean} removePunctuation
+ * @param {Boolean} toLowerCase
+ * @param {StringList} stopWords removes strings from text
+ * @param {Boolean} removeDoubleSpaces
+ * @return {String}
+ * tags:filter
  */
-StringOperators.removeEnters = function(string) {
-  return string.replace(/(\StringOperators.ENTER|\StringOperators.ENTER2|\StringOperators.ENTER3)/gi, " ");
+StringOperators.cleanText = function(string, removeEnters, removeTabs, replaceTabsAndEntersBy, removePunctuation, toLowerCase, stopWords, removeDoubleSpaces){
+  if(string==null) return null;
+
+  //console.log("string["+string+"]");
+
+  if(removeEnters) string = StringOperators.removeEnters(string, replaceTabsAndEntersBy);
+  if(removeTabs) string = StringOperators.removeTabs(string, replaceTabsAndEntersBy);
+  if(removePunctuation) string = StringOperators.removePunctuation(string);
+  if(toLowerCase) string = string.toLowerCase();
+
+  if(stopWords!=null){
+    string = StringOperators.replaceStringsInText(string, stopWords, "");
+  }
+
+  if(removeDoubleSpaces) string = StringOperators.removeDoubleSpaces(string);
+
+  return string;
 };
 
 /**
- * @todo finish docs
+ * removes enters from string
+ * @param {String} string to be transformed
+
+ * @param {String} replaceBy optional string to replace enters
+ * @return {String}
+ * tags:
  */
-StringOperators.removeTabs = function(string) {
-  return string.replace(/(\StringOperators.TAB|\StringOperators.TAB2|\t)/gi, "");
+StringOperators.removeEnters = function(string, replaceBy) {
+  replaceBy = replaceBy==null?"":replaceBy;
+  return string.replace(/(\StringOperators.ENTER|\StringOperators.ENTER2|\StringOperators.ENTER3)/gi, replaceBy);
 };
 
 /**
- * @todo finish docs
+ * removes tabs from string
+ * @param {String} string to be transformed
+
+ * @param {String} replaceBy optional string to replace tabs
+ * @return {String}
+ * tags:
+ */
+StringOperators.removeTabs = function(string, replaceBy) {
+  replaceBy = replaceBy || "";
+  return string.replace(/(\StringOperators.TAB|\StringOperators.TAB2|\t)/gi, replaceBy);
+};
+
+/**
+ * removes punctuation from a string, using regex /[:,.;?!\(\)\"\']/gi
+ * @param {String} string to be transformed
+
+ * @param {String} replaceBy optional string to replace punctuation signs
+ * @return {String}
+ * tags:
  */
 StringOperators.removePunctuation = function(string, replaceBy) {
   replaceBy = replaceBy || "";
@@ -590,7 +673,10 @@ StringOperators.removePunctuation = function(string, replaceBy) {
 };
 
 /**
- * @todo finish docs
+ * removes double spaces from a string
+ * @param {String} string to be transformed
+ * @return {String}
+ * tags:
  */
 StringOperators.removeDoubleSpaces = function(string) {
   var retString = string;

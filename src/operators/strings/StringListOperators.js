@@ -137,31 +137,6 @@ StringListOperators.replaceStringInTexts = function(texts, string, replacement) 
 
 /**
  * replaces in each string, a sub-string by a string
- * @param  {String} text where to replaces strings
- * @param  {StringList} strings to be replaced (could be Regular Expressions)
- * @param  {String} replacement string to be placed instead
- * @return {String}
- * tags:
- */
-StringListOperators.replaceStringsInText = function(text, strings, replacement) {
-  if(text==null || strings==null || replacement==null) return null;
-
-  var newText = text;
-  var nStrings = strings.length;
-  var j;
-  var string;
-
-  for(j=0; j<nStrings; j++){
-    string = strings[j];
-    if(!(string instanceof RegExp)) string = new RegExp(string, "g");
-    newText = newText.replace(string, replacement);
-  }
-
-  return newText;
-};
-
-/**
- * replaces in each string, a sub-string by a string
  * @param  {StringList} texts  where to replace strings
  * @param  {StringList} strings to be replaced (could be Regular Expressions)
  * @param  {StringList} replacements strings to be placed instead (should have same length as strings)
