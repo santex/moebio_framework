@@ -100,6 +100,7 @@ List.fromArray = function(array) {
   array.containsElement = List.prototype.containsElement;
   array.indexOfElement = List.prototype.indexOfElement;
   //sorting:
+  array.isSorted = List.prototype.isSorted;
   array.sortIndexed = List.prototype.sortIndexed;
   array.sortNumericIndexed = List.prototype.sortNumericIndexed;
   array.sortNumeric = List.prototype.sortNumeric;
@@ -828,6 +829,27 @@ List.prototype.getPropertyValues = function(propertyName, valueIfNull) {
     newList[i] = (val == null ? valueIfNull : val);
   }
   return newList.getImproved();
+};
+
+
+List.prototype.isSorted = function(ascending){
+  ascending = ascending==null?true:Boolean(ascending);
+  
+  var l = this.length;
+  var i;
+  if(ascending){
+    for(i=1;i<l;i++){
+      if(this[i]<this[i-1]){
+        console.log('~',i,this[i],this[i+1]);
+      }
+      if(this[i]<this[i-1]) return false;
+    }
+  } else {
+    for(i=1;i<l;i++){
+      if(this[i]>this[i-1]) return false;
+    }
+  }
+  return true;
 };
 
 List.prototype.sortIndexed = function() {

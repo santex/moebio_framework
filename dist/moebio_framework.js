@@ -1191,6 +1191,7 @@
     array.containsElement = List.prototype.containsElement;
     array.indexOfElement = List.prototype.indexOfElement;
     //sorting:
+    array.isSorted = List.prototype.isSorted;
     array.sortIndexed = List.prototype.sortIndexed;
     array.sortNumericIndexed = List.prototype.sortNumericIndexed;
     array.sortNumeric = List.prototype.sortNumeric;
@@ -1919,6 +1920,27 @@
       newList[i] = (val == null ? valueIfNull : val);
     }
     return newList.getImproved();
+  };
+
+
+  List.prototype.isSorted = function(ascending){
+    ascending = ascending==null?true:Boolean(ascending);
+    
+    var l = this.length;
+    var i;
+    if(ascending){
+      for(i=1;i<l;i++){
+        if(this[i]<this[i-1]){
+          console.log('~',i,this[i],this[i+1]);
+        }
+        if(this[i]<this[i-1]) return false;
+      }
+    } else {
+      for(i=1;i<l;i++){
+        if(this[i]>this[i-1]) return false;
+      }
+    }
+    return true;
   };
 
   List.prototype.sortIndexed = function() {
@@ -4524,10 +4546,11 @@
    * @param  {Number} index The Column to return its length.
    * Defaults to 0.
    * @return {Number} Length of column at given index.
-   * tags:
    */
   Table.prototype.getListLength = function(index) {
-    return this[index || 0].length;
+    index = index || 0;
+    if(index>=this.length) return;
+    return this[index].length;
   };
 
   /**
@@ -5990,6 +6013,8 @@
    * tags:
    */
   NumberListOperators.normalized = function(numberlist, factor) {
+    if(numberlist==null) return;
+
     factor = factor == null ? 1 : factor;
 
     if(numberlist.length === 0) return null;
@@ -6014,6 +6039,8 @@
    * tags:
    */
   NumberListOperators.normalizedToMax = function(numberlist, factor) {
+    if(numberlist==null) return;
+    
     factor = factor == null ? 1 : factor;
 
     if(numberlist.length === 0) return null;
@@ -6175,6 +6202,7 @@
    * @todo finish docs
    */
   NumberListOperators.standardDeviationBetweenTwoNumberLists = function(numberList0, numberList1) {
+    if(numberList0==null || numberList1==null) return;
     var s = 0;
     var l = Math.min(numberList0.length, numberList1.length);
 
@@ -6193,6 +6221,7 @@
    * tags:statistics
    */
   NumberListOperators.pearsonProductMomentCorrelation = function(numberList0, numberList1) { //TODO:make more efficient
+    if(numberList0==null || numberList1==null) return;
     return NumberListOperators.covariance(numberList0, numberList1) / (numberList0.getStandardDeviation() * numberList1.getStandardDeviation());
   };
 
@@ -6200,12 +6229,15 @@
   /**
    * smooth a numberList by calculating averages with neighbors
    * @param  {NumberList} numberList
+   *
    * @param  {Number} intensity weight for neighbors in average (0<=intensity<=0.5)
    * @param  {Number} nIterations number of ieterations
    * @return {NumberList}
    * tags:statistics
    */
   NumberListOperators.averageSmoother = function(numberList, intensity, nIterations) {
+    if(numberList==null) return;
+
     nIterations = nIterations == null ? 1 : nIterations;
     intensity = intensity == null ? 0.1 : intensity;
 
@@ -6237,9 +6269,12 @@
     return newNumberList;
   };
 
-
+  /**
+   *@todo: finish
+   */
   NumberListOperators.filterNumberListByInterval = function(numberList, min, max, includeMin, includeMax, returnMode) {
-  }
+    return null;
+  };
 
   /**
    * accepted comparison operators: "<", "<=", ">", ">=", "==", "!="

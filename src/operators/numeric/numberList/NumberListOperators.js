@@ -162,6 +162,8 @@ NumberListOperators.normalizedToSum = function(numberlist, factor, sum) {
  * tags:
  */
 NumberListOperators.normalized = function(numberlist, factor) {
+  if(numberlist==null) return;
+
   factor = factor == null ? 1 : factor;
 
   if(numberlist.length === 0) return null;
@@ -186,6 +188,8 @@ NumberListOperators.normalized = function(numberlist, factor) {
  * tags:
  */
 NumberListOperators.normalizedToMax = function(numberlist, factor) {
+  if(numberlist==null) return;
+  
   factor = factor == null ? 1 : factor;
 
   if(numberlist.length === 0) return null;
@@ -347,6 +351,7 @@ NumberListOperators.linearKMeans = function(numberList, k, returnIndexes) {
  * @todo finish docs
  */
 NumberListOperators.standardDeviationBetweenTwoNumberLists = function(numberList0, numberList1) {
+  if(numberList0==null || numberList1==null) return;
   var s = 0;
   var l = Math.min(numberList0.length, numberList1.length);
 
@@ -365,6 +370,7 @@ NumberListOperators.standardDeviationBetweenTwoNumberLists = function(numberList
  * tags:statistics
  */
 NumberListOperators.pearsonProductMomentCorrelation = function(numberList0, numberList1) { //TODO:make more efficient
+  if(numberList0==null || numberList1==null) return;
   return NumberListOperators.covariance(numberList0, numberList1) / (numberList0.getStandardDeviation() * numberList1.getStandardDeviation());
 };
 
@@ -372,12 +378,15 @@ NumberListOperators.pearsonProductMomentCorrelation = function(numberList0, numb
 /**
  * smooth a numberList by calculating averages with neighbors
  * @param  {NumberList} numberList
+ *
  * @param  {Number} intensity weight for neighbors in average (0<=intensity<=0.5)
  * @param  {Number} nIterations number of ieterations
  * @return {NumberList}
  * tags:statistics
  */
 NumberListOperators.averageSmoother = function(numberList, intensity, nIterations) {
+  if(numberList==null) return;
+
   nIterations = nIterations == null ? 1 : nIterations;
   intensity = intensity == null ? 0.1 : intensity;
 
@@ -409,9 +418,12 @@ NumberListOperators.averageSmoother = function(numberList, intensity, nIteration
   return newNumberList;
 };
 
-
+/**
+ *@todo: finish
+ */
 NumberListOperators.filterNumberListByInterval = function(numberList, min, max, includeMin, includeMax, returnMode) {
-}
+  return null;
+};
 
 /**
  * accepted comparison operators: "<", "<=", ">", ">=", "==", "!="

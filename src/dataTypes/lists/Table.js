@@ -128,10 +128,11 @@ Table.prototype.getRow = function(index) {
  * @param  {Number} index The Column to return its length.
  * Defaults to 0.
  * @return {Number} Length of column at given index.
- * tags:
  */
 Table.prototype.getListLength = function(index) {
-  return this[index || 0].length;
+  index = index || 0;
+  if(index>=this.length) return;
+  return this[index].length;
 };
 
 /**
