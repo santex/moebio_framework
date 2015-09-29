@@ -148,6 +148,7 @@ TableEncodings.TableToCSV = function(table, separator, namesAsHeaders) {
   var j;
   var list;
   var type;
+  if(table == null) return null;
   var lines = ListGenerators.createListWithSameElement(table[0].length, "");
   var addSeparator;
   for(i = 0; table[i] != null; i++) {
