@@ -124,10 +124,11 @@ StringList.prototype.replace = function(regExp, string) {
 
   var newStringList = new StringList();
   var i;
+  var l = this.length;
 
   newStringList.name = this.name;
 
-  for(i = 0; this[i] != null; i++){
+  for(i = 0; i<l; i++){
     newStringList[i] = this[i].replace(regExp, string);
   }
 
@@ -140,7 +141,8 @@ StringList.prototype.replace = function(regExp, string) {
 StringList.prototype.getConcatenated = function(separator) {
   var i;
   var string = "";
-  for(i = 0; this[i] != null; i++) {
+  var l = this.length;
+  for(i = 0; i<l; i++) {
     string += this[i];
     if(i < this.length - 1) string += separator;
   }
@@ -148,26 +150,32 @@ StringList.prototype.getConcatenated = function(separator) {
 };
 
 /**
- * @todo write docs
+ * applies toLowercase to all strings
+ * @return {StringList}
+ * tags:
  */
 StringList.prototype.toLowerCase = function() {
   var newStringList = new StringList();
   newStringList.name = this.name;
   var i;
-  for(i = 0; this[i] != null; i++) {
+  var l = this.length;
+  for(i = 0; i<l; i++) {
     newStringList[i] = this[i].toLowerCase();
   }
   return newStringList;
 };
 
 /**
- * @todo write docs
+ * applies toUpperCase to all strings
+ * @return {StringList}
+ * tags:
  */
 StringList.prototype.toUpperCase = function() {
   var newStringList = new StringList();
   newStringList.name = this.name;
   var i;
-  for(i = 0; this[i] != null; i++) {
+  var l = this.length;
+  for(i = 0; i<l; i++) {
     newStringList[i] = this[i].toUpperCase();
   }
   return newStringList;
@@ -180,8 +188,9 @@ StringList.prototype.toUpperCase = function() {
  */
 StringList.prototype.trim = function() {
   var i;
+  var l = this.length;
   var newStringList = new StringList();
-  for(i = 0; this[i] != null; i++) {
+  for(i = 0; i<l; i++) {
     newStringList[i] = this[i].trim();
   }
   newStringList.name = this.name;

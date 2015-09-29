@@ -117,6 +117,16 @@ ObjectOperators.getReportHtml = function(object) {
 };
 
 
+/**
+ * return length of list, string or Object with length property
+ * @param {Object} object with length property
+ * @return {Number} length of number
+ * tags:
+ */
+ObjectOperators.getLength = function(object){
+  return object.length;
+};
+
 
 /**
  * uses a boolean to decide which of two objects it returns

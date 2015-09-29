@@ -1332,7 +1332,6 @@
   /**
    * Returns the number of elements of the list.
    * @return {Number} Length of the list.
-   * tags:
    */
   List.prototype.getLength = function() {
     return this.length;
@@ -2309,7 +2308,8 @@
    * If multiple copies of the element exist, only exlcudes first copy.
    *
    * @param {Number|String|Object} element Element to exclude in the new List.
-   * @return {List} New List missing the given element.
+   * @return {List} new List missing the given element
+   * tags:
    */
   List.prototype.getWithoutElement = function(element) {
     var index = this.indexOf(element);
@@ -2335,8 +2335,15 @@
     return newList;
   };
 
+  /**
+   * removes elements from a list
+   * @param {List} list with elements to be removed
+   * @return {List} new List missing the given elements
+   * tags:
+  */
   List.prototype.getWithoutElements = function(list) {//TODO: more efficiency with dictionary
     var newList;
+    var i;
     var l = this.length;
     if(this.type == 'List') {
       newList = new List();
@@ -2344,9 +2351,12 @@
       newList = instantiateWithSameType(this);
     }
 
-    for(var i = 0; i<l; i++) {
-      if(list.indexOf(this[i]) == -1) {
-        newList.push(this[i]);
+    var booleanDictionary = ListOperators.getBooleanDictionaryForList(list);
+
+    for(i = 0; i<l; i++) {
+      //if(list.indexOf(this[i]) == -1) {
+      if(!booleanDictionary[this[i]]) {
+        newList.push(this[i]);//@todo: solve NodeList case
       }
     }
     newList.name = this.name;
@@ -4639,10 +4649,13 @@
     if(listOrIndex == null) return;
     var newTable = instantiateWithSameType(this);
     var sortinglist = listOrIndex.isList ? listOrIndex.clone() : this[listOrIndex];
+    var l = this.length;
+    var i;
 
-    this.forEach(function(list) {
-      newTable.push(list.getSortedByList(sortinglist, ascending));
-    });
+    //this.forEach(function(list) {
+    for(i=0; i<l; i++){
+      newTable.push(this[i].getSortedByList(sortinglist, ascending));
+    }
 
     return newTable;
   };
@@ -5087,10 +5100,11 @@
 
     var newStringList = new StringList();
     var i;
+    var l = this.length;
 
     newStringList.name = this.name;
 
-    for(i = 0; this[i] != null; i++){
+    for(i = 0; i<l; i++){
       newStringList[i] = this[i].replace(regExp, string);
     }
 
@@ -5103,7 +5117,8 @@
   StringList.prototype.getConcatenated = function(separator) {
     var i;
     var string = "";
-    for(i = 0; this[i] != null; i++) {
+    var l = this.length;
+    for(i = 0; i<l; i++) {
       string += this[i];
       if(i < this.length - 1) string += separator;
     }
@@ -5111,26 +5126,32 @@
   };
 
   /**
-   * @todo write docs
+   * applies toLowercase to all strings
+   * @return {StringList}
+   * tags:
    */
   StringList.prototype.toLowerCase = function() {
     var newStringList = new StringList();
     newStringList.name = this.name;
     var i;
-    for(i = 0; this[i] != null; i++) {
+    var l = this.length;
+    for(i = 0; i<l; i++) {
       newStringList[i] = this[i].toLowerCase();
     }
     return newStringList;
   };
 
   /**
-   * @todo write docs
+   * applies toUpperCase to all strings
+   * @return {StringList}
+   * tags:
    */
   StringList.prototype.toUpperCase = function() {
     var newStringList = new StringList();
     newStringList.name = this.name;
     var i;
-    for(i = 0; this[i] != null; i++) {
+    var l = this.length;
+    for(i = 0; i<l; i++) {
       newStringList[i] = this[i].toUpperCase();
     }
     return newStringList;
@@ -5143,8 +5164,9 @@
    */
   StringList.prototype.trim = function() {
     var i;
+    var l = this.length;
     var newStringList = new StringList();
-    for(i = 0; this[i] != null; i++) {
+    for(i = 0; i<l; i++) {
       newStringList[i] = this[i].trim();
     }
     newStringList.name = this.name;
@@ -7072,6 +7094,74 @@
     return dictionary;
   };
 
+
+
+  /**
+   * builds a dictionary that matches an element of a List with its index on the List (indexesDictionary[element] --> index)
+   * it assumes there's no repetitions on the list (if that's not tha case the last index of the element will be delivered)
+   * efficiently replaces indexOf
+   * @param  {List} list
+   * @return {Object}
+   * tags:dictionary
+   */
+  ListOperators.getSingleIndexDictionaryForList = function(list){
+    if(list==null) return;
+
+    var i;
+    var l = list.length;
+
+    var dictionary = {};
+    for(i=0; i<l; i++){
+      dictionary[list[i]] = i;
+    }
+
+    return dictionary;
+  };
+
+  /**
+   * builds a dictionary that matches an element of a List with all its indexes on the List (indexesDictionary[element] --> numberList of indexes of element on list)
+   * if the list has no repeated elements, and a single is required per element, use ListOperators.getSingleIndexDictionaryForList
+   * @param  {List} list
+   * @return {Object}
+   * tags:dictionary
+   */
+  ListOperators.getIndexesDictionary = function(list){
+    var indexesDictionary = {};
+
+    list.forEach(function(element, i){
+      if(indexesDictionary[element]==null) indexesDictionary[element]=new NumberList();
+      indexesDictionary[element].push(i);
+    });
+
+    return indexesDictionary;
+  };
+
+  /**
+   * @todo write docs
+   */
+  ListOperators.getIndexesTable = function(list){
+    var indexesTable = new Table();
+    indexesTable[0] = new List();
+    indexesTable[1] = new NumberTable();
+    var indexesDictionary = {};
+    var indexOnTable;
+
+    list.forEach(function(element, i){
+      indexOnTable = indexesDictionary[element];
+      if(indexOnTable==null){
+        indexesTable[0].push(element);
+        indexesTable[1].push(new NumberList(i));
+        indexesDictionary[element]=indexesTable[0].length-1;
+      } else {
+        indexesTable[1][indexOnTable].push(i);
+      }
+    });
+
+    indexesTable[0] = indexesTable[0].getImproved();
+
+    return indexesTable;
+  };
+
   /**
    * builds a dictionar object (relational array) for a dictionar (table with two lists)
    * @param  {Table} dictionary table with two lists, typically without repetitions, elements of the second list being the 'translation' of the correspdonent on the first
@@ -7221,13 +7311,21 @@
    * @todo write docs
    */
   ListOperators.concatWithoutRepetitions = function() {
-    var i;
+    var l = arguments.length;
+    if(l===0) return;
+    if(l==1) return arguments[0];
+
+    var i, j;
     var newList = arguments[0].clone();
-    for(i = 1; i < arguments.length; i++) {
-      var addList = arguments[i];
-      var nElements = addList.length;
-      for(i = 0; i < nElements; i++) { // TODO Is the redefing of i intentional?
-        if(newList.indexOf(addList[i]) == -1) newList.push(addList[i]);
+    var newListBooleanDictionary = ListOperators.getBooleanDictionaryForList(newList);
+    var addList;
+    var nElements;
+    for(i = 1; i < l; i++) {
+      addList = arguments[i];
+      nElements = addList.length;
+      for(j = 0; j < nElements; j++) { // TODO Is the redefing of i intentional? <----- !
+        //if(newList.indexOf(addList[i]) == -1) newList.push(addList[i]);
+        if(!newListBooleanDictionary[addList[j]]) newList.push(addList[j]);
       }
     }
     return newList.getImproved();
@@ -7461,71 +7559,6 @@
   };
 
 
-
-  /**
-   * builds a dictionary that matches an element of a List with its index on the List (indexesDictionary[element] --> index)
-   * it assumes there's no repetitions on the list (if that's not tha case the last index of the element will be delivered)
-   * @param  {List} list
-   * @return {Object}
-   * tags:dictionary
-   */
-  ListOperators.getSingleIndexDictionaryForList = function(list){
-    if(list==null) return;
-
-    var i;
-    var l = list.length;
-
-    var dictionary = {};
-    for(i=0; i<l; i++){
-      dictionary[list[i]] = i;
-    }
-
-    return dictionary;
-  };
-
-  /**
-   * builds a dictionary that matches an element of a List with all its indexes on the List (indexesDictionary[element] --> numberList of indexes of element on list)
-   * if the list has no repeated elements, and a single is required per element, use ListOperators.getSingleIndexDictionaryForList
-   * @param  {List} list
-   * @return {Object}
-   * tags:dictionary
-   */
-  ListOperators.getIndexesDictionary = function(list){
-    var indexesDictionary = {};
-
-    list.forEach(function(element, i){
-      if(indexesDictionary[element]==null) indexesDictionary[element]=new NumberList();
-      indexesDictionary[element].push(i);
-    });
-
-    return indexesDictionary;
-  };
-
-  /**
-   * @todo write docs
-   */
-  ListOperators.getIndexesTable = function(list){
-    var indexesTable = new Table();
-    indexesTable[0] = new List();
-    indexesTable[1] = new NumberTable();
-    var indexesDictionary = {};
-    var indexOnTable;
-
-    list.forEach(function(element, i){
-      indexOnTable = indexesDictionary[element];
-      if(indexOnTable==null){
-        indexesTable[0].push(element);
-        indexesTable[1].push(new NumberList(i));
-        indexesDictionary[element]=indexesTable[0].length-1;
-      } else {
-        indexesTable[1][indexOnTable].push(i);
-      }
-    });
-
-    indexesTable[0] = indexesTable[0].getImproved();
-
-    return indexesTable;
-  };
 
   /**
    * aggregates values of a list using an aggregator list as reference
@@ -8665,6 +8698,31 @@
     return text.replace(string, replacement);
   };
 
+  /**
+   * replaces in each string, a sub-string by a string
+   * @param  {String} text where to replaces strings
+   * @param  {StringList} strings to be replaced (could be Regular Expressions)
+   * @param  {String} replacement string to be placed instead
+   * @return {String}
+   * tags:
+   */
+  StringOperators.replaceStringsInText = function(text, strings, replacement) {
+    if(text==null || strings==null || replacement==null) return null;
+
+    var newText = text;
+    var nStrings = strings.length;
+    var j;
+    var string;
+
+    for(j=0; j<nStrings; j++){
+      string = strings[j];
+      if(!(string instanceof RegExp)) string = new RegExp(string, "g");
+      newText = newText.replace(string, replacement);
+    }
+
+    return newText;
+  };
+
   /** depracted, replaced by StringListOperators.replaceStringsInText
    * replaces in a string ocurrences of sub-strings by a string
    * @param  {String} string to be modified
@@ -8737,23 +8795,29 @@
     var list = string.match(/\w+/g);
     if(list == null) return new StringList();
 
+    list = StringList.fromArray(list);
+
     if(includeLinks && links != null) list = list.concat(links);
     list = StringList.fromArray(list).replace(/ /g, "");
 
+    var nMatches;
+
     if(stopWords != null) { //TODO:check before if all stopwrds are strings
       //list.removeElements(stopWords);
-
-      for(i = 0; list[i] != null; i++) {
+      nMatches = list.length;
+      for(i = 0; i<nMatches; i++) {
         for(j = 0; stopWords[j] != null; j++) {
           if((typeof stopWords[j]) == 'string') {
             if(stopWords[j] == list[i]) {
               list.splice(i, 1);
               i--;
+              nMatches = list.length;
               break;
             }
           } else if(stopWords[j].test(list[i])) {
             list.splice(i, 1);
             i--;
+            nMatches = list.length;
             break;
           }
         }
@@ -8762,10 +8826,12 @@
     }
 
     if(minSizeWords > 0) {
+      nMatches = list.length;
       for(i = 0; list[i] != null; i++) {
         if(list[i].length < minSizeWords) {
           list.splice(i, 1);
           i--;
+          nMatches = list.length;
         }
       }
     }
@@ -8778,7 +8844,7 @@
         return list;
       }
 
-      var occurrences = ListOperators.countOccurrencesOnList(list);
+      var occurrences = list.getFrequenciesTable();
       list = list.getSortedByList(occurrences);
       if(limit !== 0) list = list.substr(0, limit);
 
@@ -9116,21 +9182,71 @@
   };
 
   /**
-   * @todo finish docs
+   * transforms a text by performing multiple optional cleaning operations (applied in the same order as parameters suggest)
+   * @param {String} string to be transformed
+   *
+   * @param {Boolean} removeEnters
+   * @param {Boolean} removeTabs
+   * @param {String} replaceTabsAndEntersBy
+   * @param {Boolean} removePunctuation
+   * @param {Boolean} toLowerCase
+   * @param {StringList} stopWords removes strings from text
+   * @param {Boolean} removeDoubleSpaces
+   * @return {String}
+   * tags:filter
    */
-  StringOperators.removeEnters = function(string) {
-    return string.replace(/(\StringOperators.ENTER|\StringOperators.ENTER2|\StringOperators.ENTER3)/gi, " ");
+  StringOperators.cleanText = function(string, removeEnters, removeTabs, replaceTabsAndEntersBy, removePunctuation, toLowerCase, stopWords, removeDoubleSpaces){
+    if(string==null) return null;
+
+    //console.log("string["+string+"]");
+
+    if(removeEnters) string = StringOperators.removeEnters(string, replaceTabsAndEntersBy);
+    if(removeTabs) string = StringOperators.removeTabs(string, replaceTabsAndEntersBy);
+    if(removePunctuation) string = StringOperators.removePunctuation(string);
+    if(toLowerCase) string = string.toLowerCase();
+
+    if(stopWords!=null){
+      string = StringOperators.replaceStringsInText(string, stopWords, "");
+    }
+
+    if(removeDoubleSpaces) string = StringOperators.removeDoubleSpaces(string);
+
+    return string;
   };
 
   /**
-   * @todo finish docs
+   * removes enters from string
+   * @param {String} string to be transformed
+
+   * @param {String} replaceBy optional string to replace enters
+   * @return {String}
+   * tags:
    */
-  StringOperators.removeTabs = function(string) {
-    return string.replace(/(\StringOperators.TAB|\StringOperators.TAB2|\t)/gi, "");
+  StringOperators.removeEnters = function(string, replaceBy) {
+    replaceBy = replaceBy==null?"":replaceBy;
+    return string.replace(/(\StringOperators.ENTER|\StringOperators.ENTER2|\StringOperators.ENTER3)/gi, replaceBy);
   };
 
   /**
-   * @todo finish docs
+   * removes tabs from string
+   * @param {String} string to be transformed
+
+   * @param {String} replaceBy optional string to replace tabs
+   * @return {String}
+   * tags:
+   */
+  StringOperators.removeTabs = function(string, replaceBy) {
+    replaceBy = replaceBy || "";
+    return string.replace(/(\StringOperators.TAB|\StringOperators.TAB2|\t)/gi, replaceBy);
+  };
+
+  /**
+   * removes punctuation from a string, using regex /[:,.;?!\(\)\"\']/gi
+   * @param {String} string to be transformed
+
+   * @param {String} replaceBy optional string to replace punctuation signs
+   * @return {String}
+   * tags:
    */
   StringOperators.removePunctuation = function(string, replaceBy) {
     replaceBy = replaceBy || "";
@@ -9138,7 +9254,10 @@
   };
 
   /**
-   * @todo finish docs
+   * removes double spaces from a string
+   * @param {String} string to be transformed
+   * @return {String}
+   * tags:
    */
   StringOperators.removeDoubleSpaces = function(string) {
     var retString = string;
@@ -16312,69 +16431,69 @@
    * @return {Table} aggregated table
    * tags:deprecated
    */
-  TableOperators.aggregateTableOld = function(table, nList, mode) {
-    nList = nList == null ? 0 : nList;
-    if(table == null || table[0] == null || table[0][0] == null || table[nList] == null) return null;
-    mode = mode == null ? 0 : mode;
+  // TableOperators.aggregateTableOld = function(table, nList, mode) {
+  //   nList = nList == null ? 0 : nList;
+  //   if(table == null || table[0] == null || table[0][0] == null || table[nList] == null) return null;
+  //   mode = mode == null ? 0 : mode;
 
-    var newTable = new Table();
-    var i, j;
-    var index;
-    var notRepeated;
+  //   var newTable = new Table();
+  //   var i, j;
+  //   var index;
+  //   var notRepeated;
 
-    newTable.name = table.name;
+  //   newTable.name = table.name;
 
-    for(j = 0; table[j] != null; j++) {
-      newTable[j] = new List();
-      newTable[j].name = table[j].name;
-    }
+  //   for(j = 0; table[j] != null; j++) {
+  //     newTable[j] = new List();
+  //     newTable[j].name = table[j].name;
+  //   }
 
-    switch(mode) {
-      case 0: //leaves the first element of the aggregated subLists
-        for(i = 0; table[0][i] != null; i++) {
-          notRepeated = newTable[nList].indexOf(table[nList][i]) == -1;
-          if(notRepeated) {
-            for(j = 0; table[j] != null; j++) {
-              newTable[j].push(table[j][i]);
-            }
-          }
-        }
-        break;
-      case 1: //adds values in numberLists
-        for(i = 0; table[0][i] != null; i++) {
-          index = newTable[nList].indexOf(table[nList][i]);
-          notRepeated = index == -1;
-          if(notRepeated) {
-            for(j = 0; table[j] != null; j++) {
-              newTable[j].push(table[j][i]);
-            }
-          } else {
-            for(j = 0; table[j] != null; j++) {
-              if(j != nList && table[j].type == 'NumberList') {
-                newTable[j][index] += table[j][i];
-              }
-            }
-          }
-        }
-        break;
-      case 2: //averages values in numberLists
-        var nRepetitionsList = table[nList].getFrequenciesTable(false);
-        newTable = TableOperators.aggregateTableOld(table, nList, 1);
+  //   switch(mode) {
+  //     case 0: //leaves the first element of the aggregated subLists
+  //       for(i = 0; table[0][i] != null; i++) {
+  //         notRepeated = newTable[nList].indexOf(table[nList][i]) == -1;
+  //         if(notRepeated) {
+  //           for(j = 0; table[j] != null; j++) {
+  //             newTable[j].push(table[j][i]);
+  //           }
+  //         }
+  //       }
+  //       break;
+  //     case 1: //adds values in numberLists
+  //       for(i = 0; table[0][i] != null; i++) {
+  //         index = newTable[nList].indexOf(table[nList][i]);
+  //         notRepeated = index == -1;
+  //         if(notRepeated) {
+  //           for(j = 0; table[j] != null; j++) {
+  //             newTable[j].push(table[j][i]);
+  //           }
+  //         } else {
+  //           for(j = 0; table[j] != null; j++) {
+  //             if(j != nList && table[j].type == 'NumberList') {
+  //               newTable[j][index] += table[j][i];
+  //             }
+  //           }
+  //         }
+  //       }
+  //       break;
+  //     case 2: //averages values in numberLists
+  //       var nRepetitionsList = table[nList].getFrequenciesTable(false);
+  //       newTable = TableOperators.aggregateTableOld(table, nList, 1);
 
-        for(j = 0; newTable[j] != null; j++) {
-          if(j != nList && newTable[j].type == 'NumberList') {
-            newTable[j] = newTable[j].divide(nRepetitionsList[1]);
-          }
-        }
+  //       for(j = 0; newTable[j] != null; j++) {
+  //         if(j != nList && newTable[j].type == 'NumberList') {
+  //           newTable[j] = newTable[j].divide(nRepetitionsList[1]);
+  //         }
+  //       }
 
-        newTable.push(nRepetitionsList[1]);
-        break;
-    }
-    for(j = 0; newTable[j] != null; j++) {
-      newTable[j] = newTable[j].getImproved();
-    }
-    return newTable.getImproved();
-  };
+  //       newTable.push(nRepetitionsList[1]);
+  //       break;
+  //   }
+  //   for(j = 0; newTable[j] != null; j++) {
+  //     newTable[j] = newTable[j].getImproved();
+  //   }
+  //   return newTable.getImproved();
+  // };
 
   /**
    * counts pairs of elements in same positions in two lists (the result is the adjacent matrix of the network defined by pairs)
@@ -16474,17 +16593,35 @@
   };
 
   /**
-   * creates a new table with an updated first List of elements and an added new numberList with the new values
+   * creates a new table with an updated first categorical List of elements and  added new numberLists with the new values
+   * @param {Table} table0 table wit a list of elements and a numberList of numbers associated to elements
+   * @param {Table} table1 wit a list of elements and a numberList of numbers associated to elements
+   * @return {Table}
+   * tags:
    */
   TableOperators.mergeDataTables = function(table0, table1) {
+    if(table0==null || table1==null || table0.length<2 || table1.length<2) return;
+    
     if(table1[0].length === 0) {
       var merged = table0.clone();
       merged.push(ListGenerators.createListWithSameElement(table0[0].length, 0));
       return merged;
     }
 
+    // var numbers0 = table0[1];
+    // if(numbers0.type != "NumberList") return null;
+
+    // var numbers1 = table1[1];
+    // if(numbers1.type != "NumberList") return null;
+
+    var categories0 = table0[0];
+    var categories1 = table1[0];
+
+    var dictionaryIndexesCategories0 = ListOperators.getSingleIndexDictionaryForList(categories0);
+    var dictionaryIndexesCategories1 = ListOperators.getSingleIndexDictionaryForList(categories1);
+
     var table = new Table();
-    var list = ListOperators.concatWithoutRepetitions(table0[0], table1[0]);
+    var list = ListOperators.concatWithoutRepetitions(categories0, categories1);
 
     var nElements = list.length;
 
@@ -16499,7 +16636,8 @@
     var i, j;
 
     for(i = 0; i < nElements; i++) {
-      index = table0[0].indexOf(list[i]);
+      //index = categories0.indexOf(list[i]);//@todo: imporve efficiency by creating dictionary
+      index = dictionaryIndexesCategories0[list[i]];
       if(index > -1) {
         for(j = 0; j < nNumbers0; j++) {
           if(i === 0) {
@@ -16518,7 +16656,8 @@
         }
       }
 
-      index = table1[0].indexOf(list[i]);
+      //index = categories1.indexOf(list[i]);
+      index = dictionaryIndexesCategories1[list[i]];
       if(index > -1) {
         for(j = 0; j < nNumbers1; j++) {
           if(i === 0) {
@@ -16555,13 +16694,13 @@
    * @param {Object} table1
    * @return {Table}
    */
-  TableOperators.fusionDataTables = function(table0, table1) {
+  TableOperators.sumDataTables = function(table0, table1) {//
     var table = table0.clone();
     var index;
     var element;
     for(var i = 0; table1[0][i] != null; i++) {
       element = table1[0][i];
-      index = table[0].indexOf(element);
+      index = table[0].indexOf(element);//@todo make more efficient with dictionary
       if(index == -1) {
         table[0].push(element);
         table[1].push(table1[1][i]);
@@ -18655,6 +18794,16 @@
   };
 
 
+  /**
+   * return length of list, string or Object with length property
+   * @param {Object} object with length property
+   * @return {Number} length of number
+   * tags:
+   */
+  ObjectOperators.getLength = function(object){
+    return object.length;
+  };
+
 
   /**
    * uses a boolean to decide which of two objects it returns
@@ -19328,31 +19477,6 @@
     }
 
     return newTexts;
-  };
-
-  /**
-   * replaces in each string, a sub-string by a string
-   * @param  {String} text where to replaces strings
-   * @param  {StringList} strings to be replaced (could be Regular Expressions)
-   * @param  {String} replacement string to be placed instead
-   * @return {String}
-   * tags:
-   */
-  StringListOperators.replaceStringsInText = function(text, strings, replacement) {
-    if(text==null || strings==null || replacement==null) return null;
-
-    var newText = text;
-    var nStrings = strings.length;
-    var j;
-    var string;
-
-    for(j=0; j<nStrings; j++){
-      string = strings[j];
-      if(!(string instanceof RegExp)) string = new RegExp(string, "g");
-      newText = newText.replace(string, replacement);
-    }
-
-    return newText;
   };
 
   /**

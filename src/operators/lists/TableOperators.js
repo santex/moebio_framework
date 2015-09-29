@@ -551,69 +551,69 @@ TableOperators.pivotTable = function(table, indexFirstAggregationList, indexSeco
  * @return {Table} aggregated table
  * tags:deprecated
  */
-TableOperators.aggregateTableOld = function(table, nList, mode) {
-  nList = nList == null ? 0 : nList;
-  if(table == null || table[0] == null || table[0][0] == null || table[nList] == null) return null;
-  mode = mode == null ? 0 : mode;
+// TableOperators.aggregateTableOld = function(table, nList, mode) {
+//   nList = nList == null ? 0 : nList;
+//   if(table == null || table[0] == null || table[0][0] == null || table[nList] == null) return null;
+//   mode = mode == null ? 0 : mode;
 
-  var newTable = new Table();
-  var i, j;
-  var index;
-  var notRepeated;
+//   var newTable = new Table();
+//   var i, j;
+//   var index;
+//   var notRepeated;
 
-  newTable.name = table.name;
+//   newTable.name = table.name;
 
-  for(j = 0; table[j] != null; j++) {
-    newTable[j] = new List();
-    newTable[j].name = table[j].name;
-  }
+//   for(j = 0; table[j] != null; j++) {
+//     newTable[j] = new List();
+//     newTable[j].name = table[j].name;
+//   }
 
-  switch(mode) {
-    case 0: //leaves the first element of the aggregated subLists
-      for(i = 0; table[0][i] != null; i++) {
-        notRepeated = newTable[nList].indexOf(table[nList][i]) == -1;
-        if(notRepeated) {
-          for(j = 0; table[j] != null; j++) {
-            newTable[j].push(table[j][i]);
-          }
-        }
-      }
-      break;
-    case 1: //adds values in numberLists
-      for(i = 0; table[0][i] != null; i++) {
-        index = newTable[nList].indexOf(table[nList][i]);
-        notRepeated = index == -1;
-        if(notRepeated) {
-          for(j = 0; table[j] != null; j++) {
-            newTable[j].push(table[j][i]);
-          }
-        } else {
-          for(j = 0; table[j] != null; j++) {
-            if(j != nList && table[j].type == 'NumberList') {
-              newTable[j][index] += table[j][i];
-            }
-          }
-        }
-      }
-      break;
-    case 2: //averages values in numberLists
-      var nRepetitionsList = table[nList].getFrequenciesTable(false);
-      newTable = TableOperators.aggregateTableOld(table, nList, 1);
+//   switch(mode) {
+//     case 0: //leaves the first element of the aggregated subLists
+//       for(i = 0; table[0][i] != null; i++) {
+//         notRepeated = newTable[nList].indexOf(table[nList][i]) == -1;
+//         if(notRepeated) {
+//           for(j = 0; table[j] != null; j++) {
+//             newTable[j].push(table[j][i]);
+//           }
+//         }
+//       }
+//       break;
+//     case 1: //adds values in numberLists
+//       for(i = 0; table[0][i] != null; i++) {
+//         index = newTable[nList].indexOf(table[nList][i]);
+//         notRepeated = index == -1;
+//         if(notRepeated) {
+//           for(j = 0; table[j] != null; j++) {
+//             newTable[j].push(table[j][i]);
+//           }
+//         } else {
+//           for(j = 0; table[j] != null; j++) {
+//             if(j != nList && table[j].type == 'NumberList') {
+//               newTable[j][index] += table[j][i];
+//             }
+//           }
+//         }
+//       }
+//       break;
+//     case 2: //averages values in numberLists
+//       var nRepetitionsList = table[nList].getFrequenciesTable(false);
+//       newTable = TableOperators.aggregateTableOld(table, nList, 1);
 
-      for(j = 0; newTable[j] != null; j++) {
-        if(j != nList && newTable[j].type == 'NumberList') {
-          newTable[j] = newTable[j].divide(nRepetitionsList[1]);
-        }
-      }
+//       for(j = 0; newTable[j] != null; j++) {
+//         if(j != nList && newTable[j].type == 'NumberList') {
+//           newTable[j] = newTable[j].divide(nRepetitionsList[1]);
+//         }
+//       }
 
-      newTable.push(nRepetitionsList[1]);
-      break;
-  }
-  for(j = 0; newTable[j] != null; j++) {
-    newTable[j] = newTable[j].getImproved();
-  }
-  return newTable.getImproved();
-};
+//       newTable.push(nRepetitionsList[1]);
+//       break;
+//   }
+//   for(j = 0; newTable[j] != null; j++) {
+//     newTable[j] = newTable[j].getImproved();
+//   }
+//   return newTable.getImproved();
+// };
 
 /**
  * counts pairs of elements in same positions in two lists (the result is the adjacent matrix of the network defined by pairs)
@@ -713,17 +713,35 @@ TableOperators.mergeDataTablesInList = function(tableList) {
 };
 
 /**
- * creates a new table with an updated first List of elements and an added new numberList with the new values
+ * creates a new table with an updated first categorical List of elements and  added new numberLists with the new values
+ * @param {Table} table0 table wit a list of elements and a numberList of numbers associated to elements
+ * @param {Table} table1 wit a list of elements and a numberList of numbers associated to elements
+ * @return {Table}
+ * tags:
  */
 TableOperators.mergeDataTables = function(table0, table1) {
+  if(table0==null || table1==null || table0.length<2 || table1.length<2) return;
+  
   if(table1[0].length === 0) {
     var merged = table0.clone();
     merged.push(ListGenerators.createListWithSameElement(table0[0].length, 0));
     return merged;
   }
 
+  // var numbers0 = table0[1];
+  // if(numbers0.type != "NumberList") return null;
+
+  // var numbers1 = table1[1];
+  // if(numbers1.type != "NumberList") return null;
+
+  var categories0 = table0[0];
+  var categories1 = table1[0];
+
+  var dictionaryIndexesCategories0 = ListOperators.getSingleIndexDictionaryForList(categories0);
+  var dictionaryIndexesCategories1 = ListOperators.getSingleIndexDictionaryForList(categories1);
+
   var table = new Table();
-  var list = ListOperators.concatWithoutRepetitions(table0[0], table1[0]);
+  var list = ListOperators.concatWithoutRepetitions(categories0, categories1);
 
   var nElements = list.length;
 
@@ -738,7 +756,8 @@ TableOperators.mergeDataTables = function(table0, table1) {
   var i, j;
 
   for(i = 0; i < nElements; i++) {
-    index = table0[0].indexOf(list[i]);
+    //index = categories0.indexOf(list[i]);//@todo: imporve efficiency by creating dictionary
+    index = dictionaryIndexesCategories0[list[i]];
     if(index > -1) {
       for(j = 0; j < nNumbers0; j++) {
         if(i === 0) {
@@ -757,7 +776,8 @@ TableOperators.mergeDataTables = function(table0, table1) {
       }
     }
 
-    index = table1[0].indexOf(list[i]);
+    //index = categories1.indexOf(list[i]);
+    index = dictionaryIndexesCategories1[list[i]];
     if(index > -1) {
       for(j = 0; j < nNumbers1; j++) {
         if(i === 0) {
@@ -794,13 +814,13 @@ TableOperators.mergeDataTables = function(table0, table1) {
  * @param {Object} table1
  * @return {Table}
  */
-TableOperators.fusionDataTables = function(table0, table1) {
+TableOperators.sumDataTables = function(table0, table1) {//
   var table = table0.clone();
   var index;
   var element;
   for(var i = 0; table1[0][i] != null; i++) {
     element = table1[0][i];
-    index = table[0].indexOf(element);
+    index = table[0].indexOf(element);//@todo make more efficient with dictionary
     if(index == -1) {
       table[0].push(element);
       table[1].push(table1[1][i]);
