@@ -713,14 +713,14 @@ TableOperators.mergeDataTablesInList = function(tableList) {
 };
 
 /**
- * creates a new table with an updated first List of elements and an added new numberList with the new values
+ * creates a new table with an updated first categorical List of elements and  added new numberLists with the new values
  * @param {Table} table0 table wit a list of elements and a numberList of numbers associated to elements
  * @param {Table} table1 wit a list of elements and a numberList of numbers associated to elements
  * @return {Table}
  * tags:
  */
 TableOperators.mergeDataTables = function(table0, table1) {
-  if(table0==null || table1==null) return;
+  if(table0==null || table1==null || table0.length<2 || table1.length<2) return;
   
   if(table1[0].length === 0) {
     var merged = table0.clone();
@@ -728,8 +728,20 @@ TableOperators.mergeDataTables = function(table0, table1) {
     return merged;
   }
 
+  // var numbers0 = table0[1];
+  // if(numbers0.type != "NumberList") return null;
+
+  // var numbers1 = table1[1];
+  // if(numbers1.type != "NumberList") return null;
+
+  var categories0 = table0[0];
+  var categories1 = table1[0];
+
+  var dictionaryIndexesCategories0 = ListOperators.getSingleIndexDictionaryForList(categories0);
+  var dictionaryIndexesCategories1 = ListOperators.getSingleIndexDictionaryForList(categories1);
+
   var table = new Table();
-  var list = ListOperators.concatWithoutRepetitions(table0[0], table1[0]);
+  var list = ListOperators.concatWithoutRepetitions(categories0, categories1);
 
   var nElements = list.length;
 
@@ -744,7 +756,8 @@ TableOperators.mergeDataTables = function(table0, table1) {
   var i, j;
 
   for(i = 0; i < nElements; i++) {
-    index = table0[0].indexOf(list[i]);//@todo: imporve efficiency by creating dictionary
+    //index = categories0.indexOf(list[i]);//@todo: imporve efficiency by creating dictionary
+    index = dictionaryIndexesCategories0[list[i]];
     if(index > -1) {
       for(j = 0; j < nNumbers0; j++) {
         if(i === 0) {
@@ -763,7 +776,8 @@ TableOperators.mergeDataTables = function(table0, table1) {
       }
     }
 
-    index = table1[0].indexOf(list[i]);
+    //index = categories1.indexOf(list[i]);
+    index = dictionaryIndexesCategories1[list[i]];
     if(index > -1) {
       for(j = 0; j < nNumbers1; j++) {
         if(i === 0) {
@@ -800,13 +814,13 @@ TableOperators.mergeDataTables = function(table0, table1) {
  * @param {Object} table1
  * @return {Table}
  */
-TableOperators.fusionDataTables = function(table0, table1) {
+TableOperators.sumDataTables = function(table0, table1) {//
   var table = table0.clone();
   var index;
   var element;
   for(var i = 0; table1[0][i] != null; i++) {
     element = table1[0][i];
-    index = table[0].indexOf(element);
+    index = table[0].indexOf(element);//@todo make more efficient with dictionary
     if(index == -1) {
       table[0].push(element);
       table[1].push(table1[1][i]);

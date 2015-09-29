@@ -4649,10 +4649,13 @@
     if(listOrIndex == null) return;
     var newTable = instantiateWithSameType(this);
     var sortinglist = listOrIndex.isList ? listOrIndex.clone() : this[listOrIndex];
+    var l = this.length;
+    var i;
 
-    this.forEach(function(list) {
-      newTable.push(list.getSortedByList(sortinglist, ascending));
-    });
+    //this.forEach(function(list) {
+    for(i=0; i<l; i++){
+      newTable.push(this[i].getSortedByList(sortinglist, ascending));
+    }
 
     return newTable;
   };
@@ -7091,6 +7094,74 @@
     return dictionary;
   };
 
+
+
+  /**
+   * builds a dictionary that matches an element of a List with its index on the List (indexesDictionary[element] --> index)
+   * it assumes there's no repetitions on the list (if that's not tha case the last index of the element will be delivered)
+   * efficiently replaces indexOf
+   * @param  {List} list
+   * @return {Object}
+   * tags:dictionary
+   */
+  ListOperators.getSingleIndexDictionaryForList = function(list){
+    if(list==null) return;
+
+    var i;
+    var l = list.length;
+
+    var dictionary = {};
+    for(i=0; i<l; i++){
+      dictionary[list[i]] = i;
+    }
+
+    return dictionary;
+  };
+
+  /**
+   * builds a dictionary that matches an element of a List with all its indexes on the List (indexesDictionary[element] --> numberList of indexes of element on list)
+   * if the list has no repeated elements, and a single is required per element, use ListOperators.getSingleIndexDictionaryForList
+   * @param  {List} list
+   * @return {Object}
+   * tags:dictionary
+   */
+  ListOperators.getIndexesDictionary = function(list){
+    var indexesDictionary = {};
+
+    list.forEach(function(element, i){
+      if(indexesDictionary[element]==null) indexesDictionary[element]=new NumberList();
+      indexesDictionary[element].push(i);
+    });
+
+    return indexesDictionary;
+  };
+
+  /**
+   * @todo write docs
+   */
+  ListOperators.getIndexesTable = function(list){
+    var indexesTable = new Table();
+    indexesTable[0] = new List();
+    indexesTable[1] = new NumberTable();
+    var indexesDictionary = {};
+    var indexOnTable;
+
+    list.forEach(function(element, i){
+      indexOnTable = indexesDictionary[element];
+      if(indexOnTable==null){
+        indexesTable[0].push(element);
+        indexesTable[1].push(new NumberList(i));
+        indexesDictionary[element]=indexesTable[0].length-1;
+      } else {
+        indexesTable[1][indexOnTable].push(i);
+      }
+    });
+
+    indexesTable[0] = indexesTable[0].getImproved();
+
+    return indexesTable;
+  };
+
   /**
    * builds a dictionar object (relational array) for a dictionar (table with two lists)
    * @param  {Table} dictionary table with two lists, typically without repetitions, elements of the second list being the 'translation' of the correspdonent on the first
@@ -7240,13 +7311,21 @@
    * @todo write docs
    */
   ListOperators.concatWithoutRepetitions = function() {
-    var i;
+    var l = arguments.length;
+    if(l===0) return;
+    if(l==1) return arguments[0];
+
+    var i, j;
     var newList = arguments[0].clone();
-    for(i = 1; i < arguments.length; i++) {
-      var addList = arguments[i];
-      var nElements = addList.length;
-      for(i = 0; i < nElements; i++) { // TODO Is the redefing of i intentional?
-        if(newList.indexOf(addList[i]) == -1) newList.push(addList[i]);
+    var newListBooleanDictionary = ListOperators.getBooleanDictionaryForList(newList);
+    var addList;
+    var nElements;
+    for(i = 1; i < l; i++) {
+      addList = arguments[i];
+      nElements = addList.length;
+      for(j = 0; j < nElements; j++) { // TODO Is the redefing of i intentional? <----- !
+        //if(newList.indexOf(addList[i]) == -1) newList.push(addList[i]);
+        if(!newListBooleanDictionary[addList[j]]) newList.push(addList[j]);
       }
     }
     return newList.getImproved();
@@ -7480,71 +7559,6 @@
   };
 
 
-
-  /**
-   * builds a dictionary that matches an element of a List with its index on the List (indexesDictionary[element] --> index)
-   * it assumes there's no repetitions on the list (if that's not tha case the last index of the element will be delivered)
-   * @param  {List} list
-   * @return {Object}
-   * tags:dictionary
-   */
-  ListOperators.getSingleIndexDictionaryForList = function(list){
-    if(list==null) return;
-
-    var i;
-    var l = list.length;
-
-    var dictionary = {};
-    for(i=0; i<l; i++){
-      dictionary[list[i]] = i;
-    }
-
-    return dictionary;
-  };
-
-  /**
-   * builds a dictionary that matches an element of a List with all its indexes on the List (indexesDictionary[element] --> numberList of indexes of element on list)
-   * if the list has no repeated elements, and a single is required per element, use ListOperators.getSingleIndexDictionaryForList
-   * @param  {List} list
-   * @return {Object}
-   * tags:dictionary
-   */
-  ListOperators.getIndexesDictionary = function(list){
-    var indexesDictionary = {};
-
-    list.forEach(function(element, i){
-      if(indexesDictionary[element]==null) indexesDictionary[element]=new NumberList();
-      indexesDictionary[element].push(i);
-    });
-
-    return indexesDictionary;
-  };
-
-  /**
-   * @todo write docs
-   */
-  ListOperators.getIndexesTable = function(list){
-    var indexesTable = new Table();
-    indexesTable[0] = new List();
-    indexesTable[1] = new NumberTable();
-    var indexesDictionary = {};
-    var indexOnTable;
-
-    list.forEach(function(element, i){
-      indexOnTable = indexesDictionary[element];
-      if(indexOnTable==null){
-        indexesTable[0].push(element);
-        indexesTable[1].push(new NumberList(i));
-        indexesDictionary[element]=indexesTable[0].length-1;
-      } else {
-        indexesTable[1][indexOnTable].push(i);
-      }
-    });
-
-    indexesTable[0] = indexesTable[0].getImproved();
-
-    return indexesTable;
-  };
 
   /**
    * aggregates values of a list using an aggregator list as reference
@@ -16579,14 +16593,14 @@
   };
 
   /**
-   * creates a new table with an updated first List of elements and an added new numberList with the new values
+   * creates a new table with an updated first categorical List of elements and  added new numberLists with the new values
    * @param {Table} table0 table wit a list of elements and a numberList of numbers associated to elements
    * @param {Table} table1 wit a list of elements and a numberList of numbers associated to elements
    * @return {Table}
    * tags:
    */
   TableOperators.mergeDataTables = function(table0, table1) {
-    if(table0==null || table1==null) return;
+    if(table0==null || table1==null || table0.length<2 || table1.length<2) return;
     
     if(table1[0].length === 0) {
       var merged = table0.clone();
@@ -16594,8 +16608,20 @@
       return merged;
     }
 
+    // var numbers0 = table0[1];
+    // if(numbers0.type != "NumberList") return null;
+
+    // var numbers1 = table1[1];
+    // if(numbers1.type != "NumberList") return null;
+
+    var categories0 = table0[0];
+    var categories1 = table1[0];
+
+    var dictionaryIndexesCategories0 = ListOperators.getSingleIndexDictionaryForList(categories0);
+    var dictionaryIndexesCategories1 = ListOperators.getSingleIndexDictionaryForList(categories1);
+
     var table = new Table();
-    var list = ListOperators.concatWithoutRepetitions(table0[0], table1[0]);
+    var list = ListOperators.concatWithoutRepetitions(categories0, categories1);
 
     var nElements = list.length;
 
@@ -16610,7 +16636,8 @@
     var i, j;
 
     for(i = 0; i < nElements; i++) {
-      index = table0[0].indexOf(list[i]);//@todo: imporve efficiency by creating dictionary
+      //index = categories0.indexOf(list[i]);//@todo: imporve efficiency by creating dictionary
+      index = dictionaryIndexesCategories0[list[i]];
       if(index > -1) {
         for(j = 0; j < nNumbers0; j++) {
           if(i === 0) {
@@ -16629,7 +16656,8 @@
         }
       }
 
-      index = table1[0].indexOf(list[i]);
+      //index = categories1.indexOf(list[i]);
+      index = dictionaryIndexesCategories1[list[i]];
       if(index > -1) {
         for(j = 0; j < nNumbers1; j++) {
           if(i === 0) {
@@ -16666,13 +16694,13 @@
    * @param {Object} table1
    * @return {Table}
    */
-  TableOperators.fusionDataTables = function(table0, table1) {
+  TableOperators.sumDataTables = function(table0, table1) {//
     var table = table0.clone();
     var index;
     var element;
     for(var i = 0; table1[0][i] != null; i++) {
       element = table1[0][i];
-      index = table[0].indexOf(element);
+      index = table[0].indexOf(element);//@todo make more efficient with dictionary
       if(index == -1) {
         table[0].push(element);
         table[1].push(table1[1][i]);

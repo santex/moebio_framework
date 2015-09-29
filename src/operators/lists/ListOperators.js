@@ -293,6 +293,74 @@ ListOperators.getBooleanDictionaryForList = function(list){
   return dictionary;
 };
 
+
+
+/**
+ * builds a dictionary that matches an element of a List with its index on the List (indexesDictionary[element] --> index)
+ * it assumes there's no repetitions on the list (if that's not tha case the last index of the element will be delivered)
+ * efficiently replaces indexOf
+ * @param  {List} list
+ * @return {Object}
+ * tags:dictionary
+ */
+ListOperators.getSingleIndexDictionaryForList = function(list){
+  if(list==null) return;
+
+  var i;
+  var l = list.length;
+
+  var dictionary = {};
+  for(i=0; i<l; i++){
+    dictionary[list[i]] = i;
+  }
+
+  return dictionary;
+};
+
+/**
+ * builds a dictionary that matches an element of a List with all its indexes on the List (indexesDictionary[element] --> numberList of indexes of element on list)
+ * if the list has no repeated elements, and a single is required per element, use ListOperators.getSingleIndexDictionaryForList
+ * @param  {List} list
+ * @return {Object}
+ * tags:dictionary
+ */
+ListOperators.getIndexesDictionary = function(list){
+  var indexesDictionary = {};
+
+  list.forEach(function(element, i){
+    if(indexesDictionary[element]==null) indexesDictionary[element]=new NumberList();
+    indexesDictionary[element].push(i);
+  });
+
+  return indexesDictionary;
+};
+
+/**
+ * @todo write docs
+ */
+ListOperators.getIndexesTable = function(list){
+  var indexesTable = new Table();
+  indexesTable[0] = new List();
+  indexesTable[1] = new NumberTable();
+  var indexesDictionary = {};
+  var indexOnTable;
+
+  list.forEach(function(element, i){
+    indexOnTable = indexesDictionary[element];
+    if(indexOnTable==null){
+      indexesTable[0].push(element);
+      indexesTable[1].push(new NumberList(i));
+      indexesDictionary[element]=indexesTable[0].length-1;
+    } else {
+      indexesTable[1][indexOnTable].push(i);
+    }
+  });
+
+  indexesTable[0] = indexesTable[0].getImproved();
+
+  return indexesTable;
+};
+
 /**
  * builds a dictionar object (relational array) for a dictionar (table with two lists)
  * @param  {Table} dictionary table with two lists, typically without repetitions, elements of the second list being the 'translation' of the correspdonent on the first
@@ -442,13 +510,21 @@ ListOperators.sortListByIndexes = function(list, indexedArray) {
  * @todo write docs
  */
 ListOperators.concatWithoutRepetitions = function() {
-  var i;
+  var l = arguments.length;
+  if(l===0) return;
+  if(l==1) return arguments[0];
+
+  var i, j;
   var newList = arguments[0].clone();
-  for(i = 1; i < arguments.length; i++) {
-    var addList = arguments[i];
-    var nElements = addList.length;
-    for(i = 0; i < nElements; i++) { // TODO Is the redefing of i intentional?
-      if(newList.indexOf(addList[i]) == -1) newList.push(addList[i]);
+  var newListBooleanDictionary = ListOperators.getBooleanDictionaryForList(newList);
+  var addList;
+  var nElements;
+  for(i = 1; i < l; i++) {
+    addList = arguments[i];
+    nElements = addList.length;
+    for(j = 0; j < nElements; j++) { // TODO Is the redefing of i intentional? <----- !
+      //if(newList.indexOf(addList[i]) == -1) newList.push(addList[i]);
+      if(!newListBooleanDictionary[addList[j]]) newList.push(addList[j]);
     }
   }
   return newList.getImproved();
@@ -682,71 +758,6 @@ ListOperators.jaccardDistance = function(list0, list1) {
 };
 
 
-
-/**
- * builds a dictionary that matches an element of a List with its index on the List (indexesDictionary[element] --> index)
- * it assumes there's no repetitions on the list (if that's not tha case the last index of the element will be delivered)
- * @param  {List} list
- * @return {Object}
- * tags:dictionary
- */
-ListOperators.getSingleIndexDictionaryForList = function(list){
-  if(list==null) return;
-
-  var i;
-  var l = list.length;
-
-  var dictionary = {};
-  for(i=0; i<l; i++){
-    dictionary[list[i]] = i;
-  }
-
-  return dictionary;
-};
-
-/**
- * builds a dictionary that matches an element of a List with all its indexes on the List (indexesDictionary[element] --> numberList of indexes of element on list)
- * if the list has no repeated elements, and a single is required per element, use ListOperators.getSingleIndexDictionaryForList
- * @param  {List} list
- * @return {Object}
- * tags:dictionary
- */
-ListOperators.getIndexesDictionary = function(list){
-  var indexesDictionary = {};
-
-  list.forEach(function(element, i){
-    if(indexesDictionary[element]==null) indexesDictionary[element]=new NumberList();
-    indexesDictionary[element].push(i);
-  });
-
-  return indexesDictionary;
-};
-
-/**
- * @todo write docs
- */
-ListOperators.getIndexesTable = function(list){
-  var indexesTable = new Table();
-  indexesTable[0] = new List();
-  indexesTable[1] = new NumberTable();
-  var indexesDictionary = {};
-  var indexOnTable;
-
-  list.forEach(function(element, i){
-    indexOnTable = indexesDictionary[element];
-    if(indexOnTable==null){
-      indexesTable[0].push(element);
-      indexesTable[1].push(new NumberList(i));
-      indexesDictionary[element]=indexesTable[0].length-1;
-    } else {
-      indexesTable[1][indexOnTable].push(i);
-    }
-  });
-
-  indexesTable[0] = indexesTable[0].getImproved();
-
-  return indexesTable;
-};
 
 /**
  * aggregates values of a list using an aggregator list as reference

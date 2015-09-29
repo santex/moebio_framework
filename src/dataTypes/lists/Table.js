@@ -253,10 +253,13 @@ Table.prototype.getListsSortedByList = function(listOrIndex, ascending) { //depr
   if(listOrIndex == null) return;
   var newTable = instantiateWithSameType(this);
   var sortinglist = listOrIndex.isList ? listOrIndex.clone() : this[listOrIndex];
+  var l = this.length;
+  var i;
 
-  this.forEach(function(list) {
-    newTable.push(list.getSortedByList(sortinglist, ascending));
-  });
+  //this.forEach(function(list) {
+  for(i=0; i<l; i++){
+    newTable.push(this[i].getSortedByList(sortinglist, ascending));
+  }
 
   return newTable;
 };
