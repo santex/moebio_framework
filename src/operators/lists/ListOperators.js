@@ -611,11 +611,10 @@ deprectaed, use intersection instead
  * creates a List that contains the union of two List (removing repetitions)
  * @param  {List} list0 first list
  * @param  {List} list1 second list
- *
  * @return {List} the union of both Lists
  * tags:
  */
-ListOperators.union = function(list0, list1) {//TODO: this should be refactored, and placed in ListOperators
+ListOperators.union = function(list0, list1) {//TODO:expand for more lists
   if(list0==null || list1==null) return;
 
   var obj = {};
@@ -628,7 +627,56 @@ ListOperators.union = function(list0, list1) {//TODO: this should be refactored,
     //if(obj.hasOwnProperty(k)) // <-- optional
     union.push(obj[k]);
   }
-  return union;
+  return union.getImproved();
+};
+
+/**
+ * creates a List that contains the intersection of two List (elements present in BOTH lists, result without repetions)
+ * @param  {List} list0 first list
+ * @param  {List} list1 second list
+ * @return {List} intersection of both lists
+ * tags:
+ */
+ListOperators.intersection = function(list0, list1) {//TODO:expand for more lists
+  if(list0==null || list1==null) return;
+
+  var intersection;
+  //var l0  = list0.length;
+  var l1  = list1.length;
+  var i;
+  var element;
+
+  if(list0.type=="NodeList" && list1.type=="NodeList"){
+    intersection = new NodeList();
+
+    list0.forEach(function(node){
+      if(list1.getNodeById(node.id)){
+        intersection.addNode(node);
+      }
+    });
+
+    return intersection;
+  }
+
+  var dictionary =  ListOperators.getBooleanDictionaryForList(list0);//{};
+  var dictionaryIntersected = {};
+  
+  intersection = new List();
+
+
+  // list0.forEach(function(element){
+  //   dictionary[element] = true;
+  // });
+  //list1.forEach(function(element){
+  for(i=0; i<l1; i++){
+    element = list1[i];
+    if(dictionary[element] && dictionaryIntersected[element]==null){
+      dictionaryIntersected[element]=true;
+      intersection.push(element);
+    }
+  }
+  //});
+  return intersection.getImproved();
 };
 
 
@@ -664,76 +712,34 @@ ListOperators.getCommonElements = function(list0, list1) {
  * @param  {List} list B
  *
  * @return {List} the union of both NumberLists
- * tags:deprecated
  */
-ListOperators.unionLists = function(x, y) {
-  // Borrowed from here: http://stackoverflow.com/questions/3629817/getting-a-union-of-two-arrays-in-javascript
-  var result;
-  if(x.type != x.type || (x.type != "StringList" && x.type != "NumberList")) {
-    // To-do: call generic method here (not yet implemented)
-    //console.log( "ListOperators.unionLists for type '" + x.type + "' or '" + y.type + "' not yet implemented" );
-    return x.concat(y).getWithoutRepetitions();
-  }
-  else {
-    var obj = {};
-    var i;
-    for(i = x.length - 1; i >= 0; --i){
-      obj[x[i]] = x[i];
-    }
-    for(i = y.length - 1; i >= 0; --i){
-      obj[y[i]] = y[i];
-    }
-    result = x.type == "StringList" ? new StringList() : new NumberList();
-    for(var k in obj) {
-      if(obj.hasOwnProperty(k)) // <-- optional
-        result.push(obj[k]);
-    }
-  }
-  return result;
-};
+// ListOperators.unionLists = function(x, y) {
+//   // Borrowed from here: http://stackoverflow.com/questions/3629817/getting-a-union-of-two-arrays-in-javascript
+//   var result;
+//   if(x.type != x.type || (x.type != "StringList" && x.type != "NumberList")) {
+//     // To-do: call generic method here (not yet implemented)
+//     //console.log( "ListOperators.unionLists for type '" + x.type + "' or '" + y.type + "' not yet implemented" );
+//     return x.concat(y).getWithoutRepetitions();
+//   }
+//   else {
+//     var obj = {};
+//     var i;
+//     for(i = x.length - 1; i >= 0; --i){
+//       obj[x[i]] = x[i];
+//     }
+//     for(i = y.length - 1; i >= 0; --i){
+//       obj[y[i]] = y[i];
+//     }
+//     result = x.type == "StringList" ? new StringList() : new NumberList();
+//     for(var k in obj) {
+//       if(obj.hasOwnProperty(k)) // <-- optional
+//         result.push(obj[k]);
+//     }
+//   }
+//   return result;
+// };
 
-/**
- * creates a List that contains the intersection of two List (elements present in BOTH lists)
- *
- * @param  {List} list0 list A
- * @param  {List} list1 list B
- *
- * @return {List} intersection of both NumberLists
- *
- * tags:
- */
-ListOperators.intersection = function(list0, list1) {
-  if(list0==null || list1==null) return;
 
-  var intersection;
-
-  if(list0.type=="NodeList" && list1.type=="NodeList"){
-    intersection = new NodeList();
-
-    list0.forEach(function(node){
-      if(list1.getNodeById(node.id)){
-        intersection.addNode(node);
-      }
-    });
-
-    return intersection;
-  }
-
-  var dictionary = {};
-  var dictionaryIntersected = {};
-  intersection = new List();
-
-  list0.forEach(function(element){
-    dictionary[element] = true;
-  });
-  list1.forEach(function(element){
-    if(dictionary[element] && dictionaryIntersected[element]==null){
-      dictionaryIntersected[element]=true;
-      intersection.push(element);
-    }
-  });
-  return intersection.getImproved();
-};
 
 /**
  * calculates Jaccard index |list0 ∩ list1|/|list0 ∪ list1| see: https://en.wikipedia.org/wiki/Jaccard_index
@@ -743,7 +749,7 @@ ListOperators.intersection = function(list0, list1) {
  * tags:
  */
 ListOperators.jaccardIndex = function(list0, list1) {//TODO: see if this can be more efficient, maybe one idctionar for doing union and interstection at the same time
-  return ListOperators.intersection(list0, list1).length/ListOperators.unionLists(list0, list1).length;
+  return ListOperators.intersection(list0, list1).length/ListOperators.union(list0, list1).length;
 };
 
 /**

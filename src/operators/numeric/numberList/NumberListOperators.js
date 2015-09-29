@@ -524,23 +524,22 @@ NumberListOperators.filterNumberListByNumber = function(numberList, value, compa
  * @param  {NumberList} y list B
  *
  * @return {NumberList} the union of both NumberLists
- * tags:
  */
-NumberListOperators.union = function(x, y) {//TODO: should be refactored, and placed in ListOperators
-  // Borrowed from here: http://stackoverflow.com/questions/3629817/getting-a-union-of-two-arrays-in-javascript
-  var i;
-  var obj = {};
-  for(i = x.length - 1; i >= 0; --i)
-    obj[x[i]] = x[i];
-  for(i = y.length - 1; i >= 0; --i)
-    obj[y[i]] = y[i];
-  var res = new NumberList();
-  for(var k in obj) {
-    if(obj.hasOwnProperty(k)) // <-- optional
-      res.push(obj[k]);
-  }
-  return res;
-};
+// NumberListOperators.union = function(x, y) {//TODO: should be refactored, and placed in ListOperators
+//   // Borrowed from here: http://stackoverflow.com/questions/3629817/getting-a-union-of-two-arrays-in-javascript
+//   var i;
+//   var obj = {};
+//   for(i = x.length - 1; i >= 0; --i)
+//     obj[x[i]] = x[i];
+//   for(i = y.length - 1; i >= 0; --i)
+//     obj[y[i]] = y[i];
+//   var res = new NumberList();
+//   for(var k in obj) {
+//     if(obj.hasOwnProperty(k)) // <-- optional
+//       res.push(obj[k]);
+//   }
+//   return res;
+// };
 
 /**
  * creates a NumberList that contains the intersection of two NumberList (elements present in BOTH lists)
@@ -548,49 +547,48 @@ NumberListOperators.union = function(x, y) {//TODO: should be refactored, and pl
  * @param  {NumberList} list B
  *
  * @return {NumberList} the intersection of both NumberLists
- * tags:deprecated
  */
-NumberListOperators.intersection = function(a, b) {//TODO: refactor method that should be at ListOperators
-  // Borrowed from here: http://stackoverflow.com/questions/1885557/simplest-code-for-array-intersection-in-javascript
-  //console.log( "arguments: ", arguments );
-  var i;
-  if(arguments.length > 2) {
-    var sets = [];
-    for(i = 0; i < arguments.length; i++) {
-      sets.push(arguments[i]);
-    }
-    sets.sort(function(a, b) {
-      return a.length - b.length;
-    });
-    console.log("sets: ", sets);
-    var resultsTrail = sets[0];
-    for(i = 1; i < sets.length; i++) {
-      var newSet = sets[i];
-      resultsTrail = NumberListOperators.intersection(resultsTrail, newSet);
-    }
-    return resultsTrail;
-  }
+// NumberListOperators.intersection = function(a, b) {//TODO: refactor method that should be at ListOperators
+//   // Borrowed from here: http://stackoverflow.com/questions/1885557/simplest-code-for-array-intersection-in-javascript
+//   //console.log( "arguments: ", arguments );
+//   var i;
+//   if(arguments.length > 2) {
+//     var sets = [];
+//     for(i = 0; i < arguments.length; i++) {
+//       sets.push(arguments[i]);
+//     }
+//     sets.sort(function(a, b) {
+//       return a.length - b.length;
+//     });
+//     console.log("sets: ", sets);
+//     var resultsTrail = sets[0];
+//     for(i = 1; i < sets.length; i++) {
+//       var newSet = sets[i];
+//       resultsTrail = NumberListOperators.intersection(resultsTrail, newSet);
+//     }
+//     return resultsTrail;
+//   }
 
-  var result = new NumberList();
-  a = a.slice();
-  b = b.slice();
-  while(a.length > 0 && b.length > 0)
-  {
-    if(a[0] < b[0]) {
-      a.shift();
-    }
-    else if(a[0] > b[0]) {
-      b.shift();
-    }
-    else /* they're equal */
-    {
-      result.push(a.shift());
-      b.shift();
-    }
-  }
+//   var result = new NumberList();
+//   a = a.slice();
+//   b = b.slice();
+//   while(a.length > 0 && b.length > 0)
+//   {
+//     if(a[0] < b[0]) {
+//       a.shift();
+//     }
+//     else if(a[0] > b[0]) {
+//       b.shift();
+//     }
+//     else /* they're equal */
+//     {
+//       result.push(a.shift());
+//       b.shift();
+//     }
+//   }
 
-  return result;
-};
+//   return result;
+// };
 
 
 /**
