@@ -68,7 +68,7 @@ List.fromArray = function(array) {
 
   array.getImproved = List.prototype.getImproved;
   array.isEquivalent = List.prototype.isEquivalent;
-  array.getLength = List.prototype.getLength;
+  //array.getLength = List.prototype.getLength;
   array.getTypeOfElements = List.prototype.getTypeOfElements; //TODO: redundant?
   array.getTypes = List.prototype.getTypes;
   array.getType = List.prototype.getType;
@@ -242,9 +242,9 @@ List.prototype.isEquivalent = function(list) {
  * Returns the number of elements of the list.
  * @return {Number} Length of the list.
  */
-List.prototype.getLength = function() {
-  return this.length;
-};
+// List.prototype.getLength = function() {
+//   return this.length;
+// };
 
 /**
  * In sub-classes, this function returns a NumberList of lengths.
