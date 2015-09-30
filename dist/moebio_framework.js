@@ -12543,8 +12543,6 @@
     var cellContent;
     var numberCandidate;
 
-    console.log("|||||||||||||||"+separator+"|");
-
     for(i = startIndex; i < lines.length; i++) {
       if(lines[i].length < 2) continue;
 
@@ -12565,7 +12563,7 @@
 
         numberCandidate = Number(cellContent.replace(',', '.'));
 
-        element = (numberCandidate || (numberCandidate == 0 && cellContent !== '')) ? numberCandidate : cellContent;
+        element = (numberCandidate || (numberCandidate === 0 && cellContent !== '')) ? numberCandidate : cellContent;
 
         if(typeof element == 'string') element = TableEncodings._removeQuotes(element);
 
