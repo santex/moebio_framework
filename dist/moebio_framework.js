@@ -18872,6 +18872,7 @@
    * tags:
    */
   ObjectOperators.getLength = function(object){
+    if(object==null || object["length"]==null) return;
     return object.length;
   };
 
