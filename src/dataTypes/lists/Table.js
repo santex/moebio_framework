@@ -71,6 +71,7 @@ Table.fromArray = function(array) {
   result.getListsSortedByList = Table.prototype.getListsSortedByList;
   result.sortListsByList = Table.prototype.sortListsByList;
   result.clone = Table.prototype.clone;
+  result.cloneWithEmptyLists = Table.prototype.cloneWithEmptyLists;
   result.print = Table.prototype.print;
 
   //transformative
@@ -322,18 +323,45 @@ Table.prototype.removeRow = function(index) {
 };
 
 /**
- * makes a copy of the Table.
+ * makes a clone of the Table, that contains clones of the lists
  * @return {Table} Copy of table.
  */
 Table.prototype.clone = function() {
   var l = this.length;
   var clonedTable = instantiateWithSameType(this);
+  var i;
+
   clonedTable.name = this.name;
-  for(var i = 0; i<l; i++) {
+
+  for(i = 0; i<l; i++) {
     clonedTable.push(this[i].clone());
   }
+
   return clonedTable;
 };
+
+/**
+ * makes a copy of the Table, with empty lists having same types
+ * @return {Table} Copy of table.
+ */
+Table.prototype.cloneWithEmptyLists = function() {
+  var l = this.length;
+  var i;
+  var newTable = instantiateWithSameType(this);
+  var newList;
+
+  newTable.name = this.name;
+
+  for(i = 0; i<l; i++) {
+    newList = instantiateWithSameType(this[i]);
+    newList.name = this[i].name;
+    newTable.push(newList);
+  }
+
+  return newTable;
+};
+
+
 
 /**
  * Removes all contents of the Table.

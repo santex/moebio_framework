@@ -4489,6 +4489,7 @@
     result.getListsSortedByList = Table.prototype.getListsSortedByList;
     result.sortListsByList = Table.prototype.sortListsByList;
     result.clone = Table.prototype.clone;
+    result.cloneWithEmptyLists = Table.prototype.cloneWithEmptyLists;
     result.print = Table.prototype.print;
 
     //transformative
@@ -4740,18 +4741,45 @@
   };
 
   /**
-   * makes a copy of the Table.
+   * makes a clone of the Table, that contains clones of the lists
    * @return {Table} Copy of table.
    */
   Table.prototype.clone = function() {
     var l = this.length;
     var clonedTable = instantiateWithSameType(this);
+    var i;
+
     clonedTable.name = this.name;
-    for(var i = 0; i<l; i++) {
+
+    for(i = 0; i<l; i++) {
       clonedTable.push(this[i].clone());
     }
+
     return clonedTable;
   };
+
+  /**
+   * makes a copy of the Table, with empty lists having same types
+   * @return {Table} Copy of table.
+   */
+  Table.prototype.cloneWithEmptyLists = function() {
+    var l = this.length;
+    var i;
+    var newTable = instantiateWithSameType(this);
+    var newList;
+
+    newTable.name = this.name;
+
+    for(i = 0; i<l; i++) {
+      newList = instantiateWithSameType(this[i]);
+      newList.name = this[i].name;
+      newTable.push(newList);
+    }
+
+    return newTable;
+  };
+
+
 
   /**
    * Removes all contents of the Table.
@@ -16717,10 +16745,15 @@
 
     table[0] = list;
 
-    for(i = 0; numberTable0[i] != null; i++) {
+    var l = numberTable0.length;
+
+    for(i = 0; i<l; i++) {
       table.push(numberTable0[i]);
     }
-    for(i = 0; numberTable1[i] != null; i++) {
+
+    l = numberTable1.length;
+
+    for(i = 0; i<l; i++) {
       table.push(numberTable1[i]);
     }
     return table;
@@ -27762,7 +27795,9 @@
 
 
 
-  IntervalTableDraw.drawCircularIntervalsFlowTable = function(intervalsFlowTable, center, radius, r0, colors, texts, returnHovered, angles, angle0, graphics) {
+  IntervalTableDraw.drawCircularIntervalsFlowTable = function(frame, intervalsFlowTable, center, radius, r0, colors, texts, returnHovered, angles, angle0, graphics) {
+    if(graphics==null) graphics = frame.graphics; //momentary fix
+
     var nElements = intervalsFlowTable.length;
     var i;
     var j;
@@ -27806,7 +27841,7 @@
 
       intervalList = intervalsFlowTable[i];
 
-      graphics.context.fillStyle = colors[i % nElements];
+      graphics.setFill(colors[i % nElements]);//context.fillStyle = colors[i % nElements];
 
       graphics.context.beginPath();
 
@@ -27908,6 +27943,8 @@
 
 
   IntervalTableDraw.drawIntervalsWordsFlowTable = function(frame, intervalsFlowTable, texts, colors, typode, graphics) {
+    if(graphics==null) graphics = frame.graphics; //momentary fix
+
     var nElements = intervalsFlowTable.length;
 
     var i;
@@ -28608,7 +28645,7 @@
    * @param {Boolean} sorted sort flow polygons
    * @param {Number} intervalsFactor number between 0 and 1, factors the height of flow polygons
    * @param {ColorList} colorList colors of polygons
-   * @param {List} names names of rows
+   * @param {StringList} names names of rows
    * @return {NumberList} list of positions of elements on clicked coordinates
    * tags:draw
    */
@@ -28708,9 +28745,8 @@
       graphics.context.save();
       graphics.clipRectangle(frame.x, frame.y, frame.width, frame.height);
 
-      IntervalTableDraw.drawCircularIntervalsFlowTable(frame.memory.flowIntervals, frame.getCenter(), frame.memory.radius * frame.memory.zoom, frame.memory.r0, frame.memory.actualColorList, frame.memory.names, true, frame.memory.angles, frame.memory.angle0);
-
-      graphics.context.restore();
+      IntervalTableDraw.drawCircularIntervalsFlowTable(frame, frame.memory.flowIntervals, frame.getCenter(), frame.memory.radius * frame.memory.zoom, frame.memory.r0, frame.memory.actualColorList, frame.memory.names, true, frame.memory.angles, frame.memory.angle0);
+      
 
       if(names) {
         var a;
@@ -28724,6 +28760,8 @@
           graphics.fTextRotated(String(name), frame.getCenter().x + r * Math.cos(a), frame.getCenter().y + r * Math.sin(a), a + HalfPi);
         });
       }
+
+      graphics.context.restore();
 
 
       if(captureImage) {

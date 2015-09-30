@@ -572,7 +572,7 @@ NumberTableDraw._drawPartialFlow = function(frame, flowIntervals, labels, colors
  * @param {Boolean} sorted sort flow polygons
  * @param {Number} intervalsFactor number between 0 and 1, factors the height of flow polygons
  * @param {ColorList} colorList colors of polygons
- * @param {List} names names of rows
+ * @param {StringList} names names of rows
  * @return {NumberList} list of positions of elements on clicked coordinates
  * tags:draw
  */
@@ -672,9 +672,8 @@ NumberTableDraw.drawCircularStreamgraph = function(frame, numberTable, normalize
     graphics.context.save();
     graphics.clipRectangle(frame.x, frame.y, frame.width, frame.height);
 
-    IntervalTableDraw.drawCircularIntervalsFlowTable(frame.memory.flowIntervals, frame.getCenter(), frame.memory.radius * frame.memory.zoom, frame.memory.r0, frame.memory.actualColorList, frame.memory.names, true, frame.memory.angles, frame.memory.angle0);
-
-    graphics.context.restore();
+    IntervalTableDraw.drawCircularIntervalsFlowTable(frame, frame.memory.flowIntervals, frame.getCenter(), frame.memory.radius * frame.memory.zoom, frame.memory.r0, frame.memory.actualColorList, frame.memory.names, true, frame.memory.angles, frame.memory.angle0);
+    
 
     if(names) {
       var a;
@@ -688,6 +687,8 @@ NumberTableDraw.drawCircularStreamgraph = function(frame, numberTable, normalize
         graphics.fTextRotated(String(name), frame.getCenter().x + r * Math.cos(a), frame.getCenter().y + r * Math.sin(a), a + HalfPi);
       });
     }
+
+    graphics.context.restore();
 
 
     if(captureImage) {

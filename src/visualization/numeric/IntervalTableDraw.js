@@ -137,7 +137,9 @@ IntervalTableDraw._isOnShape = function(prevPoint, point, prevYsup, newYsup, off
 
 
 
-IntervalTableDraw.drawCircularIntervalsFlowTable = function(intervalsFlowTable, center, radius, r0, colors, texts, returnHovered, angles, angle0, graphics) {
+IntervalTableDraw.drawCircularIntervalsFlowTable = function(frame, intervalsFlowTable, center, radius, r0, colors, texts, returnHovered, angles, angle0, graphics) {
+  if(graphics==null) graphics = frame.graphics; //momentary fix
+
   var nElements = intervalsFlowTable.length;
   var i;
   var j;
@@ -181,7 +183,7 @@ IntervalTableDraw.drawCircularIntervalsFlowTable = function(intervalsFlowTable, 
 
     intervalList = intervalsFlowTable[i];
 
-    graphics.context.fillStyle = colors[i % nElements];
+    graphics.setFill(colors[i % nElements]);//context.fillStyle = colors[i % nElements];
 
     graphics.context.beginPath();
 
@@ -283,6 +285,8 @@ IntervalTableDraw._isOnRadialShape = function(center, testPoint, a0, a1, r0a, r0
 
 
 IntervalTableDraw.drawIntervalsWordsFlowTable = function(frame, intervalsFlowTable, texts, colors, typode, graphics) {
+  if(graphics==null) graphics = frame.graphics; //momentary fix
+
   var nElements = intervalsFlowTable.length;
 
   var i;

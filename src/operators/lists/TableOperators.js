@@ -799,10 +799,15 @@ TableOperators.mergeDataTables = function(table0, table1) {
 
   table[0] = list;
 
-  for(i = 0; numberTable0[i] != null; i++) {
+  var l = numberTable0.length;
+
+  for(i = 0; i<l; i++) {
     table.push(numberTable0[i]);
   }
-  for(i = 0; numberTable1[i] != null; i++) {
+
+  l = numberTable1.length;
+
+  for(i = 0; i<l; i++) {
     table.push(numberTable1[i]);
   }
   return table;
