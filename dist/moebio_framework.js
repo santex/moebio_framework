@@ -20060,6 +20060,21 @@
 
     tree.assignDescentWeightsToNodes();
 
+    var _assignIndexesToNode = function(node) {
+      var i;
+      if(node.toNodeList.length === 0) {
+        return node.indexesInTable;
+      } else {
+        node.indexesInTable = new NumberList();
+      }
+      for(i = 0; node.toNodeList[i] != null; i++) {
+        node.indexesInTable = node.indexesInTable.concat( _assignIndexesToNode(node.toNodeList[i]) );
+      }
+      return node.indexesInTable;
+    };
+
+    _assignIndexesToNode(tree.nodeList[0]);
+
     return tree;
   };
 
