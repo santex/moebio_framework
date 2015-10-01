@@ -25,6 +25,8 @@ export default ListDraw;
 ListDraw.drawList = function(frame, list, returnMode, colorList, textSize, mode, selectedInit, graphics) {
   if(list == null || list.length < 0) return;
 
+  if(graphics==null) graphics = frame.graphics;
+
   textSize = textSize || 14;
   returnMode = returnMode == null ? 0 : returnMode;
 

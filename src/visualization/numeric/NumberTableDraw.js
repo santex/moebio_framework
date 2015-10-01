@@ -587,8 +587,6 @@ NumberTableDraw.drawCircularStreamgraph = function(frame, dataTable, normalized,
   //setup
   if(frame.memory == null || dataTable != frame.memory.dataTable || normalized != frame.memory.normalized || sorted != frame.memory.sorted || intervalsFactor != frame.memory.intervalsFactor || frame.width != frame.memory.width || frame.height != frame.memory.height) {
     var numberTable = TableOperators.getNumberTableFromTable(dataTable);
-
-    console.log('numberTable', numberTable);
     
     if(numberTable.length<2) return;
 
@@ -617,8 +615,6 @@ NumberTableDraw.drawCircularStreamgraph = function(frame, dataTable, normalized,
       angle0: 0,
       image: null
     };
-
-    console.log('frame.memory.flowIntervals', frame.memory.flowIntervals);
 
     var dA = TwoPi / numberTable[0].length;
     numberTable[0].forEach(function(val, i) {
@@ -691,6 +687,7 @@ NumberTableDraw.drawCircularStreamgraph = function(frame, dataTable, normalized,
 
     IntervalTableDraw.drawCircularIntervalsFlowTable(frame, frame.memory.flowIntervals, frame.getCenter(), frame.memory.radius * frame.memory.zoom, frame.memory.r0, frame.memory.actualColorList, frame.memory.categories, true, frame.memory.angles, frame.memory.angle0);
     
+    frame.memory.zoom = Math.max(Math.min(frame.memory.zoom, 2000), 0.08);
 
     if(frame.memory.names) {
       var a;

@@ -3120,8 +3120,9 @@
    */
   function NumberList() {
     var args = [];
+    var l = arguments.length;
 
-    for(var i = 0; i < arguments.length; i++) {
+    for(var i = 0; i < l; i++) {
       args[i] = Number(arguments[i]);
     }
     var array = List.apply(this, args);
@@ -15540,7 +15541,8 @@
     var i;
     var rect;
     var highestRatio = 1;
-    for(i = 0; i < normalizedWeightList.length; i++) {
+    var l = normalizedWeightList.length;
+    for(i = 0; i < l; i++) {
       areai = normalizedWeightList[i] * area / sum;
       if(rectangle.width > rectangle.height) {
         rect = new Rectangle(freeRectangle.x, freeRectangle.y, areai / freeRectangle.height, freeRectangle.height);
@@ -27462,6 +27464,8 @@
   ListDraw.drawList = function(frame, list, returnMode, colorList, textSize, mode, selectedInit, graphics) {
     if(list == null || list.length < 0) return;
 
+    if(graphics==null) graphics = frame.graphics;
+
     textSize = textSize || 14;
     returnMode = returnMode == null ? 0 : returnMode;
 
@@ -28676,8 +28680,6 @@
     //setup
     if(frame.memory == null || dataTable != frame.memory.dataTable || normalized != frame.memory.normalized || sorted != frame.memory.sorted || intervalsFactor != frame.memory.intervalsFactor || frame.width != frame.memory.width || frame.height != frame.memory.height) {
       var numberTable = TableOperators.getNumberTableFromTable(dataTable);
-
-      console.log('numberTable', numberTable);
       
       if(numberTable.length<2) return;
 
@@ -28706,8 +28708,6 @@
         angle0: 0,
         image: null
       };
-
-      console.log('frame.memory.flowIntervals', frame.memory.flowIntervals);
 
       var dA = TwoPi / numberTable[0].length;
       numberTable[0].forEach(function(val, i) {
@@ -28780,6 +28780,7 @@
 
       IntervalTableDraw.drawCircularIntervalsFlowTable(frame, frame.memory.flowIntervals, frame.getCenter(), frame.memory.radius * frame.memory.zoom, frame.memory.r0, frame.memory.actualColorList, frame.memory.categories, true, frame.memory.angles, frame.memory.angle0);
       
+      frame.memory.zoom = Math.max(Math.min(frame.memory.zoom, 2000), 0.08);
 
       if(frame.memory.names) {
         var a;
@@ -29218,39 +29219,65 @@
     if(externalSelectedNode != null) externalSelectedNode = tree.nodeList.getNodeById(externalSelectedNode.id);
 
     var changeSelection = (externalSelectedNode != null && (frame.memory == null || externalSelectedNode != frame.memory.nodeSelected));
+    var nNodes = tree.nodeList.length;
+    var node;
+    var i;
 
     if(change) {
-      var changeInTree = frame.memory != null && frame.memory.tree != null != tree;
+      var changeInTree = frame.memory==null || frame.memory.tree!=tree;
+      //console.log('changeInTree', changeInTree);
       //var changeInWeights = frame.memory != null && frame.memory.weights != weights;
+      //var prevNodeSelected = frame.memory==null?null:frame.memory.nodeSelected;
+      //var prevFocusFrame = frame.memory==null?null:frame.memory.prevFocusFrame;
 
-      frame.memory = {
-        tree: tree,
-        width: frame.width,
-        height: frame.height,
-        weights: weights,
-        nodeSelected: tree.nodeList[0],
-        nFLastChange: graphics.nF,
-        image: null
-      };
+      if(frame.memory==null){
+        frame.memory = {
+          width: frame.width,
+          height: frame.height,
+          weights: weights,
+          nFLastChange: graphics.nF,
+          tree:tree,
+          nodeSelected:tree.nodeList[0]
+        };
+      } else {
+        frame.memory.nFLastChange = graphics.nF;
+        frame.memory.weights = weights;
+        frame.memory.width = frame.width;
+        frame.memory.height = frame.height;
+
+        if(changeInTree) frame.memory.tree = tree;
+        if(changeSelection) frame.memory.nodeSelected = externalSelectedNode;
+      }
+
+      //frame.memory.nodeSelected = prevNodeSelected==null?tree.nodeList[0]:prevNodeSelected;
 
       var leaves = (!changeInTree && frame.memory.leaves) ? frame.memory.leaves : tree.getLeaves();
       frame.memory.leaves = leaves;
 
       if(weights == null) {
-        tree.nodeList.forEach(function(node) {
-          node._treeMapWeight = node.descentWeight;
-        });
+        //tree.nodeList.forEach(function(node) {
+        for(i=0; i<nNodes; i++){
+          tree.nodeList[i]._treeMapWeight = tree.nodeList[i].descentWeight;
+        }
+        //});
       } else {
-        leaves.forEach(function(node, i) {
-          node._treeMapWeight = weights[i];
-        });
+        var nLeaves = leaves.length;
+
+        //leaves.forEach(function(node, i) {
+        for(i=0; i<nLeaves; i++){
+          leaves[i]._treeMapWeight = weights[i];
+        }
+        //});
+
         var assignTreemapWeight = function(node) {
           var i;
+          var n;
           if(node.toNodeList.length === 0) {
             return node._treeMapWeight;
           } else {
             node._treeMapWeight = 0;
-            for(i = 0; node.toNodeList[i] != null; i++) {
+            n = node.toNodeList.length;
+            for(i = 0; i<n; i++) {
               node._treeMapWeight += assignTreemapWeight(node.toNodeList[i]);
             }
           }
@@ -29263,18 +29290,28 @@
       tree.nodeList[0]._inRectangle = TreeDraw._inRectFromOutRect(tree.nodeList[0]._outRectangle);
       TreeDraw._generateRectangles(tree.nodeList[0]);
 
-      frame.memory.focusFrame = TreeDraw._expandRect(tree.nodeList[0]._outRectangle);
-      //c.l('frame.memory.focusFrame', frame.memory.focusFrame);
+      //frame.memory.focusFrame = prevFocusFrame==null?TreeDraw._expandRect(tree.nodeList[0]._outRectangle):prevFocusFrame;
+      //console.log('frame.memory.focusFrame', frame.memory.focusFrame);
+      //if(frame.memory.nodeSelected!=null) console.log('frame.memory.nodeSelected.id', frame.memory.nodeSelected.id);
 
-      frame.memory.kx = frame.width / frame.memory.focusFrame.width;
-      frame.memory.mx = -frame.memory.kx * frame.memory.focusFrame.x;
-      frame.memory.ky = frame.height / frame.memory.focusFrame.height;
-      frame.memory.my = -frame.memory.ky * frame.memory.focusFrame.y;
+      //if(frame.memory.focusFrame==null || changeSelection) frame.memory.focusFrame = TreeDraw._expandRect(frame.memory.nodeSelected._outRectangle);
+      frame.memory.focusFrame = TreeDraw._expandRect(frame.memory.nodeSelected._outRectangle);
+
+      if(changeInTree){
+        //console.log('----->kx…');
+        frame.memory.kx = frame.width / frame.memory.focusFrame.width;
+        frame.memory.mx = -frame.memory.kx * frame.memory.focusFrame.x;
+        frame.memory.ky = frame.height / frame.memory.focusFrame.height;
+        frame.memory.my = -frame.memory.ky * frame.memory.focusFrame.y;
+      }
 
       graphics.setText('black', 12);
-      tree.nodeList.forEach(function(node) {
+      //tree.nodeList.forEach(function(node) {
+      for(i=0; i<nNodes; i++){
+        node = tree.nodeList[i];
         node._textWidth = graphics.getTextW(node.name);
-      });
+      }
+      //});
     }
 
     if(frame.memory.colorList != colorList || frame.memory.colorList == null) {
@@ -29285,9 +29322,12 @@
       if(textColor == null) frame.memory.textsColorList = new ColorList();
 
       if(frame.memory.actualColorList.length <= tree.nLevels) {
-        tree.nodeList.forEach(function(node, i) {
+        //tree.nodeList.forEach(function(node, i) {
+        for(i=0; i<nNodes; i++){
+          node = tree.nodeList[i];
           frame.memory.nodesColorList[i] = node._color = frame.memory.actualColorList[node.level % frame.memory.actualColorList.length];
-        });
+        }
+        //});
       } else if(frame.memory.actualColorList.length == frame.memory.leaves.length) {
         frame.memory.leaves.forEach(function(node, i) {
           node._color = frame.memory.actualColorList[i];
@@ -29309,22 +29349,31 @@
           node._rgb[2] = Math.floor(node._rgb[2] / node.toNodeList.length);
         };
         assignColor(tree.nodeList[0]);
-        tree.nodeList.forEach(function(node, i) {
+        //tree.nodeList.forEach(function(node, i) {
+        for(i=0; i<nNodes; i++){
+          node = tree.nodeList[i];
           if(node._rgb && node._rgbF == null) node._rgbF = [node._rgb[0], node._rgb[1], node._rgb[2]];
           frame.memory.nodesColorList[i] = 'rgb(' + node._rgb[0] + ',' + node._rgb[1] + ',' + node._rgb[2] + ')';
-        });
+        }
+        //});
       } else {
-        tree.nodeList.forEach(function(node, i) {
+        //tree.nodeList.forEach(function(node, i) {
+        for(i=0; i<nNodes; i++){
+          node = tree.nodeList[i];
           node._color = frame.memory.nodesColorList[i] = frame.memory.actualColorList[i % frame.memory.actualColorList.length];
-        });
+        }
+        //});
       }
 
       if(textColor == null) {
         var rgb;
-        tree.nodeList.forEach(function(node, i) {
+        //tree.nodeList.forEach(function(node, i) {
+        for(i=0; i<nNodes; i++){
+          node = tree.nodeList[i];
           rgb = node._color ? ColorOperators.colorStringToRGB(node._color) : [0, 0, 0];
           frame.memory.textsColorList[i] = (rgb[0] + rgb[1] + rgb[2] > 360) ? 'black' : 'white';
-        });
+        }
+        //});
       }
 
       frame.memory.colorList = colorList;
@@ -29365,9 +29414,9 @@
     var overNode = null;
     var overI;
     var mouseOnFrame = frame.containsPoint(graphics.mP);
-    var moving = graphics.nF - frame.memory.nFLastChange < 50 || Math.pow(frame.memory.kx - kxF, 2) + Math.pow(frame.memory.ky - kyF, 2) + Math.pow(frame.memory.mx - mxF, 2) + Math.pow(frame.memory.my - myF, 2) > 0.01;
-    var captureImage = !moving && frame.memory.image == null && !mouseOnFrame;
-    var drawingImage = !moving && !mouseOnFrame && frame.memory.image != null &&  !captureImage && frame.memory.image.width > 0 && !changeSelection;
+    //var moving = graphics.nF - frame.memory.nFLastChange < 50 || Math.pow(frame.memory.kx - kxF, 2) + Math.pow(frame.memory.ky - kyF, 2) + Math.pow(frame.memory.mx - mxF, 2) + Math.pow(frame.memory.my - myF, 2) > 0.01;
+    var captureImage = false;// !moving && frame.memory.image == null && !mouseOnFrame;
+    var drawingImage = false;// !moving && !mouseOnFrame && frame.memory.image != null &&  !captureImage && frame.memory.image.width > 0 && !changeSelection;
 
     if(drawingImage) {
       graphics.drawImage(frame.memory.image, frame.x, frame.y, frame.width, frame.height);
@@ -29511,19 +29560,27 @@
    * @ignore
    */
   TreeDraw._generateRectangles = function(node) {
-
+    var n = node.toNodeList.length;
+    var i;
     var weights = new NumberList();
-    node.toNodeList.forEach(function(node) {
-      weights.push(node._treeMapWeight);
-    });
+    var child;
+    //node.toNodeList.forEach(function(node) {
+    for(i=0; i<n; i++){
+      child = node.toNodeList[i];
+      weights.push(child._treeMapWeight);
+    }
+    //});
 
     var rectangles = RectangleOperators.squarify(node._inRectangle, weights, false, false);
 
-    node.toNodeList.forEach(function(child, i) {
+    //node.toNodeList.forEach(function(child, i) {
+    for(i=0; i<n; i++){
+      child = node.toNodeList[i];
       child._outRectangle = TreeDraw._reduceRect(rectangles[i]);
       child._inRectangle = TreeDraw._inRectFromOutRect(child._outRectangle);
       TreeDraw._generateRectangles(child);
-    });
+    }
+    //});
   };
 
   /**
