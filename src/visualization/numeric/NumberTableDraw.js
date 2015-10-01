@@ -12,6 +12,8 @@ import NumberTable from "src/dataTypes/numeric/NumberTable";
 import Table from "src/dataTypes/lists/Table";
 import ColorList from "src/dataTypes/graphic/ColorList";
 import NumberListOperators from "src/operators/numeric/numberList/NumberListOperators";
+import TableOperators from "src/operators/lists/TableOperators";
+
 
 function NumberTableDraw() {}
 export default NumberTableDraw;
@@ -566,33 +568,45 @@ NumberTableDraw._drawPartialFlow = function(frame, flowIntervals, labels, colors
 /**
  * draws a circular steamgraph Without labels
  * @param {Rectangle} frame
- * @param {NumberTable} numberTable
+ * @param {Table} dataTable table with a categorical list and many numberLists
  *
  * @param {Boolean} normalized normalize each column, making the graph of constant height
  * @param {Boolean} sorted sort flow polygons
  * @param {Number} intervalsFactor number between 0 and 1, factors the height of flow polygons
  * @param {ColorList} colorList colors of polygons
- * @param {StringList} names names of rows
  * @return {NumberList} list of positions of elements on clicked coordinates
  * tags:draw
  */
-NumberTableDraw.drawCircularStreamgraph = function(frame, numberTable, normalized, sorted, intervalsFactor, colorList, names, graphics) {
-  if(numberTable == null ||  numberTable.length < 2 || numberTable[0].length < 2 || numberTable.type != "NumberTable") return;
+NumberTableDraw.drawCircularStreamgraph = function(frame, dataTable, normalized, sorted, intervalsFactor, colorList, graphics) {
+  if(dataTable == null ||  dataTable.length < 3 || dataTable[0].length < 2) return;
 
   if(graphics==null) graphics = frame.graphics; //momentary fix
 
   intervalsFactor = intervalsFactor == null ? 1 : intervalsFactor;
 
   //setup
-  if(frame.memory == null || numberTable != frame.memory.numberTable || normalized != frame.memory.normalized || sorted != frame.memory.sorted || intervalsFactor != frame.memory.intervalsFactor || frame.width != frame.memory.width || frame.height != frame.memory.height) {
+  if(frame.memory == null || dataTable != frame.memory.dataTable || normalized != frame.memory.normalized || sorted != frame.memory.sorted || intervalsFactor != frame.memory.intervalsFactor || frame.width != frame.memory.width || frame.height != frame.memory.height) {
+    var numberTable = TableOperators.getNumberTableFromTable(dataTable);
+
+    console.log('numberTable', numberTable);
+    
+    if(numberTable.length<2) return;
+
+    numberTable = numberTable.getTransposed();
+
+    var names = dataTable.getNames().slice(1);
+    if(names!=null && names.join('')==='') names = null;
+
     frame.memory = {
+      dataTable:dataTable,
       numberTable: numberTable,
+      categories:dataTable[0],
+      names:names,
       normalized: normalized,
       sorted: sorted,
       intervalsFactor: intervalsFactor,
       flowIntervals: IntervalTableOperators.scaleIntervals(NumberTableFlowOperators.getFlowTableIntervals(numberTable, normalized, sorted), intervalsFactor),
       fOpen: 1,
-      names: numberTable.getNames(),
       mXF: graphics.mX,
       width: frame.width,
       height: frame.height,
@@ -604,13 +618,16 @@ NumberTableDraw.drawCircularStreamgraph = function(frame, numberTable, normalize
       image: null
     };
 
+    console.log('frame.memory.flowIntervals', frame.memory.flowIntervals);
+
     var dA = TwoPi / numberTable[0].length;
     numberTable[0].forEach(function(val, i) {
       frame.memory.angles[i] = i * dA;
     });
   }
+
   if(frame.memory.colorList != colorList || frame.memory.colorList == null) {
-    frame.memory.actualColorList = colorList == null ? ColorListGenerators.createDefaultCategoricalColorList(numberTable.length, 0.4) : colorList;
+    frame.memory.actualColorList = colorList == null ? ColorListGenerators.createDefaultCategoricalColorList(frame.memory.numberTable.length, 0.4) : colorList;
     frame.memory.colorList = colorList;
   }
 
@@ -672,16 +689,16 @@ NumberTableDraw.drawCircularStreamgraph = function(frame, numberTable, normalize
     graphics.context.save();
     graphics.clipRectangle(frame.x, frame.y, frame.width, frame.height);
 
-    IntervalTableDraw.drawCircularIntervalsFlowTable(frame, frame.memory.flowIntervals, frame.getCenter(), frame.memory.radius * frame.memory.zoom, frame.memory.r0, frame.memory.actualColorList, frame.memory.names, true, frame.memory.angles, frame.memory.angle0);
+    IntervalTableDraw.drawCircularIntervalsFlowTable(frame, frame.memory.flowIntervals, frame.getCenter(), frame.memory.radius * frame.memory.zoom, frame.memory.r0, frame.memory.actualColorList, frame.memory.categories, true, frame.memory.angles, frame.memory.angle0);
     
 
-    if(names) {
+    if(frame.memory.names) {
       var a;
       var r = frame.memory.radius * frame.memory.zoom + 8;
 
       graphics.setText('black', 14, null, 'center', 'middle');
 
-      names.forEach(function(name, i) {
+      frame.memory.names.forEach(function(name, i) {
         a = frame.memory.angle0 + frame.memory.angles[i];
 
         graphics.fTextRotated(String(name), frame.getCenter().x + r * Math.cos(a), frame.getCenter().y + r * Math.sin(a), a + HalfPi);

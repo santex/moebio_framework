@@ -251,7 +251,9 @@ IntervalTableDraw.drawCircularIntervalsFlowTable = function(frame, intervalsFlow
 
   }
 
-  for(i = 0; filteredTexts[i] != null; i++) {
+  var nTexts = filteredTexts.length;
+
+  for(i = 0; i<nTexts; i++) {
     graphics.setText('black', textsSizes[i], null, 'center', 'middle');
     graphics.fTextRotated(filteredTexts[i], textsX[i], textsY[i], textsAngles[i]);
   }
