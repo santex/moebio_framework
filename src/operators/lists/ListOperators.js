@@ -467,17 +467,17 @@ ListOperators.sortListByNumberList = function(list, numberList, descending) {
   var i;
 
   for(i = 0; list[i] != null; i++) {
-    pairs.push([list[i], numberList[i]]);
+    pairs.push([list[i], numberList[i],i]);
   }
 
 
   if(descending) {
     pairs.sort(function(a, b) {
-      return a[1] < b[1] ?  1 : a[1] > b[1] ? -1 : 0;
+      return a[1] < b[1] ?  1 : a[1] > b[1] ? -1 : a[2] - b[2];
     });
   } else {
     pairs.sort(function(a, b) {
-      return a[1] < b[1] ? -1 : a[1] > b[1] ?  1 : 0;
+      return a[1] < b[1] ? -1 : a[1] > b[1] ?  1 : a[2] - b[2];
     });
   }
 
