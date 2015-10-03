@@ -130,28 +130,28 @@ DateOperators.parseDates = function(stringList) {
 /**
  * @todo write docs
  */
-DateOperators.getHoursBetweenDates = function(date0, date1) {
+DateOperators.hoursBetweenDates = function(date0, date1) {
   return(date1.getTime() - date0.getTime()) * DateOperators.millisecondsToHours;
 };
 
 /**
  * @todo write docs
  */
-DateOperators.getDaysBetweenDates = function(date0, date1) {
+DateOperators.daysBetweenDates = function(date0, date1) {
   return(date1.getTime() - date0.getTime()) * DateOperators.millisecondsToDays;
 };
 
 /**
  * @todo write docs
  */
-DateOperators.getWeeksBetweenDates = function(date0, date1) {
+DateOperators.weeksBetweenDates = function(date0, date1) {
   return(date1.getTime() - date0.getTime()) * DateOperators.millisecondsToWeeks;
 };
 
 /**
  * @todo write docs
  */
-DateOperators.getYearsBetweenDates = function(date0, date1) {
+DateOperators.yearsBetweenDates = function(date0, date1) {
   return(date1.getTime() - date0.getTime()) * DateOperators.millisecondsToYears;
 };
 

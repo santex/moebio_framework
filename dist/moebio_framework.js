@@ -7480,12 +7480,25 @@
   ListOperators.union = function(list0, list1) {//TODO:expand for more lists
     if(list0==null || list1==null) return;
 
-    var obj = {};
+    var union = new List();
+    var l0 = list0.length;
+    var l1 = list1.length;
     var i, k;
 
-    for(i = 0; list0[i]!=null; i++) obj[list0[i]] = list0[i];
-    for(i = 0; list1[i]!=null; i++) obj[list1[i]] = list1[i];
-    var union = new List();
+    if(list0.type=='NodeList' || list1.type=='NodeList'){
+      union = new NodeList();
+      union = list0.clone();
+      for(i = 0; i<l1; i++){
+        if(list0.getNodeById(list1[i].id)==null) union.addNode(list1[i]);
+      }
+      return union;
+    }
+
+    var obj = {};
+
+    for(i = 0; i<l0; i++) obj[list0[i]] = list0[i];
+    for(i = 0; i<l1; i++) obj[list1[i]] = list1[i];
+    
     for(k in obj) {
       //if(obj.hasOwnProperty(k)) // <-- optional
       union.push(obj[k]);
@@ -9915,28 +9928,28 @@
   /**
    * @todo write docs
    */
-  DateOperators.getHoursBetweenDates = function(date0, date1) {
+  DateOperators.hoursBetweenDates = function(date0, date1) {
     return(date1.getTime() - date0.getTime()) * DateOperators.millisecondsToHours;
   };
 
   /**
    * @todo write docs
    */
-  DateOperators.getDaysBetweenDates = function(date0, date1) {
+  DateOperators.daysBetweenDates = function(date0, date1) {
     return(date1.getTime() - date0.getTime()) * DateOperators.millisecondsToDays;
   };
 
   /**
    * @todo write docs
    */
-  DateOperators.getWeeksBetweenDates = function(date0, date1) {
+  DateOperators.weeksBetweenDates = function(date0, date1) {
     return(date1.getTime() - date0.getTime()) * DateOperators.millisecondsToWeeks;
   };
 
   /**
    * @todo write docs
    */
-  DateOperators.getYearsBetweenDates = function(date0, date1) {
+  DateOperators.yearsBetweenDates = function(date0, date1) {
     return(date1.getTime() - date0.getTime()) * DateOperators.millisecondsToYears;
   };
 
@@ -16644,6 +16657,9 @@
 
     return newTable;
   };
+
+  TableOperators.filterTableByElementsInList = function(table, nList, elements, keepRowIfElementIsPresent) {//@todo: deploy
+  }
 
   /**
    * @todo finish docs

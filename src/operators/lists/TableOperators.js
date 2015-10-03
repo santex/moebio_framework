@@ -697,6 +697,9 @@ TableOperators.filterTableByElementInList = function(table, nList, element, keep
   return newTable;
 };
 
+TableOperators.filterTableByElementsInList = function(table, nList, elements, keepRowIfElementIsPresent) {//@todo: deploy
+}
+
 /**
  * @todo finish docs
  */
