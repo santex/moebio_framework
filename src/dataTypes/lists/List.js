@@ -936,11 +936,11 @@ List.prototype.getSortedByList = function(list, ascending) {
   var comparator;
   if(ascending) {
     comparator = function(a, b) {
-      return a[1] < b[1] ? -1 : 1;
+      return a[1] < b[1] ? -1 : a[1] > b[1] ?  1 : 0;
     };
   } else {
     comparator = function(a, b) {
-      return a[1] < b[1] ? 1 : -1;
+      return a[1] < b[1] ?  1 : a[1] > b[1] ? -1 : 0;
     };
   }
 
