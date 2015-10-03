@@ -473,13 +473,11 @@ ListOperators.sortListByNumberList = function(list, numberList, descending) {
 
   if(descending) {
     pairs.sort(function(a, b) {
-      if(a[1] < b[1]) return 1;
-      return -1;
+      return a[1] < b[1] ?  1 : a[1] > b[1] ? -1 : 0;
     });
   } else {
     pairs.sort(function(a, b) {
-      if(a[1] < b[1]) return -1;
-      return 1;
+      return a[1] < b[1] ? -1 : a[1] > b[1] ?  1 : 0;
     });
   }
 
