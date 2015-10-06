@@ -930,17 +930,17 @@ List.prototype.getSortedByList = function(list, ascending) {
   var l = this.length;
 
   for(i = 0; i<l; i++) {
-    pairsArray[i] = [this[i], list[i]];
+    pairsArray[i] = [this[i], list[i],i];
   }
 
   var comparator;
   if(ascending) {
     comparator = function(a, b) {
-      return a[1] < b[1] ? -1 : a[1] > b[1] ?  1 : 0;
+      return a[1] < b[1] ? -1 : a[1] > b[1] ?  1 : a[2] - b[2];
     };
   } else {
     comparator = function(a, b) {
-      return a[1] < b[1] ?  1 : a[1] > b[1] ? -1 : 0;
+      return a[1] < b[1] ?  1 : a[1] > b[1] ? -1 : a[2] - b[2];
     };
   }
 
