@@ -541,80 +541,6 @@ TableOperators.pivotTable = function(table, indexFirstAggregationList, indexSeco
   return newTable;
 };
 
-
-
-/**
- * aggregates a table
- * @param  {Table} table to be aggregated, deprecated: a new more powerful method has been built
- * @param  {Number} nList list in the table used as basis to aggregation
- * @param  {Number} mode mode of aggregation, 0:picks first element 1:adds numbers, 2:averages
- * @return {Table} aggregated table
- * tags:deprecated
- */
-// TableOperators.aggregateTableOld = function(table, nList, mode) {
-//   nList = nList == null ? 0 : nList;
-//   if(table == null || table[0] == null || table[0][0] == null || table[nList] == null) return null;
-//   mode = mode == null ? 0 : mode;
-
-//   var newTable = new Table();
-//   var i, j;
-//   var index;
-//   var notRepeated;
-
-//   newTable.name = table.name;
-
-//   for(j = 0; table[j] != null; j++) {
-//     newTable[j] = new List();
-//     newTable[j].name = table[j].name;
-//   }
-
-//   switch(mode) {
-//     case 0: //leaves the first element of the aggregated subLists
-//       for(i = 0; table[0][i] != null; i++) {
-//         notRepeated = newTable[nList].indexOf(table[nList][i]) == -1;
-//         if(notRepeated) {
-//           for(j = 0; table[j] != null; j++) {
-//             newTable[j].push(table[j][i]);
-//           }
-//         }
-//       }
-//       break;
-//     case 1: //adds values in numberLists
-//       for(i = 0; table[0][i] != null; i++) {
-//         index = newTable[nList].indexOf(table[nList][i]);
-//         notRepeated = index == -1;
-//         if(notRepeated) {
-//           for(j = 0; table[j] != null; j++) {
-//             newTable[j].push(table[j][i]);
-//           }
-//         } else {
-//           for(j = 0; table[j] != null; j++) {
-//             if(j != nList && table[j].type == 'NumberList') {
-//               newTable[j][index] += table[j][i];
-//             }
-//           }
-//         }
-//       }
-//       break;
-//     case 2: //averages values in numberLists
-//       var nRepetitionsList = table[nList].getFrequenciesTable(false);
-//       newTable = TableOperators.aggregateTableOld(table, nList, 1);
-
-//       for(j = 0; newTable[j] != null; j++) {
-//         if(j != nList && newTable[j].type == 'NumberList') {
-//           newTable[j] = newTable[j].divide(nRepetitionsList[1]);
-//         }
-//       }
-
-//       newTable.push(nRepetitionsList[1]);
-//       break;
-//   }
-//   for(j = 0; newTable[j] != null; j++) {
-//     newTable[j] = newTable[j].getImproved();
-//   }
-//   return newTable.getImproved();
-// };
-
 /**
  * counts pairs of elements in same positions in two lists (the result is the adjacent matrix of the network defined by pairs)
  * @param  {Table} table with at least two lists
@@ -664,41 +590,96 @@ TableOperators.filterTableByElementInList = function(table, nList, element, keep
 
   var newTable = new Table();
   var i, j;
+  var l = table.length;
+  var l0 = table[0].length;
 
   newTable.name = table.name;
 
-  for(j = 0; table[j] != null; j++) {
+  for(j = 0; j<l; j++) {
     newTable[j] = new List();
     newTable[j].name = table[j].name;
   }
 
   if(keepRowIfElementIsPresent){
-    for(i = 0; table[0][i] != null; i++) {
+    for(i = 0; i<l0; i++) {
       if(table[nList][i] == element) {
-        for(j = 0; table[j] != null; j++) {
+        for(j = 0; j<l; j++) {
           newTable[j].push(table[j][i]);
         }
       }
     }
   } else {
-    for(i = 0; table[0][i] != null; i++) {
+    for(i = 0; i<l0; i++) {
       if(table[nList][i] != element) {
-        for(j = 0; table[j] != null; j++) {
+        for(j = 0; j<l; j++) {
           newTable[j].push(table[j][i]);
         }
       }
     }
   }
 
-  for(j = 0; newTable[j] != null; j++) {
+  for(j = 0; j<l; j++) {
     newTable[j] = newTable[j].getImproved();
   }
 
   return newTable;
 };
 
-TableOperators.filterTableByElementsInList = function(table, nList, elements, keepRowIfElementIsPresent) {//@todo: deploy
-}
+/**
+ * filter a table selecting rows that have one of the elements provided on one of its lists
+ * @param  {Table} table
+ * @param  {Number} nList list that could contain some of the elements in several positions
+ * @param  {List} elements
+ *
+ * @param {Boolean} keepRowIfElementIsPresent if true (default value) the row is selected if the list contains the given element, if false the row is discarded
+ * @return {Table}
+ * tags:filter
+ */
+TableOperators.filterTableByElementsInList = function(table, nList, elements, keepRowIfElementIsPresent) {
+  if(table == null ||  table.length <= 0 || nList == null) return;
+  if(elements == null || elements.length===0) return table;
+
+  keepRowIfElementIsPresent = keepRowIfElementIsPresent==null?true:keepRowIfElementIsPresent;
+
+  var elementsDictionary = ListOperators.getBooleanDictionaryForList(elements);
+
+  var newTable = new Table();
+  var i, j;
+  var l = table.length;
+  var l0 = table[0].length;
+
+  newTable.name = table.name;
+
+  for(j = 0; j<l; j++) {
+    newTable[j] = new List();
+    newTable[j].name = table[j].name;
+  }
+
+  if(keepRowIfElementIsPresent){
+    for(i = 0; i<l0; i++) {
+      if(elementsDictionary[ table[nList][i] ]) {
+        for(j = 0; j<l; j++) {
+          newTable[j].push(table[j][i]);
+        }
+      }
+    }
+  } else {
+    for(i = 0; i<l0; i++) {
+      if(!elementsDictionary[ table[nList][i] ]) {
+        for(j = 0; j<l; j++) {
+          newTable[j].push(table[j][i]);
+        }
+      }
+    }
+  }
+
+  for(j = 0; j<l; j++) {
+    newTable[j] = newTable[j].getImproved();
+  }
+
+  return newTable;
+};
+
 
 /**
  * @todo finish docs
@@ -730,12 +711,6 @@ TableOperators.mergeDataTables = function(table0, table1) {
     merged.push(ListGenerators.createListWithSameElement(table0[0].length, 0));
     return merged;
   }
-
-  // var numbers0 = table0[1];
-  // if(numbers0.type != "NumberList") return null;
-
-  // var numbers1 = table1[1];
-  // if(numbers1.type != "NumberList") return null;
 
   var categories0 = table0[0];
   var categories1 = table1[0];
@@ -930,6 +905,7 @@ TableOperators.splitTableByCategoricList = function(table, list) {
 
   return tablesList;
 };
+
 
 /**
  * builds a decision tree based on a table made of categorical lists, a list (the values of a supervised variable), and a value from the supervised variable. The result is a tree that contains on its leaves different populations obtained by iterative filterings by category values, and that contain extremes probabilities for having or not the valu ein the supervised variable.

@@ -2027,11 +2027,11 @@
     var comparator;
     if(ascending) {
       comparator = function(a, b) {
-        return a[1] < b[1] ? -1 : 1;
+        return a[1] < b[1] ? -1 : a[1] > b[1] ?  1 : 0;
       };
     } else {
       comparator = function(a, b) {
-        return a[1] < b[1] ? 1 : -1;
+        return a[1] < b[1] ?  1 : a[1] > b[1] ? -1 : 0;
       };
     }
 
@@ -7336,13 +7336,11 @@
 
     if(descending) {
       pairs.sort(function(a, b) {
-        if(a[1] < b[1]) return 1;
-        return -1;
+        return a[1] < b[1] ?  1 : a[1] > b[1] ? -1 : 0;
       });
     } else {
       pairs.sort(function(a, b) {
-        if(a[1] < b[1]) return -1;
-        return 1;
+        return a[1] < b[1] ? -1 : a[1] > b[1] ?  1 : 0;
       });
     }
 
@@ -12299,7 +12297,7 @@
   }
 
   function evalJavaScriptFunction(functionText, args, scope){
-  	if(functionText==null) return;
+  	if(functionText==null || functionText=="") return;
 
   	var res;
 
@@ -16502,80 +16500,6 @@
     return newTable;
   };
 
-
-
-  /**
-   * aggregates a table
-   * @param  {Table} table to be aggregated, deprecated: a new more powerful method has been built
-   * @param  {Number} nList list in the table used as basis to aggregation
-   * @param  {Number} mode mode of aggregation, 0:picks first element 1:adds numbers, 2:averages
-   * @return {Table} aggregated table
-   * tags:deprecated
-   */
-  // TableOperators.aggregateTableOld = function(table, nList, mode) {
-  //   nList = nList == null ? 0 : nList;
-  //   if(table == null || table[0] == null || table[0][0] == null || table[nList] == null) return null;
-  //   mode = mode == null ? 0 : mode;
-
-  //   var newTable = new Table();
-  //   var i, j;
-  //   var index;
-  //   var notRepeated;
-
-  //   newTable.name = table.name;
-
-  //   for(j = 0; table[j] != null; j++) {
-  //     newTable[j] = new List();
-  //     newTable[j].name = table[j].name;
-  //   }
-
-  //   switch(mode) {
-  //     case 0: //leaves the first element of the aggregated subLists
-  //       for(i = 0; table[0][i] != null; i++) {
-  //         notRepeated = newTable[nList].indexOf(table[nList][i]) == -1;
-  //         if(notRepeated) {
-  //           for(j = 0; table[j] != null; j++) {
-  //             newTable[j].push(table[j][i]);
-  //           }
-  //         }
-  //       }
-  //       break;
-  //     case 1: //adds values in numberLists
-  //       for(i = 0; table[0][i] != null; i++) {
-  //         index = newTable[nList].indexOf(table[nList][i]);
-  //         notRepeated = index == -1;
-  //         if(notRepeated) {
-  //           for(j = 0; table[j] != null; j++) {
-  //             newTable[j].push(table[j][i]);
-  //           }
-  //         } else {
-  //           for(j = 0; table[j] != null; j++) {
-  //             if(j != nList && table[j].type == 'NumberList') {
-  //               newTable[j][index] += table[j][i];
-  //             }
-  //           }
-  //         }
-  //       }
-  //       break;
-  //     case 2: //averages values in numberLists
-  //       var nRepetitionsList = table[nList].getFrequenciesTable(false);
-  //       newTable = TableOperators.aggregateTableOld(table, nList, 1);
-
-  //       for(j = 0; newTable[j] != null; j++) {
-  //         if(j != nList && newTable[j].type == 'NumberList') {
-  //           newTable[j] = newTable[j].divide(nRepetitionsList[1]);
-  //         }
-  //       }
-
-  //       newTable.push(nRepetitionsList[1]);
-  //       break;
-  //   }
-  //   for(j = 0; newTable[j] != null; j++) {
-  //     newTable[j] = newTable[j].getImproved();
-  //   }
-  //   return newTable.getImproved();
-  // };
-
   /**
    * counts pairs of elements in same positions in two lists (the result is the adjacent matrix of the network defined by pairs)
    * @param  {Table} table with at least two lists
@@ -16625,41 +16549,96 @@
 
     var newTable = new Table();
     var i, j;
+    var l = table.length;
+    var l0 = table[0].length;
 
     newTable.name = table.name;
 
-    for(j = 0; table[j] != null; j++) {
+    for(j = 0; j<l; j++) {
       newTable[j] = new List();
       newTable[j].name = table[j].name;
     }
 
     if(keepRowIfElementIsPresent){
-      for(i = 0; table[0][i] != null; i++) {
+      for(i = 0; i<l0; i++) {
         if(table[nList][i] == element) {
-          for(j = 0; table[j] != null; j++) {
+          for(j = 0; j<l; j++) {
             newTable[j].push(table[j][i]);
           }
         }
       }
     } else {
-      for(i = 0; table[0][i] != null; i++) {
+      for(i = 0; i<l0; i++) {
         if(table[nList][i] != element) {
-          for(j = 0; table[j] != null; j++) {
+          for(j = 0; j<l; j++) {
             newTable[j].push(table[j][i]);
           }
         }
       }
     }
 
-    for(j = 0; newTable[j] != null; j++) {
+    for(j = 0; j<l; j++) {
       newTable[j] = newTable[j].getImproved();
     }
 
     return newTable;
   };
 
-  TableOperators.filterTableByElementsInList = function(table, nList, elements, keepRowIfElementIsPresent) {//@todo: deploy
-  }
+  /**
+   * filter a table selecting rows that have one of the elements provided on one of its lists
+   * @param  {Table} table
+   * @param  {Number} nList list that could contain some of the elements in several positions
+   * @param  {List} elements
+   *
+   * @param {Boolean} keepRowIfElementIsPresent if true (default value) the row is selected if the list contains the given element, if false the row is discarded
+   * @return {Table}
+   * tags:filter
+   */
+  TableOperators.filterTableByElementsInList = function(table, nList, elements, keepRowIfElementIsPresent) {
+    if(table == null ||  table.length <= 0 || nList == null) return;
+    if(elements == null || elements.length===0) return table;
+
+    keepRowIfElementIsPresent = keepRowIfElementIsPresent==null?true:keepRowIfElementIsPresent;
+
+    var elementsDictionary = ListOperators.getBooleanDictionaryForList(elements);
+
+    var newTable = new Table();
+    var i, j;
+    var l = table.length;
+    var l0 = table[0].length;
+
+    newTable.name = table.name;
+
+    for(j = 0; j<l; j++) {
+      newTable[j] = new List();
+      newTable[j].name = table[j].name;
+    }
+
+    if(keepRowIfElementIsPresent){
+      for(i = 0; i<l0; i++) {
+        if(elementsDictionary[ table[nList][i] ]) {
+          for(j = 0; j<l; j++) {
+            newTable[j].push(table[j][i]);
+          }
+        }
+      }
+    } else {
+      for(i = 0; i<l0; i++) {
+        if(!elementsDictionary[ table[nList][i] ]) {
+          for(j = 0; j<l; j++) {
+            newTable[j].push(table[j][i]);
+          }
+        }
+      }
+    }
+
+    for(j = 0; j<l; j++) {
+      newTable[j] = newTable[j].getImproved();
+    }
+
+    return newTable;
+  };
+
 
   /**
    * @todo finish docs
@@ -16691,12 +16670,6 @@
       merged.push(ListGenerators.createListWithSameElement(table0[0].length, 0));
       return merged;
     }
-
-    // var numbers0 = table0[1];
-    // if(numbers0.type != "NumberList") return null;
-
-    // var numbers1 = table1[1];
-    // if(numbers1.type != "NumberList") return null;
 
     var categories0 = table0[0];
     var categories1 = table1[0];
@@ -16891,6 +16864,7 @@
 
     return tablesList;
   };
+
 
   /**
    * builds a decision tree based on a table made of categorical lists, a list (the values of a supervised variable), and a value from the supervised variable. The result is a tree that contains on its leaves different populations obtained by iterative filterings by category values, and that contain extremes probabilities for having or not the valu ein the supervised variable.
@@ -17499,14 +17473,14 @@
 
 
   /**
-   * return k means for k clusters of rows (waiting to be tested)
-   * @param  {NumberTable} numberTable
+   * calculates k means for k clusters of rows in a numberTable
+   * @param  {NumberTable} numberTable with 2 or more numberLists
    * @param  {Number} k number of means
    *
    * @param  {Number} returnIndexesMode return mode:<br>0:return list of lists of indexes of rows (default)<br>1:return a list of number of mean, k different values, one per row<br>2:return a list of categorical colors, k different colors, one per row<br>3:return means<br>4:return list of sub-tables<br>5:return object with all the previous
    * @param  {Number} number of iterations (1000 by default)
    * @return {Object} result (list, numberList, colorList, numberTable or object)
-   * tags:statistics,nontested
+   * tags:statistics
    */
   NumberTableOperators.kMeans = function(numberTable, k, returnIndexesMode, N){
     if(numberTable == null || numberTable[0]==null || k == null || k <= 0 || numberTable.getLengths().getInterval().getAmplitude()!==0) return null;
@@ -17515,7 +17489,7 @@
     N = (N==null || (N<=0))?1000:N;
 
     var clusters = new NumberTable();// = returnIndexesMode?new NumberList():new NumberTable();
-
+    ClassUtils
     var i, j, l;
     var jK;
     var row;
@@ -28683,7 +28657,7 @@
    * @param {Boolean} sorted sort flow polygons
    * @param {Number} intervalsFactor number between 0 and 1, factors the height of flow polygons
    * @param {ColorList} colorList colors of polygons
-   * @return {NumberList} list of positions of elements on clicked coordinates
+   * @return {Number} index of position of element on first list associated with shape
    * tags:draw
    */
   NumberTableDraw.drawCircularStreamgraph = function(frame, dataTable, normalized, sorted, intervalsFactor, colorList, graphics) {
@@ -28692,6 +28666,8 @@
     if(graphics==null) graphics = frame.graphics; //momentary fix
 
     intervalsFactor = intervalsFactor == null ? 1 : intervalsFactor;
+
+    var over;
 
     //setup
     if(frame.memory == null || dataTable != frame.memory.dataTable || normalized != frame.memory.normalized || sorted != frame.memory.sorted || intervalsFactor != frame.memory.intervalsFactor || frame.width != frame.memory.width || frame.height != frame.memory.height) {
@@ -28794,7 +28770,7 @@
       graphics.context.save();
       graphics.clipRectangle(frame.x, frame.y, frame.width, frame.height);
 
-      IntervalTableDraw.drawCircularIntervalsFlowTable(frame, frame.memory.flowIntervals, frame.getCenter(), frame.memory.radius * frame.memory.zoom, frame.memory.r0, frame.memory.actualColorList, frame.memory.categories, true, frame.memory.angles, frame.memory.angle0);
+      over = IntervalTableDraw.drawCircularIntervalsFlowTable(frame, frame.memory.flowIntervals, frame.getCenter(), frame.memory.radius * frame.memory.zoom, frame.memory.r0, frame.memory.actualColorList, frame.memory.categories, true, frame.memory.angles, frame.memory.angle0);
       
       frame.memory.zoom = Math.max(Math.min(frame.memory.zoom, 2000), 0.08);
 
@@ -28824,6 +28800,8 @@
         // drawImage(frame.memory.image, frame.x, frame.y, frame.width, frame.height);
       }
     }
+
+    return over;
   };
 
   /**

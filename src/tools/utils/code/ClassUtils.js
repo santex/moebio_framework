@@ -200,7 +200,7 @@ Date.prototype.getType = function() {
 
 
 export function evalJavaScriptFunction(functionText, args, scope){
-	if(functionText==null) return;
+	if(functionText==null || functionText=="") return;
 
 	var res;
 

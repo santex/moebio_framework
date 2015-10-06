@@ -574,7 +574,7 @@ NumberTableDraw._drawPartialFlow = function(frame, flowIntervals, labels, colors
  * @param {Boolean} sorted sort flow polygons
  * @param {Number} intervalsFactor number between 0 and 1, factors the height of flow polygons
  * @param {ColorList} colorList colors of polygons
- * @return {NumberList} list of positions of elements on clicked coordinates
+ * @return {Number} index of position of element on first list associated with shape
  * tags:draw
  */
 NumberTableDraw.drawCircularStreamgraph = function(frame, dataTable, normalized, sorted, intervalsFactor, colorList, graphics) {
@@ -583,6 +583,8 @@ NumberTableDraw.drawCircularStreamgraph = function(frame, dataTable, normalized,
   if(graphics==null) graphics = frame.graphics; //momentary fix
 
   intervalsFactor = intervalsFactor == null ? 1 : intervalsFactor;
+
+  var over;
 
   //setup
   if(frame.memory == null || dataTable != frame.memory.dataTable || normalized != frame.memory.normalized || sorted != frame.memory.sorted || intervalsFactor != frame.memory.intervalsFactor || frame.width != frame.memory.width || frame.height != frame.memory.height) {
@@ -685,7 +687,7 @@ NumberTableDraw.drawCircularStreamgraph = function(frame, dataTable, normalized,
     graphics.context.save();
     graphics.clipRectangle(frame.x, frame.y, frame.width, frame.height);
 
-    IntervalTableDraw.drawCircularIntervalsFlowTable(frame, frame.memory.flowIntervals, frame.getCenter(), frame.memory.radius * frame.memory.zoom, frame.memory.r0, frame.memory.actualColorList, frame.memory.categories, true, frame.memory.angles, frame.memory.angle0);
+    over = IntervalTableDraw.drawCircularIntervalsFlowTable(frame, frame.memory.flowIntervals, frame.getCenter(), frame.memory.radius * frame.memory.zoom, frame.memory.r0, frame.memory.actualColorList, frame.memory.categories, true, frame.memory.angles, frame.memory.angle0);
     
     frame.memory.zoom = Math.max(Math.min(frame.memory.zoom, 2000), 0.08);
 
@@ -715,4 +717,6 @@ NumberTableDraw.drawCircularStreamgraph = function(frame, dataTable, normalized,
       // drawImage(frame.memory.image, frame.x, frame.y, frame.width, frame.height);
     }
   }
+
+  return over;
 };
