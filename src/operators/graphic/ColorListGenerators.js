@@ -27,12 +27,14 @@ export default ColorListGenerators;
  *
  * @param  {Number} alpha 1 by default
  * @param {Boolean} invert invert colors
+ * @param {Boolean} darken colors beyond starting colorList length (default=false)
  * @return {ColorList}
  * tags:generator
  */
-ColorListGenerators.createDefaultCategoricalColorList = function(nColors, alpha, invert) {
+ColorListGenerators.createDefaultCategoricalColorList = function(nColors, alpha, invert, bDarken) {
   alpha = alpha == null ? 1 : alpha;
-  var colors = ColorListGenerators.createCategoricalColors(2, nColors);
+  bDarken = bDarken == null ? false : bDarken;
+  var colors = ColorListGenerators.createCategoricalColors(2, nColors,null,null,null,null,null,bDarken);
   if(alpha < 1) colors = colors.addAlpha(alpha);
 
   if(invert) colors = colors.getInverted();
@@ -49,6 +51,7 @@ ColorListGenerators.createDefaultCategoricalColorList = function(nColors, alpha,
  * @param {String} color to mix
  * @param {Number} interpolation value (0-1) for color mix
  * @param {Boolean} invert invert colors
+ * @param {Boolean} darken colors beyond internal colorList length (default=false)
  * @return {ColorList} ColorList with categorical colors that match the given list
  * @return {List} elements list of elemnts that match colors (equivalent to getWithoutRepetions)
  * @return {ColorList} ColorList with different categorical colors
@@ -56,7 +59,7 @@ ColorListGenerators.createDefaultCategoricalColorList = function(nColors, alpha,
  * @return {Object} citionaryObject (relational array, from objects to colors)
  * tags:generator
  */
-ColorListGenerators.createCategoricalColorListForList = function(list, colorList, alpha, color, interpolate, invert)
+ColorListGenerators.createCategoricalColorListForList = function(list, colorList, alpha, color, interpolate, invert, bDarken)
 {
 
   if(!list)
@@ -67,6 +70,7 @@ ColorListGenerators.createCategoricalColorListForList = function(list, colorList
     color = "#fff";
   if(!interpolate)
     interpolate = 0;
+  bDarken = bDarken == null ? false : bDarken;
 
   list = List.fromArray(list);
   var diffValues = list.getWithoutRepetitions();
@@ -74,7 +78,7 @@ ColorListGenerators.createCategoricalColorListForList = function(list, colorList
   if(colorList && interpolate !== 0) {
     diffColors = colorList.getInterpolated(color, interpolate);
   } else {
-    diffColors = ColorListGenerators.createCategoricalColors(2, diffValues.length, null, alpha, color, interpolate, colorList);
+    diffColors = ColorListGenerators.createCategoricalColors(2, diffValues.length, null, alpha, color, interpolate, colorList,bDarken);
   }
   if(alpha<1) diffColors = diffColors.addAlpha(alpha);
 
@@ -197,12 +201,13 @@ ColorListGenerators.createColorListSpectrum = function(nColors, saturation,value
  * @param {String} interpolateColor color to interpolate
  * @param {Number} interpolateValue interpolation value [0, 1]
  * @param {ColorList} colorList colorList to be used in mode 2 (if not colorList is provided it will use default categorical colors)
+ * @param {Boolean} darken colors beyond starting colorList length for mode 2(default=false)
  * @return {ColorList} ColorList with categorical colors
  * tags:generator
  */
-ColorListGenerators.createCategoricalColors = function(mode, nColors, colorScaleFunction, alpha, interpolateColor, interpolateValue, colorList) {
+ColorListGenerators.createCategoricalColors = function(mode, nColors, colorScaleFunction, alpha, interpolateColor, interpolateValue, colorList, bDarken) {
   colorScaleFunction = colorScaleFunction == null ? ColorScales.temperature : colorScaleFunction;
-
+  bDarken = bDarken == null ? false : bDarken;
   var i;
   var newColorList = new ColorList();
   switch(mode) {
@@ -222,7 +227,7 @@ ColorListGenerators.createCategoricalColors = function(mode, nColors, colorScale
       var nInterpolate;
       for(i = 0; i < nColors; i++) {
         newColorList[i] = colorList[i%colorList.length];
-        if(i >= colorList.length){
+        if(bDarken && i >= colorList.length){
           // move towards black
           nInterpolate = Math.floor(i/colorList.length);
           for(var j=0; j < nInterpolate;j++){
