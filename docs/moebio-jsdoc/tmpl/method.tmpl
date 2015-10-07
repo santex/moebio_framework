@@ -11,6 +11,14 @@ var self = this;
     <h3 class="name" id="<?js= id ?>"><?js= data.attribs + (kind === 'class' ? 'new ' : '') +
     name + (data.signature || '') ?></h3>
 
+    <?js if ( !(data.kind === 'class' && data.classdesc ) ) { ?>
+    <div style="    font-size: 0.8em; background-color: #eee; padding: 2px 8px; border-radius: 10px;">How to use (click to copy)<b>: <?js= data.scope === 'static' ?
+        '<a href="#dummy" >mo.' + data.longname + "( " + data.meta.code.paramnames.join(", ") + " )" + '</a>' :
+        '<a href="#dummy" >' + ( data.memberof ? data.memberof.toLowerCase()+'.' : '' )  + data.name + "( " + data.meta.code.paramnames.join(", ") + " )" + '</a>' ?>
+    </b></div>
+    <?js } ?>
+
+
     <?js if (data.summary) { ?>
     <p><?js= summary ?></p>
     <?js } ?>
