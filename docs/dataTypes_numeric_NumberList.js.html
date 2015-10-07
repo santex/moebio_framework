@@ -97,8 +97,9 @@ NumberList.prototype.constructor = NumberList;
  */
 function NumberList() {
   var args = [];
+  var l = arguments.length;
 
-  for(var i = 0; i &lt; arguments.length; i++) {
+  for(var i = 0; i &lt; l; i++) {
     args[i] = Number(arguments[i]);
   }
   var array = List.apply(this, args);
@@ -852,5 +853,9 @@ NumberList.prototype.slice = function() {
   <script src="http://code.jquery.com/jquery-1.11.3.min.js"></script>
   <script src="scripts/filter.js"></script>
   <script src="scripts/prettify/prettify.js"></script>
+  <script src="scripts/clipboard/clipboard.js"></script>
+  <script type="text/javascript">
+      var copyCodes = new Clipboard('.copyCode');
+  </script>
 </body>
 </html>

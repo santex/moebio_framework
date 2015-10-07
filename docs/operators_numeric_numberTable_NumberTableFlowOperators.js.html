@@ -180,6 +180,9 @@ NumberTableFlowOperators.getFlowTable = function(numberTable, normalized, includ
       flowTable[j + include0Add][i] = ((numberList[i] - minToNormalize) / maxToNormalize) + flowTable[j - 1 + include0Add][i];
     }
   }
+
+  console.log('flowTable', flowTable);
+
   return flowTable;
 };
 
@@ -244,7 +247,6 @@ NumberTableFlowOperators.getFlowTableIntervals = function(numberTable, normalize
         } else {
           intervalTable[i][j] = interval.add((1 - maxCols[j]) * 0.5);
         }
-
       }
     }
   }
@@ -266,5 +268,9 @@ NumberTableFlowOperators.getFlowTableIntervals = function(numberTable, normalize
   <script src="http://code.jquery.com/jquery-1.11.3.min.js"></script>
   <script src="scripts/filter.js"></script>
   <script src="scripts/prettify/prettify.js"></script>
+  <script src="scripts/clipboard/clipboard.js"></script>
+  <script type="text/javascript">
+      var copyCodes = new Clipboard('.copyCode');
+  </script>
 </body>
 </html>

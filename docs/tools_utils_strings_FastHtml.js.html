@@ -131,6 +131,12 @@ FastHtml.expand = function(abreviatedHTML) {
 
   bit = "";
   while(bit != null) {
+    bit = StringOperators.getFirstTextBetweenStrings(newText, "&lt;fccolor", ">");
+    if(bit != null) newText = newText.replace("&lt;fccolor" + bit + ">", "&lt;font color=\"" + ColorOperators.colorStringToHEX(bit) + "\">");
+  }
+
+  bit = "";
+  while(bit != null) {
     bit = StringOperators.getFirstTextBetweenStrings(newText, "&lt;frgb", ">");
     if(bit != null) {
       var rgb = bit.split(".");
@@ -298,5 +304,9 @@ FastHtml.getColorTag = function(color) {
   <script src="http://code.jquery.com/jquery-1.11.3.min.js"></script>
   <script src="scripts/filter.js"></script>
   <script src="scripts/prettify/prettify.js"></script>
+  <script src="scripts/clipboard/clipboard.js"></script>
+  <script type="text/javascript">
+      var copyCodes = new Clipboard('.copyCode');
+  </script>
 </body>
 </html>

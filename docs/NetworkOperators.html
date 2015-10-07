@@ -150,7 +150,124 @@
     
 
 
+    <h3 class="name" id="._buildNetworkClustersLouvain"><span class="type-signature">(static) </span>_buildNetworkClustersLouvain<span class="signature">(network)</span><span class="type-signature"> &rarr; {<a href="Table.html">Table</a>}</span></h3>
+
+    
+    <div data-clipboard-text="mo.NetworkOperators._buildNetworkClustersLouvain( network )" class="copyCode">How to use (click to copy): <b>mo.NetworkOperators._buildNetworkClustersLouvain( network )</b></div>
+    
+
+
+    
+
+
+
+<p>
+    <p>Builds a Table of clusters based on Louvain community detection.</p>
+</p>
+
+
+
+
+
+
+
+
+
+  <h4>Parameters</h4>
+  <p>
+  
+
+<table>
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>network</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="Network.html">Network</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+  </p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<span class='force-inline'>
+
+        
+<p>
+  
+      <strong>Returns 
+<span class="param-type"><a href="Table.html">Table</a></span>
+
+</strong>
+  
+  <p>List of NodeLists</p>
+  
+</p>
+
+    
+</span>
+
+
+
+
+            
+                
+
+    
+
+
     <h3 class="name" id=".addPageRankToNodes"><span class="type-signature">(static) </span>addPageRankToNodes<span class="signature">(network, From, useRelationsWeigh)</span><span class="type-signature"></span></h3>
+
+    
+    <div data-clipboard-text="mo.NetworkOperators.addPageRankToNodes( network, from, useRelationsWeight )" class="copyCode">How to use (click to copy): <b>mo.NetworkOperators.addPageRankToNodes( network, from, useRelationsWeight )</b></div>
+    
+
 
     
 
@@ -307,6 +424,11 @@ tags:analytics,transformative</p></td>
 
 
     <h3 class="name" id=".adjacentNodeList"><span class="type-signature">(static) </span>adjacentNodeList<span class="signature">(network, nodeList, returnConcat, directional)</span><span class="type-signature"> &rarr; {<a href="NodeList.html">NodeList</a>}</span></h3>
+
+    
+    <div data-clipboard-text="mo.NetworkOperators.adjacentNodeList( network, nodeList, returnConcat, directional )" class="copyCode">How to use (click to copy): <b>mo.NetworkOperators.adjacentNodeList( network, nodeList, returnConcat, directional )</b></div>
+    
+
 
     
 
@@ -485,6 +607,11 @@ tags:analytics,transformative</p></td>
     <h3 class="name" id=".buildDendrogram"><span class="type-signature">(static) </span>buildDendrogram<span class="signature">(network)</span><span class="type-signature"> &rarr; {<a href="Tree.html">Tree</a>}</span></h3>
 
     
+    <div data-clipboard-text="mo.NetworkOperators.buildDendrogram( network )" class="copyCode">How to use (click to copy): <b>mo.NetworkOperators.buildDendrogram( network )</b></div>
+    
+
+
+    
 
 
 
@@ -589,7 +716,12 @@ tags:analytics,transformative</p></td>
     
 
 
-    <h3 class="name" id=".buildNetworkClusters"><span class="type-signature">(static) </span>buildNetworkClusters<span class="signature">(network, dendrogramTree, minWeight)</span><span class="type-signature"> &rarr; {<a href="Table.html">Table</a>}</span></h3>
+    <h3 class="name" id=".buildNetworkClusters"><span class="type-signature">(static) </span>buildNetworkClusters<span class="signature">(network, mode, dendrogramTree, minWeight, addColorToNodes)</span><span class="type-signature"> &rarr; {<a href="Table.html">Table</a>}</span></h3>
+
+    
+    <div data-clipboard-text="mo.NetworkOperators.buildNetworkClusters( network, mode, dendrogramTree, minWeight, addColorToNodes )" class="copyCode">How to use (click to copy): <b>mo.NetworkOperators.buildNetworkClusters( network, mode, dendrogramTree, minWeight, addColorToNodes )</b></div>
+    
+
 
     
 
@@ -656,6 +788,29 @@ tags:analytics,transformative</p></td>
 
         <tr>
             
+                <td class="name"><code>mode</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>cluster mode, 0: Louvain (default), 1: Moebio algorithm</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
                 <td class="name"><code>dendrogramTree</code></td>
             
 
@@ -672,7 +827,7 @@ tags:analytics,transformative</p></td>
 
             
 
-            <td class="description last"><p>Dendrogram Tree, if precalculated, changes in weight bias will perform faster</p></td>
+            <td class="description last"><p>Dendrogram Tree, if precalculated, changes in weight bias will perform faster (not required for Louvain)</p></td>
         </tr>
 
     
@@ -695,105 +850,20 @@ tags:analytics,transformative</p></td>
 
             
 
-            <td class="description last"><p>Weight bias, criteria to group clusters (0.5 default)</p></td>
+            <td class="description last"><p>Weight bias, criteria to group clusters (0.5 default, the higher the value, the higer the number of clusters, not required for Louvain)</p></td>
         </tr>
 
-    
-    </tbody>
-</table>
-
-  </p>
-
-
-
-
-
-
-
-
-
-
-
-
-
-<span class='force-inline'>
-
-        
-<p>
-  
-      <strong>Returns 
-<span class="param-type"><a href="Table.html">Table</a></span>
-
-</strong>
-  
-  <p>List of NodeLists
-tags:analysis</p>
-  
-</p>
-
-    
-</span>
-
-
-
-
-            
-                
-
-    
-
-
-    <h3 class="name" id=".buildNetworkClustersLouvain"><span class="type-signature">(static) </span>buildNetworkClustersLouvain<span class="signature">(network)</span><span class="type-signature"> &rarr; {<a href="Table.html">Table</a>}</span></h3>
-
-    
-
-
-
-<p>
-    <p>Builds a Table of clusters based on Louvain community detection.</p>
-</p>
-
-
-
-
-
-
-
-
-
-  <h4>Parameters</h4>
-  <p>
-  
-
-<table>
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
     
 
         <tr>
             
-                <td class="name"><code>network</code></td>
+                <td class="name"><code>addColorToNodes</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type"><a href="Network.html">Network</a></span>
+<span class="param-type">Boolean</span>
 
 
             
@@ -803,7 +873,7 @@ tags:analysis</p>
 
             
 
-            <td class="description last"></td>
+            <td class="description last"><p>if true, adds a color associated to cluster, [!] modifies nodes color property</p></td>
         </tr>
 
     
@@ -852,6 +922,11 @@ tags:analysis</p>
 
 
     <h3 class="name" id=".degreeBetweenNodes"><span class="type-signature">(static) </span>degreeBetweenNodes<span class="signature">(network, node0, node1)</span><span class="type-signature"> &rarr; {Number}</span></h3>
+
+    
+    <div data-clipboard-text="mo.NetworkOperators.degreeBetweenNodes( network, node0, node1 )" class="copyCode">How to use (click to copy): <b>mo.NetworkOperators.degreeBetweenNodes( network, node0, node1 )</b></div>
+    
+
 
     
 
@@ -994,6 +1069,11 @@ tags:analysis</p>
     <h3 class="name" id=".filterNodesByMinDegree"><span class="type-signature">(static) </span>filterNodesByMinDegree<span class="signature">(network, minDegree)</span><span class="type-signature"> &rarr; {null}</span></h3>
 
     
+    <div data-clipboard-text="mo.NetworkOperators.filterNodesByMinDegree( network, minDegree )" class="copyCode">How to use (click to copy): <b>mo.NetworkOperators.filterNodesByMinDegree( network, minDegree )</b></div>
+    
+
+
+    
 
 
 
@@ -1114,6 +1194,11 @@ Node must have to remain in the Network.</p></td>
 
 
     <h3 class="name" id=".fusionNetworks"><span class="type-signature">(static) </span>fusionNetworks<span class="signature">(networks, hubsDistanceFactor, hubsForceWeight)</span><span class="type-signature"> &rarr; {<a href="Network.html">Network</a>}</span></h3>
+
+    
+    <div data-clipboard-text="mo.NetworkOperators.fusionNetworks( networks, hubsDistanceFactor, hubsForceWeight )" class="copyCode">How to use (click to copy): <b>mo.NetworkOperators.fusionNetworks( networks, hubsDistanceFactor, hubsForceWeight )</b></div>
+    
+
 
     
 
@@ -1269,6 +1354,11 @@ Node must have to remain in the Network.</p></td>
     <h3 class="name" id=".fusionNoteworks"><span class="type-signature">(static) </span>fusionNoteworks<span class="signature">(noteworksList, hubsDistanceFactor, hubsForceWeight)</span><span class="type-signature"> &rarr; {<a href="Network.html">Network</a>}</span></h3>
 
     
+    <div data-clipboard-text="mo.NetworkOperators.fusionNoteworks( noteworksList, hubsDistanceFactor, hubsForceWeight )" class="copyCode">How to use (click to copy): <b>mo.NetworkOperators.fusionNoteworks( noteworksList, hubsDistanceFactor, hubsForceWeight )</b></div>
+    
+
+
+    
 
 
 
@@ -1411,6 +1501,11 @@ Node must have to remain in the Network.</p></td>
 
 
     <h3 class="name" id=".getNodesBetweenTwoNodes"><span class="type-signature">(static) </span>getNodesBetweenTwoNodes<span class="signature">(network, node0, node1)</span><span class="type-signature"> &rarr; {<a href="NodeList.html">NodeList</a>}</span></h3>
+
+    
+    <div data-clipboard-text="mo.NetworkOperators.getNodesBetweenTwoNodes( network, node0, node1 )" class="copyCode">How to use (click to copy): <b>mo.NetworkOperators.getNodesBetweenTwoNodes( network, node0, node1 )</b></div>
+    
+
 
     
 
@@ -1564,6 +1659,11 @@ Node must have to remain in the Network.</p></td>
 
 
     <h3 class="name" id=".getRelationsBetweenNodeLists"><span class="type-signature">(static) </span>getRelationsBetweenNodeLists<span class="signature">(network, nodeList0, nodeList1, directed)</span><span class="type-signature"> &rarr; {<a href="RelationList.html">RelationList</a>}</span></h3>
+
+    
+    <div data-clipboard-text="mo.NetworkOperators.getRelationsBetweenNodeLists( network, nodeList0, nodeList1, directed )" class="copyCode">How to use (click to copy): <b>mo.NetworkOperators.getRelationsBetweenNodeLists( network, nodeList0, nodeList1, directed )</b></div>
+    
+
 
     
 
@@ -1742,6 +1842,11 @@ Node must have to remain in the Network.</p></td>
     <h3 class="name" id=".getReport"><span class="type-signature">(static) </span>getReport<span class="signature">()</span><span class="type-signature"></span></h3>
 
     
+    <div data-clipboard-text="mo.NetworkOperators.getReport(  )" class="copyCode">How to use (click to copy): <b>mo.NetworkOperators.getReport(  )</b></div>
+    
+
+
+    
 
 
 
@@ -1775,6 +1880,11 @@ Node must have to remain in the Network.</p></td>
 
 
     <h3 class="name" id=".loops"><span class="type-signature">(static) </span>loops<span class="signature">(network, minSize)</span><span class="type-signature"> &rarr; {<a href="Table.html">Table</a>}</span></h3>
+
+    
+    <div data-clipboard-text="mo.NetworkOperators.loops( network, minSize )" class="copyCode">How to use (click to copy): <b>mo.NetworkOperators.loops( network, minSize )</b></div>
+    
+
 
     
 
@@ -1908,12 +2018,17 @@ tags:analytics</p>
     <h3 class="name" id=".shortestPath"><span class="type-signature">(static) </span>shortestPath<span class="signature">(network, node0, node1, includeExtremes)</span><span class="type-signature"> &rarr; {<a href="NodeList.html">NodeList</a>}</span></h3>
 
     
+    <div data-clipboard-text="mo.NetworkOperators.shortestPath( network, node0, node1, includeExtremes )" class="copyCode">How to use (click to copy): <b>mo.NetworkOperators.shortestPath( network, node0, node1, includeExtremes )</b></div>
+    
+
+
+    
 
 
 
 <p>
     <p>Returns a NodeList with the Nodes in the Network that are part of the
-first shortest path found between the two input nodes.</p>
+first shortest path found between the two input nodes. Aka geodesic path between two nodes</p>
 </p>
 
 
@@ -2083,6 +2198,11 @@ first shortest path found between the two input nodes.</p>
 
 
     <h3 class="name" id=".shortestPaths"><span class="type-signature">(static) </span>shortestPaths<span class="signature">(network, node0, node1, shortPath, spanningTree)</span><span class="type-signature"> &rarr; {<a href="Table.html">Table</a>}</span></h3>
+
+    
+    <div data-clipboard-text="mo.NetworkOperators.shortestPaths( network, node0, node1, shortPath, spanningTree )" class="copyCode">How to use (click to copy): <b>mo.NetworkOperators.shortestPaths( network, node0, node1, shortPath, spanningTree )</b></div>
+    
+
 
     
 
@@ -2284,6 +2404,11 @@ first shortest path found between the two input nodes.</p>
     <h3 class="name" id=".spanningTree"><span class="type-signature">(static) </span>spanningTree<span class="signature">(network, node0, nodeLimit)</span><span class="type-signature"> &rarr; {<a href="Tree.html">Tree</a>}</span></h3>
 
     
+    <div data-clipboard-text="mo.NetworkOperators.spanningTree( network, node0, nodeLimit )" class="copyCode">How to use (click to copy): <b>mo.NetworkOperators.spanningTree( network, node0, nodeLimit )</b></div>
+    
+
+
+    
 
 
 
@@ -2450,5 +2575,9 @@ first shortest path found between the two input nodes.</p>
   <script src="http://code.jquery.com/jquery-1.11.3.min.js"></script>
   <script src="scripts/filter.js"></script>
   <script src="scripts/prettify/prettify.js"></script>
+  <script src="scripts/clipboard/clipboard.js"></script>
+  <script type="text/javascript">
+      var copyCodes = new Clipboard('.copyCode');
+  </script>
 </body>
 </html>

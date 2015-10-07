@@ -407,7 +407,8 @@ RectangleOperators.partitionRectangle = function(rectangle, normalizedWeightList
   var i;
   var rect;
   var highestRatio = 1;
-  for(i = 0; i &lt; normalizedWeightList.length; i++) {
+  var l = normalizedWeightList.length;
+  for(i = 0; i &lt; l; i++) {
     areai = normalizedWeightList[i] * area / sum;
     if(rectangle.width > rectangle.height) {
       rect = new Rectangle(freeRectangle.x, freeRectangle.y, areai / freeRectangle.height, freeRectangle.height);
@@ -460,5 +461,9 @@ RectangleOperators._getHighestRatio = function(rectangleList) {
   <script src="http://code.jquery.com/jquery-1.11.3.min.js"></script>
   <script src="scripts/filter.js"></script>
   <script src="scripts/prettify/prettify.js"></script>
+  <script src="scripts/clipboard/clipboard.js"></script>
+  <script type="text/javascript">
+      var copyCodes = new Clipboard('.copyCode');
+  </script>
 </body>
 </html>

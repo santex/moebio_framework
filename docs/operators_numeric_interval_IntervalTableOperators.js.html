@@ -90,11 +90,19 @@ export default IntervalTableOperators;
  * @todo write docs
  */
 IntervalTableOperators.scaleIntervals = function(intervalTable, value) {
+	if(intervalTable==null) return null;
+
   var newIntervalTable = new Table();
+
   newIntervalTable.name = intervalTable.name;
-  for(var i = 0; intervalTable[i] !== null; i++) {
+
+  var l = intervalTable.length;
+  var i;
+
+  for(i = 0; i&lt;l; i++) {
     newIntervalTable[i] = IntervalListOperators.scaleIntervals(intervalTable[i], value);
   }
+
   return newIntervalTable;
 };
 </code></pre>
@@ -112,5 +120,9 @@ IntervalTableOperators.scaleIntervals = function(intervalTable, value) {
   <script src="http://code.jquery.com/jquery-1.11.3.min.js"></script>
   <script src="scripts/filter.js"></script>
   <script src="scripts/prettify/prettify.js"></script>
+  <script src="scripts/clipboard/clipboard.js"></script>
+  <script type="text/javascript">
+      var copyCodes = new Clipboard('.copyCode');
+  </script>
 </body>
 </html>

@@ -616,80 +616,6 @@ TableOperators.pivotTable = function(table, indexFirstAggregationList, indexSeco
   return newTable;
 };
 
-
-
-/**
- * aggregates a table
- * @param  {Table} table to be aggregated, deprecated: a new more powerful method has been built
- * @param  {Number} nList list in the table used as basis to aggregation
- * @param  {Number} mode mode of aggregation, 0:picks first element 1:adds numbers, 2:averages
- * @return {Table} aggregated table
- * tags:deprecated
- */
-TableOperators.aggregateTableOld = function(table, nList, mode) {
-  nList = nList == null ? 0 : nList;
-  if(table == null || table[0] == null || table[0][0] == null || table[nList] == null) return null;
-  mode = mode == null ? 0 : mode;
-
-  var newTable = new Table();
-  var i, j;
-  var index;
-  var notRepeated;
-
-  newTable.name = table.name;
-
-  for(j = 0; table[j] != null; j++) {
-    newTable[j] = new List();
-    newTable[j].name = table[j].name;
-  }
-
-  switch(mode) {
-    case 0: //leaves the first element of the aggregated subLists
-      for(i = 0; table[0][i] != null; i++) {
-        notRepeated = newTable[nList].indexOf(table[nList][i]) == -1;
-        if(notRepeated) {
-          for(j = 0; table[j] != null; j++) {
-            newTable[j].push(table[j][i]);
-          }
-        }
-      }
-      break;
-    case 1: //adds values in numberLists
-      for(i = 0; table[0][i] != null; i++) {
-        index = newTable[nList].indexOf(table[nList][i]);
-        notRepeated = index == -1;
-        if(notRepeated) {
-          for(j = 0; table[j] != null; j++) {
-            newTable[j].push(table[j][i]);
-          }
-        } else {
-          for(j = 0; table[j] != null; j++) {
-            if(j != nList &amp;&amp; table[j].type == 'NumberList') {
-              newTable[j][index] += table[j][i];
-            }
-          }
-        }
-      }
-      break;
-    case 2: //averages values in numberLists
-      var nRepetitionsList = table[nList].getFrequenciesTable(false);
-      newTable = TableOperators.aggregateTableOld(table, nList, 1);
-
-      for(j = 0; newTable[j] != null; j++) {
-        if(j != nList &amp;&amp; newTable[j].type == 'NumberList') {
-          newTable[j] = newTable[j].divide(nRepetitionsList[1]);
-        }
-      }
-
-      newTable.push(nRepetitionsList[1]);
-      break;
-  }
-  for(j = 0; newTable[j] != null; j++) {
-    newTable[j] = newTable[j].getImproved();
-  }
-  return newTable.getImproved();
-};
-
 /**
  * counts pairs of elements in same positions in two lists (the result is the adjacent matrix of the network defined by pairs)
  * @param  {Table} table with at least two lists
@@ -739,38 +665,96 @@ TableOperators.filterTableByElementInList = function(table, nList, element, keep
 
   var newTable = new Table();
   var i, j;
+  var l = table.length;
+  var l0 = table[0].length;
 
   newTable.name = table.name;
 
-  for(j = 0; table[j] != null; j++) {
+  for(j = 0; j&lt;l; j++) {
     newTable[j] = new List();
     newTable[j].name = table[j].name;
   }
 
   if(keepRowIfElementIsPresent){
-    for(i = 0; table[0][i] != null; i++) {
+    for(i = 0; i&lt;l0; i++) {
       if(table[nList][i] == element) {
-        for(j = 0; table[j] != null; j++) {
+        for(j = 0; j&lt;l; j++) {
           newTable[j].push(table[j][i]);
         }
       }
     }
   } else {
-    for(i = 0; table[0][i] != null; i++) {
+    for(i = 0; i&lt;l0; i++) {
       if(table[nList][i] != element) {
-        for(j = 0; table[j] != null; j++) {
+        for(j = 0; j&lt;l; j++) {
           newTable[j].push(table[j][i]);
         }
       }
     }
   }
 
-  for(j = 0; newTable[j] != null; j++) {
+  for(j = 0; j&lt;l; j++) {
     newTable[j] = newTable[j].getImproved();
   }
 
   return newTable;
 };
+
+/**
+ * filter a table selecting rows that have one of the elements provided on one of its lists
+ * @param  {Table} table
+ * @param  {Number} nList list that could contain some of the elements in several positions
+ * @param  {List} elements
+ *
+ * @param {Boolean} keepRowIfElementIsPresent if true (default value) the row is selected if the list contains the given element, if false the row is discarded
+ * @return {Table}
+ * tags:filter
+ */
+TableOperators.filterTableByElementsInList = function(table, nList, elements, keepRowIfElementIsPresent) {
+  if(table == null ||  table.length &lt;= 0 || nList == null) return;
+  if(elements == null || elements.length===0) return table;
+
+  keepRowIfElementIsPresent = keepRowIfElementIsPresent==null?true:keepRowIfElementIsPresent;
+
+  var elementsDictionary = ListOperators.getBooleanDictionaryForList(elements);
+
+  var newTable = new Table();
+  var i, j;
+  var l = table.length;
+  var l0 = table[0].length;
+
+  newTable.name = table.name;
+
+  for(j = 0; j&lt;l; j++) {
+    newTable[j] = new List();
+    newTable[j].name = table[j].name;
+  }
+
+  if(keepRowIfElementIsPresent){
+    for(i = 0; i&lt;l0; i++) {
+      if(elementsDictionary[ table[nList][i] ]) {
+        for(j = 0; j&lt;l; j++) {
+          newTable[j].push(table[j][i]);
+        }
+      }
+    }
+  } else {
+    for(i = 0; i&lt;l0; i++) {
+      if(!elementsDictionary[ table[nList][i] ]) {
+        for(j = 0; j&lt;l; j++) {
+          newTable[j].push(table[j][i]);
+        }
+      }
+    }
+  }
+
+  for(j = 0; j&lt;l; j++) {
+    newTable[j] = newTable[j].getImproved();
+  }
+
+  return newTable;
+};
+
 
 /**
  * @todo finish docs
@@ -788,17 +772,29 @@ TableOperators.mergeDataTablesInList = function(tableList) {
 };
 
 /**
- * creates a new table with an updated first List of elements and an added new numberList with the new values
+ * creates a new table with an updated first categorical List of elements and  added new numberLists with the new values
+ * @param {Table} table0 table wit a list of elements and a numberList of numbers associated to elements
+ * @param {Table} table1 wit a list of elements and a numberList of numbers associated to elements
+ * @return {Table}
+ * tags:
  */
 TableOperators.mergeDataTables = function(table0, table1) {
+  if(table0==null || table1==null || table0.length&lt;2 || table1.length&lt;2) return;
+  
   if(table1[0].length === 0) {
     var merged = table0.clone();
     merged.push(ListGenerators.createListWithSameElement(table0[0].length, 0));
     return merged;
   }
 
+  var categories0 = table0[0];
+  var categories1 = table1[0];
+
+  var dictionaryIndexesCategories0 = ListOperators.getSingleIndexDictionaryForList(categories0);
+  var dictionaryIndexesCategories1 = ListOperators.getSingleIndexDictionaryForList(categories1);
+
   var table = new Table();
-  var list = ListOperators.concatWithoutRepetitions(table0[0], table1[0]);
+  var list = ListOperators.concatWithoutRepetitions(categories0, categories1);
 
   var nElements = list.length;
 
@@ -813,7 +809,8 @@ TableOperators.mergeDataTables = function(table0, table1) {
   var i, j;
 
   for(i = 0; i &lt; nElements; i++) {
-    index = table0[0].indexOf(list[i]);
+    //index = categories0.indexOf(list[i]);//@todo: imporve efficiency by creating dictionary
+    index = dictionaryIndexesCategories0[list[i]];
     if(index > -1) {
       for(j = 0; j &lt; nNumbers0; j++) {
         if(i === 0) {
@@ -832,7 +829,8 @@ TableOperators.mergeDataTables = function(table0, table1) {
       }
     }
 
-    index = table1[0].indexOf(list[i]);
+    //index = categories1.indexOf(list[i]);
+    index = dictionaryIndexesCategories1[list[i]];
     if(index > -1) {
       for(j = 0; j &lt; nNumbers1; j++) {
         if(i === 0) {
@@ -854,10 +852,15 @@ TableOperators.mergeDataTables = function(table0, table1) {
 
   table[0] = list;
 
-  for(i = 0; numberTable0[i] != null; i++) {
+  var l = numberTable0.length;
+
+  for(i = 0; i&lt;l; i++) {
     table.push(numberTable0[i]);
   }
-  for(i = 0; numberTable1[i] != null; i++) {
+
+  l = numberTable1.length;
+
+  for(i = 0; i&lt;l; i++) {
     table.push(numberTable1[i]);
   }
   return table;
@@ -869,13 +872,13 @@ TableOperators.mergeDataTables = function(table0, table1) {
  * @param {Object} table1
  * @return {Table}
  */
-TableOperators.fusionDataTables = function(table0, table1) {
+TableOperators.sumDataTables = function(table0, table1) {//
   var table = table0.clone();
   var index;
   var element;
   for(var i = 0; table1[0][i] != null; i++) {
     element = table1[0][i];
-    index = table[0].indexOf(element);
+    index = table[0].indexOf(element);//@todo make more efficient with dictionary
     if(index == -1) {
       table[0].push(element);
       table[1].push(table1[1][i]);
@@ -977,6 +980,7 @@ TableOperators.splitTableByCategoricList = function(table, list) {
 
   return tablesList;
 };
+
 
 /**
  * builds a decision tree based on a table made of categorical lists, a list (the values of a supervised variable), and a value from the supervised variable. The result is a tree that contains on its leaves different populations obtained by iterative filterings by category values, and that contain extremes probabilities for having or not the valu ein the supervised variable.
@@ -1413,6 +1417,35 @@ TableOperators.getReportHtml = function(table,level) {
 };
 
 TableOperators.getReportObject = function() {}; //TODO
+
+
+/**
+* takes a table and simplifies its lists, numberLists will be simplified using quantiles values (using getNumbersSimplified) and other lists reducing the number of different elements (using getSimplified)
+* specially useful to build simpe decision trees using TableOperators.buildDecisionTree
+* @param  {Number} nCategories number of different elements on each list
+*
+* @param {Object} othersElement to be placed instead of the less common elements ("other" by default)
+* @return {Table}
+* tags:
+*/
+Table.prototype.getTableSimplified = function(nCategories, othersElement) {
+ if(nCategories===undefined) return null;
+
+ var i;
+ var newTable = new Table();
+ newTable.name = this.name;
+
+ for(i=0; this[i]!==undefined; i++){
+   newTable.push(
+     this[i].type==='NumberList'?
+     this[i].getNumbersSimplified(2, nCategories)
+     :
+     this[i].getSimplified(nCategories, othersElement)
+   );
+ }
+
+ return newTable;
+};
 </code></pre>
         </article>
     </section>
@@ -1428,5 +1461,9 @@ TableOperators.getReportObject = function() {}; //TODO
   <script src="http://code.jquery.com/jquery-1.11.3.min.js"></script>
   <script src="scripts/filter.js"></script>
   <script src="scripts/prettify/prettify.js"></script>
+  <script src="scripts/clipboard/clipboard.js"></script>
+  <script type="text/javascript">
+      var copyCodes = new Clipboard('.copyCode');
+  </script>
 </body>
 </html>

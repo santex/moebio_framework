@@ -143,7 +143,7 @@ List.fromArray = function(array) {
 
   array.getImproved = List.prototype.getImproved;
   array.isEquivalent = List.prototype.isEquivalent;
-  array.getLength = List.prototype.getLength;
+  //array.getLength = List.prototype.getLength;
   array.getTypeOfElements = List.prototype.getTypeOfElements; //TODO: redundant?
   array.getTypes = List.prototype.getTypes;
   array.getType = List.prototype.getType;
@@ -175,6 +175,7 @@ List.fromArray = function(array) {
   array.containsElement = List.prototype.containsElement;
   array.indexOfElement = List.prototype.indexOfElement;
   //sorting:
+  array.isSorted = List.prototype.isSorted;
   array.sortIndexed = List.prototype.sortIndexed;
   array.sortNumericIndexed = List.prototype.sortNumericIndexed;
   array.sortNumeric = List.prototype.sortNumeric;
@@ -316,11 +317,10 @@ List.prototype.isEquivalent = function(list) {
 /**
  * Returns the number of elements of the list.
  * @return {Number} Length of the list.
- * tags:
  */
-List.prototype.getLength = function() {
-  return this.length;
-};
+// List.prototype.getLength = function() {
+//   return this.length;
+// };
 
 /**
  * In sub-classes, this function returns a NumberList of lengths.
@@ -906,6 +906,27 @@ List.prototype.getPropertyValues = function(propertyName, valueIfNull) {
   return newList.getImproved();
 };
 
+
+List.prototype.isSorted = function(ascending){
+  ascending = ascending==null?true:Boolean(ascending);
+  
+  var l = this.length;
+  var i;
+  if(ascending){
+    for(i=1;i&lt;l;i++){
+      if(this[i]&lt;this[i-1]){
+        console.log('~',i,this[i],this[i+1]);
+      }
+      if(this[i]&lt;this[i-1]) return false;
+    }
+  } else {
+    for(i=1;i&lt;l;i++){
+      if(this[i]>this[i-1]) return false;
+    }
+  }
+  return true;
+};
+
 List.prototype.sortIndexed = function() {
   var index = [];
   var i;
@@ -984,17 +1005,17 @@ List.prototype.getSortedByList = function(list, ascending) {
   var l = this.length;
 
   for(i = 0; i&lt;l; i++) {
-    pairsArray[i] = [this[i], list[i]];
+    pairsArray[i] = [this[i], list[i],i];
   }
 
   var comparator;
   if(ascending) {
     comparator = function(a, b) {
-      return a[1] &lt; b[1] ? -1 : 1;
+      return a[1] &lt; b[1] ? -1 : a[1] > b[1] ?  1 : a[2] - b[2];
     };
   } else {
     comparator = function(a, b) {
-      return a[1] &lt; b[1] ? 1 : -1;
+      return a[1] &lt; b[1] ?  1 : a[1] > b[1] ? -1 : a[2] - b[2];
     };
   }
 
@@ -1293,7 +1314,8 @@ List.prototype.getWithoutElementAtIndex = function(index) {
  * If multiple copies of the element exist, only exlcudes first copy.
  *
  * @param {Number|String|Object} element Element to exclude in the new List.
- * @return {List} New List missing the given element.
+ * @return {List} new List missing the given element
+ * tags:
  */
 List.prototype.getWithoutElement = function(element) {
   var index = this.indexOf(element);
@@ -1319,8 +1341,15 @@ List.prototype.getWithoutElement = function(element) {
   return newList;
 };
 
+/**
+ * removes elements from a list
+ * @param {List} list with elements to be removed
+ * @return {List} new List missing the given elements
+ * tags:
+*/
 List.prototype.getWithoutElements = function(list) {//TODO: more efficiency with dictionary
   var newList;
+  var i;
   var l = this.length;
   if(this.type == 'List') {
     newList = new List();
@@ -1328,9 +1357,12 @@ List.prototype.getWithoutElements = function(list) {//TODO: more efficiency with
     newList = instantiateWithSameType(this);
   }
 
-  for(var i = 0; i&lt;l; i++) {
-    if(list.indexOf(this[i]) == -1) {
-      newList.push(this[i]);
+  var booleanDictionary = ListOperators.getBooleanDictionaryForList(list);
+
+  for(i = 0; i&lt;l; i++) {
+    //if(list.indexOf(this[i]) == -1) {
+    if(!booleanDictionary[this[i]]) {
+      newList.push(this[i]);//@todo: solve NodeList case
     }
   }
   newList.name = this.name;
@@ -1513,5 +1545,9 @@ List.prototype.destroy = function() {
   <script src="http://code.jquery.com/jquery-1.11.3.min.js"></script>
   <script src="scripts/filter.js"></script>
   <script src="scripts/prettify/prettify.js"></script>
+  <script src="scripts/clipboard/clipboard.js"></script>
+  <script type="text/javascript">
+      var copyCodes = new Clipboard('.copyCode');
+  </script>
 </body>
 </html>

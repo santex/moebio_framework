@@ -89,11 +89,20 @@ export default IntervalListOperators;
  * @todo write docs
  */
 IntervalListOperators.scaleIntervals = function(intervalList, value) {
+	if(intervalList==null) return;
+
+	value = value==null?1:value;
+
   var newIntervalList = new List();
+  var l = intervalList.length;
+  var i;
+
   newIntervalList.name = intervalList.name;
-  for(var i = 0; intervalList[i] !== null; i++) {
+
+  for(i = 0; i&lt;l; i++) {
     newIntervalList[i] = intervalList[i].getScaled(value);
   }
+
   return newIntervalList;
 };
 </code></pre>
@@ -111,5 +120,9 @@ IntervalListOperators.scaleIntervals = function(intervalList, value) {
   <script src="http://code.jquery.com/jquery-1.11.3.min.js"></script>
   <script src="scripts/filter.js"></script>
   <script src="scripts/prettify/prettify.js"></script>
+  <script src="scripts/clipboard/clipboard.js"></script>
+  <script type="text/javascript">
+      var copyCodes = new Clipboard('.copyCode');
+  </script>
 </body>
 </html>

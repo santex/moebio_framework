@@ -1000,7 +1000,6 @@ NetworkEncodings.decodeSYM = function(symCode) {
           if(node.group != null) {
             group = groups.getFirstElementByPropertyValue("name", node.group);
             if(group == null) {
-              console.log("NODES new group:[" + node.group + "]");
               group = new NodeList();
               group.name = node.group;
               group.name = group.name.replace(/\\n/g, '\n').replace(/\\'/g, "'");
@@ -1226,5 +1225,9 @@ NetworkEncodings._replaceSpacesInLine = function(line) {
   <script src="http://code.jquery.com/jquery-1.11.3.min.js"></script>
   <script src="scripts/filter.js"></script>
   <script src="scripts/prettify/prettify.js"></script>
+  <script src="scripts/clipboard/clipboard.js"></script>
+  <script type="text/javascript">
+      var copyCodes = new Clipboard('.copyCode');
+  </script>
 </body>
 </html>

@@ -87,6 +87,8 @@ import NumberTable from "src/dataTypes/numeric/NumberTable";
 import Table from "src/dataTypes/lists/Table";
 import ColorList from "src/dataTypes/graphic/ColorList";
 import NumberListOperators from "src/operators/numeric/numberList/NumberListOperators";
+import TableOperators from "src/operators/lists/TableOperators";
+
 
 function NumberTableDraw() {}
 export default NumberTableDraw;
@@ -163,6 +165,8 @@ NumberTableDraw.drawNumberTable = function(frame, numberTable, colorScale, listC
  */
 NumberTableDraw.drawSimpleScatterPlot = function(frame, numberTable, texts, colors, maxRadius, loglog, margin, graphics) {
   if(frame == null ||  numberTable == null || numberTable.type != "NumberTable" ||  numberTable.length &lt; 2 ||  numberTable[0].length === 0 || numberTable[1].length === 0) return; //todo:provisional, this is System's work
+
+  if(graphics==null) graphics = frame.graphics; //momentary fix
 
   if(numberTable.length &lt; 2) return;
 
@@ -430,6 +434,8 @@ NumberTableDraw.drawDensityMatrix = function(frame, coordinates, colorScale, mar
 NumberTableDraw.drawStreamgraph = function(frame, numberTable, normalized, sorted, intervalsFactor, bezier, colorList, horizontalLabels, showValues, logFactor, graphics) {
   if(numberTable == null ||  numberTable.length &lt; 2 || numberTable.type != "NumberTable") return;
 
+  if(graphics==null) graphics = frame.graphics; //momentary fix
+
   bezier = bezier == null ? true : bezier;
 
   //var self = NumberTableDraw.drawStreamgraph;
@@ -455,6 +461,7 @@ NumberTableDraw.drawStreamgraph = function(frame, numberTable, normalized, sorte
       logFactor: logFactor,
       image: null
     };
+
   }
 
   if(colorList &amp;&amp; frame.memory.colorList != colorList) frame.memory.image = null;
@@ -465,21 +472,23 @@ NumberTableDraw.drawStreamgraph = function(frame, numberTable, normalized, sorte
   }
 
   var flowFrame = new Rectangle(0, 0, frame.width, horizontalLabels == null ? frame.height : (frame.height - 14));
+  flowFrame.graphics = graphics;
 
   if(frame.memory.image == null) {
+    //frame.memory.image = new Image(10,10);
     // TODO refactor to not reassign context
     ///// capture image
-    // var newCanvas = document.createElement("canvas");
-    // newCanvas.width = frame.width;
-    // newCanvas.height = frame.height;
-    // var newContext = newCanvas.getContext("2d");
-    // newContext.clearRect(0, 0, frame.width, frame.height);
-    // var mainContext = context;
-    // context = newContext;
-    // IntervalTableDraw.drawIntervalsFlowTable(frame.memory.flowIntervals, flowFrame, frame.memory.actualColorList, bezier, 0.3);
-    // context = mainContext;
-    // frame.memory.image = new Image();
-    // frame.memory.image.src = newCanvas.toDataURL();
+    var newCanvas = document.createElement("canvas");
+    newCanvas.width = frame.width;
+    newCanvas.height = frame.height;
+    var newContext = newCanvas.getContext("2d");
+    newContext.clearRect(0, 0, frame.width, frame.height);
+    var mainContext = graphics.context;
+    graphics.context = newContext;
+    IntervalTableDraw.drawIntervalsFlowTable(frame.memory.flowIntervals, flowFrame, frame.memory.actualColorList, bezier, 0.3);
+    graphics.context = mainContext;
+    frame.memory.image = new Image();
+    frame.memory.image.src = newCanvas.toDataURL();
     /////
   }
 
@@ -511,6 +520,8 @@ NumberTableDraw.drawStreamgraph = function(frame, numberTable, normalized, sorte
 };
 
 NumberTableDraw._drawHorizontalLabels = function(frame, y, numberTable, horizontalLabels, x0, x1, graphics) {
+  if(graphics==null) graphics = frame.graphics; //momentary fix
+
   var dx = frame.width / (numberTable[0].length - 1);
   var x;
   var mX2 = Math.min(Math.max(graphics.mX, frame.x + 1), frame.getRight() - 1);
@@ -540,6 +551,8 @@ NumberTableDraw._drawHorizontalLabels = function(frame, y, numberTable, horizont
 };
 
 NumberTableDraw._drawPartialFlow = function(frame, flowIntervals, labels, colors, x, x0, x1, OFF_X, sorted, numberTable, graphics) {
+  if(graphics==null) graphics = frame.graphics; //momentary fix
+
   var w = x1 - x0;
   var wForText = numberTable == null ? (x1 - x0) : (x1 - x0) * 0.85;
 
@@ -630,31 +643,45 @@ NumberTableDraw._drawPartialFlow = function(frame, flowIntervals, labels, colors
 /**
  * draws a circular steamgraph Without labels
  * @param {Rectangle} frame
- * @param {NumberTable} numberTable
+ * @param {Table} dataTable table with a categorical list and many numberLists
  *
  * @param {Boolean} normalized normalize each column, making the graph of constant height
  * @param {Boolean} sorted sort flow polygons
  * @param {Number} intervalsFactor number between 0 and 1, factors the height of flow polygons
  * @param {ColorList} colorList colors of polygons
- * @param {List} names names of rows
- * @return {NumberList} list of positions of elements on clicked coordinates
+ * @return {Number} index of position of element on first list associated with shape
  * tags:draw
  */
-NumberTableDraw.drawCircularStreamgraph = function(frame, numberTable, normalized, sorted, intervalsFactor, colorList, names, graphics) {
-  if(numberTable == null ||  numberTable.length &lt; 2 || numberTable[0].length &lt; 2 || numberTable.type != "NumberTable") return;
+NumberTableDraw.drawCircularStreamgraph = function(frame, dataTable, normalized, sorted, intervalsFactor, colorList, graphics) {
+  if(dataTable == null ||  dataTable.length &lt; 3 || dataTable[0].length &lt; 2) return;
+
+  if(graphics==null) graphics = frame.graphics; //momentary fix
 
   intervalsFactor = intervalsFactor == null ? 1 : intervalsFactor;
 
+  var over;
+
   //setup
-  if(frame.memory == null || numberTable != frame.memory.numberTable || normalized != frame.memory.normalized || sorted != frame.memory.sorted || intervalsFactor != frame.memory.intervalsFactor || frame.width != frame.memory.width || frame.height != frame.memory.height) {
+  if(frame.memory == null || dataTable != frame.memory.dataTable || normalized != frame.memory.normalized || sorted != frame.memory.sorted || intervalsFactor != frame.memory.intervalsFactor || frame.width != frame.memory.width || frame.height != frame.memory.height) {
+    var numberTable = TableOperators.getNumberTableFromTable(dataTable);
+    
+    if(numberTable.length&lt;2) return;
+
+    numberTable = numberTable.getTransposed();
+
+    var names = dataTable.getNames().slice(1);
+    if(names!=null &amp;&amp; names.join('')==='') names = null;
+
     frame.memory = {
+      dataTable:dataTable,
       numberTable: numberTable,
+      categories:dataTable[0],
+      names:names,
       normalized: normalized,
       sorted: sorted,
       intervalsFactor: intervalsFactor,
       flowIntervals: IntervalTableOperators.scaleIntervals(NumberTableFlowOperators.getFlowTableIntervals(numberTable, normalized, sorted), intervalsFactor),
       fOpen: 1,
-      names: numberTable.getNames(),
       mXF: graphics.mX,
       width: frame.width,
       height: frame.height,
@@ -671,8 +698,9 @@ NumberTableDraw.drawCircularStreamgraph = function(frame, numberTable, normalize
       frame.memory.angles[i] = i * dA;
     });
   }
+
   if(frame.memory.colorList != colorList || frame.memory.colorList == null) {
-    frame.memory.actualColorList = colorList == null ? ColorListGenerators.createDefaultCategoricalColorList(numberTable.length, 0.4) : colorList;
+    frame.memory.actualColorList = colorList == null ? ColorListGenerators.createDefaultCategoricalColorList(frame.memory.numberTable.length, 0.4) : colorList;
     frame.memory.colorList = colorList;
   }
 
@@ -707,14 +735,15 @@ NumberTableDraw.drawCircularStreamgraph = function(frame, numberTable, normalize
 
   if(mouseOnFrame) frame.memory.image = null;
 
-  var captureImage = frame.memory.image == null &amp;&amp; !mouseOnFrame;
-  var drawingImage = !mouseOnFrame &amp;&amp; frame.memory.image != null &amp;&amp;  !captureImage;
+  var captureImage = false;// frame.memory.image == null &amp;&amp; !mouseOnFrame;
+  var drawingImage = false;// !mouseOnFrame &amp;&amp; frame.memory.image != null &amp;&amp;  !captureImage;
 
   if(drawingImage) {
     graphics.drawImage(frame.memory.image, frame.x, frame.y, frame.width, frame.height);
   } else {
     if(captureImage) {
       // TODO refactor to not reassign context
+
       // var newCanvas = document.createElement("canvas");
       // newCanvas.width = frame.width;
       // newCanvas.height = frame.height;
@@ -733,22 +762,24 @@ NumberTableDraw.drawCircularStreamgraph = function(frame, numberTable, normalize
     graphics.context.save();
     graphics.clipRectangle(frame.x, frame.y, frame.width, frame.height);
 
-    IntervalTableDraw.drawCircularIntervalsFlowTable(frame.memory.flowIntervals, frame.getCenter(), frame.memory.radius * frame.memory.zoom, frame.memory.r0, frame.memory.actualColorList, frame.memory.names, true, frame.memory.angles, frame.memory.angle0);
+    over = IntervalTableDraw.drawCircularIntervalsFlowTable(frame, frame.memory.flowIntervals, frame.getCenter(), frame.memory.radius * frame.memory.zoom, frame.memory.r0, frame.memory.actualColorList, frame.memory.categories, true, frame.memory.angles, frame.memory.angle0);
+    
+    frame.memory.zoom = Math.max(Math.min(frame.memory.zoom, 2000), 0.08);
 
-    graphics.context.restore();
-
-    if(names) {
+    if(frame.memory.names) {
       var a;
       var r = frame.memory.radius * frame.memory.zoom + 8;
 
       graphics.setText('black', 14, null, 'center', 'middle');
 
-      names.forEach(function(name, i) {
+      frame.memory.names.forEach(function(name, i) {
         a = frame.memory.angle0 + frame.memory.angles[i];
 
         graphics.fTextRotated(String(name), frame.getCenter().x + r * Math.cos(a), frame.getCenter().y + r * Math.sin(a), a + HalfPi);
       });
     }
+
+    graphics.context.restore();
 
 
     if(captureImage) {
@@ -761,6 +792,8 @@ NumberTableDraw.drawCircularStreamgraph = function(frame, numberTable, normalize
       // drawImage(frame.memory.image, frame.x, frame.y, frame.width, frame.height);
     }
   }
+
+  return over;
 };
 </code></pre>
         </article>
@@ -777,5 +810,9 @@ NumberTableDraw.drawCircularStreamgraph = function(frame, numberTable, normalize
   <script src="http://code.jquery.com/jquery-1.11.3.min.js"></script>
   <script src="scripts/filter.js"></script>
   <script src="scripts/prettify/prettify.js"></script>
+  <script src="scripts/clipboard/clipboard.js"></script>
+  <script type="text/javascript">
+      var copyCodes = new Clipboard('.copyCode');
+  </script>
 </body>
 </html>

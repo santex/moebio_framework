@@ -153,6 +153,11 @@
     <h3 class="name" id=".aggregateTable"><span class="type-signature">(static) </span>aggregateTable<span class="signature">(table, indexAggregationList, indexesListsToAggregate, modes, newListsNames)</span><span class="type-signature"> &rarr; {<a href="Table.html">Table</a>}</span></h3>
 
     
+    <div data-clipboard-text="mo.TableOperators.aggregateTable( table, indexAggregationList, indexesListsToAggregate, modes, newListsNames )" class="copyCode">How to use (click to copy): <b>mo.TableOperators.aggregateTable( table, indexAggregationList, indexesListsToAggregate, modes, newListsNames )</b></div>
+    
+
+
+    
 
 
 
@@ -350,161 +355,12 @@ tags:</p>
     
 
 
-    <h3 class="name" id=".aggregateTableOld"><span class="type-signature">(static) </span>aggregateTableOld<span class="signature">(table, nList, mode)</span><span class="type-signature"> &rarr; {<a href="Table.html">Table</a>}</span></h3>
-
-    
-
-
-
-<p>
-    <p>aggregates a table</p>
-</p>
-
-
-
-
-
-
-
-
-
-  <h4>Parameters</h4>
-  <p>
-  
-
-<table>
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>table</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type"><a href="Table.html">Table</a></span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>to be aggregated, deprecated: a new more powerful method has been built</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>nList</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Number</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>list in the table used as basis to aggregation</p></td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>mode</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Number</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last"><p>mode of aggregation, 0:picks first element 1:adds numbers, 2:averages</p></td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-  </p>
-
-
-
-
-
-
-
-
-
-
-
-
-
-<span class='force-inline'>
-
-        
-<p>
-  
-      <strong>Returns 
-<span class="param-type"><a href="Table.html">Table</a></span>
-
-</strong>
-  
-  <p>aggregated table
-tags:deprecated</p>
-  
-</p>
-
-    
-</span>
-
-
-
-
-            
-                
-
-    
-
-
     <h3 class="name" id=".buildDecisionTree"><span class="type-signature">(static) </span>buildDecisionTree<span class="signature">(variablesTable, supervised, supervisedValue, min_entropy, min_size_node, min_info_gain, generatePattern, colorScale)</span><span class="type-signature"> &rarr; {<a href="Tree.html">Tree</a>}</span></h3>
+
+    
+    <div data-clipboard-text="mo.TableOperators.buildDecisionTree( variablesTable, supervised, supervisedValue, min_entropy, min_size_node, min_info_gain, generatePattern, colorScale )" class="copyCode">How to use (click to copy): <b>mo.TableOperators.buildDecisionTree( variablesTable, supervised, supervisedValue, min_entropy, min_size_node, min_info_gain, generatePattern, colorScale )</b></div>
+    
+
 
     
 
@@ -777,6 +633,11 @@ tags:ds</p>
     <h3 class="name" id=".completeTable"><span class="type-signature">(static) </span>completeTable<span class="signature">()</span><span class="type-signature"></span></h3>
 
     
+    <div data-clipboard-text="mo.TableOperators.completeTable( table, nRows, value )" class="copyCode">How to use (click to copy): <b>mo.TableOperators.completeTable( table, nRows, value )</b></div>
+    
+
+
+    
 
 
 
@@ -810,6 +671,11 @@ tags:ds</p>
 
 
     <h3 class="name" id=".filterTableByElementInList"><span class="type-signature">(static) </span>filterTableByElementInList<span class="signature">(table, nList, element, keepRowIfElementIsPresent)</span><span class="type-signature"> &rarr; {<a href="Table.html">Table</a>}</span></h3>
+
+    
+    <div data-clipboard-text="mo.TableOperators.filterTableByElementInList( table, nList, element, keepRowIfElementIsPresent )" class="copyCode">How to use (click to copy): <b>mo.TableOperators.filterTableByElementInList( table, nList, element, keepRowIfElementIsPresent )</b></div>
+    
+
 
     
 
@@ -985,14 +851,19 @@ tags:ds</p>
     
 
 
-    <h3 class="name" id=".fusionDataTables"><span class="type-signature">(static) </span>fusionDataTables<span class="signature">(table0, table1)</span><span class="type-signature"> &rarr; {<a href="Table.html">Table</a>}</span></h3>
+    <h3 class="name" id=".filterTableByElementsInList"><span class="type-signature">(static) </span>filterTableByElementsInList<span class="signature">(table, nList, elements, keepRowIfElementIsPresent)</span><span class="type-signature"> &rarr; {<a href="Table.html">Table</a>}</span></h3>
+
+    
+    <div data-clipboard-text="mo.TableOperators.filterTableByElementsInList( table, nList, elements, keepRowIfElementIsPresent )" class="copyCode">How to use (click to copy): <b>mo.TableOperators.filterTableByElementsInList( table, nList, elements, keepRowIfElementIsPresent )</b></div>
+    
+
 
     
 
 
 
 <p>
-    <p>From two DataTables creates a new DataTable with combined elements in the first List, and added values in the second</p>
+    <p>filter a table selecting rows that have one of the elements provided on one of its lists</p>
 </p>
 
 
@@ -1029,13 +900,13 @@ tags:ds</p>
 
         <tr>
             
-                <td class="name"><code>table0</code></td>
+                <td class="name"><code>table</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">Object</span>
+<span class="param-type"><a href="Table.html">Table</a></span>
 
 
             
@@ -1052,13 +923,36 @@ tags:ds</p>
 
         <tr>
             
-                <td class="name"><code>table1</code></td>
+                <td class="name"><code>nList</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">Object</span>
+<span class="param-type">Number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>list that could contain some of the elements in several positions</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>elements</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="List.html">List</a></span>
 
 
             
@@ -1069,6 +963,29 @@ tags:ds</p>
             
 
             <td class="description last"></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>keepRowIfElementIsPresent</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Boolean</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>if true (default value) the row is selected if the list contains the given element, if false the row is discarded</p></td>
         </tr>
 
     
@@ -1092,6 +1009,15 @@ tags:ds</p>
 <span class='force-inline'>
 
         
+<p>
+  
+      <strong>Returns 
+<span class="param-type"><a href="Table.html">Table</a></span>
+
+</strong>
+  
+  <p>tags:filter</p>
+  
 </p>
 
     
@@ -1107,6 +1033,11 @@ tags:ds</p>
 
 
     <h3 class="name" id=".getCountPairsMatrix"><span class="type-signature">(static) </span>getCountPairsMatrix<span class="signature">(table)</span><span class="type-signature"> &rarr; {<a href="NumberTable.html">NumberTable</a>}</span></h3>
+
+    
+    <div data-clipboard-text="mo.TableOperators.getCountPairsMatrix( table )" class="copyCode">How to use (click to copy): <b>mo.TableOperators.getCountPairsMatrix( table )</b></div>
+    
+
 
     
 
@@ -1216,6 +1147,11 @@ tags:ds</p>
     <h3 class="name" id=".getElementFromTable"><span class="type-signature">(static) </span>getElementFromTable<span class="signature">()</span><span class="type-signature"></span></h3>
 
     
+    <div data-clipboard-text="mo.TableOperators.getElementFromTable( table, i, j )" class="copyCode">How to use (click to copy): <b>mo.TableOperators.getElementFromTable( table, i, j )</b></div>
+    
+
+
+    
 
 
 
@@ -1249,6 +1185,11 @@ tags:ds</p>
 
 
     <h3 class="name" id=".getNumberTableFromTable"><span class="type-signature">(static) </span>getNumberTableFromTable<span class="signature">(table)</span><span class="type-signature"> &rarr; {<a href="NumberTable.html">NumberTable</a>}</span></h3>
+
+    
+    <div data-clipboard-text="mo.TableOperators.getNumberTableFromTable( table )" class="copyCode">How to use (click to copy): <b>mo.TableOperators.getNumberTableFromTable( table )</b></div>
+    
+
 
     
 
@@ -1356,6 +1297,11 @@ tags:ds</p>
 
 
     <h3 class="name" id=".getReport"><span class="type-signature">(static) </span>getReport<span class="signature">(table, level)</span><span class="type-signature"> &rarr; {String}</span></h3>
+
+    
+    <div data-clipboard-text="mo.TableOperators.getReport( table, level )" class="copyCode">How to use (click to copy): <b>mo.TableOperators.getReport( table, level )</b></div>
+    
+
 
     
 
@@ -1489,6 +1435,11 @@ of the Table. Useful for outputing to the console for debugging.</p>
     <h3 class="name" id=".getReportHtml"><span class="type-signature">(static) </span>getReportHtml<span class="signature">(table, level)</span><span class="type-signature"> &rarr; {String}</span></h3>
 
     
+    <div data-clipboard-text="mo.TableOperators.getReportHtml( table, level )" class="copyCode">How to use (click to copy): <b>mo.TableOperators.getReportHtml( table, level )</b></div>
+    
+
+
+    
 
 
 
@@ -1620,6 +1571,11 @@ of the Table. Useful for outputing to the console for debugging.</p>
     <h3 class="name" id=".getSubListsByIndexes"><span class="type-signature">(static) </span>getSubListsByIndexes<span class="signature">()</span><span class="type-signature"></span></h3>
 
     
+    <div data-clipboard-text="mo.TableOperators.getSubListsByIndexes( table, indexes )" class="copyCode">How to use (click to copy): <b>mo.TableOperators.getSubListsByIndexes( table, indexes )</b></div>
+    
+
+
+    
 
 
 
@@ -1655,6 +1611,11 @@ of the Table. Useful for outputing to the console for debugging.</p>
     <h3 class="name" id=".getSubTable"><span class="type-signature">(static) </span>getSubTable<span class="signature">()</span><span class="type-signature"></span></h3>
 
     
+    <div data-clipboard-text="mo.TableOperators.getSubTable( table, x, y, width, height )" class="copyCode">How to use (click to copy): <b>mo.TableOperators.getSubTable( table, x, y, width, height )</b></div>
+    
+
+
+    
 
 
 
@@ -1688,6 +1649,11 @@ of the Table. Useful for outputing to the console for debugging.</p>
 
 
     <h3 class="name" id=".getSubTableByElementOnList"><span class="type-signature">(static) </span>getSubTableByElementOnList<span class="signature">(table, nList, element)</span><span class="type-signature"> &rarr; {<a href="Table.html">Table</a>}</span></h3>
+
+    
+    <div data-clipboard-text="mo.TableOperators.getSubTableByElementOnList( table, nList, element )" class="copyCode">How to use (click to copy): <b>mo.TableOperators.getSubTableByElementOnList( table, nList, element )</b></div>
+    
+
 
     
 
@@ -1843,6 +1809,11 @@ of the Table. Useful for outputing to the console for debugging.</p>
     <h3 class="name" id=".getSubTableByElementsOnList"><span class="type-signature">(static) </span>getSubTableByElementsOnList<span class="signature">(table, nList, elements)</span><span class="type-signature"> &rarr; {<a href="Table.html">Table</a>}</span></h3>
 
     
+    <div data-clipboard-text="mo.TableOperators.getSubTableByElementsOnList( table, nList, list )" class="copyCode">How to use (click to copy): <b>mo.TableOperators.getSubTableByElementsOnList( table, nList, list )</b></div>
+    
+
+
+    
 
 
 
@@ -1996,6 +1967,11 @@ of the Table. Useful for outputing to the console for debugging.</p>
     <h3 class="name" id=".getVariablesInformationGain"><span class="type-signature">(static) </span>getVariablesInformationGain<span class="signature">(variablesTable, supervised)</span><span class="type-signature"> &rarr; {<a href="NumberList.html">NumberList</a>}</span></h3>
 
     
+    <div data-clipboard-text="mo.TableOperators.getVariablesInformationGain( variablesTable, supervised )" class="copyCode">How to use (click to copy): <b>mo.TableOperators.getVariablesInformationGain( variablesTable, supervised )</b></div>
+    
+
+
+    
 
 
 
@@ -2123,14 +2099,19 @@ of the Table. Useful for outputing to the console for debugging.</p>
     
 
 
-    <h3 class="name" id=".mergeDataTables"><span class="type-signature">(static) </span>mergeDataTables<span class="signature">()</span><span class="type-signature"></span></h3>
+    <h3 class="name" id=".mergeDataTables"><span class="type-signature">(static) </span>mergeDataTables<span class="signature">(table0, table1)</span><span class="type-signature"> &rarr; {<a href="Table.html">Table</a>}</span></h3>
+
+    
+    <div data-clipboard-text="mo.TableOperators.mergeDataTables( table0, table1 )" class="copyCode">How to use (click to copy): <b>mo.TableOperators.mergeDataTables( table0, table1 )</b></div>
+    
+
 
     
 
 
 
 <p>
-    <p>creates a new table with an updated first List of elements and an added new numberList with the new values</p>
+    <p>creates a new table with an updated first categorical List of elements and  added new numberLists with the new values</p>
 </p>
 
 
@@ -2141,6 +2122,79 @@ of the Table. Useful for outputing to the console for debugging.</p>
 
 
 
+  <h4>Parameters</h4>
+  <p>
+  
+
+<table>
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>table0</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="Table.html">Table</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>table wit a list of elements and a numberList of numbers associated to elements</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>table1</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="Table.html">Table</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>wit a list of elements and a numberList of numbers associated to elements</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+  </p>
 
 
 
@@ -2152,6 +2206,24 @@ of the Table. Useful for outputing to the console for debugging.</p>
 
 
 
+
+
+<span class='force-inline'>
+
+        
+<p>
+  
+      <strong>Returns 
+<span class="param-type"><a href="Table.html">Table</a></span>
+
+</strong>
+  
+  <p>tags:</p>
+  
+</p>
+
+    
+</span>
 
 
 
@@ -2163,6 +2235,11 @@ of the Table. Useful for outputing to the console for debugging.</p>
 
 
     <h3 class="name" id=".mergeDataTablesInList"><span class="type-signature">(static) </span>mergeDataTablesInList<span class="signature">()</span><span class="type-signature"></span></h3>
+
+    
+    <div data-clipboard-text="mo.TableOperators.mergeDataTablesInList( tableList )" class="copyCode">How to use (click to copy): <b>mo.TableOperators.mergeDataTablesInList( tableList )</b></div>
+    
+
 
     
 
@@ -2198,6 +2275,11 @@ of the Table. Useful for outputing to the console for debugging.</p>
 
 
     <h3 class="name" id=".pivotTable"><span class="type-signature">(static) </span>pivotTable<span class="signature">(table, indexFirstAggregationList, indexSecondAggregationList, indexListToAggregate, aggregationMode, nullValue, resultMode)</span><span class="type-signature"> &rarr; {<a href="Table.html">Table</a>}</span></h3>
+
+    
+    <div data-clipboard-text="mo.TableOperators.pivotTable( table, indexFirstAggregationList, indexSecondAggregationList, indexListToAggregate, aggregationMode, nullValue, resultMode )" class="copyCode">How to use (click to copy): <b>mo.TableOperators.pivotTable( table, indexFirstAggregationList, indexSecondAggregationList, indexListToAggregate, aggregationMode, nullValue, resultMode )</b></div>
+    
+
 
     
 
@@ -2445,6 +2527,11 @@ of the Table. Useful for outputing to the console for debugging.</p>
     <h3 class="name" id=".sortListsByNumberList"><span class="type-signature">(static) </span>sortListsByNumberList<span class="signature">()</span><span class="type-signature"></span></h3>
 
     
+    <div data-clipboard-text="mo.TableOperators.sortListsByNumberList( table, numberList, descending )" class="copyCode">How to use (click to copy): <b>mo.TableOperators.sortListsByNumberList( table, numberList, descending )</b></div>
+    
+
+
+    
 
 
 
@@ -2480,6 +2567,11 @@ of the Table. Useful for outputing to the console for debugging.</p>
     <h3 class="name" id=".splitTableByCategoricList"><span class="type-signature">(static) </span>splitTableByCategoricList<span class="signature">()</span><span class="type-signature"></span></h3>
 
     
+    <div data-clipboard-text="mo.TableOperators.splitTableByCategoricList( table, list )" class="copyCode">How to use (click to copy): <b>mo.TableOperators.splitTableByCategoricList( table, list )</b></div>
+    
+
+
+    
 
 
 
@@ -2512,7 +2604,138 @@ of the Table. Useful for outputing to the console for debugging.</p>
     
 
 
+    <h3 class="name" id=".sumDataTables"><span class="type-signature">(static) </span>sumDataTables<span class="signature">(table0, table1)</span><span class="type-signature"> &rarr; {<a href="Table.html">Table</a>}</span></h3>
+
+    
+    <div data-clipboard-text="mo.TableOperators.sumDataTables( table0, table1 )" class="copyCode">How to use (click to copy): <b>mo.TableOperators.sumDataTables( table0, table1 )</b></div>
+    
+
+
+    
+
+
+
+<p>
+    <p>From two DataTables creates a new DataTable with combined elements in the first List, and added values in the second</p>
+</p>
+
+
+
+
+
+
+
+
+
+  <h4>Parameters</h4>
+  <p>
+  
+
+<table>
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>table0</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>table1</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+  </p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<span class='force-inline'>
+
+        
+</p>
+
+    
+</span>
+
+
+
+
+            
+                
+
+    
+
+
     <h3 class="name" id=".testClassificationModel"><span class="type-signature">(static) </span>testClassificationModel<span class="signature">(numberTable, classes, model, metric)</span><span class="type-signature"> &rarr; {Number}</span></h3>
+
+    
+    <div data-clipboard-text="mo.TableOperators.testClassificationModel( numberTable, classes, model, metric )" class="copyCode">How to use (click to copy): <b>mo.TableOperators.testClassificationModel( numberTable, classes, model, metric )</b></div>
+    
+
 
     
 
@@ -2692,6 +2915,11 @@ tags:ds</p>
     <h3 class="name" id=".trainingTestPartition"><span class="type-signature">(static) </span>trainingTestPartition<span class="signature">(table, proportion, mode, seed)</span><span class="type-signature"> &rarr; {<a href="List.html">List</a>}</span></h3>
 
     
+    <div data-clipboard-text="mo.TableOperators.trainingTestPartition( table, proportion, mode, seed )" class="copyCode">How to use (click to copy): <b>mo.TableOperators.trainingTestPartition( table, proportion, mode, seed )</b></div>
+    
+
+
+    
 
 
 
@@ -2869,6 +3097,11 @@ tags:ds</p>
     <h3 class="name" id=".transpose"><span class="type-signature">(static) </span>transpose<span class="signature">(table, firstListAsHeaders)</span><span class="type-signature"> &rarr; {<a href="Table.html">Table</a>}</span></h3>
 
     
+    <div data-clipboard-text="mo.TableOperators.transpose( table, firstListAsHeaders )" class="copyCode">How to use (click to copy): <b>mo.TableOperators.transpose( table, firstListAsHeaders )</b></div>
+    
+
+
+    
 
 
 
@@ -3012,5 +3245,9 @@ tags:ds</p>
   <script src="http://code.jquery.com/jquery-1.11.3.min.js"></script>
   <script src="scripts/filter.js"></script>
   <script src="scripts/prettify/prettify.js"></script>
+  <script src="scripts/clipboard/clipboard.js"></script>
+  <script type="text/javascript">
+      var copyCodes = new Clipboard('.copyCode');
+  </script>
 </body>
 </html>

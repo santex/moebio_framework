@@ -150,7 +150,12 @@
     
 
 
-    <h3 class="name" id=".getId"><span class="type-signature">(static) </span>getId<span class="signature">()</span><span class="type-signature"></span></h3>
+    <h3 class="name" id="._getId"><span class="type-signature">(static) </span>_getId<span class="signature">()</span><span class="type-signature"></span></h3>
+
+    
+    <div data-clipboard-text="mo.TreeConversions._getId( table, i, j )" class="copyCode">How to use (click to copy): <b>mo.TreeConversions._getId( table, i, j )</b></div>
+    
+
 
     
 
@@ -188,11 +193,18 @@
     <h3 class="name" id=".TableToTree"><span class="type-signature">(static) </span>TableToTree<span class="signature">(table, fatherName)</span><span class="type-signature"> &rarr; {<a href="Tree.html">Tree</a>}</span></h3>
 
     
+    <div data-clipboard-text="mo.TreeConversions.TableToTree( table, fatherName )" class="copyCode">How to use (click to copy): <b>mo.TreeConversions.TableToTree( table, fatherName )</b></div>
+    
+
+
+    
 
 
 
 <p>
-    <p>convert a table that describes a tree (higher hierarchies in first lists) into a Tree</p>
+    <p>convert a table that describes a tree (higher hierarchies in first lists) into a Tree
+count ocurrences of leaves in the table and assigns value to nodes weight
+assigns the index of row associated to leaves in properties: firstIndexInTable and indexesInTable</p>
 </p>
 
 
@@ -299,7 +311,7 @@
 
 </strong>
   
-  <p>tags:convertion</p>
+  <p>tags:conversion</p>
   
 </p>
 
@@ -331,5 +343,9 @@
   <script src="http://code.jquery.com/jquery-1.11.3.min.js"></script>
   <script src="scripts/filter.js"></script>
   <script src="scripts/prettify/prettify.js"></script>
+  <script src="scripts/clipboard/clipboard.js"></script>
+  <script type="text/javascript">
+      var copyCodes = new Clipboard('.copyCode');
+  </script>
 </body>
 </html>

@@ -153,6 +153,11 @@
     <h3 class="name" id=".createCategoricalColorListDictionaryObject"><span class="type-signature">(static) </span>createCategoricalColorListDictionaryObject<span class="signature">(the, ColorList, alpha, color, interpolation, invert)</span><span class="type-signature"> &rarr; {Object}</span></h3>
 
     
+    <div data-clipboard-text="mo.ColorListGenerators.createCategoricalColorListDictionaryObject( list, colorList, alpha, color, interpolate, invert )" class="copyCode">How to use (click to copy): <b>mo.ColorListGenerators.createCategoricalColorListDictionaryObject( list, colorList, alpha, color, interpolate, invert )</b></div>
+    
+
+
+    
 
 
 
@@ -373,7 +378,12 @@ tags:generator</p>
     
 
 
-    <h3 class="name" id=".createCategoricalColorListForList"><span class="type-signature">(static) </span>createCategoricalColorListForList<span class="signature">(the, ColorList, alpha, color, interpolation, invert)</span><span class="type-signature"> &rarr; {<a href="ColorList.html">ColorList</a>|<a href="List.html">List</a>|<a href="ColorList.html">ColorList</a>|<a href="Table.html">Table</a>|Object}</span></h3>
+    <h3 class="name" id=".createCategoricalColorListForList"><span class="type-signature">(static) </span>createCategoricalColorListForList<span class="signature">(the, ColorList, alpha, color, interpolation, invert, darken)</span><span class="type-signature"> &rarr; {<a href="ColorList.html">ColorList</a>|<a href="List.html">List</a>|<a href="ColorList.html">ColorList</a>|<a href="Table.html">Table</a>|Object}</span></h3>
+
+    
+    <div data-clipboard-text="mo.ColorListGenerators.createCategoricalColorListForList( list, colorList, alpha, color, interpolate, invert, bDarken )" class="copyCode">How to use (click to copy): <b>mo.ColorListGenerators.createCategoricalColorListForList( list, colorList, alpha, color, interpolate, invert, bDarken )</b></div>
+    
+
 
     
 
@@ -552,6 +562,29 @@ tags:generator</p>
         </tr>
 
     
+
+        <tr>
+            
+                <td class="name"><code>darken</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Boolean</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>colors beyond internal colorList length (default=false)</p></td>
+        </tr>
+
+    
     </tbody>
 </table>
 
@@ -648,7 +681,12 @@ tags:generator</p>
     
 
 
-    <h3 class="name" id=".createCategoricalColors"><span class="type-signature">(static) </span>createCategoricalColors<span class="signature">(mode, nColors, colorScaleFunction, alpha, interpolateColor, interpolateValue, colorList)</span><span class="type-signature"> &rarr; {<a href="ColorList.html">ColorList</a>}</span></h3>
+    <h3 class="name" id=".createCategoricalColors"><span class="type-signature">(static) </span>createCategoricalColors<span class="signature">(mode, nColors, colorScaleFunction, alpha, interpolateColor, interpolateValue, colorList, darken)</span><span class="type-signature"> &rarr; {<a href="ColorList.html">ColorList</a>}</span></h3>
+
+    
+    <div data-clipboard-text="mo.ColorListGenerators.createCategoricalColors( mode, nColors, colorScaleFunction, alpha, interpolateColor, interpolateValue, colorList, bDarken )" class="copyCode">How to use (click to copy): <b>mo.ColorListGenerators.createCategoricalColors( mode, nColors, colorScaleFunction, alpha, interpolateColor, interpolateValue, colorList, bDarken )</b></div>
+    
+
 
     
 
@@ -708,7 +746,7 @@ tags:generator</p>
 
             
 
-            <td class="description last"><p>0:simple picking from color scale function, 1:random (with seed), 2:hardcoded colors, 3:, 4:, 5:evolutionary algorithm, guarantees non consecutive similar colors</p></td>
+            <td class="description last"><p>0:simple picking from color scale function, 1:random (with seed), 2:hardcoded colors, 3:spectrum colors, 4:evolutionary algorithm, guarantees non consecutive similar colors(spectrum), 5:evolutionary algorithm, guarantees non consecutive similar colors(colorScale)</p></td>
         </tr>
 
     
@@ -850,6 +888,29 @@ tags:generator</p>
         </tr>
 
     
+
+        <tr>
+            
+                <td class="name"><code>darken</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Boolean</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>colors beyond starting colorList length for mode 2(default=false)</p></td>
+        </tr>
+
+    
     </tbody>
 </table>
 
@@ -895,6 +956,11 @@ tags:generator</p>
 
 
     <h3 class="name" id=".createColorListFromNumberList"><span class="type-signature">(static) </span>createColorListFromNumberList<span class="signature">(numberList, colorScale, mode)</span><span class="type-signature"> &rarr; {<a href="ColorList.html">ColorList</a>}</span></h3>
+
+    
+    <div data-clipboard-text="mo.ColorListGenerators.createColorListFromNumberList( numberList, colorScale, mode )" class="copyCode">How to use (click to copy): <b>mo.ColorListGenerators.createColorListFromNumberList( numberList, colorScale, mode )</b></div>
+    
+
 
     
 
@@ -1047,7 +1113,172 @@ tags:generator</p>
     
 
 
+    <h3 class="name" id=".createColorListSpectrum"><span class="type-signature">(static) </span>createColorListSpectrum<span class="signature">(nColors, saturation, value)</span><span class="type-signature"> &rarr; {<a href="ColorList.html">ColorList</a>}</span></h3>
+
+    
+    <div data-clipboard-text="mo.ColorListGenerators.createColorListSpectrum( nColors, saturation, value )" class="copyCode">How to use (click to copy): <b>mo.ColorListGenerators.createColorListSpectrum( nColors, saturation, value )</b></div>
+    
+
+
+    
+
+
+
+<p>
+    <p>Creates a new ColorList from the full spectrum. Size of the List
+is controlled by the nColors input.</p>
+</p>
+
+
+
+
+
+
+
+
+
+  <h4>Parameters</h4>
+  <p>
+  
+
+<table>
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>nColors</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>Length of the list (default 8).</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>saturation</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>in range [0,1]</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>value</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>in range [0,1]</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+  </p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<span class='force-inline'>
+
+        
+<p>
+  
+      <strong>Returns 
+<span class="param-type"><a href="ColorList.html">ColorList</a></span>
+
+</strong>
+  
+  <p>ColorList with spectrum colors
+tags:generator</p>
+  
+</p>
+
+    
+</span>
+
+
+
+
+            
+                
+
+    
+
+
     <h3 class="name" id=".createColorListWithSingleColor"><span class="type-signature">(static) </span>createColorListWithSingleColor<span class="signature">(nColors, color)</span><span class="type-signature"></span></h3>
+
+    
+    <div data-clipboard-text="mo.ColorListGenerators.createColorListWithSingleColor( nColors, color )" class="copyCode">How to use (click to copy): <b>mo.ColorListGenerators.createColorListWithSingleColor( nColors, color )</b></div>
+    
+
 
     
 
@@ -1161,7 +1392,12 @@ is controlled by the nColors input.</p>
     
 
 
-    <h3 class="name" id=".createDefaultCategoricalColorList"><span class="type-signature">(static) </span>createDefaultCategoricalColorList<span class="signature">(nColors, alpha, invert)</span><span class="type-signature"> &rarr; {<a href="ColorList.html">ColorList</a>}</span></h3>
+    <h3 class="name" id=".createDefaultCategoricalColorList"><span class="type-signature">(static) </span>createDefaultCategoricalColorList<span class="signature">(nColors, alpha, invert, darken)</span><span class="type-signature"> &rarr; {<a href="ColorList.html">ColorList</a>}</span></h3>
+
+    
+    <div data-clipboard-text="mo.ColorListGenerators.createDefaultCategoricalColorList( nColors, alpha, invert, bDarken )" class="copyCode">How to use (click to copy): <b>mo.ColorListGenerators.createDefaultCategoricalColorList( nColors, alpha, invert, bDarken )</b></div>
+    
+
 
     
 
@@ -1271,6 +1507,29 @@ is controlled by the nColors input.</p>
         </tr>
 
     
+
+        <tr>
+            
+                <td class="name"><code>darken</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Boolean</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>colors beyond starting colorList length (default=false)</p></td>
+        </tr>
+
+    
     </tbody>
 </table>
 
@@ -1330,5 +1589,9 @@ is controlled by the nColors input.</p>
   <script src="http://code.jquery.com/jquery-1.11.3.min.js"></script>
   <script src="scripts/filter.js"></script>
   <script src="scripts/prettify/prettify.js"></script>
+  <script src="scripts/clipboard/clipboard.js"></script>
+  <script type="text/javascript">
+      var copyCodes = new Clipboard('.copyCode');
+  </script>
 </body>
 </html>

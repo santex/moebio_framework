@@ -192,6 +192,17 @@ ObjectOperators.getReportHtml = function(object) {
 };
 
 
+/**
+ * return length of list, string or Object with length property
+ * @param {Object} object with length property
+ * @return {Number} length of number
+ * tags:
+ */
+ObjectOperators.getLength = function(object){
+  if(object==null || object["length"]==null) return;
+  return object.length;
+};
+
 
 /**
  * uses a boolean to decide which of two objects it returns
@@ -758,5 +769,9 @@ ObjectOperators._applyBinaryOperator = function(object0, object1, operator) {
   <script src="http://code.jquery.com/jquery-1.11.3.min.js"></script>
   <script src="scripts/filter.js"></script>
   <script src="scripts/prettify/prettify.js"></script>
+  <script src="scripts/clipboard/clipboard.js"></script>
+  <script type="text/javascript">
+      var copyCodes = new Clipboard('.copyCode');
+  </script>
 </body>
 </html>

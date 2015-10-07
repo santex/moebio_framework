@@ -1159,7 +1159,7 @@
 
     array.getImproved = List.prototype.getImproved;
     array.isEquivalent = List.prototype.isEquivalent;
-    array.getLength = List.prototype.getLength;
+    //array.getLength = List.prototype.getLength;
     array.getTypeOfElements = List.prototype.getTypeOfElements; //TODO: redundant?
     array.getTypes = List.prototype.getTypes;
     array.getType = List.prototype.getType;
@@ -1191,6 +1191,7 @@
     array.containsElement = List.prototype.containsElement;
     array.indexOfElement = List.prototype.indexOfElement;
     //sorting:
+    array.isSorted = List.prototype.isSorted;
     array.sortIndexed = List.prototype.sortIndexed;
     array.sortNumericIndexed = List.prototype.sortNumericIndexed;
     array.sortNumeric = List.prototype.sortNumeric;
@@ -1332,11 +1333,10 @@
   /**
    * Returns the number of elements of the list.
    * @return {Number} Length of the list.
-   * tags:
    */
-  List.prototype.getLength = function() {
-    return this.length;
-  };
+  // List.prototype.getLength = function() {
+  //   return this.length;
+  // };
 
   /**
    * In sub-classes, this function returns a NumberList of lengths.
@@ -1423,8 +1423,7 @@
 
   /**
    * returns a sub-list, params could be: tw numbers, an interval or a NumberList.
-   * @param {Number|Interval} argument0 number, interval (in this it will
-   * include elements with initial and end indexes) or numberList
+   * @param {Number} argument0 number, interval (in this it will include elements with initial and end indexes) or numberList
    * @param {Number} argument1 second index
    * @return {List}
    * tags:filter
@@ -1446,6 +1445,7 @@
     } else {
       interval = arguments[0];
     }
+
 
     var newInterval = new Interval(Math.max(Math.min(Math.floor(interval.x), this.length), 0), Math.max(Math.min(Math.floor(interval.y), this.length - 1), 0));
     var newList;
@@ -1922,6 +1922,27 @@
     return newList.getImproved();
   };
 
+
+  List.prototype.isSorted = function(ascending){
+    ascending = ascending==null?true:Boolean(ascending);
+    
+    var l = this.length;
+    var i;
+    if(ascending){
+      for(i=1;i<l;i++){
+        if(this[i]<this[i-1]){
+          console.log('~',i,this[i],this[i+1]);
+        }
+        if(this[i]<this[i-1]) return false;
+      }
+    } else {
+      for(i=1;i<l;i++){
+        if(this[i]>this[i-1]) return false;
+      }
+    }
+    return true;
+  };
+
   List.prototype.sortIndexed = function() {
     var index = [];
     var i;
@@ -2006,11 +2027,11 @@
     var comparator;
     if(ascending) {
       comparator = function(a, b) {
-        return a[1] < b[1] ? -1 : 1;
+        return a[1] < b[1] ? -1 : a[1] > b[1] ?  1 : 0;
       };
     } else {
       comparator = function(a, b) {
-        return a[1] < b[1] ? 1 : -1;
+        return a[1] < b[1] ?  1 : a[1] > b[1] ? -1 : 0;
       };
     }
 
@@ -2309,7 +2330,8 @@
    * If multiple copies of the element exist, only exlcudes first copy.
    *
    * @param {Number|String|Object} element Element to exclude in the new List.
-   * @return {List} New List missing the given element.
+   * @return {List} new List missing the given element
+   * tags:
    */
   List.prototype.getWithoutElement = function(element) {
     var index = this.indexOf(element);
@@ -2335,8 +2357,15 @@
     return newList;
   };
 
+  /**
+   * removes elements from a list
+   * @param {List} list with elements to be removed
+   * @return {List} new List missing the given elements
+   * tags:
+  */
   List.prototype.getWithoutElements = function(list) {//TODO: more efficiency with dictionary
     var newList;
+    var i;
     var l = this.length;
     if(this.type == 'List') {
       newList = new List();
@@ -2344,9 +2373,12 @@
       newList = instantiateWithSameType(this);
     }
 
-    for(var i = 0; i<l; i++) {
-      if(list.indexOf(this[i]) == -1) {
-        newList.push(this[i]);
+    var booleanDictionary = ListOperators.getBooleanDictionaryForList(list);
+
+    for(i = 0; i<l; i++) {
+      //if(list.indexOf(this[i]) == -1) {
+      if(!booleanDictionary[this[i]]) {
+        newList.push(this[i]);//@todo: solve NodeList case
       }
     }
     newList.name = this.name;
@@ -3088,8 +3120,9 @@
    */
   function NumberList() {
     var args = [];
+    var l = arguments.length;
 
-    for(var i = 0; i < arguments.length; i++) {
+    for(var i = 0; i < l; i++) {
       args[i] = Number(arguments[i]);
     }
     var array = List.apply(this, args);
@@ -4457,6 +4490,7 @@
     result.getListsSortedByList = Table.prototype.getListsSortedByList;
     result.sortListsByList = Table.prototype.sortListsByList;
     result.clone = Table.prototype.clone;
+    result.cloneWithEmptyLists = Table.prototype.cloneWithEmptyLists;
     result.print = Table.prototype.print;
 
     //transformative
@@ -4514,10 +4548,11 @@
    * @param  {Number} index The Column to return its length.
    * Defaults to 0.
    * @return {Number} Length of column at given index.
-   * tags:
    */
   Table.prototype.getListLength = function(index) {
-    return this[index || 0].length;
+    index = index || 0;
+    if(index>=this.length) return;
+    return this[index].length;
   };
 
   /**
@@ -4529,7 +4564,7 @@
     var l = this.length;
 
     for(var i = 0; i<l; i++) {
-      lengths[i] = this[i].length;
+      lengths[i] = this[i]==null?0:this[i].length;
     }
     return lengths;
   };
@@ -4639,10 +4674,13 @@
     if(listOrIndex == null) return;
     var newTable = instantiateWithSameType(this);
     var sortinglist = listOrIndex.isList ? listOrIndex.clone() : this[listOrIndex];
+    var l = this.length;
+    var i;
 
-    this.forEach(function(list) {
-      newTable.push(list.getSortedByList(sortinglist, ascending));
-    });
+    //this.forEach(function(list) {
+    for(i=0; i<l; i++){
+      newTable.push(this[i].getSortedByList(sortinglist, ascending));
+    }
 
     return newTable;
   };
@@ -4704,18 +4742,45 @@
   };
 
   /**
-   * makes a copy of the Table.
+   * makes a clone of the Table, that contains clones of the lists
    * @return {Table} Copy of table.
    */
   Table.prototype.clone = function() {
     var l = this.length;
     var clonedTable = instantiateWithSameType(this);
+    var i;
+
     clonedTable.name = this.name;
-    for(var i = 0; i<l; i++) {
+
+    for(i = 0; i<l; i++) {
       clonedTable.push(this[i].clone());
     }
+
     return clonedTable;
   };
+
+  /**
+   * makes a copy of the Table, with empty lists having same types
+   * @return {Table} Copy of table.
+   */
+  Table.prototype.cloneWithEmptyLists = function() {
+    var l = this.length;
+    var i;
+    var newTable = instantiateWithSameType(this);
+    var newList;
+
+    newTable.name = this.name;
+
+    for(i = 0; i<l; i++) {
+      newList = instantiateWithSameType(this[i]);
+      newList.name = this[i].name;
+      newTable.push(newList);
+    }
+
+    return newTable;
+  };
+
+
 
   /**
    * Removes all contents of the Table.
@@ -5087,10 +5152,11 @@
 
     var newStringList = new StringList();
     var i;
+    var l = this.length;
 
     newStringList.name = this.name;
 
-    for(i = 0; this[i] != null; i++){
+    for(i = 0; i<l; i++){
       newStringList[i] = this[i].replace(regExp, string);
     }
 
@@ -5103,7 +5169,8 @@
   StringList.prototype.getConcatenated = function(separator) {
     var i;
     var string = "";
-    for(i = 0; this[i] != null; i++) {
+    var l = this.length;
+    for(i = 0; i<l; i++) {
       string += this[i];
       if(i < this.length - 1) string += separator;
     }
@@ -5111,26 +5178,32 @@
   };
 
   /**
-   * @todo write docs
+   * applies toLowercase to all strings
+   * @return {StringList}
+   * tags:
    */
   StringList.prototype.toLowerCase = function() {
     var newStringList = new StringList();
     newStringList.name = this.name;
     var i;
-    for(i = 0; this[i] != null; i++) {
+    var l = this.length;
+    for(i = 0; i<l; i++) {
       newStringList[i] = this[i].toLowerCase();
     }
     return newStringList;
   };
 
   /**
-   * @todo write docs
+   * applies toUpperCase to all strings
+   * @return {StringList}
+   * tags:
    */
   StringList.prototype.toUpperCase = function() {
     var newStringList = new StringList();
     newStringList.name = this.name;
     var i;
-    for(i = 0; this[i] != null; i++) {
+    var l = this.length;
+    for(i = 0; i<l; i++) {
       newStringList[i] = this[i].toUpperCase();
     }
     return newStringList;
@@ -5143,8 +5216,9 @@
    */
   StringList.prototype.trim = function() {
     var i;
+    var l = this.length;
     var newStringList = new StringList();
-    for(i = 0; this[i] != null; i++) {
+    for(i = 0; i<l; i++) {
       newStringList[i] = this[i].trim();
     }
     newStringList.name = this.name;
@@ -5611,6 +5685,51 @@
     return relation;
   };
 
+  /**
+   * @classdesc List Operators
+   *
+   * @namespace
+   * @category basics
+   */
+  function ListConversions() {}
+  /**
+   * Converts the List into a NumberList.
+   *
+   * @param  {List} list
+   * @return {NumberList}
+   * tags:conversion
+   */
+  ListConversions.toNumberList = function(list) {
+    var numberList = new NumberList();
+    numberList.name = list.name;
+    var i;
+    for(i = 0; list[i] != null; i++) {
+      numberList[i] = Number(list[i]);
+    }
+    return numberList;
+  };
+
+  /**
+   * Converts the List into a StringList.
+   *
+   * @param  {List} list
+   * @return {StringList}
+   * tags:conversion
+   */
+  ListConversions.toStringList = function(list) {
+    var i;
+    var stringList = new StringList();
+    stringList.name = list.name;
+    for(i = 0; list[i] != null; i++) {
+      if(typeof list[i] == 'number') {
+        stringList[i] = String(list[i]);
+      } else {
+        stringList[i] = list[i].toString();
+      }
+    }
+    return stringList;
+  };
+
   RectangleList.prototype = new List();
   RectangleList.prototype.constructor = RectangleList;
   /**
@@ -5923,6 +6042,8 @@
    * tags:
    */
   NumberListOperators.normalized = function(numberlist, factor) {
+    if(numberlist==null) return;
+
     factor = factor == null ? 1 : factor;
 
     if(numberlist.length === 0) return null;
@@ -5947,6 +6068,8 @@
    * tags:
    */
   NumberListOperators.normalizedToMax = function(numberlist, factor) {
+    if(numberlist==null) return;
+    
     factor = factor == null ? 1 : factor;
 
     if(numberlist.length === 0) return null;
@@ -6108,6 +6231,7 @@
    * @todo finish docs
    */
   NumberListOperators.standardDeviationBetweenTwoNumberLists = function(numberList0, numberList1) {
+    if(numberList0==null || numberList1==null) return;
     var s = 0;
     var l = Math.min(numberList0.length, numberList1.length);
 
@@ -6126,6 +6250,7 @@
    * tags:statistics
    */
   NumberListOperators.pearsonProductMomentCorrelation = function(numberList0, numberList1) { //TODO:make more efficient
+    if(numberList0==null || numberList1==null) return;
     return NumberListOperators.covariance(numberList0, numberList1) / (numberList0.getStandardDeviation() * numberList1.getStandardDeviation());
   };
 
@@ -6133,12 +6258,15 @@
   /**
    * smooth a numberList by calculating averages with neighbors
    * @param  {NumberList} numberList
+   *
    * @param  {Number} intensity weight for neighbors in average (0<=intensity<=0.5)
    * @param  {Number} nIterations number of ieterations
    * @return {NumberList}
    * tags:statistics
    */
   NumberListOperators.averageSmoother = function(numberList, intensity, nIterations) {
+    if(numberList==null) return;
+
     nIterations = nIterations == null ? 1 : nIterations;
     intensity = intensity == null ? 0.1 : intensity;
 
@@ -6168,6 +6296,13 @@
     newNumberList.name = numberList.name;
 
     return newNumberList;
+  };
+
+  /**
+   *@todo: finish
+   */
+  NumberListOperators.filterNumberListByInterval = function(numberList, min, max, includeMin, includeMax, returnMode) {
+    return null;
   };
 
   /**
@@ -6281,23 +6416,22 @@
    * @param  {NumberList} y list B
    *
    * @return {NumberList} the union of both NumberLists
-   * tags:
    */
-  NumberListOperators.union = function(x, y) {//TODO: should be refactored, and placed in ListOperators
-    // Borrowed from here: http://stackoverflow.com/questions/3629817/getting-a-union-of-two-arrays-in-javascript
-    var i;
-    var obj = {};
-    for(i = x.length - 1; i >= 0; --i)
-      obj[x[i]] = x[i];
-    for(i = y.length - 1; i >= 0; --i)
-      obj[y[i]] = y[i];
-    var res = new NumberList();
-    for(var k in obj) {
-      if(obj.hasOwnProperty(k)) // <-- optional
-        res.push(obj[k]);
-    }
-    return res;
-  };
+  // NumberListOperators.union = function(x, y) {//TODO: should be refactored, and placed in ListOperators
+  //   // Borrowed from here: http://stackoverflow.com/questions/3629817/getting-a-union-of-two-arrays-in-javascript
+  //   var i;
+  //   var obj = {};
+  //   for(i = x.length - 1; i >= 0; --i)
+  //     obj[x[i]] = x[i];
+  //   for(i = y.length - 1; i >= 0; --i)
+  //     obj[y[i]] = y[i];
+  //   var res = new NumberList();
+  //   for(var k in obj) {
+  //     if(obj.hasOwnProperty(k)) // <-- optional
+  //       res.push(obj[k]);
+  //   }
+  //   return res;
+  // };
 
   /**
    * creates a NumberList that contains the intersection of two NumberList (elements present in BOTH lists)
@@ -6305,49 +6439,48 @@
    * @param  {NumberList} list B
    *
    * @return {NumberList} the intersection of both NumberLists
-   * tags:deprecated
    */
-  NumberListOperators.intersection = function(a, b) {//TODO: refactor method that should be at ListOperators
-    // Borrowed from here: http://stackoverflow.com/questions/1885557/simplest-code-for-array-intersection-in-javascript
-    //console.log( "arguments: ", arguments );
-    var i;
-    if(arguments.length > 2) {
-      var sets = [];
-      for(i = 0; i < arguments.length; i++) {
-        sets.push(arguments[i]);
-      }
-      sets.sort(function(a, b) {
-        return a.length - b.length;
-      });
-      console.log("sets: ", sets);
-      var resultsTrail = sets[0];
-      for(i = 1; i < sets.length; i++) {
-        var newSet = sets[i];
-        resultsTrail = NumberListOperators.intersection(resultsTrail, newSet);
-      }
-      return resultsTrail;
-    }
+  // NumberListOperators.intersection = function(a, b) {//TODO: refactor method that should be at ListOperators
+  //   // Borrowed from here: http://stackoverflow.com/questions/1885557/simplest-code-for-array-intersection-in-javascript
+  //   //console.log( "arguments: ", arguments );
+  //   var i;
+  //   if(arguments.length > 2) {
+  //     var sets = [];
+  //     for(i = 0; i < arguments.length; i++) {
+  //       sets.push(arguments[i]);
+  //     }
+  //     sets.sort(function(a, b) {
+  //       return a.length - b.length;
+  //     });
+  //     console.log("sets: ", sets);
+  //     var resultsTrail = sets[0];
+  //     for(i = 1; i < sets.length; i++) {
+  //       var newSet = sets[i];
+  //       resultsTrail = NumberListOperators.intersection(resultsTrail, newSet);
+  //     }
+  //     return resultsTrail;
+  //   }
 
-    var result = new NumberList();
-    a = a.slice();
-    b = b.slice();
-    while(a.length > 0 && b.length > 0)
-    {
-      if(a[0] < b[0]) {
-        a.shift();
-      }
-      else if(a[0] > b[0]) {
-        b.shift();
-      }
-      else /* they're equal */
-      {
-        result.push(a.shift());
-        b.shift();
-      }
-    }
+  //   var result = new NumberList();
+  //   a = a.slice();
+  //   b = b.slice();
+  //   while(a.length > 0 && b.length > 0)
+  //   {
+  //     if(a[0] < b[0]) {
+  //       a.shift();
+  //     }
+  //     else if(a[0] > b[0]) {
+  //       b.shift();
+  //     }
+  //     else /* they're equal */
+  //     {
+  //       result.push(a.shift());
+  //       b.shift();
+  //     }
+  //   }
 
-    return result;
-  };
+  //   return result;
+  // };
 
 
   /**
@@ -6361,6 +6494,181 @@
     var intX = numberListX.getInterval();
     var intY = numberListY.getInterval();
     return new Rectangle(intX.x, intY.x, intX.getAmplitude(), intY.getAmplitude());
+  };
+
+  /**
+   * @classdesc Provides a set of tools that work with Numbers.
+   *
+   * @namespace
+   * @category numbers
+   */
+  function NumberOperators() {}
+  /**
+   * converts number into a string
+   *
+   * @param {Number} value The number to convert
+   * @param {Number} nDecimals Number of decimals to include. Defaults to 0.
+   */
+  NumberOperators.numberToString = function(value, nDecimals ) {
+    var string = value.toFixed(nDecimals);
+    while(string.charAt(string.length - 1) == '0') {
+      string = string.substring(0, string.length - 1);
+    }
+    if(string.charAt(string.length - 1) == '.') string = string.substring(0, string.length - 1);
+    return string;
+  };
+
+  /**
+   * decent method to create pseudo random numbers
+   * @param {Object} seed
+   */
+  NumberOperators.getRandomWithSeed = function(seed) {
+    seed = (seed * 9301 + 49297) % 233280;
+    return seed / (233280.0);
+  };
+
+  /**
+   * @todo write docs
+   */
+  NumberOperators.numberFromBinaryPositions = function(binaryPositions) {
+    var i;
+    var n = 0;
+    for(i = 0; binaryPositions[i] != null; i++) {
+      n += Math.pow(2, binaryPositions[i]);
+    }
+    return n;
+  };
+
+  /**
+   * @todo write docs
+   */
+  NumberOperators.numberFromBinaryValues = function(binaryValues) {
+    var n = 0;
+    var l = binaryValues.length;
+    for(var i = 0; i < l; i++) {
+      n += binaryValues[i] == 1 ? Math.pow(2, (l - (i + 1))) : 0;
+    }
+    return n;
+  };
+
+  /**
+   * @todo write docs
+   */
+  NumberOperators.powersOfTwoDecomposition = function(number, length) {
+
+    var powers = new NumberList();
+
+    var constructingNumber = 0;
+    var biggestPower;
+
+    while(constructingNumber < number) {
+      biggestPower = Math.floor(Math.log(number) / Math.LN2);
+      powers[biggestPower] = 1;
+      number -= Math.pow(2, biggestPower);
+    }
+
+    length = Math.max(powers.length, length == null ? 0 : length);
+
+    for(var i = 0; i < length; i++) {
+      powers[i] = powers[i] == 1 ? 1 : 0;
+    }
+
+    return powers;
+  };
+
+  /**
+   * @todo write docs
+   */
+  NumberOperators.positionsFromBinaryValues = function(binaryValues) {
+    var i;
+    var positions = new NumberList();
+    for(i = 0; binaryValues[i] != null; i++) {
+      if(binaryValues[i] == 1) positions.push(i);
+    }
+    return positions;
+  };
+
+  //////////Random Generator with Seed, From http://baagoe.org/en/w/index.php/Better_random_numbers_for_javascript
+
+  /**
+   * @ignore
+   */
+  NumberOperators._Alea = function() {
+    return(function(args) {
+      // Johannes Baagøe <baagoe@baagoe.com>, 2010
+      var s0 = 0;
+      var s1 = 0;
+      var s2 = 0;
+      var c = 1;
+
+      if(args.length === 0) {
+        args = [+new Date()];
+      }
+      var mash = NumberOperators._Mash();
+      s0 = mash(' ');
+      s1 = mash(' ');
+      s2 = mash(' ');
+
+      for(var i = 0; i < args.length; i++) {
+        s0 -= mash(args[i]);
+        if(s0 < 0) {
+          s0 += 1;
+        }
+        s1 -= mash(args[i]);
+        if(s1 < 0) {
+          s1 += 1;
+        }
+        s2 -= mash(args[i]);
+        if(s2 < 0) {
+          s2 += 1;
+        }
+      }
+      mash = null;
+
+      var random = function() {
+        var t = 2091639 * s0 + c * 2.3283064365386963e-10; // 2^-32
+        s0 = s1;
+        s1 = s2;
+        // https://github.com/nquinlan/better-random-numbers-for-javascript-mirror/blob/master/support/js/Alea.js#L38
+        return s2 = t - (c = t | 0);
+      };
+      random.uint32 = function() {
+        return random() * 0x100000000; // 2^32
+      };
+      random.fract53 = function() {
+        return random() +
+          (random() * 0x200000 | 0) * 1.1102230246251565e-16; // 2^-53
+      };
+      random.version = 'Alea 0.9';
+      random.args = args;
+      return random;
+
+    }(Array.prototype.slice.call(arguments)));
+  };
+
+  /**
+   * @ignore
+   */
+  NumberOperators._Mash = function() {
+    var n = 0xefc8249d;
+
+    var mash = function(data) {
+      data = data.toString();
+      for(var i = 0; i < data.length; i++) {
+        n += data.charCodeAt(i);
+        var h = 0.02519603282416938 * n;
+        n = h >>> 0;
+        h -= n;
+        h *= n;
+        n = h >>> 0;
+        h -= n;
+        n += h * 0x100000000; // 2^32
+      }
+      return(n >>> 0) * 2.3283064365386963e-10; // 2^-32
+    };
+
+    mash.version = 'Mash 0.9';
+    return mash;
   };
 
   /**
@@ -6569,226 +6877,6 @@
    */
   ColorScales.antiSolar = function(value) {
     return ColorOperators.invertColor(ColorScales.solar(value));
-  };
-
-  /**
-   * @classdesc List Operators
-   *
-   * @namespace
-   * @category basics
-   */
-  function ListConversions() {}
-  /**
-   * Converts the List into a NumberList.
-   *
-   * @param  {List} list
-   * @return {NumberList}
-   * tags:conversion
-   */
-  ListConversions.toNumberList = function(list) {
-    var numberList = new NumberList();
-    numberList.name = list.name;
-    var i;
-    for(i = 0; list[i] != null; i++) {
-      numberList[i] = Number(list[i]);
-    }
-    return numberList;
-  };
-
-  /**
-   * Converts the List into a StringList.
-   *
-   * @param  {List} list
-   * @return {StringList}
-   * tags:conversion
-   */
-  ListConversions.toStringList = function(list) {
-    var i;
-    var stringList = new StringList();
-    stringList.name = list.name;
-    for(i = 0; list[i] != null; i++) {
-      if(typeof list[i] == 'number') {
-        stringList[i] = String(list[i]);
-      } else {
-        stringList[i] = list[i].toString();
-      }
-    }
-    return stringList;
-  };
-
-  /**
-   * @classdesc Provides a set of tools that work with Numbers.
-   *
-   * @namespace
-   * @category numbers
-   */
-  function NumberOperators() {}
-  /**
-   * converts number into a string
-   *
-   * @param {Number} value The number to convert
-   * @param {Number} nDecimals Number of decimals to include. Defaults to 0.
-   */
-  NumberOperators.numberToString = function(value, nDecimals ) {
-    var string = value.toFixed(nDecimals);
-    while(string.charAt(string.length - 1) == '0') {
-      string = string.substring(0, string.length - 1);
-    }
-    if(string.charAt(string.length - 1) == '.') string = string.substring(0, string.length - 1);
-    return string;
-  };
-
-  /**
-   * decent method to create pseudo random numbers
-   * @param {Object} seed
-   */
-  NumberOperators.getRandomWithSeed = function(seed) {
-    seed = (seed * 9301 + 49297) % 233280;
-    return seed / (233280.0);
-  };
-
-  /**
-   * @todo write docs
-   */
-  NumberOperators.numberFromBinaryPositions = function(binaryPositions) {
-    var i;
-    var n = 0;
-    for(i = 0; binaryPositions[i] != null; i++) {
-      n += Math.pow(2, binaryPositions[i]);
-    }
-    return n;
-  };
-
-  /**
-   * @todo write docs
-   */
-  NumberOperators.numberFromBinaryValues = function(binaryValues) {
-    var n = 0;
-    var l = binaryValues.length;
-    for(var i = 0; i < l; i++) {
-      n += binaryValues[i] == 1 ? Math.pow(2, (l - (i + 1))) : 0;
-    }
-    return n;
-  };
-
-  /**
-   * @todo write docs
-   */
-  NumberOperators.powersOfTwoDecomposition = function(number, length) {
-
-    var powers = new NumberList();
-
-    var constructingNumber = 0;
-    var biggestPower;
-
-    while(constructingNumber < number) {
-      biggestPower = Math.floor(Math.log(number) / Math.LN2);
-      powers[biggestPower] = 1;
-      number -= Math.pow(2, biggestPower);
-    }
-
-    length = Math.max(powers.length, length == null ? 0 : length);
-
-    for(var i = 0; i < length; i++) {
-      powers[i] = powers[i] == 1 ? 1 : 0;
-    }
-
-    return powers;
-  };
-
-  /**
-   * @todo write docs
-   */
-  NumberOperators.positionsFromBinaryValues = function(binaryValues) {
-    var i;
-    var positions = new NumberList();
-    for(i = 0; binaryValues[i] != null; i++) {
-      if(binaryValues[i] == 1) positions.push(i);
-    }
-    return positions;
-  };
-
-  //////////Random Generator with Seed, From http://baagoe.org/en/w/index.php/Better_random_numbers_for_javascript
-
-  /**
-   * @ignore
-   */
-  NumberOperators._Alea = function() {
-    return(function(args) {
-      // Johannes Baagøe <baagoe@baagoe.com>, 2010
-      var s0 = 0;
-      var s1 = 0;
-      var s2 = 0;
-      var c = 1;
-
-      if(args.length === 0) {
-        args = [+new Date()];
-      }
-      var mash = NumberOperators._Mash();
-      s0 = mash(' ');
-      s1 = mash(' ');
-      s2 = mash(' ');
-
-      for(var i = 0; i < args.length; i++) {
-        s0 -= mash(args[i]);
-        if(s0 < 0) {
-          s0 += 1;
-        }
-        s1 -= mash(args[i]);
-        if(s1 < 0) {
-          s1 += 1;
-        }
-        s2 -= mash(args[i]);
-        if(s2 < 0) {
-          s2 += 1;
-        }
-      }
-      mash = null;
-
-      var random = function() {
-        var t = 2091639 * s0 + c * 2.3283064365386963e-10; // 2^-32
-        s0 = s1;
-        s1 = s2;
-        // https://github.com/nquinlan/better-random-numbers-for-javascript-mirror/blob/master/support/js/Alea.js#L38
-        return s2 = t - (c = t | 0);
-      };
-      random.uint32 = function() {
-        return random() * 0x100000000; // 2^32
-      };
-      random.fract53 = function() {
-        return random() +
-          (random() * 0x200000 | 0) * 1.1102230246251565e-16; // 2^-53
-      };
-      random.version = 'Alea 0.9';
-      random.args = args;
-      return random;
-
-    }(Array.prototype.slice.call(arguments)));
-  };
-
-  /**
-   * @ignore
-   */
-  NumberOperators._Mash = function() {
-    var n = 0xefc8249d;
-
-    var mash = function(data) {
-      data = data.toString();
-      for(var i = 0; i < data.length; i++) {
-        n += data.charCodeAt(i);
-        var h = 0.02519603282416938 * n;
-        n = h >>> 0;
-        h -= n;
-        h *= n;
-        n = h >>> 0;
-        h -= n;
-        n += h * 0x100000000; // 2^32
-      }
-      return(n >>> 0) * 2.3283064365386963e-10; // 2^-32
-    };
-
-    mash.version = 'Mash 0.9';
-    return mash;
   };
 
   /**
@@ -7068,6 +7156,74 @@
     return dictionary;
   };
 
+
+
+  /**
+   * builds a dictionary that matches an element of a List with its index on the List (indexesDictionary[element] --> index)
+   * it assumes there's no repetitions on the list (if that's not tha case the last index of the element will be delivered)
+   * efficiently replaces indexOf
+   * @param  {List} list
+   * @return {Object}
+   * tags:dictionary
+   */
+  ListOperators.getSingleIndexDictionaryForList = function(list){
+    if(list==null) return;
+
+    var i;
+    var l = list.length;
+
+    var dictionary = {};
+    for(i=0; i<l; i++){
+      dictionary[list[i]] = i;
+    }
+
+    return dictionary;
+  };
+
+  /**
+   * builds a dictionary that matches an element of a List with all its indexes on the List (indexesDictionary[element] --> numberList of indexes of element on list)
+   * if the list has no repeated elements, and a single is required per element, use ListOperators.getSingleIndexDictionaryForList
+   * @param  {List} list
+   * @return {Object}
+   * tags:dictionary
+   */
+  ListOperators.getIndexesDictionary = function(list){
+    var indexesDictionary = {};
+
+    list.forEach(function(element, i){
+      if(indexesDictionary[element]==null) indexesDictionary[element]=new NumberList();
+      indexesDictionary[element].push(i);
+    });
+
+    return indexesDictionary;
+  };
+
+  /**
+   * @todo write docs
+   */
+  ListOperators.getIndexesTable = function(list){
+    var indexesTable = new Table();
+    indexesTable[0] = new List();
+    indexesTable[1] = new NumberTable();
+    var indexesDictionary = {};
+    var indexOnTable;
+
+    list.forEach(function(element, i){
+      indexOnTable = indexesDictionary[element];
+      if(indexOnTable==null){
+        indexesTable[0].push(element);
+        indexesTable[1].push(new NumberList(i));
+        indexesDictionary[element]=indexesTable[0].length-1;
+      } else {
+        indexesTable[1][indexOnTable].push(i);
+      }
+    });
+
+    indexesTable[0] = indexesTable[0].getImproved();
+
+    return indexesTable;
+  };
+
   /**
    * builds a dictionar object (relational array) for a dictionar (table with two lists)
    * @param  {Table} dictionary table with two lists, typically without repetitions, elements of the second list being the 'translation' of the correspdonent on the first
@@ -7180,13 +7336,11 @@
 
     if(descending) {
       pairs.sort(function(a, b) {
-        if(a[1] < b[1]) return 1;
-        return -1;
+        return a[1] < b[1] ?  1 : a[1] > b[1] ? -1 : 0;
       });
     } else {
       pairs.sort(function(a, b) {
-        if(a[1] < b[1]) return -1;
-        return 1;
+        return a[1] < b[1] ? -1 : a[1] > b[1] ?  1 : 0;
       });
     }
 
@@ -7217,13 +7371,21 @@
    * @todo write docs
    */
   ListOperators.concatWithoutRepetitions = function() {
-    var i;
+    var l = arguments.length;
+    if(l===0) return;
+    if(l==1) return arguments[0];
+
+    var i, j;
     var newList = arguments[0].clone();
-    for(i = 1; i < arguments.length; i++) {
-      var addList = arguments[i];
-      var nElements = addList.length;
-      for(i = 0; i < nElements; i++) { // TODO Is the redefing of i intentional?
-        if(newList.indexOf(addList[i]) == -1) newList.push(addList[i]);
+    var newListBooleanDictionary = ListOperators.getBooleanDictionaryForList(newList);
+    var addList;
+    var nElements;
+    for(i = 1; i < l; i++) {
+      addList = arguments[i];
+      nElements = addList.length;
+      for(j = 0; j < nElements; j++) { // TODO Is the redefing of i intentional? <----- !
+        //if(newList.indexOf(addList[i]) == -1) newList.push(addList[i]);
+        if(!newListBooleanDictionary[addList[j]]) newList.push(addList[j]);
       }
     }
     return newList.getImproved();
@@ -7310,24 +7472,85 @@
    * creates a List that contains the union of two List (removing repetitions)
    * @param  {List} list0 first list
    * @param  {List} list1 second list
-   *
    * @return {List} the union of both Lists
    * tags:
    */
-  ListOperators.union = function(list0, list1) {//TODO: this should be refactored, and placed in ListOperators
+  ListOperators.union = function(list0, list1) {//TODO:expand for more lists
     if(list0==null || list1==null) return;
 
-    var obj = {};
+    var union = new List();
+    var l0 = list0.length;
+    var l1 = list1.length;
     var i, k;
 
-    for(i = 0; list0[i]!=null; i++) obj[list0[i]] = list0[i];
-    for(i = 0; list1[i]!=null; i++) obj[list1[i]] = list1[i];
-    var union = new List();
+    if(list0.type=='NodeList' || list1.type=='NodeList'){
+      union = new NodeList();
+      union = list0.clone();
+      for(i = 0; i<l1; i++){
+        if(list0.getNodeById(list1[i].id)==null) union.addNode(list1[i]);
+      }
+      return union;
+    }
+
+    var obj = {};
+
+    for(i = 0; i<l0; i++) obj[list0[i]] = list0[i];
+    for(i = 0; i<l1; i++) obj[list1[i]] = list1[i];
+    
     for(k in obj) {
       //if(obj.hasOwnProperty(k)) // <-- optional
       union.push(obj[k]);
     }
-    return union;
+    return union.getImproved();
+  };
+
+  /**
+   * creates a List that contains the intersection of two List (elements present in BOTH lists, result without repetions)
+   * @param  {List} list0 first list
+   * @param  {List} list1 second list
+   * @return {List} intersection of both lists
+   * tags:
+   */
+  ListOperators.intersection = function(list0, list1) {//TODO:expand for more lists
+    if(list0==null || list1==null) return;
+
+    var intersection;
+    //var l0  = list0.length;
+    var l1  = list1.length;
+    var i;
+    var element;
+
+    if(list0.type=="NodeList" && list1.type=="NodeList"){
+      intersection = new NodeList();
+
+      list0.forEach(function(node){
+        if(list1.getNodeById(node.id)){
+          intersection.addNode(node);
+        }
+      });
+
+      return intersection;
+    }
+
+    var dictionary =  ListOperators.getBooleanDictionaryForList(list0);//{};
+    var dictionaryIntersected = {};
+    
+    intersection = new List();
+
+
+    // list0.forEach(function(element){
+    //   dictionary[element] = true;
+    // });
+    //list1.forEach(function(element){
+    for(i=0; i<l1; i++){
+      element = list1[i];
+      if(dictionary[element] && dictionaryIntersected[element]==null){
+        dictionaryIntersected[element]=true;
+        intersection.push(element);
+      }
+    }
+    //});
+    return intersection.getImproved();
   };
 
 
@@ -7363,76 +7586,34 @@
    * @param  {List} list B
    *
    * @return {List} the union of both NumberLists
-   * tags:deprecated
    */
-  ListOperators.unionLists = function(x, y) {
-    // Borrowed from here: http://stackoverflow.com/questions/3629817/getting-a-union-of-two-arrays-in-javascript
-    var result;
-    if(x.type != x.type || (x.type != "StringList" && x.type != "NumberList")) {
-      // To-do: call generic method here (not yet implemented)
-      //console.log( "ListOperators.unionLists for type '" + x.type + "' or '" + y.type + "' not yet implemented" );
-      return x.concat(y).getWithoutRepetitions();
-    }
-    else {
-      var obj = {};
-      var i;
-      for(i = x.length - 1; i >= 0; --i){
-        obj[x[i]] = x[i];
-      }
-      for(i = y.length - 1; i >= 0; --i){
-        obj[y[i]] = y[i];
-      }
-      result = x.type == "StringList" ? new StringList() : new NumberList();
-      for(var k in obj) {
-        if(obj.hasOwnProperty(k)) // <-- optional
-          result.push(obj[k]);
-      }
-    }
-    return result;
-  };
+  // ListOperators.unionLists = function(x, y) {
+  //   // Borrowed from here: http://stackoverflow.com/questions/3629817/getting-a-union-of-two-arrays-in-javascript
+  //   var result;
+  //   if(x.type != x.type || (x.type != "StringList" && x.type != "NumberList")) {
+  //     // To-do: call generic method here (not yet implemented)
+  //     //console.log( "ListOperators.unionLists for type '" + x.type + "' or '" + y.type + "' not yet implemented" );
+  //     return x.concat(y).getWithoutRepetitions();
+  //   }
+  //   else {
+  //     var obj = {};
+  //     var i;
+  //     for(i = x.length - 1; i >= 0; --i){
+  //       obj[x[i]] = x[i];
+  //     }
+  //     for(i = y.length - 1; i >= 0; --i){
+  //       obj[y[i]] = y[i];
+  //     }
+  //     result = x.type == "StringList" ? new StringList() : new NumberList();
+  //     for(var k in obj) {
+  //       if(obj.hasOwnProperty(k)) // <-- optional
+  //         result.push(obj[k]);
+  //     }
+  //   }
+  //   return result;
+  // };
 
-  /**
-   * creates a List that contains the intersection of two List (elements present in BOTH lists)
-   *
-   * @param  {List} list0 list A
-   * @param  {List} list1 list B
-   *
-   * @return {List} intersection of both NumberLists
-   *
-   * tags:
-   */
-  ListOperators.intersection = function(list0, list1) {
-    if(list0==null || list1==null) return;
 
-    var intersection;
-
-    if(list0.type=="NodeList" && list1.type=="NodeList"){
-      intersection = new NodeList();
-
-      list0.forEach(function(node){
-        if(list1.getNodeById(node.id)){
-          intersection.addNode(node);
-        }
-      });
-
-      return intersection;
-    }
-
-    var dictionary = {};
-    var dictionaryIntersected = {};
-    intersection = new List();
-
-    list0.forEach(function(element){
-      dictionary[element] = true;
-    });
-    list1.forEach(function(element){
-      if(dictionary[element] && dictionaryIntersected[element]==null){
-        dictionaryIntersected[element]=true;
-        intersection.push(element);
-      }
-    });
-    return intersection.getImproved();
-  };
 
   /**
    * calculates Jaccard index |list0 ∩ list1|/|list0 ∪ list1| see: https://en.wikipedia.org/wiki/Jaccard_index
@@ -7442,7 +7623,7 @@
    * tags:
    */
   ListOperators.jaccardIndex = function(list0, list1) {//TODO: see if this can be more efficient, maybe one idctionar for doing union and interstection at the same time
-    return ListOperators.intersection(list0, list1).length/ListOperators.unionLists(list0, list1).length;
+    return ListOperators.intersection(list0, list1).length/ListOperators.union(list0, list1).length;
   };
 
   /**
@@ -7457,71 +7638,6 @@
   };
 
 
-
-  /**
-   * builds a dictionary that matches an element of a List with its index on the List (indexesDictionary[element] --> index)
-   * it assumes there's no repetitions on the list (if that's not tha case the last index of the element will be delivered)
-   * @param  {List} list
-   * @return {Object}
-   * tags:dictionary
-   */
-  ListOperators.getSingleIndexDictionaryForList = function(list){
-    if(list==null) return;
-
-    var i;
-    var l = list.length;
-
-    var dictionary = {};
-    for(i=0; i<l; i++){
-      dictionary[list[i]] = i;
-    }
-
-    return dictionary;
-  };
-
-  /**
-   * builds a dictionary that matches an element of a List with all its indexes on the List (indexesDictionary[element] --> numberList of indexes of element on list)
-   * if the list has no repeated elements, and a single is required per element, use ListOperators.getSingleIndexDictionaryForList
-   * @param  {List} list
-   * @return {Object}
-   * tags:dictionary
-   */
-  ListOperators.getIndexesDictionary = function(list){
-    var indexesDictionary = {};
-
-    list.forEach(function(element, i){
-      if(indexesDictionary[element]==null) indexesDictionary[element]=new NumberList();
-      indexesDictionary[element].push(i);
-    });
-
-    return indexesDictionary;
-  };
-
-  /**
-   * @todo write docs
-   */
-  ListOperators.getIndexesTable = function(list){
-    var indexesTable = new Table();
-    indexesTable[0] = new List();
-    indexesTable[1] = new NumberTable();
-    var indexesDictionary = {};
-    var indexOnTable;
-
-    list.forEach(function(element, i){
-      indexOnTable = indexesDictionary[element];
-      if(indexOnTable==null){
-        indexesTable[0].push(element);
-        indexesTable[1].push(new NumberList(i));
-        indexesDictionary[element]=indexesTable[0].length-1;
-      } else {
-        indexesTable[1][indexOnTable].push(i);
-      }
-    });
-
-    indexesTable[0] = indexesTable[0].getImproved();
-
-    return indexesTable;
-  };
 
   /**
    * aggregates values of a list using an aggregator list as reference
@@ -8197,8 +8313,8 @@
   };
 
   ColorListGenerators._HARDCODED_CATEGORICAL_COLORS = new ColorList(
-    "#dd4411", "#2200bb", "#1f77b4", "#ff660e", "#2ca02c", "#d62728", "#9467bd", "#8c564b", "#e377c2", "#7f7f7f", "#bcbd22", "#17becf", "#dd8811",
-    "#dd0011", "#221140", "#1f66a3", "#ff220e", "#2ba01c", "#442728", "#945600", "#8c453a", "#e37700"
+    "#d62728", "#1f77b4", "#2ca02c", "#ff7f00", "#9467bd", "#bcbd22", "#8c564b", "#17becf", "#dd4411", "#206010", "#e377c2",
+    "#2200bb", "#dd8811", "#ff220e", "#1f66a3", "#8c453a", "#2ba01c", "#dfc500", "#945600", "#ff008b", "#e37700", "#7f7f7f"
   );
 
   /**
@@ -8219,12 +8335,79 @@
    */
   ColorListGenerators.createDefaultCategoricalColorList = function(nColors, alpha, invert) {
     alpha = alpha == null ? 1 : alpha;
-    var colors = ColorListGenerators.createCategoricalColors(1, nColors).getInterpolated('black', 0.15);
+    var colors = ColorListGenerators.createCategoricalColors(2, nColors);
     if(alpha < 1) colors = colors.addAlpha(alpha);
 
     if(invert) colors = colors.getInverted();
 
     return colors;
+  };
+
+  /**
+   * Creates a ColorList of categorical colors based on an input List. All entries with the same value will get the same color.
+   * @param {List} the list containing categorical data
+   *
+   * @param {ColorList} ColorList with categorical colors
+   * @param {Number} alpha transparency
+   * @param {String} color to mix
+   * @param {Number} interpolation value (0-1) for color mix
+   * @param {Boolean} invert invert colors
+   * @return {ColorList} ColorList with categorical colors that match the given list
+   * @return {List} elements list of elemnts that match colors (equivalent to getWithoutRepetions)
+   * @return {ColorList} ColorList with different categorical colors
+   * @return {Table} dictionary dictionary table with elemnts and matching colors
+   * @return {Object} citionaryObject (relational array, from objects to colors)
+   * tags:generator
+   */
+  ColorListGenerators.createCategoricalColorListForList = function(list, colorList, alpha, color, interpolate, invert)
+  {
+
+    if(!list)
+      return new ColorList();
+    if(!alpha)
+      alpha = 1;
+    if(!color)
+      color = "#fff";
+    if(!interpolate)
+      interpolate = 0;
+
+    list = List.fromArray(list);
+    var diffValues = list.getWithoutRepetitions();
+    var diffColors;
+    if(colorList && interpolate !== 0) {
+      diffColors = colorList.getInterpolated(color, interpolate);
+    } else {
+      diffColors = ColorListGenerators.createCategoricalColors(2, diffValues.length, null, alpha, color, interpolate, colorList);
+    }
+    if(alpha<1) diffColors = diffColors.addAlpha(alpha);
+
+    if(invert) diffColors = diffColors.getInverted();
+
+    var colorDictTable = Table.fromArray([diffValues, diffColors]);
+    var dictionaryObject = ListOperators.buildDictionaryObjectForDictionary(colorDictTable);
+
+    var fullColorList = ListOperators.translateWithDictionary(list, colorDictTable, 'black');
+
+    fullColorList = ColorList.fromArray(fullColorList);
+
+    return [
+      {
+        value: fullColorList,
+        type: 'ColorList'
+      }, {
+        value: diffValues,
+        type: diffValues.type
+      }, {
+        value: diffColors,
+        type: 'ColorList'
+      }, {
+        value: new Table(diffValues, fullColorList),
+        type: 'Table'
+      }, {
+        value: dictionaryObject,
+        type: 'Object'
+      }
+    ];
   };
 
 
@@ -8282,8 +8465,34 @@
 
 
   /**
+   * Creates a new ColorList from the full spectrum. Size of the List
+   * is controlled by the nColors input.
+   *
+   * @param {Number} nColors Length of the list (default 8).
+   * @param {Number} saturation in range [0,1]
+   * @param {Number} value in range [0,1]
+   * @return {ColorList} ColorList with spectrum colors
+   * tags:generator
+  */
+  ColorListGenerators.createColorListSpectrum = function(nColors, saturation,value) {
+    // use HSV and rotate through hues
+    nColors = nColors == null? 8:nColors;
+    saturation = saturation == null? 1:saturation;
+    value = value == null? 1:value;
+    var colorList = new ColorList();
+    var hue;
+    for(var i = 0; i < nColors; i++) {
+      // hue of 0 == hue of 360 so we go to nColors-1
+      hue = 360*i/nColors;
+      colorList.push(ColorOperators.HSVtoHEX(hue,saturation,value));
+    }
+    return colorList;
+  };
+
+
+  /**
    * Creates a ColorList of categorical colors
-   * @param {Number} mode 0:simple picking from color scale function, 1:random (with seed), 2:hardcoded colors, 3:, 4:, 5:evolutionary algorithm, guarantees non consecutive similar colors
+   * @param {Number} mode 0:simple picking from color scale function, 1:random (with seed), 2:hardcoded colors, 3:spectrum colors, 4:evolutionary algorithm, guarantees non consecutive similar colors(spectrum), 5:evolutionary algorithm, guarantees non consecutive similar colors(colorScale)
    * @param {Number} nColors
    *
    * @param {ColorScale} colorScaleFunction
@@ -8313,10 +8522,22 @@
         break;
       case 2:
         colorList = colorList==null?ColorListGenerators._HARDCODED_CATEGORICAL_COLORS:colorList;
+        var nInterpolate;
         for(i = 0; i < nColors; i++) {
           newColorList[i] = colorList[i%colorList.length];
+          if(i >= colorList.length){
+            // move towards black
+            nInterpolate = Math.floor(i/colorList.length);
+            for(var j=0; j < nInterpolate;j++){
+              newColorList[i]= ColorOperators.interpolateColors(newColorList[i],'black',0.20);
+            }
+          }
         }
         break;
+      case 3:
+        newColorList = ColorListGenerators.createColorListSpectrum(nColors);
+        break;
+      case 4:
       case 5:
         var randomNumbersSource = NumberListGenerators.createRandomNumberList(1001, null, 0);
         var positions = NumberListGenerators.createSortedNumberList(nColors);
@@ -8325,7 +8546,9 @@
 
         var nGenerations = Math.floor(nColors * 2) + 100;
         var nChildren = Math.floor(nColors * 0.6) + 5;
-        var bestEvaluation = ColorListGenerators._evaluationFunction(randomPositions);
+        var bCircular = mode == 4;
+        var bExtendedNeighbourhood = mode == 4;
+        var bestEvaluation = ColorListGenerators._evaluationFunction(randomPositions,bCircular,bExtendedNeighbourhood);
         var child;
         var bestChildren = randomPositions;
         var j;
@@ -8336,7 +8559,7 @@
           for(j = 0; j < nChildren; j++) {
             child = ColorListGenerators._sortingVariation(randomPositions, randomNumbersSource[nr], randomNumbersSource[nr + 1]);
             nr = (nr + 2) % 1001;
-            evaluation = ColorListGenerators._evaluationFunction(child);
+            evaluation = ColorListGenerators._evaluationFunction(child,bCircular,bExtendedNeighbourhood);
             if(evaluation > bestEvaluation) {
               bestChildren = child;
               bestEvaluation = evaluation;
@@ -8344,9 +8567,16 @@
           }
           randomPositions = bestChildren;
         }
-
-        for(i = 0; i < nColors; i++) {
-          newColorList.push(colorScaleFunction((1 / nColors) + randomPositions[i] / (nColors + 1))); //TODO: make more efficient by pre-nuilding the colorList
+        if(mode == 4){
+          var colorListSpectrum = ColorListGenerators.createColorListSpectrum(nColors);
+          for(i = 0; i < nColors; i++) {
+            newColorList.push(colorListSpectrum[randomPositions[i]]);
+          }
+        }
+        else{ // 5
+          for(i = 0; i < nColors; i++) {
+            newColorList.push(colorScaleFunction((1 / nColors) + randomPositions[i] / (nColors + 1))); //TODO: make more efficient by pre-nuilding the colorList
+          }
         }
         break;
     }
@@ -8378,11 +8608,23 @@
   /**
    * @ignore
    */
-  ColorListGenerators._evaluationFunction = function(numberList) { //private
+  ColorListGenerators._evaluationFunction = function(numberList, bCircular, bExtendedNeighbourhood) { //private
+    // bCircular == true means distance between 0 and n-1 is 1
+    // bExtendedNeighbourhood == true means consider diffs beyond adjacent pairs
     var sum = 0;
-    var i;
-    for(i = 0; numberList[i + 1] != null; i++) {
-      sum += Math.sqrt(Math.abs(numberList[i + 1] - numberList[i]));
+    var i,d,r2,
+      len=numberList.length,
+      h=Math.floor(len/2);
+    var range = bExtendedNeighbourhood ? 4 : 1;
+    for(var r=1; r <= range; r++){
+      r2 = r*r;
+      for(i = 0; numberList[i + r] != null; i++) {
+        d = Math.abs(numberList[i + r] - numberList[i]);
+        if(bCircular && d > h){
+          d = len-d;
+        }
+        sum += Math.sqrt(d/r2);
+      }
     }
     return sum;
   };
@@ -8403,84 +8645,26 @@
     if(list==null) return;
 
     var diffValues = list.getWithoutRepetitions();
+
     var diffColors = ColorListGenerators.createCategoricalColors(2, diffValues.length, null, alpha, color, interpolate, colorList);
+
     if(invert) diffColors = diffColors.getInverted();
 
     var dictionaryObject = {};
 
-    diffValues.forEach(function(element, i){
-      dictionaryObject[element] = diffColors[i];
-    });
+    var l = diffColors.length;
+    var i;
+
+    for(i=0; i<l; i++){
+      dictionaryObject[diffValues[i]] = diffColors[i];
+    }
+
+    // diffValues.forEach(function(element, i){
+    //   dictionaryObject[element] = diffColors[i];
+    // });
 
     return dictionaryObject;
 
-  };
-
-  /**
-   * Creates a ColorList of categorical colors based on an input List. All entries with the same value will get the same color.
-   * @param {List} the list containing categorical data
-   *
-   * @param {ColorList} ColorList with categorical colors
-   * @param {Number} alpha transparency
-   * @param {String} color to mix
-   * @param {Number} interpolation value (0-1) for color mix
-   * @param {Boolean} invert invert colors
-   * @return {ColorList} ColorList with categorical colors that match the given list
-   * @return {List} elements list of elemnts that match colors (equivalent to getWithoutRepetions)
-   * @return {ColorList} ColorList with different categorical colors
-   * @return {Table} dictionary dictionary table with elemnts and matching colors
-   * @return {Object} citionaryObject (relational array, from objects to colors)
-   * tags:generator
-   */
-  ColorListGenerators.createCategoricalColorListForList = function(list, colorList, alpha, color, interpolate, invert)
-  {
-
-    if(!list)
-      return new ColorList();
-    if(!alpha)
-      alpha = 1;
-    if(!color)
-      color = "#fff";
-    if(!interpolate)
-      interpolate = 0;
-
-    list = List.fromArray(list);
-    var diffValues = list.getWithoutRepetitions();
-    var diffColors;
-    if(colorList && interpolate !== 0) {
-      diffColors = colorList.getInterpolated(color, interpolate);
-    } else {
-      diffColors = ColorListGenerators.createCategoricalColors(2, diffValues.length, null, alpha, color, interpolate, colorList);
-    }
-    if(alpha<1) diffColors = diffColors.addAlpha(alpha);
-
-    if(invert) diffColors = diffColors.getInverted();
-
-    var colorDictTable = Table.fromArray([diffValues, diffColors]);
-    var dictionaryObject = ListOperators.buildDictionaryObjectForDictionary(colorDictTable);
-
-    var fullColorList = ListOperators.translateWithDictionary(list, colorDictTable, 'black');
-
-    fullColorList = ColorList.fromArray(fullColorList);
-    
-    return [
-      {
-        value: fullColorList,
-        type: 'ColorList'
-      }, {
-        value: diffValues,
-        type: diffValues.type
-      }, {
-        value: diffColors,
-        type: 'ColorList'
-      }, {
-        value: new Table(diffValues, fullColorList),
-        type: 'Table'
-      }, {
-        value: dictionaryObject,
-        type: 'Object'
-      }
-    ];
   };
 
   /**
@@ -8579,36 +8763,63 @@
 
   /**
    * replaces in a string ocurrences of a sub-string by another string (base in replace JavaScript method)
-   * @param  {String} string to be modified
-   * @param  {String} subString sub-string to be replaced
+   * @param  {String} text to be modified
+   * @param  {String} string string to be replaced (could be Regular Expression)
    * @param  {String} replacement string to be placed instead
    * @return {String}
    * tags:
    */
-  StringOperators.replaceSubString = function(string, subString, replacement) {
-    if(string == null || subString == null || replacement == null) return null;
-    return string.replace(new RegExp(subString, "g"), replacement);
+  StringOperators.replaceStringInText = function(text, string, replacement) {
+    if(text == null || string == null || replacement == null) return null;
+
+    if(!(string instanceof RegExp)) string = new RegExp(string, "g");
+
+    return text.replace(string, replacement);
   };
 
   /**
+   * replaces in each string, a sub-string by a string
+   * @param  {String} text where to replaces strings
+   * @param  {StringList} strings to be replaced (could be Regular Expressions)
+   * @param  {String} replacement string to be placed instead
+   * @return {String}
+   * tags:
+   */
+  StringOperators.replaceStringsInText = function(text, strings, replacement) {
+    if(text==null || strings==null || replacement==null) return null;
+
+    var newText = text;
+    var nStrings = strings.length;
+    var j;
+    var string;
+
+    for(j=0; j<nStrings; j++){
+      string = strings[j];
+      if(!(string instanceof RegExp)) string = new RegExp(string, "g");
+      newText = newText.replace(string, replacement);
+    }
+
+    return newText;
+  };
+
+  /** depracted, replaced by StringListOperators.replaceStringsInText
    * replaces in a string ocurrences of sub-strings by a string
    * @param  {String} string to be modified
    * @param  {StringList} subStrings sub-strings to be replaced
    * @param  {String} replacement string to be placed instead
    * @return {String}
-   * tags:
    */
-  StringOperators.replaceSubStringsByString = function(string, subStrings, replacement) {
-    if(subStrings == null) return;
+  // StringOperators.replaceSubStringsByString = function(string, subStrings, replacement) {
+  //   if(subStrings == null) return;
 
-    subStrings.forEach(function(subString) {
-      string = StringOperators.replaceSubString(string, subString, replacement);
-    });
+  //   subStrings.forEach(function(subString) {
+  //     string = StringOperators.replaceStringInText(string, subString, replacement);
+  //   });
 
-    return string;
-  };
+  //   return string;
+  // };
 
-  /**
+  /** deprecated, replaced by: 
    * replaces in a string ocurrences of sub-strings by strings (1-1)
    * @param  {String} string to be modified
    * @param  {StringList} subStrings sub-strings to be replaced
@@ -8616,18 +8827,18 @@
    * @return {String}
    * tags:
    */
-  StringOperators.replaceSubStringsByStrings = function(string, subStrings, replacements) {
-    if(subStrings == null || replacements == null) return;
+  // StringOperators.replaceSubStringsByStrings = function(string, subStrings, replacements) {
+  //   if(subStrings == null || replacements == null) return;
 
-    var nElements = Math.min(subStrings.length, replacements.length);
-    var i;
+  //   var nElements = Math.min(subStrings.length, replacements.length);
+  //   var i;
 
-    for(i = 0; i < nElements; i++) {
-      string = StringOperators.replaceSubString(string, subStrings[i], replacements[i]);
-    }
+  //   for(i = 0; i < nElements; i++) {
+  //     string = StringOperators.replaceStringInText(string, subStrings[i], replacements[i]);
+  //   }
 
-    return string;
-  };
+  //   return string;
+  // };
 
   /**
    * builds a stringList of words contained in the text
@@ -8663,23 +8874,29 @@
     var list = string.match(/\w+/g);
     if(list == null) return new StringList();
 
+    list = StringList.fromArray(list);
+
     if(includeLinks && links != null) list = list.concat(links);
     list = StringList.fromArray(list).replace(/ /g, "");
 
+    var nMatches;
+
     if(stopWords != null) { //TODO:check before if all stopwrds are strings
       //list.removeElements(stopWords);
-
-      for(i = 0; list[i] != null; i++) {
+      nMatches = list.length;
+      for(i = 0; i<nMatches; i++) {
         for(j = 0; stopWords[j] != null; j++) {
           if((typeof stopWords[j]) == 'string') {
             if(stopWords[j] == list[i]) {
               list.splice(i, 1);
               i--;
+              nMatches = list.length;
               break;
             }
           } else if(stopWords[j].test(list[i])) {
             list.splice(i, 1);
             i--;
+            nMatches = list.length;
             break;
           }
         }
@@ -8688,10 +8905,12 @@
     }
 
     if(minSizeWords > 0) {
+      nMatches = list.length;
       for(i = 0; list[i] != null; i++) {
         if(list[i].length < minSizeWords) {
           list.splice(i, 1);
           i--;
+          nMatches = list.length;
         }
       }
     }
@@ -8704,7 +8923,7 @@
         return list;
       }
 
-      var occurrences = ListOperators.countOccurrencesOnList(list);
+      var occurrences = list.getFrequenciesTable();
       list = list.getSortedByList(occurrences);
       if(limit !== 0) list = list.substr(0, limit);
 
@@ -9042,21 +9261,71 @@
   };
 
   /**
-   * @todo finish docs
+   * transforms a text by performing multiple optional cleaning operations (applied in the same order as parameters suggest)
+   * @param {String} string to be transformed
+   *
+   * @param {Boolean} removeEnters
+   * @param {Boolean} removeTabs
+   * @param {String} replaceTabsAndEntersBy
+   * @param {Boolean} removePunctuation
+   * @param {Boolean} toLowerCase
+   * @param {StringList} stopWords removes strings from text
+   * @param {Boolean} removeDoubleSpaces
+   * @return {String}
+   * tags:filter
    */
-  StringOperators.removeEnters = function(string) {
-    return string.replace(/(\StringOperators.ENTER|\StringOperators.ENTER2|\StringOperators.ENTER3)/gi, " ");
+  StringOperators.cleanText = function(string, removeEnters, removeTabs, replaceTabsAndEntersBy, removePunctuation, toLowerCase, stopWords, removeDoubleSpaces){
+    if(string==null) return null;
+
+    //console.log("string["+string+"]");
+
+    if(removeEnters) string = StringOperators.removeEnters(string, replaceTabsAndEntersBy);
+    if(removeTabs) string = StringOperators.removeTabs(string, replaceTabsAndEntersBy);
+    if(removePunctuation) string = StringOperators.removePunctuation(string);
+    if(toLowerCase) string = string.toLowerCase();
+
+    if(stopWords!=null){
+      string = StringOperators.replaceStringsInText(string, stopWords, "");
+    }
+
+    if(removeDoubleSpaces) string = StringOperators.removeDoubleSpaces(string);
+
+    return string;
   };
 
   /**
-   * @todo finish docs
+   * removes enters from string
+   * @param {String} string to be transformed
+
+   * @param {String} replaceBy optional string to replace enters
+   * @return {String}
+   * tags:
    */
-  StringOperators.removeTabs = function(string) {
-    return string.replace(/(\StringOperators.TAB|\StringOperators.TAB2|\t)/gi, "");
+  StringOperators.removeEnters = function(string, replaceBy) {
+    replaceBy = replaceBy==null?"":replaceBy;
+    return string.replace(/(\StringOperators.ENTER|\StringOperators.ENTER2|\StringOperators.ENTER3)/gi, replaceBy);
   };
 
   /**
-   * @todo finish docs
+   * removes tabs from string
+   * @param {String} string to be transformed
+
+   * @param {String} replaceBy optional string to replace tabs
+   * @return {String}
+   * tags:
+   */
+  StringOperators.removeTabs = function(string, replaceBy) {
+    replaceBy = replaceBy || "";
+    return string.replace(/(\StringOperators.TAB|\StringOperators.TAB2|\t)/gi, replaceBy);
+  };
+
+  /**
+   * removes punctuation from a string, using regex /[:,.;?!\(\)\"\']/gi
+   * @param {String} string to be transformed
+
+   * @param {String} replaceBy optional string to replace punctuation signs
+   * @return {String}
+   * tags:
    */
   StringOperators.removePunctuation = function(string, replaceBy) {
     replaceBy = replaceBy || "";
@@ -9064,7 +9333,10 @@
   };
 
   /**
-   * @todo finish docs
+   * removes double spaces from a string
+   * @param {String} string to be transformed
+   * @return {String}
+   * tags:
    */
   StringOperators.removeDoubleSpaces = function(string) {
     var retString = string;
@@ -9547,14 +9819,16 @@
   /**
    * parses a Date
    * @param  {String} string date in string format
-   * @param  {String} formatCase <br>0: MM-DD-YYYY<br>1: YYYY-MM-DD<br>2: MM-DD-YY<br>3: YY-MM-DD<br>4: DD-MM-YY<br>5: DD-MM-YYYY
+   * @param  {Number} formatCase <br>0: MM-DD-YYYY<br>1: YYYY-MM-DD<br>2: MM-DD-YY<br>3: YY-MM-DD<br>4: DD-MM-YY<br>5: DD-MM-YYYY
    * @param  {String} separator
    * @return {Date}
    * tags:decoder
    */
-  DateOperators.stringToDate = function(string, formatCase, separator) {
+  DateOperators.stringToDate = function(string, formatCase, separator) {// @todo: move to StringConversions
     separator = separator == null ? "-" : separator;
     formatCase = formatCase == null ? 1 : formatCase;
+
+    formatCase = Number(formatCase);
 
     if(formatCase == 1) {
       if(separator != "-") string = string.replace(new RegExp(string, "g"), "-");
@@ -9591,7 +9865,7 @@
    * 0: MM-DD-YYYY
    * 1: YYYY-MM-DD
    */
-  DateOperators.dateToString = function(date, formatCase, separator) {
+  DateOperators.dateToString = function(date, formatCase, separator) {// @todo: move to DateConversions
     separator = separator == null ? "-" : separator;
     formatCase = formatCase == null ? 0 : formatCase;
     var year = date.getFullYear();
@@ -9652,28 +9926,28 @@
   /**
    * @todo write docs
    */
-  DateOperators.getHoursBetweenDates = function(date0, date1) {
+  DateOperators.hoursBetweenDates = function(date0, date1) {
     return(date1.getTime() - date0.getTime()) * DateOperators.millisecondsToHours;
   };
 
   /**
    * @todo write docs
    */
-  DateOperators.getDaysBetweenDates = function(date0, date1) {
+  DateOperators.daysBetweenDates = function(date0, date1) {
     return(date1.getTime() - date0.getTime()) * DateOperators.millisecondsToDays;
   };
 
   /**
    * @todo write docs
    */
-  DateOperators.getWeeksBetweenDates = function(date0, date1) {
+  DateOperators.weeksBetweenDates = function(date0, date1) {
     return(date1.getTime() - date0.getTime()) * DateOperators.millisecondsToWeeks;
   };
 
   /**
    * @todo write docs
    */
-  DateOperators.getYearsBetweenDates = function(date0, date1) {
+  DateOperators.yearsBetweenDates = function(date0, date1) {
     return(date1.getTime() - date0.getTime()) * DateOperators.millisecondsToYears;
   };
 
@@ -10623,7 +10897,6 @@
             if(node.group != null) {
               group = groups.getFirstElementByPropertyValue("name", node.group);
               if(group == null) {
-                console.log("NODES new group:[" + node.group + "]");
                 group = new NodeList();
                 group.name = node.group;
                 group.name = group.name.replace(/\\n/g, '\n').replace(/\\'/g, "'");
@@ -12024,7 +12297,7 @@
   }
 
   function evalJavaScriptFunction(functionText, args, scope){
-  	if(functionText==null) return;
+  	if(functionText==null || functionText=="") return;
 
   	var res;
 
@@ -12292,8 +12565,10 @@
       }
     }
 
+    separator = separator==null?",":separator;
+
     var table = new Table();
-    var comaCharacter = separator != undefined ? separator : ",";
+    var comaCharacter = separator;
 
     if(csvString == null || csvString === "" || csvString == " " || lines.length === 0) return null;
 
@@ -12307,6 +12582,7 @@
     var element;
     var cellContent;
     var numberCandidate;
+
     for(i = startIndex; i < lines.length; i++) {
       if(lines[i].length < 2) continue;
 
@@ -12327,7 +12603,7 @@
 
         numberCandidate = Number(cellContent.replace(',', '.'));
 
-        element = (numberCandidate || (numberCandidate == 0 && cellContent !== '')) ? numberCandidate : cellContent;
+        element = (numberCandidate || (numberCandidate === 0 && cellContent !== '')) ? numberCandidate : cellContent;
 
         if(typeof element == 'string') element = TableEncodings._removeQuotes(element);
 
@@ -12370,6 +12646,7 @@
     var j;
     var list;
     var type;
+    if(table == null) return null;
     var lines = ListGenerators.createListWithSameElement(table[0].length, "");
     var addSeparator;
     for(i = 0; table[i] != null; i++) {
@@ -12406,7 +12683,7 @@
   Matrix.prototype.constructor = Matrix;
 
 
-  //all Matrix objects and methods should be ported to NumberTable (same at MatrixGenerators.json)
+  //@todo all Matrix objects and methods should be ported to NumberTable (same at MatrixGenerators.json)
 
   /**
    * @classdesc Matrix implementation.
@@ -15275,7 +15552,8 @@
     var i;
     var rect;
     var highestRatio = 1;
-    for(i = 0; i < normalizedWeightList.length; i++) {
+    var l = normalizedWeightList.length;
+    for(i = 0; i < l; i++) {
       areai = normalizedWeightList[i] * area / sum;
       if(rectangle.width > rectangle.height) {
         rect = new Rectangle(freeRectangle.x, freeRectangle.y, areai / freeRectangle.height, freeRectangle.height);
@@ -16222,80 +16500,6 @@
     return newTable;
   };
 
-
-
-  /**
-   * aggregates a table
-   * @param  {Table} table to be aggregated, deprecated: a new more powerful method has been built
-   * @param  {Number} nList list in the table used as basis to aggregation
-   * @param  {Number} mode mode of aggregation, 0:picks first element 1:adds numbers, 2:averages
-   * @return {Table} aggregated table
-   * tags:deprecated
-   */
-  TableOperators.aggregateTableOld = function(table, nList, mode) {
-    nList = nList == null ? 0 : nList;
-    if(table == null || table[0] == null || table[0][0] == null || table[nList] == null) return null;
-    mode = mode == null ? 0 : mode;
-
-    var newTable = new Table();
-    var i, j;
-    var index;
-    var notRepeated;
-
-    newTable.name = table.name;
-
-    for(j = 0; table[j] != null; j++) {
-      newTable[j] = new List();
-      newTable[j].name = table[j].name;
-    }
-
-    switch(mode) {
-      case 0: //leaves the first element of the aggregated subLists
-        for(i = 0; table[0][i] != null; i++) {
-          notRepeated = newTable[nList].indexOf(table[nList][i]) == -1;
-          if(notRepeated) {
-            for(j = 0; table[j] != null; j++) {
-              newTable[j].push(table[j][i]);
-            }
-          }
-        }
-        break;
-      case 1: //adds values in numberLists
-        for(i = 0; table[0][i] != null; i++) {
-          index = newTable[nList].indexOf(table[nList][i]);
-          notRepeated = index == -1;
-          if(notRepeated) {
-            for(j = 0; table[j] != null; j++) {
-              newTable[j].push(table[j][i]);
-            }
-          } else {
-            for(j = 0; table[j] != null; j++) {
-              if(j != nList && table[j].type == 'NumberList') {
-                newTable[j][index] += table[j][i];
-              }
-            }
-          }
-        }
-        break;
-      case 2: //averages values in numberLists
-        var nRepetitionsList = table[nList].getFrequenciesTable(false);
-        newTable = TableOperators.aggregateTableOld(table, nList, 1);
-
-        for(j = 0; newTable[j] != null; j++) {
-          if(j != nList && newTable[j].type == 'NumberList') {
-            newTable[j] = newTable[j].divide(nRepetitionsList[1]);
-          }
-        }
-
-        newTable.push(nRepetitionsList[1]);
-        break;
-    }
-    for(j = 0; newTable[j] != null; j++) {
-      newTable[j] = newTable[j].getImproved();
-    }
-    return newTable.getImproved();
-  };
-
   /**
    * counts pairs of elements in same positions in two lists (the result is the adjacent matrix of the network defined by pairs)
    * @param  {Table} table with at least two lists
@@ -16340,41 +16544,101 @@
     if(table == null ||  table.length <= 0 || nList == null) return;
     if(element == null) return table;
 
+    keepRowIfElementIsPresent = keepRowIfElementIsPresent==null?true:keepRowIfElementIsPresent;
+
 
     var newTable = new Table();
     var i, j;
+    var l = table.length;
+    var l0 = table[0].length;
 
     newTable.name = table.name;
 
-    for(j = 0; table[j] != null; j++) {
+    for(j = 0; j<l; j++) {
       newTable[j] = new List();
       newTable[j].name = table[j].name;
     }
 
     if(keepRowIfElementIsPresent){
-      for(i = 0; table[0][i] != null; i++) {
+      for(i = 0; i<l0; i++) {
         if(table[nList][i] == element) {
-          for(j = 0; table[j] != null; j++) {
+          for(j = 0; j<l; j++) {
             newTable[j].push(table[j][i]);
           }
         }
       }
     } else {
-      for(i = 0; table[0][i] != null; i++) {
+      for(i = 0; i<l0; i++) {
         if(table[nList][i] != element) {
-          for(j = 0; table[j] != null; j++) {
+          for(j = 0; j<l; j++) {
             newTable[j].push(table[j][i]);
           }
         }
       }
     }
 
-    for(j = 0; newTable[j] != null; j++) {
+    for(j = 0; j<l; j++) {
       newTable[j] = newTable[j].getImproved();
     }
 
     return newTable;
   };
+
+  /**
+   * filter a table selecting rows that have one of the elements provided on one of its lists
+   * @param  {Table} table
+   * @param  {Number} nList list that could contain some of the elements in several positions
+   * @param  {List} elements
+   *
+   * @param {Boolean} keepRowIfElementIsPresent if true (default value) the row is selected if the list contains the given element, if false the row is discarded
+   * @return {Table}
+   * tags:filter
+   */
+  TableOperators.filterTableByElementsInList = function(table, nList, elements, keepRowIfElementIsPresent) {
+    if(table == null ||  table.length <= 0 || nList == null) return;
+    if(elements == null || elements.length===0) return table;
+
+    keepRowIfElementIsPresent = keepRowIfElementIsPresent==null?true:keepRowIfElementIsPresent;
+
+    var elementsDictionary = ListOperators.getBooleanDictionaryForList(elements);
+
+    var newTable = new Table();
+    var i, j;
+    var l = table.length;
+    var l0 = table[0].length;
+
+    newTable.name = table.name;
+
+    for(j = 0; j<l; j++) {
+      newTable[j] = new List();
+      newTable[j].name = table[j].name;
+    }
+
+    if(keepRowIfElementIsPresent){
+      for(i = 0; i<l0; i++) {
+        if(elementsDictionary[ table[nList][i] ]) {
+          for(j = 0; j<l; j++) {
+            newTable[j].push(table[j][i]);
+          }
+        }
+      }
+    } else {
+      for(i = 0; i<l0; i++) {
+        if(!elementsDictionary[ table[nList][i] ]) {
+          for(j = 0; j<l; j++) {
+            newTable[j].push(table[j][i]);
+          }
+        }
+      }
+    }
+
+    for(j = 0; j<l; j++) {
+      newTable[j] = newTable[j].getImproved();
+    }
+
+    return newTable;
+  };
+
 
   /**
    * @todo finish docs
@@ -16392,17 +16656,29 @@
   };
 
   /**
-   * creates a new table with an updated first List of elements and an added new numberList with the new values
+   * creates a new table with an updated first categorical List of elements and  added new numberLists with the new values
+   * @param {Table} table0 table wit a list of elements and a numberList of numbers associated to elements
+   * @param {Table} table1 wit a list of elements and a numberList of numbers associated to elements
+   * @return {Table}
+   * tags:
    */
   TableOperators.mergeDataTables = function(table0, table1) {
+    if(table0==null || table1==null || table0.length<2 || table1.length<2) return;
+    
     if(table1[0].length === 0) {
       var merged = table0.clone();
       merged.push(ListGenerators.createListWithSameElement(table0[0].length, 0));
       return merged;
     }
 
+    var categories0 = table0[0];
+    var categories1 = table1[0];
+
+    var dictionaryIndexesCategories0 = ListOperators.getSingleIndexDictionaryForList(categories0);
+    var dictionaryIndexesCategories1 = ListOperators.getSingleIndexDictionaryForList(categories1);
+
     var table = new Table();
-    var list = ListOperators.concatWithoutRepetitions(table0[0], table1[0]);
+    var list = ListOperators.concatWithoutRepetitions(categories0, categories1);
 
     var nElements = list.length;
 
@@ -16417,7 +16693,8 @@
     var i, j;
 
     for(i = 0; i < nElements; i++) {
-      index = table0[0].indexOf(list[i]);
+      //index = categories0.indexOf(list[i]);//@todo: imporve efficiency by creating dictionary
+      index = dictionaryIndexesCategories0[list[i]];
       if(index > -1) {
         for(j = 0; j < nNumbers0; j++) {
           if(i === 0) {
@@ -16436,7 +16713,8 @@
         }
       }
 
-      index = table1[0].indexOf(list[i]);
+      //index = categories1.indexOf(list[i]);
+      index = dictionaryIndexesCategories1[list[i]];
       if(index > -1) {
         for(j = 0; j < nNumbers1; j++) {
           if(i === 0) {
@@ -16458,10 +16736,15 @@
 
     table[0] = list;
 
-    for(i = 0; numberTable0[i] != null; i++) {
+    var l = numberTable0.length;
+
+    for(i = 0; i<l; i++) {
       table.push(numberTable0[i]);
     }
-    for(i = 0; numberTable1[i] != null; i++) {
+
+    l = numberTable1.length;
+
+    for(i = 0; i<l; i++) {
       table.push(numberTable1[i]);
     }
     return table;
@@ -16473,13 +16756,13 @@
    * @param {Object} table1
    * @return {Table}
    */
-  TableOperators.fusionDataTables = function(table0, table1) {
+  TableOperators.sumDataTables = function(table0, table1) {//
     var table = table0.clone();
     var index;
     var element;
     for(var i = 0; table1[0][i] != null; i++) {
       element = table1[0][i];
-      index = table[0].indexOf(element);
+      index = table[0].indexOf(element);//@todo make more efficient with dictionary
       if(index == -1) {
         table[0].push(element);
         table[1].push(table1[1][i]);
@@ -16581,6 +16864,7 @@
 
     return tablesList;
   };
+
 
   /**
    * builds a decision tree based on a table made of categorical lists, a list (the values of a supervised variable), and a value from the supervised variable. The result is a tree that contains on its leaves different populations obtained by iterative filterings by category values, and that contain extremes probabilities for having or not the valu ein the supervised variable.
@@ -17189,14 +17473,14 @@
 
 
   /**
-   * return k means for k clusters of rows (waiting to be tested)
-   * @param  {NumberTable} numberTable
+   * calculates k means for k clusters of rows in a numberTable
+   * @param  {NumberTable} numberTable with 2 or more numberLists
    * @param  {Number} k number of means
    *
    * @param  {Number} returnIndexesMode return mode:<br>0:return list of lists of indexes of rows (default)<br>1:return a list of number of mean, k different values, one per row<br>2:return a list of categorical colors, k different colors, one per row<br>3:return means<br>4:return list of sub-tables<br>5:return object with all the previous
    * @param  {Number} number of iterations (1000 by default)
    * @return {Object} result (list, numberList, colorList, numberTable or object)
-   * tags:statistics,nontested
+   * tags:statistics
    */
   NumberTableOperators.kMeans = function(numberTable, k, returnIndexesMode, N){
     if(numberTable == null || numberTable[0]==null || k == null || k <= 0 || numberTable.getLengths().getInterval().getAmplitude()!==0) return null;
@@ -17205,7 +17489,7 @@
     N = (N==null || (N<=0))?1000:N;
 
     var clusters = new NumberTable();// = returnIndexesMode?new NumberList():new NumberTable();
-
+    ClassUtils
     var i, j, l;
     var jK;
     var row;
@@ -17666,6 +17950,9 @@
         flowTable[j + include0Add][i] = ((numberList[i] - minToNormalize) / maxToNormalize) + flowTable[j - 1 + include0Add][i];
       }
     }
+
+    console.log('flowTable', flowTable);
+
     return flowTable;
   };
 
@@ -17730,7 +18017,6 @@
           } else {
             intervalTable[i][j] = interval.add((1 - maxCols[j]) * 0.5);
           }
-
         }
       }
     }
@@ -18014,11 +18300,20 @@
    * @todo write docs
    */
   IntervalListOperators.scaleIntervals = function(intervalList, value) {
+  	if(intervalList==null) return;
+
+  	value = value==null?1:value;
+
     var newIntervalList = new List();
+    var l = intervalList.length;
+    var i;
+
     newIntervalList.name = intervalList.name;
-    for(var i = 0; intervalList[i] !== null; i++) {
+
+    for(i = 0; i<l; i++) {
       newIntervalList[i] = intervalList[i].getScaled(value);
     }
+
     return newIntervalList;
   };
 
@@ -18034,11 +18329,19 @@
    * @todo write docs
    */
   IntervalTableOperators.scaleIntervals = function(intervalTable, value) {
+  	if(intervalTable==null) return null;
+
     var newIntervalTable = new Table();
+
     newIntervalTable.name = intervalTable.name;
-    for(var i = 0; intervalTable[i] !== null; i++) {
+
+    var l = intervalTable.length;
+    var i;
+
+    for(i = 0; i<l; i++) {
       newIntervalTable[i] = IntervalListOperators.scaleIntervals(intervalTable[i], value);
     }
+
     return newIntervalTable;
   };
 
@@ -18553,6 +18856,17 @@
     return text;
   };
 
+
+  /**
+   * return length of list, string or Object with length property
+   * @param {Object} object with length property
+   * @return {Number} length of number
+   * tags:
+   */
+  ObjectOperators.getLength = function(object){
+    if(object==null || object["length"]==null) return;
+    return object.length;
+  };
 
 
   /**
@@ -19176,23 +19490,89 @@
 
   /**
    * replaces in each string, a sub-string by a string
-   *
-   * @param  {StringList} stringList  StringList to work on.
-   * @param  {String} subString sub-string to be replaced in each string
+   * @param  {StringList} texts  where to replace strings
+   * @param  {StringList} strings to be replaced (could be Regular Expressions)
    * @param  {String} replacement string to be placed instead
    * @return {StringList}
    * tags:
    */
-  StringListOperators.replaceSubStringsInStrings = function(stringlist, subString, replacement) {
-    var newStringList = new StringList();
-    newStringList.name = stringlist.name;
+  StringListOperators.replaceStringsInTexts = function(texts, strings, replacement) {
+    if(texts==null || strings==null || replacement==null) return null;
 
-    for(var i = 0; stringlist[i] != null; i++) {
-      newStringList[i] = StringOperators.replaceSubString(stringlist[i], subString, replacement);
+    var newTexts = new StringList();
+    newTexts.name = texts.name;
+    var nTexts = texts.length;
+    var nStrings = strings.length;
+    var i, j;
+    var string;
+
+    for(i = 0; i<nTexts; i++) {
+      newTexts[i] = texts[i];
+      for(j=0; j<nStrings; j++){
+        string = strings[j];
+        if(!(string instanceof RegExp)) string = new RegExp(string, "g");
+        newTexts[i] = newTexts[i].replace(string, replacement);
+      }
     }
 
-    return newStringList;
+    return newTexts;
   };
+
+  /**
+   * replaces in each string, a sub-string by a string
+   * @param  {StringList} stringList  StringList to work on.
+   * @param  {String} string to be replaced (could be Regular Expression)
+   * @param  {String} replacement string to be placed instead
+   * @return {StringList}
+   * tags:
+   */
+  StringListOperators.replaceStringInTexts = function(texts, string, replacement) {
+    if(texts==null || string==null || replacement==null) return null;
+
+    if(!(string instanceof RegExp)) string = new RegExp(string, "g");
+
+    var newTexts = new StringList();
+    newTexts.name = texts.name;
+    var nTexts = texts.length;
+    var i;
+
+    for(i = 0; i<nTexts; i++) {
+      newTexts[i] = texts[i].replace(string, replacement);
+    }
+
+    return newTexts;
+  };
+
+  /**
+   * replaces in each string, a sub-string by a string
+   * @param  {StringList} texts  where to replace strings
+   * @param  {StringList} strings to be replaced (could be Regular Expressions)
+   * @param  {StringList} replacements strings to be placed instead (should have same length as strings)
+   * @return {StringList}
+   * tags:
+   */
+  StringListOperators.replaceStringsInTextsByStrings = function(texts, strings, replacements) {
+    if(texts==null || strings==null || replacements==null) return null;
+
+    var newTexts = new StringList();
+    newTexts.name = texts.name;
+    var nTexts = texts.length;
+    var nStrings = strings.length;
+    var i, j;
+    var string;
+
+    for(i = 0; i<nTexts; i++) {
+      newTexts[i] = texts[i];
+      for(j=0; j<nStrings; j++){
+        string = strings[j];
+        if(!(string instanceof RegExp)) string = new RegExp(string, "g");
+        newTexts[i] = newTexts[i].replace(string, replacements[j]);
+      }
+    }
+
+    return newTexts;
+  };
+
 
 
 
@@ -19206,6 +19586,14 @@
   /**
    * @todo finish docs
    */
+
+  /**
+  * finds strings from a list in strings in another list (typically the strings in the first list are short, and in the second longer texts)
+  * @param {StringList} list of strings or list of Regular Expressions
+  * @param {StringList} list of texts were to search
+  * @return {NumberTable} matrix of results, each column being the vector of occurrences for each string
+  * tags:count
+  */
   StringListOperators.countStringsOccurrencesOnTexts = function(strings, texts) {
     var occurrencesTable = new NumberTable();
 
@@ -19593,11 +19981,13 @@
   function TreeConversions() {}
   /**
    * convert a table that describes a tree (higher hierarchies in first lists) into a Tree
+   * count ocurrences of leaves in the table and assigns value to nodes weight
+   * assigns the index of row associated to leaves in properties: firstIndexInTable and indexesInTable
    * @param {Table} table
    *
    * @param {String} fatherName name of father node
    * @return {Tree}
-   * tags:convertion
+   * tags:conversion
    */
   TreeConversions.TableToTree = function(table, fatherName)  {
     if(table == null) return;
@@ -19611,23 +20001,71 @@
     var father = new _Node(fatherName, fatherName);
     tree.addNodeToTree(father, null);
 
-    table.forEach(function(list, i) {
-      table[i].forEach(function(element, j) {
-        id = TreeConversions.getId(table, i, j);
+    var nLists = table.length;
+    var nElements = table[0].length;
+    var i, j;
+    var list, element;
+
+    for(i=0; i<nLists; i++){
+      list = table[i];
+      if(list.length!=nElements) return null;
+      for(j=0; j<nElements; j++){
+        element = list[j];
+        
+        id = TreeConversions._getId(table, i, j);
         node = tree.nodeList.getNodeById(id);
         if(node == null) {
           node = new _Node(id, String(element));
           if(i === 0) {
             tree.addNodeToTree(node, father);
           } else {
-            parent = tree.nodeList.getNodeById(TreeConversions.getId(table, i - 1, j));
+            parent = tree.nodeList.getNodeById(TreeConversions._getId(table, i - 1, j));
             tree.addNodeToTree(node, parent);
           }
+
+          node.firstIndexInTable = j;
+          node.indexesInTable = new NumberList(j);
+
+        } else {
+          node.weight++;
+          node.indexesInTable.push(j);
         }
-      });
-    });
+      }
+    }
+
+
+    // table.forEach(function(list, i) {
+    //   table[i].forEach(function(element, j) {
+    //     id = TreeConversions._getId(table, i, j);
+    //     node = tree.nodeList.getNodeById(id);
+    //     if(node == null) {
+    //       node = new Node(id, String(element));
+    //       if(i === 0) {
+    //         tree.addNodeToTree(node, father);
+    //       } else {
+    //         parent = tree.nodeList.getNodeById(TreeConversions._getId(table, i - 1, j));
+    //         tree.addNodeToTree(node, parent);
+    //       }
+    //     }
+    //   });
+    // });
 
     tree.assignDescentWeightsToNodes();
+
+    var _assignIndexesToNode = function(node) {
+      var i;
+      if(node.toNodeList.length === 0) {
+        return node.indexesInTable;
+      } else {
+        node.indexesInTable = new NumberList();
+      }
+      for(i = 0; node.toNodeList[i] != null; i++) {
+        node.indexesInTable = node.indexesInTable.concat( _assignIndexesToNode(node.toNodeList[i]) );
+      }
+      return node.indexesInTable;
+    };
+
+    _assignIndexesToNode(tree.nodeList[0]);
 
     return tree;
   };
@@ -19635,7 +20073,7 @@
   /**
    * @todo write docs
    */
-  TreeConversions.getId = function(table, i, j) {
+  TreeConversions._getId = function(table, i, j) {
     var iCol = 1;
     var id = String(table[0][j]);
     while(iCol <= i) {
@@ -19728,7 +20166,7 @@
 
   /**
    * Returns a NodeList with the Nodes in the Network that are part of the
-   * first shortest path found between the two input nodes.
+   * first shortest path found between the two input nodes. Aka geodesic path between two nodes
    *
    * @param {Network} network Network to work on.
    * @param {Node} node0 Source Node.
@@ -20521,7 +20959,6 @@
     nodes = new NodeList(nodeList[indexes[0]], nodeList[indexes[1]]);
     nodes.strength = maxStrength;
     return nodes;
-
   };
 
   /**
@@ -20544,30 +20981,52 @@
 
     return strength / (nodeList0.length * nodeList1.length * pRelationPair);
   };
-
-
+   
 
   /**
    * Builds a Table of clusters, based on an dendrogram Tree (if not provided it will be calculated), and a weight bias
-   * @param  {Network} network
+   * @param {Network} network
    *
-   * @param  {Tree} dendrogramTree Dendrogram Tree, if precalculated, changes in weight bias will perform faster
-   * @param  {Number} minWeight Weight bias, criteria to group clusters (0.5 default)
+   * @param {Number} mode cluster mode, 0: Louvain (default), 1: Moebio algorithm
+   * @param {Tree} dendrogramTree Dendrogram Tree, if precalculated, changes in weight bias will perform faster (not required for Louvain)
+   * @param {Number} minWeight Weight bias, criteria to group clusters (0.5 default, the higher the value, the higer the number of clusters, not required for Louvain)
+   * @param {Boolean} addColorToNodes if true, adds a color associated to cluster, [!] modifies nodes color property
    * @return {Table} List of NodeLists
    * tags:analysis
    */
-  NetworkOperators.buildNetworkClusters = function(network, dendrogramTree, minWeight) {
+  NetworkOperators.buildNetworkClusters = function(network, mode, dendrogramTree, minWeight, addColorToNodes) {
     if(network == null) return;
 
-    if(dendrogramTree == null) dendrogramTree = NetworkOperators.buildDendrogram(network);
-    minWeight = minWeight || 0.5;
+    var clusters;
+    var colors;
+    var i, j;
+    var nClusters, nNodes;
 
-    var clusters = new Table();
+    if(mode==null || mode===0){
+      clusters = NetworkOperators._buildNetworkClustersLouvain(network);
+    } else {
+      if(dendrogramTree == null) dendrogramTree = NetworkOperators.buildDendrogram(network);
+      minWeight = minWeight || 0.5;
 
-    NetworkOperators._iterativeBuildClusters(dendrogramTree.nodeList[dendrogramTree.nodeList.length - 1], clusters, minWeight);
+      clusters = new Table();
+
+      NetworkOperators._iterativeBuildClusters(dendrogramTree.nodeList[dendrogramTree.nodeList.length - 1], clusters, minWeight);
+    }
+
+    if(addColorToNodes){
+      colors = ColorListGenerators.createDefaultCategoricalColorList(clusters.length);
+      nClusters = clusters.length;
+      for(i=0; i<nClusters; i++){
+        nNodes = clusters[i].length;
+        for(j=0; j<nNodes; j++){
+          clusters[i][j].color = colors[i];
+        }
+      }
+    }
 
     return clusters;
   };
+
 
   /**
    * @ignore
@@ -20589,6 +21048,49 @@
     } else {
       NetworkOperators._iterativeBuildClusters(node.nodeList[1], clusters, minWeight);
     }
+  };
+
+  /**
+   * Builds a Table of clusters based on Louvain community detection.
+   * @param {Network} network
+   * @return {Table} List of NodeLists
+   */
+  NetworkOperators._buildNetworkClustersLouvain = function(network) {
+    if(network==null) return network;
+
+    var node_data = [];
+    var i;
+    for(i=0; i < network.nodeList.length; i++){
+      // force nodes to be stringlike since they get used as properties in result
+      node_data.push('n'+network.nodeList[i].id);
+    }
+    var edge_data = [];
+    for(i=0; i < network.relationList.length; i++){
+      var obj = {source: 'n'+network.relationList[i].node0.id,
+                 target: 'n'+network.relationList[i].node1.id,
+                 weight:network.relationList[i].weight};
+      edge_data.push(obj);
+    }
+
+    // Object with ids of nodes as properties and community number assigned as value.
+    var community = NetworkOperators._jLouvain().nodes(node_data).edges(edge_data);
+    var result  = community();
+    var clusters = new Table();
+
+    if(result)
+      for(i=0; i < network.nodeList.length; i++){
+        var j = result['n'+network.nodeList[i].id];
+        if(clusters[j] == undefined)
+          clusters[j]= new NodeList();
+        clusters[j].addNode(network.nodeList[i]);
+      }
+    else{
+      // no results mean no communities, make them all unique
+      for(i=0; i < network.nodeList.length; i++){
+        clusters.push(new NodeList(network.nodeList[i]));
+      }
+    }
+    return clusters;
   };
 
 
@@ -21139,49 +21641,6 @@
     return core;
   };
 
-  /**
-   * Builds a Table of clusters based on Louvain community detection.
-   * @param {Network} network
-   * @return {Table} List of NodeLists
-   * tags:analysis
-   */
-  NetworkOperators.buildNetworkClustersLouvain = function(network) {
-    if(network==null) return network;
-
-    var node_data = [];
-    var i;
-    for(i=0; i < network.nodeList.length; i++){
-      // force nodes to be stringlike since they get used as properties in result
-      node_data.push('n'+network.nodeList[i].id);
-    }
-    var edge_data = [];
-    for(i=0; i < network.relationList.length; i++){
-      var obj = {source: 'n'+network.relationList[i].node0.id,
-                 target: 'n'+network.relationList[i].node1.id,
-                 weight:network.relationList[i].weight};
-      edge_data.push(obj);
-    }
-
-    // Object with ids of nodes as properties and community number assigned as value.
-    var community = NetworkOperators._jLouvain().nodes(node_data).edges(edge_data);
-    var result  = community();
-    var clusters = new Table();
-
-    if(result)
-      for(i=0; i < network.nodeList.length; i++){
-        var j = result['n'+network.nodeList[i].id];
-        if(clusters[j] == undefined)
-          clusters[j]= new NodeList();
-        clusters[j].addNode(network.nodeList[i]);
-      }
-    else{
-      // no results mean no communities, make them all unique
-      for(i=0; i < network.nodeList.length; i++){
-        clusters.push(new NodeList(network.nodeList[i]));
-      }
-    }
-    return clusters;
-  };
 
 
   /**
@@ -24791,6 +25250,12 @@
 
     bit = "";
     while(bit != null) {
+      bit = StringOperators.getFirstTextBetweenStrings(newText, "<fccolor", ">");
+      if(bit != null) newText = newText.replace("<fccolor" + bit + ">", "<font color=\"" + ColorOperators.colorStringToHEX(bit) + "\">");
+    }
+
+    bit = "";
+    while(bit != null) {
       bit = StringOperators.getFirstTextBetweenStrings(newText, "<frgb", ">");
       if(bit != null) {
         var rgb = bit.split(".");
@@ -26989,6 +27454,8 @@
   ListDraw.drawList = function(frame, list, returnMode, colorList, textSize, mode, selectedInit, graphics) {
     if(list == null || list.length < 0) return;
 
+    if(graphics==null) graphics = frame.graphics;
+
     textSize = textSize || 14;
     returnMode = returnMode == null ? 0 : returnMode;
 
@@ -27156,6 +27623,7 @@
     subframe.bottom = subframe.getBottom();
     var x;
     var dx = subframe.width / numberList.length;
+    var w = Math.max(1, dx);
     var overI = -1;
 
     var mouseOnFrame = subframe.containsPoint(graphics.mP);
@@ -27171,7 +27639,7 @@
         } else {
           graphics.setFill(normalColor);
         }
-        graphics.fRect(subframe.x + i * dx, zeroY, dx, -subframe.height * (frame.memory.normalizedList[i] - frame.memory.zero));
+        graphics.fRect(subframe.x + i * dx, zeroY, w, -subframe.height * (frame.memory.normalizedList[i] - frame.memory.zero));
       }
     } else {
       for(i = 0; numberList[i] != null; i++) {
@@ -27182,7 +27650,7 @@
         } else {
           graphics.setFill(normalColor);
         }
-        graphics.fRect(x, subframe.bottom, dx, -subframe.height * frame.memory.normalizedList[i]);
+        graphics.fRect(x, subframe.bottom, w, -subframe.height * frame.memory.normalizedList[i]);
       }
     }
 
@@ -27219,6 +27687,8 @@
     colors = colors == null ? ColorListGenerators.createCategoricalColors(0, intervalsFlowTable.length, ColorScales.temperature) : colors;
     bezier = bezier || false;
     offValue = offValue == null ? 0.45 : offValue;
+
+    if(graphics==null) graphics = frame.graphics;
 
     var i;
     var j;
@@ -27335,7 +27805,9 @@
 
 
 
-  IntervalTableDraw.drawCircularIntervalsFlowTable = function(intervalsFlowTable, center, radius, r0, colors, texts, returnHovered, angles, angle0, graphics) {
+  IntervalTableDraw.drawCircularIntervalsFlowTable = function(frame, intervalsFlowTable, center, radius, r0, colors, texts, returnHovered, angles, angle0, graphics) {
+    if(graphics==null) graphics = frame.graphics; //momentary fix
+
     var nElements = intervalsFlowTable.length;
     var i;
     var j;
@@ -27379,7 +27851,7 @@
 
       intervalList = intervalsFlowTable[i];
 
-      graphics.context.fillStyle = colors[i % nElements];
+      graphics.setFill(colors[i % nElements]);//context.fillStyle = colors[i % nElements];
 
       graphics.context.beginPath();
 
@@ -27447,7 +27919,9 @@
 
     }
 
-    for(i = 0; filteredTexts[i] != null; i++) {
+    var nTexts = filteredTexts.length;
+
+    for(i = 0; i<nTexts; i++) {
       graphics.setText('black', textsSizes[i], null, 'center', 'middle');
       graphics.fTextRotated(filteredTexts[i], textsX[i], textsY[i], textsAngles[i]);
     }
@@ -27481,6 +27955,8 @@
 
 
   IntervalTableDraw.drawIntervalsWordsFlowTable = function(frame, intervalsFlowTable, texts, colors, typode, graphics) {
+    if(graphics==null) graphics = frame.graphics; //momentary fix
+
     var nElements = intervalsFlowTable.length;
 
     var i;
@@ -27697,6 +28173,8 @@
    */
   NumberTableDraw.drawSimpleScatterPlot = function(frame, numberTable, texts, colors, maxRadius, loglog, margin, graphics) {
     if(frame == null ||  numberTable == null || numberTable.type != "NumberTable" ||  numberTable.length < 2 ||  numberTable[0].length === 0 || numberTable[1].length === 0) return; //todo:provisional, this is System's work
+
+    if(graphics==null) graphics = frame.graphics; //momentary fix
 
     if(numberTable.length < 2) return;
 
@@ -27964,6 +28442,8 @@
   NumberTableDraw.drawStreamgraph = function(frame, numberTable, normalized, sorted, intervalsFactor, bezier, colorList, horizontalLabels, showValues, logFactor, graphics) {
     if(numberTable == null ||  numberTable.length < 2 || numberTable.type != "NumberTable") return;
 
+    if(graphics==null) graphics = frame.graphics; //momentary fix
+
     bezier = bezier == null ? true : bezier;
 
     //var self = NumberTableDraw.drawStreamgraph;
@@ -27989,6 +28469,7 @@
         logFactor: logFactor,
         image: null
       };
+
     }
 
     if(colorList && frame.memory.colorList != colorList) frame.memory.image = null;
@@ -27999,21 +28480,23 @@
     }
 
     var flowFrame = new Rectangle(0, 0, frame.width, horizontalLabels == null ? frame.height : (frame.height - 14));
+    flowFrame.graphics = graphics;
 
     if(frame.memory.image == null) {
+      //frame.memory.image = new Image(10,10);
       // TODO refactor to not reassign context
       ///// capture image
-      // var newCanvas = document.createElement("canvas");
-      // newCanvas.width = frame.width;
-      // newCanvas.height = frame.height;
-      // var newContext = newCanvas.getContext("2d");
-      // newContext.clearRect(0, 0, frame.width, frame.height);
-      // var mainContext = context;
-      // context = newContext;
-      // IntervalTableDraw.drawIntervalsFlowTable(frame.memory.flowIntervals, flowFrame, frame.memory.actualColorList, bezier, 0.3);
-      // context = mainContext;
-      // frame.memory.image = new Image();
-      // frame.memory.image.src = newCanvas.toDataURL();
+      var newCanvas = document.createElement("canvas");
+      newCanvas.width = frame.width;
+      newCanvas.height = frame.height;
+      var newContext = newCanvas.getContext("2d");
+      newContext.clearRect(0, 0, frame.width, frame.height);
+      var mainContext = graphics.context;
+      graphics.context = newContext;
+      IntervalTableDraw.drawIntervalsFlowTable(frame.memory.flowIntervals, flowFrame, frame.memory.actualColorList, bezier, 0.3);
+      graphics.context = mainContext;
+      frame.memory.image = new Image();
+      frame.memory.image.src = newCanvas.toDataURL();
       /////
     }
 
@@ -28045,6 +28528,8 @@
   };
 
   NumberTableDraw._drawHorizontalLabels = function(frame, y, numberTable, horizontalLabels, x0, x1, graphics) {
+    if(graphics==null) graphics = frame.graphics; //momentary fix
+
     var dx = frame.width / (numberTable[0].length - 1);
     var x;
     var mX2 = Math.min(Math.max(graphics.mX, frame.x + 1), frame.getRight() - 1);
@@ -28074,6 +28559,8 @@
   };
 
   NumberTableDraw._drawPartialFlow = function(frame, flowIntervals, labels, colors, x, x0, x1, OFF_X, sorted, numberTable, graphics) {
+    if(graphics==null) graphics = frame.graphics; //momentary fix
+
     var w = x1 - x0;
     var wForText = numberTable == null ? (x1 - x0) : (x1 - x0) * 0.85;
 
@@ -28164,31 +28651,45 @@
   /**
    * draws a circular steamgraph Without labels
    * @param {Rectangle} frame
-   * @param {NumberTable} numberTable
+   * @param {Table} dataTable table with a categorical list and many numberLists
    *
    * @param {Boolean} normalized normalize each column, making the graph of constant height
    * @param {Boolean} sorted sort flow polygons
    * @param {Number} intervalsFactor number between 0 and 1, factors the height of flow polygons
    * @param {ColorList} colorList colors of polygons
-   * @param {List} names names of rows
-   * @return {NumberList} list of positions of elements on clicked coordinates
+   * @return {Number} index of position of element on first list associated with shape
    * tags:draw
    */
-  NumberTableDraw.drawCircularStreamgraph = function(frame, numberTable, normalized, sorted, intervalsFactor, colorList, names, graphics) {
-    if(numberTable == null ||  numberTable.length < 2 || numberTable[0].length < 2 || numberTable.type != "NumberTable") return;
+  NumberTableDraw.drawCircularStreamgraph = function(frame, dataTable, normalized, sorted, intervalsFactor, colorList, graphics) {
+    if(dataTable == null ||  dataTable.length < 3 || dataTable[0].length < 2) return;
+
+    if(graphics==null) graphics = frame.graphics; //momentary fix
 
     intervalsFactor = intervalsFactor == null ? 1 : intervalsFactor;
 
+    var over;
+
     //setup
-    if(frame.memory == null || numberTable != frame.memory.numberTable || normalized != frame.memory.normalized || sorted != frame.memory.sorted || intervalsFactor != frame.memory.intervalsFactor || frame.width != frame.memory.width || frame.height != frame.memory.height) {
+    if(frame.memory == null || dataTable != frame.memory.dataTable || normalized != frame.memory.normalized || sorted != frame.memory.sorted || intervalsFactor != frame.memory.intervalsFactor || frame.width != frame.memory.width || frame.height != frame.memory.height) {
+      var numberTable = TableOperators.getNumberTableFromTable(dataTable);
+      
+      if(numberTable.length<2) return;
+
+      numberTable = numberTable.getTransposed();
+
+      var names = dataTable.getNames().slice(1);
+      if(names!=null && names.join('')==='') names = null;
+
       frame.memory = {
+        dataTable:dataTable,
         numberTable: numberTable,
+        categories:dataTable[0],
+        names:names,
         normalized: normalized,
         sorted: sorted,
         intervalsFactor: intervalsFactor,
         flowIntervals: IntervalTableOperators.scaleIntervals(NumberTableFlowOperators.getFlowTableIntervals(numberTable, normalized, sorted), intervalsFactor),
         fOpen: 1,
-        names: numberTable.getNames(),
         mXF: graphics.mX,
         width: frame.width,
         height: frame.height,
@@ -28205,8 +28706,9 @@
         frame.memory.angles[i] = i * dA;
       });
     }
+
     if(frame.memory.colorList != colorList || frame.memory.colorList == null) {
-      frame.memory.actualColorList = colorList == null ? ColorListGenerators.createDefaultCategoricalColorList(numberTable.length, 0.4) : colorList;
+      frame.memory.actualColorList = colorList == null ? ColorListGenerators.createDefaultCategoricalColorList(frame.memory.numberTable.length, 0.4) : colorList;
       frame.memory.colorList = colorList;
     }
 
@@ -28241,14 +28743,15 @@
 
     if(mouseOnFrame) frame.memory.image = null;
 
-    var captureImage = frame.memory.image == null && !mouseOnFrame;
-    var drawingImage = !mouseOnFrame && frame.memory.image != null &&  !captureImage;
+    var captureImage = false;// frame.memory.image == null && !mouseOnFrame;
+    var drawingImage = false;// !mouseOnFrame && frame.memory.image != null &&  !captureImage;
 
     if(drawingImage) {
       graphics.drawImage(frame.memory.image, frame.x, frame.y, frame.width, frame.height);
     } else {
       if(captureImage) {
         // TODO refactor to not reassign context
+
         // var newCanvas = document.createElement("canvas");
         // newCanvas.width = frame.width;
         // newCanvas.height = frame.height;
@@ -28267,22 +28770,24 @@
       graphics.context.save();
       graphics.clipRectangle(frame.x, frame.y, frame.width, frame.height);
 
-      IntervalTableDraw.drawCircularIntervalsFlowTable(frame.memory.flowIntervals, frame.getCenter(), frame.memory.radius * frame.memory.zoom, frame.memory.r0, frame.memory.actualColorList, frame.memory.names, true, frame.memory.angles, frame.memory.angle0);
+      over = IntervalTableDraw.drawCircularIntervalsFlowTable(frame, frame.memory.flowIntervals, frame.getCenter(), frame.memory.radius * frame.memory.zoom, frame.memory.r0, frame.memory.actualColorList, frame.memory.categories, true, frame.memory.angles, frame.memory.angle0);
+      
+      frame.memory.zoom = Math.max(Math.min(frame.memory.zoom, 2000), 0.08);
 
-      graphics.context.restore();
-
-      if(names) {
+      if(frame.memory.names) {
         var a;
         var r = frame.memory.radius * frame.memory.zoom + 8;
 
         graphics.setText('black', 14, null, 'center', 'middle');
 
-        names.forEach(function(name, i) {
+        frame.memory.names.forEach(function(name, i) {
           a = frame.memory.angle0 + frame.memory.angles[i];
 
           graphics.fTextRotated(String(name), frame.getCenter().x + r * Math.cos(a), frame.getCenter().y + r * Math.sin(a), a + HalfPi);
         });
       }
+
+      graphics.context.restore();
 
 
       if(captureImage) {
@@ -28295,6 +28800,8 @@
         // drawImage(frame.memory.image, frame.x, frame.y, frame.width, frame.height);
       }
     }
+
+    return over;
   };
 
   /**
@@ -28706,39 +29213,65 @@
     if(externalSelectedNode != null) externalSelectedNode = tree.nodeList.getNodeById(externalSelectedNode.id);
 
     var changeSelection = (externalSelectedNode != null && (frame.memory == null || externalSelectedNode != frame.memory.nodeSelected));
+    var nNodes = tree.nodeList.length;
+    var node;
+    var i;
 
     if(change) {
-      var changeInTree = frame.memory != null && frame.memory.tree != null != tree;
+      var changeInTree = frame.memory==null || frame.memory.tree!=tree;
+      //console.log('changeInTree', changeInTree);
       //var changeInWeights = frame.memory != null && frame.memory.weights != weights;
+      //var prevNodeSelected = frame.memory==null?null:frame.memory.nodeSelected;
+      //var prevFocusFrame = frame.memory==null?null:frame.memory.prevFocusFrame;
 
-      frame.memory = {
-        tree: tree,
-        width: frame.width,
-        height: frame.height,
-        weights: weights,
-        nodeSelected: tree.nodeList[0],
-        nFLastChange: graphics.nF,
-        image: null
-      };
+      if(frame.memory==null){
+        frame.memory = {
+          width: frame.width,
+          height: frame.height,
+          weights: weights,
+          nFLastChange: graphics.nF,
+          tree:tree,
+          nodeSelected:tree.nodeList[0]
+        };
+      } else {
+        frame.memory.nFLastChange = graphics.nF;
+        frame.memory.weights = weights;
+        frame.memory.width = frame.width;
+        frame.memory.height = frame.height;
+
+        if(changeInTree) frame.memory.tree = tree;
+        if(changeSelection) frame.memory.nodeSelected = externalSelectedNode;
+      }
+
+      //frame.memory.nodeSelected = prevNodeSelected==null?tree.nodeList[0]:prevNodeSelected;
 
       var leaves = (!changeInTree && frame.memory.leaves) ? frame.memory.leaves : tree.getLeaves();
       frame.memory.leaves = leaves;
 
       if(weights == null) {
-        tree.nodeList.forEach(function(node) {
-          node._treeMapWeight = node.descentWeight;
-        });
+        //tree.nodeList.forEach(function(node) {
+        for(i=0; i<nNodes; i++){
+          tree.nodeList[i]._treeMapWeight = tree.nodeList[i].descentWeight;
+        }
+        //});
       } else {
-        leaves.forEach(function(node, i) {
-          node._treeMapWeight = weights[i];
-        });
+        var nLeaves = leaves.length;
+
+        //leaves.forEach(function(node, i) {
+        for(i=0; i<nLeaves; i++){
+          leaves[i]._treeMapWeight = weights[i];
+        }
+        //});
+
         var assignTreemapWeight = function(node) {
           var i;
+          var n;
           if(node.toNodeList.length === 0) {
             return node._treeMapWeight;
           } else {
             node._treeMapWeight = 0;
-            for(i = 0; node.toNodeList[i] != null; i++) {
+            n = node.toNodeList.length;
+            for(i = 0; i<n; i++) {
               node._treeMapWeight += assignTreemapWeight(node.toNodeList[i]);
             }
           }
@@ -28751,18 +29284,28 @@
       tree.nodeList[0]._inRectangle = TreeDraw._inRectFromOutRect(tree.nodeList[0]._outRectangle);
       TreeDraw._generateRectangles(tree.nodeList[0]);
 
-      frame.memory.focusFrame = TreeDraw._expandRect(tree.nodeList[0]._outRectangle);
-      //c.l('frame.memory.focusFrame', frame.memory.focusFrame);
+      //frame.memory.focusFrame = prevFocusFrame==null?TreeDraw._expandRect(tree.nodeList[0]._outRectangle):prevFocusFrame;
+      //console.log('frame.memory.focusFrame', frame.memory.focusFrame);
+      //if(frame.memory.nodeSelected!=null) console.log('frame.memory.nodeSelected.id', frame.memory.nodeSelected.id);
 
-      frame.memory.kx = frame.width / frame.memory.focusFrame.width;
-      frame.memory.mx = -frame.memory.kx * frame.memory.focusFrame.x;
-      frame.memory.ky = frame.height / frame.memory.focusFrame.height;
-      frame.memory.my = -frame.memory.ky * frame.memory.focusFrame.y;
+      //if(frame.memory.focusFrame==null || changeSelection) frame.memory.focusFrame = TreeDraw._expandRect(frame.memory.nodeSelected._outRectangle);
+      frame.memory.focusFrame = TreeDraw._expandRect(frame.memory.nodeSelected._outRectangle);
+
+      if(changeInTree){
+        //console.log('----->kx…');
+        frame.memory.kx = frame.width / frame.memory.focusFrame.width;
+        frame.memory.mx = -frame.memory.kx * frame.memory.focusFrame.x;
+        frame.memory.ky = frame.height / frame.memory.focusFrame.height;
+        frame.memory.my = -frame.memory.ky * frame.memory.focusFrame.y;
+      }
 
       graphics.setText('black', 12);
-      tree.nodeList.forEach(function(node) {
+      //tree.nodeList.forEach(function(node) {
+      for(i=0; i<nNodes; i++){
+        node = tree.nodeList[i];
         node._textWidth = graphics.getTextW(node.name);
-      });
+      }
+      //});
     }
 
     if(frame.memory.colorList != colorList || frame.memory.colorList == null) {
@@ -28773,9 +29316,12 @@
       if(textColor == null) frame.memory.textsColorList = new ColorList();
 
       if(frame.memory.actualColorList.length <= tree.nLevels) {
-        tree.nodeList.forEach(function(node, i) {
+        //tree.nodeList.forEach(function(node, i) {
+        for(i=0; i<nNodes; i++){
+          node = tree.nodeList[i];
           frame.memory.nodesColorList[i] = node._color = frame.memory.actualColorList[node.level % frame.memory.actualColorList.length];
-        });
+        }
+        //});
       } else if(frame.memory.actualColorList.length == frame.memory.leaves.length) {
         frame.memory.leaves.forEach(function(node, i) {
           node._color = frame.memory.actualColorList[i];
@@ -28797,22 +29343,31 @@
           node._rgb[2] = Math.floor(node._rgb[2] / node.toNodeList.length);
         };
         assignColor(tree.nodeList[0]);
-        tree.nodeList.forEach(function(node, i) {
+        //tree.nodeList.forEach(function(node, i) {
+        for(i=0; i<nNodes; i++){
+          node = tree.nodeList[i];
           if(node._rgb && node._rgbF == null) node._rgbF = [node._rgb[0], node._rgb[1], node._rgb[2]];
           frame.memory.nodesColorList[i] = 'rgb(' + node._rgb[0] + ',' + node._rgb[1] + ',' + node._rgb[2] + ')';
-        });
+        }
+        //});
       } else {
-        tree.nodeList.forEach(function(node, i) {
+        //tree.nodeList.forEach(function(node, i) {
+        for(i=0; i<nNodes; i++){
+          node = tree.nodeList[i];
           node._color = frame.memory.nodesColorList[i] = frame.memory.actualColorList[i % frame.memory.actualColorList.length];
-        });
+        }
+        //});
       }
 
       if(textColor == null) {
         var rgb;
-        tree.nodeList.forEach(function(node, i) {
+        //tree.nodeList.forEach(function(node, i) {
+        for(i=0; i<nNodes; i++){
+          node = tree.nodeList[i];
           rgb = node._color ? ColorOperators.colorStringToRGB(node._color) : [0, 0, 0];
           frame.memory.textsColorList[i] = (rgb[0] + rgb[1] + rgb[2] > 360) ? 'black' : 'white';
-        });
+        }
+        //});
       }
 
       frame.memory.colorList = colorList;
@@ -28853,9 +29408,9 @@
     var overNode = null;
     var overI;
     var mouseOnFrame = frame.containsPoint(graphics.mP);
-    var moving = graphics.nF - frame.memory.nFLastChange < 50 || Math.pow(frame.memory.kx - kxF, 2) + Math.pow(frame.memory.ky - kyF, 2) + Math.pow(frame.memory.mx - mxF, 2) + Math.pow(frame.memory.my - myF, 2) > 0.01;
-    var captureImage = !moving && frame.memory.image == null && !mouseOnFrame;
-    var drawingImage = !moving && !mouseOnFrame && frame.memory.image != null &&  !captureImage && frame.memory.image.width > 0 && !changeSelection;
+    //var moving = graphics.nF - frame.memory.nFLastChange < 50 || Math.pow(frame.memory.kx - kxF, 2) + Math.pow(frame.memory.ky - kyF, 2) + Math.pow(frame.memory.mx - mxF, 2) + Math.pow(frame.memory.my - myF, 2) > 0.01;
+    var captureImage = false;// !moving && frame.memory.image == null && !mouseOnFrame;
+    var drawingImage = false;// !moving && !mouseOnFrame && frame.memory.image != null &&  !captureImage && frame.memory.image.width > 0 && !changeSelection;
 
     if(drawingImage) {
       graphics.drawImage(frame.memory.image, frame.x, frame.y, frame.width, frame.height);
@@ -28999,19 +29554,27 @@
    * @ignore
    */
   TreeDraw._generateRectangles = function(node) {
-
+    var n = node.toNodeList.length;
+    var i;
     var weights = new NumberList();
-    node.toNodeList.forEach(function(node) {
-      weights.push(node._treeMapWeight);
-    });
+    var child;
+    //node.toNodeList.forEach(function(node) {
+    for(i=0; i<n; i++){
+      child = node.toNodeList[i];
+      weights.push(child._treeMapWeight);
+    }
+    //});
 
     var rectangles = RectangleOperators.squarify(node._inRectangle, weights, false, false);
 
-    node.toNodeList.forEach(function(child, i) {
+    //node.toNodeList.forEach(function(child, i) {
+    for(i=0; i<n; i++){
+      child = node.toNodeList[i];
       child._outRectangle = TreeDraw._reduceRect(rectangles[i]);
       child._inRectangle = TreeDraw._inRectFromOutRect(child._outRectangle);
       TreeDraw._generateRectangles(child);
-    });
+    }
+    //});
   };
 
   /**

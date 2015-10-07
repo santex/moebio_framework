@@ -107,6 +107,9 @@ Cells in the table can be accessed using table[column][row].</p>
     
 
 
+    
+
+
 
 <p>
     <p>Creates a new Table.
@@ -162,6 +165,11 @@ of the Table.</p>
 
 
     <h3 class="name" id=".fromArray"><span class="type-signature">(static) </span>fromArray<span class="signature">(array)</span><span class="type-signature"> &rarr; {<a href="Table.html">Table</a>}</span></h3>
+
+    
+    <div data-clipboard-text="mo.Table.fromArray( array )" class="copyCode">How to use (click to copy): <b>mo.Table.fromArray( array )</b></div>
+    
+
 
     
 
@@ -260,6 +268,11 @@ of the Table.</p>
 
 
     <h3 class="name" id="applyFunction"><span class="type-signature"></span>applyFunction<span class="signature">(func)</span><span class="type-signature"> &rarr; {<a href="Table.html">Table</a>}</span></h3>
+
+    
+    <div data-clipboard-text="table.applyFunction( func )" class="copyCode">How to use (click to copy): <b>table.applyFunction( func )</b></div>
+    
+
 
     
 
@@ -372,11 +385,77 @@ column in the table. Columns are <a href="List.html">Lists</a>.</p></td>
     <h3 class="name" id="clone"><span class="type-signature"></span>clone<span class="signature">()</span><span class="type-signature"> &rarr; {<a href="Table.html">Table</a>}</span></h3>
 
     
+    <div data-clipboard-text="table.clone(  )" class="copyCode">How to use (click to copy): <b>table.clone(  )</b></div>
+    
+
+
+    
 
 
 
 <p>
-    <p>makes a copy of the Table.</p>
+    <p>makes a clone of the Table, that contains clones of the lists</p>
+</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<span class='force-inline'>
+
+        
+<p>
+  
+      <strong>Returns 
+<span class="param-type"><a href="Table.html">Table</a></span>
+
+</strong>
+  
+  <p>Copy of table.</p>
+  
+</p>
+
+    
+</span>
+
+
+
+
+            
+                
+
+    
+
+
+    <h3 class="name" id="cloneWithEmptyLists"><span class="type-signature"></span>cloneWithEmptyLists<span class="signature">()</span><span class="type-signature"> &rarr; {<a href="Table.html">Table</a>}</span></h3>
+
+    
+    <div data-clipboard-text="table.cloneWithEmptyLists(  )" class="copyCode">How to use (click to copy): <b>table.cloneWithEmptyLists(  )</b></div>
+    
+
+
+    
+
+
+
+<p>
+    <p>makes a copy of the Table, with empty lists having same types</p>
 </p>
 
 
@@ -428,6 +507,11 @@ column in the table. Columns are <a href="List.html">Lists</a>.</p></td>
     <h3 class="name" id="destroy"><span class="type-signature"></span>destroy<span class="signature">()</span><span class="type-signature"></span></h3>
 
     
+    <div data-clipboard-text="table.destroy(  )" class="copyCode">How to use (click to copy): <b>table.destroy(  )</b></div>
+    
+
+
+    
 
 
 
@@ -465,6 +549,11 @@ column in the table. Columns are <a href="List.html">Lists</a>.</p></td>
 
 
     <h3 class="name" id="getLengths"><span class="type-signature"></span>getLengths<span class="signature">()</span><span class="type-signature"> &rarr; {<a href="NumberList.html">NumberList</a>}</span></h3>
+
+    
+    <div data-clipboard-text="table.getLengths(  )" class="copyCode">How to use (click to copy): <b>table.getLengths(  )</b></div>
+    
+
 
     
 
@@ -521,6 +610,11 @@ column in the table. Columns are <a href="List.html">Lists</a>.</p></td>
 
 
     <h3 class="name" id="getListLength"><span class="type-signature"></span>getListLength<span class="signature">(index)</span><span class="type-signature"> &rarr; {Number}</span></h3>
+
+    
+    <div data-clipboard-text="table.getListLength( index )" class="copyCode">How to use (click to copy): <b>table.getListLength( index )</b></div>
+    
+
 
     
 
@@ -612,8 +706,7 @@ Defaults to 0.</p></td>
 
 </strong>
   
-  <p>Length of column at given index.
-tags:</p>
+  <p>Length of column at given index.</p>
   
 </p>
 
@@ -630,6 +723,11 @@ tags:</p>
 
 
     <h3 class="name" id="getListsSortedByList"><span class="type-signature"></span>getListsSortedByList<span class="signature">(listOrIndex, ascending)</span><span class="type-signature"> &rarr; {<a href="Table.html">Table</a>}</span></h3>
+
+    
+    <div data-clipboard-text="table.getListsSortedByList( listOrIndex, ascending )" class="copyCode">How to use (click to copy): <b>table.getListsSortedByList( listOrIndex, ascending )</b></div>
+    
+
 
     
 
@@ -766,6 +864,11 @@ tags:sort</p>
     <h3 class="name" id="getRow"><span class="type-signature"></span>getRow<span class="signature">(index)</span><span class="type-signature"> &rarr; {<a href="List.html">List</a>}</span></h3>
 
     
+    <div data-clipboard-text="table.getRow( index )" class="copyCode">How to use (click to copy): <b>table.getRow( index )</b></div>
+    
+
+
+    
 
 
 
@@ -873,6 +976,11 @@ tags:sort</p>
     <h3 class="name" id="getSubListsByIndexes"><span class="type-signature"></span>getSubListsByIndexes<span class="signature">(indexes)</span><span class="type-signature"> &rarr; {<a href="Table.html">Table</a>}</span></h3>
 
     
+    <div data-clipboard-text="table.getSubListsByIndexes( indexes )" class="copyCode">How to use (click to copy): <b>table.getSubListsByIndexes( indexes )</b></div>
+    
+
+
+    
 
 
 
@@ -977,7 +1085,148 @@ tags:sort</p>
     
 
 
+    <h3 class="name" id="getTableSimplified"><span class="type-signature"></span>getTableSimplified<span class="signature">(nCategories, othersElement)</span><span class="type-signature"> &rarr; {<a href="Table.html">Table</a>}</span></h3>
+
+    
+    <div data-clipboard-text="table.getTableSimplified( nCategories, othersElement )" class="copyCode">How to use (click to copy): <b>table.getTableSimplified( nCategories, othersElement )</b></div>
+    
+
+
+    
+
+
+
+<p>
+    <p>takes a table and simplifies its lists, numberLists will be simplified using quantiles values (using getNumbersSimplified) and other lists reducing the number of different elements (using getSimplified)
+specially useful to build simpe decision trees using TableOperators.buildDecisionTree</p>
+</p>
+
+
+
+
+
+
+
+
+
+  <h4>Parameters</h4>
+  <p>
+  
+
+<table>
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>nCategories</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>number of different elements on each list</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>othersElement</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><p>to be placed instead of the less common elements (&quot;other&quot; by default)</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+  </p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<span class='force-inline'>
+
+        
+<p>
+  
+      <strong>Returns 
+<span class="param-type"><a href="Table.html">Table</a></span>
+
+</strong>
+  
+  <p>tags:</p>
+  
+</p>
+
+    
+</span>
+
+
+
+
+            
+                
+
+    
+
+
     <h3 class="name" id="getTransposed"><span class="type-signature"></span>getTransposed<span class="signature">(firstListAsHeaders)</span><span class="type-signature"> &rarr; {<a href="Table.html">Table</a>}</span></h3>
+
+    
+    <div data-clipboard-text="table.getTransposed( firstListAsHeaders )" class="copyCode">How to use (click to copy): <b>table.getTransposed( firstListAsHeaders )</b></div>
+    
+
 
     
 
@@ -1071,6 +1320,11 @@ tags:sort</p>
 
 
     <h3 class="name" id="getWithoutRow"><span class="type-signature"></span>getWithoutRow<span class="signature">(rowIndex)</span><span class="type-signature"> &rarr; {<a href="Table.html">Table</a>}</span></h3>
+
+    
+    <div data-clipboard-text="table.getWithoutRow( rowIndex )" class="copyCode">How to use (click to copy): <b>table.getWithoutRow( rowIndex )</b></div>
+    
+
 
     
 
@@ -1181,6 +1435,11 @@ tags:filter</p>
     <h3 class="name" id="getWithoutRows"><span class="type-signature"></span>getWithoutRows<span class="signature">(rowsIndexes)</span><span class="type-signature"> &rarr; {<a href="Table.html">Table</a>}</span></h3>
 
     
+    <div data-clipboard-text="table.getWithoutRows( rowsIndexes )" class="copyCode">How to use (click to copy): <b>table.getWithoutRows( rowsIndexes )</b></div>
+    
+
+
+    
 
 
 
@@ -1288,6 +1547,11 @@ tags:filter</p>
     <h3 class="name" id="print"><span class="type-signature"></span>print<span class="signature">()</span><span class="type-signature"></span></h3>
 
     
+    <div data-clipboard-text="table.print(  )" class="copyCode">How to use (click to copy): <b>table.print(  )</b></div>
+    
+
+
+    
 
 
 
@@ -1325,6 +1589,11 @@ tags:filter</p>
 
 
     <h3 class="name" id="removeRow"><span class="type-signature"></span>removeRow<span class="signature">(index)</span><span class="type-signature"> &rarr; {undefined}</span></h3>
+
+    
+    <div data-clipboard-text="table.removeRow( index )" class="copyCode">How to use (click to copy): <b>table.removeRow( index )</b></div>
+    
+
 
     
 
@@ -1423,6 +1692,11 @@ tags:filter</p>
 
 
     <h3 class="name" id="sliceRows"><span class="type-signature"></span>sliceRows<span class="signature">(startIndex, endIndex)</span><span class="type-signature"> &rarr; {<a href="Table.html">Table</a>}</span></h3>
+
+    
+    <div data-clipboard-text="table.sliceRows( startIndex, endIndex )" class="copyCode">How to use (click to copy): <b>table.sliceRows( startIndex, endIndex )</b></div>
+    
+
 
     
 
@@ -1568,5 +1842,9 @@ tags:filter</p>
   <script src="http://code.jquery.com/jquery-1.11.3.min.js"></script>
   <script src="scripts/filter.js"></script>
   <script src="scripts/prettify/prettify.js"></script>
+  <script src="scripts/clipboard/clipboard.js"></script>
+  <script type="text/javascript">
+      var copyCodes = new Clipboard('.copyCode');
+  </script>
 </body>
 </html>

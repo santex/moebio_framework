@@ -100,6 +100,8 @@ export default ListDraw;
 ListDraw.drawList = function(frame, list, returnMode, colorList, textSize, mode, selectedInit, graphics) {
   if(list == null || list.length &lt; 0) return;
 
+  if(graphics==null) graphics = frame.graphics;
+
   textSize = textSize || 14;
   returnMode = returnMode == null ? 0 : returnMode;
 
@@ -233,5 +235,9 @@ ListDraw.drawList = function(frame, list, returnMode, colorList, textSize, mode,
   <script src="http://code.jquery.com/jquery-1.11.3.min.js"></script>
   <script src="scripts/filter.js"></script>
   <script src="scripts/prettify/prettify.js"></script>
+  <script src="scripts/clipboard/clipboard.js"></script>
+  <script type="text/javascript">
+      var copyCodes = new Clipboard('.copyCode');
+  </script>
 </body>
 </html>
