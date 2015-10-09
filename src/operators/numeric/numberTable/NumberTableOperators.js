@@ -141,7 +141,6 @@ NumberTableOperators.kMeans = function(numberTable, k, returnIndexesMode, N){
   N = (N==null || (N<=0))?1000:N;
 
   var clusters = new NumberTable();// = returnIndexesMode?new NumberList():new NumberTable();
-  ClassUtils
   var i, j, l;
   var jK;
   var row;

@@ -385,8 +385,8 @@
     req.onreadystatechange = onLoadComplete;
   };
 
-  _Node.prototype = new DataModel();
-  _Node.prototype.constructor = _Node;
+  Node.prototype = new DataModel();
+  Node.prototype.constructor = Node;
 
   /**
    * @classdesc Represents a single node element in a Network. Can have both an id as well
@@ -398,7 +398,7 @@
    * @constructor
    * @category networks
    */
-  function _Node(id, name) {
+  function Node(id, name) {
     this.id = id == null ? '' : id;
     this.name = name != null ? name : '';
     this.type = "Node";
@@ -437,7 +437,7 @@
    * Removes all Relations and connected Nodes from
    * the current Node.
    */
-  _Node.prototype.cleanRelations = function() {
+  Node.prototype.cleanRelations = function() {
     this.nodeList = new NodeList();
     this.relationList = new RelationList();
 
@@ -449,7 +449,7 @@
   };
 
   //TODO: complete with all properties
-  _Node.prototype.destroy = function() {
+  Node.prototype.destroy = function() {
     DataModel.prototype.destroy.call(this);
     delete this.id;
     delete this.name;
@@ -480,7 +480,7 @@
    *
    * @return {Number} Number of Relations (edges) connecting to this Node instance.
    */
-  _Node.prototype.getDegree = function() {
+  Node.prototype.getDegree = function() {
     return this.relationList.length;
   };
 
@@ -492,7 +492,7 @@
    *
    * @return {Node} Parent Node of this Node.
    */
-  _Node.prototype.getParent = function() {
+  Node.prototype.getParent = function() {
     return this.parent;
   };
 
@@ -503,7 +503,7 @@
    * @return {NodeList} Leaf Nodes of this Node.
    * tags:
    */
-  _Node.prototype.getLeaves = function() {
+  Node.prototype.getLeaves = function() {
       var leaves = new NodeList();
       var addLeaves = function(node) {
         if(node.toNodeList.length === 0) {
@@ -522,7 +522,7 @@
    *
    * @param {String} urlImage The URL of the image to load.
    */
-  _Node.prototype.loadImage = function(urlImage) {
+  Node.prototype.loadImage = function(urlImage) {
     Loader.loadImage(urlImage, function(e) {
       this.image = e.result;
     }, this);
@@ -534,8 +534,8 @@
    *
    * @return {Node} New Node that is a copy of this Node.
    */
-  _Node.prototype.clone = function() {
-    var newNode = new _Node(this.id, this.name);
+  Node.prototype.clone = function() {
+    var newNode = new Node(this.id, this.name);
 
     newNode.x = this.x;
     newNode.y = this.y;
@@ -2021,17 +2021,17 @@
     var l = this.length;
 
     for(i = 0; i<l; i++) {
-      pairsArray[i] = [this[i], list[i]];
+      pairsArray[i] = [this[i], list[i],i];
     }
 
     var comparator;
     if(ascending) {
       comparator = function(a, b) {
-        return a[1] < b[1] ? -1 : a[1] > b[1] ?  1 : 0;
+        return a[1] < b[1] ? -1 : a[1] > b[1] ?  1 : a[2] - b[2];
       };
     } else {
       comparator = function(a, b) {
-        return a[1] < b[1] ?  1 : a[1] > b[1] ? -1 : 0;
+        return a[1] < b[1] ?  1 : a[1] > b[1] ? -1 : a[2] - b[2];
       };
     }
 
@@ -5619,7 +5619,7 @@
     return (num << cnt) | (num >>> (32 - cnt));
   };
 
-  Relation.prototype = Object.create(_Node.prototype);
+  Relation.prototype = Object.create(Node.prototype);
   Relation.prototype.constructor = Relation;
 
   /**
@@ -5639,7 +5639,7 @@
    * @category networks
    */
   function Relation(id, name, node0, node1, weight, content) {
-    _Node.call(this, id, name);
+    Node.call(this, id, name);
     this.type = "Relation";
 
     this.node0 = node0;
@@ -5651,7 +5651,7 @@
    * @todo write docs
    */
   Relation.prototype.destroy = function() {
-    _Node.prototype.destroy.call(this);
+    Node.prototype.destroy.call(this);
     delete this.node0;
     delete this.node1;
     delete this.content;
@@ -7330,17 +7330,17 @@
     var i;
 
     for(i = 0; list[i] != null; i++) {
-      pairs.push([list[i], numberList[i]]);
+      pairs.push([list[i], numberList[i],i]);
     }
 
 
     if(descending) {
       pairs.sort(function(a, b) {
-        return a[1] < b[1] ?  1 : a[1] > b[1] ? -1 : 0;
+        return a[1] < b[1] ?  1 : a[1] > b[1] ? -1 : a[2] - b[2];
       });
     } else {
       pairs.sort(function(a, b) {
-        return a[1] < b[1] ? -1 : a[1] > b[1] ?  1 : 0;
+        return a[1] < b[1] ? -1 : a[1] > b[1] ?  1 : a[2] - b[2];
       });
     }
 
@@ -8330,18 +8330,23 @@
    *
    * @param  {Number} alpha 1 by default
    * @param {Boolean} invert invert colors
+   * @param {Boolean} darken colors beyond starting colorList length (default=false)
    * @return {ColorList}
    * tags:generator
    */
-  ColorListGenerators.createDefaultCategoricalColorList = function(nColors, alpha, invert) {
+  ColorListGenerators.createDefaultCategoricalColorList = function(nColors, alpha, invert, bDarken) {
     alpha = alpha == null ? 1 : alpha;
-    var colors = ColorListGenerators.createCategoricalColors(2, nColors);
+    bDarken = bDarken == null ? false : bDarken;
+    var colors = ColorListGenerators.createCategoricalColors(2, nColors,null,null,null,null,null,bDarken);
     if(alpha < 1) colors = colors.addAlpha(alpha);
 
     if(invert) colors = colors.getInverted();
 
     return colors;
   };
+
+
+  //@todo: change this method (and try to not break things)
 
   /**
    * Creates a ColorList of categorical colors based on an input List. All entries with the same value will get the same color.
@@ -8352,6 +8357,7 @@
    * @param {String} color to mix
    * @param {Number} interpolation value (0-1) for color mix
    * @param {Boolean} invert invert colors
+   * @param {Boolean} darken colors beyond internal colorList length (default=false)
    * @return {ColorList} ColorList with categorical colors that match the given list
    * @return {List} elements list of elemnts that match colors (equivalent to getWithoutRepetions)
    * @return {ColorList} ColorList with different categorical colors
@@ -8359,7 +8365,7 @@
    * @return {Object} citionaryObject (relational array, from objects to colors)
    * tags:generator
    */
-  ColorListGenerators.createCategoricalColorListForList = function(list, colorList, alpha, color, interpolate, invert)
+  ColorListGenerators.createCategoricalColorListForList = function(list, colorList, alpha, color, interpolate, invert, bDarken)
   {
 
     if(!list)
@@ -8370,6 +8376,7 @@
       color = "#fff";
     if(!interpolate)
       interpolate = 0;
+    bDarken = bDarken == null ? false : bDarken;
 
     list = List.fromArray(list);
     var diffValues = list.getWithoutRepetitions();
@@ -8377,7 +8384,7 @@
     if(colorList && interpolate !== 0) {
       diffColors = colorList.getInterpolated(color, interpolate);
     } else {
-      diffColors = ColorListGenerators.createCategoricalColors(2, diffValues.length, null, alpha, color, interpolate, colorList);
+      diffColors = ColorListGenerators.createCategoricalColors(2, diffValues.length, null, alpha, color, interpolate, colorList,bDarken);
     }
     if(alpha<1) diffColors = diffColors.addAlpha(alpha);
 
@@ -8500,12 +8507,13 @@
    * @param {String} interpolateColor color to interpolate
    * @param {Number} interpolateValue interpolation value [0, 1]
    * @param {ColorList} colorList colorList to be used in mode 2 (if not colorList is provided it will use default categorical colors)
+   * @param {Boolean} darken colors beyond starting colorList length for mode 2(default=false)
    * @return {ColorList} ColorList with categorical colors
    * tags:generator
    */
-  ColorListGenerators.createCategoricalColors = function(mode, nColors, colorScaleFunction, alpha, interpolateColor, interpolateValue, colorList) {
+  ColorListGenerators.createCategoricalColors = function(mode, nColors, colorScaleFunction, alpha, interpolateColor, interpolateValue, colorList, bDarken) {
     colorScaleFunction = colorScaleFunction == null ? ColorScales.temperature : colorScaleFunction;
-
+    bDarken = bDarken == null ? false : bDarken;
     var i;
     var newColorList = new ColorList();
     switch(mode) {
@@ -8525,7 +8533,7 @@
         var nInterpolate;
         for(i = 0; i < nColors; i++) {
           newColorList[i] = colorList[i%colorList.length];
-          if(i >= colorList.length){
+          if(bDarken && i >= colorList.length){
             // move towards black
             nInterpolate = Math.floor(i/colorList.length);
             for(var j=0; j < nInterpolate;j++){
@@ -9761,7 +9769,7 @@
     namesSubfix = namesSubfix == null ? '' : String(namesSubfix);
 
     this.nodeList.forEach(function(node) {
-      newNode = new _Node(idsSubfix + node.id, namesSubfix + node.name);
+      newNode = new Node(idsSubfix + node.id, namesSubfix + node.name);
       if(idsSubfix !== '') newNode.basicId = node.id;
       if(namesSubfix !== '') newNode.basicName = node.name;
       if(nodePropertiesNames) {
@@ -10174,7 +10182,7 @@
 
           if(node == null) {
 
-            node = new _Node(id, name);
+            node = new Node(id, name);
             node._nLine = nLineParagraph;
             network.addNode(node);
             node.content = index != -1 ? line.substr(index + sep.length).trim() : "";
@@ -10518,7 +10526,7 @@
       }
       line = NetworkEncodings.replaceChomasInLine(line);
       parts = line.split(",");
-      var node = new _Node(String(parts[0]), String(parts[1]));
+      var node = new Node(String(parts[0]), String(parts[1]));
       for(j = 0; (nodesPropertiesNames[j] != null && parts[j] != null); j++) {
         if(nodesPropertiesNames[j] == "weight") {
           node.weight = Number(parts[j]);
@@ -10673,7 +10681,7 @@
 
       lineParts = lines[0].split(" ");
 
-      node = new _Node(StringOperators.removeQuotes(lineParts[1]), StringOperators.removeQuotes(lineParts[1]));
+      node = new Node(StringOperators.removeQuotes(lineParts[1]), StringOperators.removeQuotes(lineParts[1]));
 
       network.addNode(node);
 
@@ -10876,7 +10884,7 @@
             id = bits[2];
             name = lines[i + 1].substr(0, 5) == "name:" ? lines[i + 1].substr(5).trim() : "";
             name = name.replace(/\\n/g, '\n').replace(/\\'/g, "'");
-            node = new _Node(id, name);
+            node = new Node(id, name);
             network.addNode(node);
             j = i + 1;
             while(j < lines.length && lines[j].indexOf(":") != -1) {
@@ -11629,7 +11637,7 @@
       var lengthResult = result.length;
 
       for(var i = 0; i < lengthResult; i++) {
-        result[i] = typeOf(result[i]) == "Node" ? result[i] : (new _Node(String(result[i]), String(result[i])));
+        result[i] = typeOf(result[i]) == "Node" ? result[i] : (new Node(String(result[i]), String(result[i])));
       }
     }
     
@@ -14075,7 +14083,7 @@
     var node0, node1, nodeList = new _Polygon();
 
     polygon.forEach(function(point, i) {
-      node = new _Node('point_' + i, 'point_' + i);
+      node = new Node('point_' + i, 'point_' + i);
       node.weight = 1;
       node.barycenter = point;
       node.point = point;
@@ -14090,7 +14098,7 @@
     //c.l('-');
 
     var buildNodeFromPair = function(node0, node1) {
-      var parent = new _Node("(" + node0.id + "," + node1.id + ")", "(" + node0.id + "," + node1.id + ")");
+      var parent = new Node("(" + node0.id + "," + node1.id + ")", "(" + node0.id + "," + node1.id + ")");
       parent.polygon = node0.polygon.concat(node1.polygon);
       //c.l("node0.polygon.length, node1.polygon.length, parent.polygon.length", node0.polygon.length, node1.polygon.length, parent.polygon.length);
       parent.weight = parent.polygon.length;
@@ -14630,7 +14638,7 @@
     return simplifiedNames;
   };
 
-  Country.prototype = new _Node();
+  Country.prototype = new Node();
   Country.prototype.constructor = Country;
 
   /**
@@ -14644,7 +14652,7 @@
    * @category geo
    */
   function Country(id, name) {
-    _Node.apply(this, [id, name]);
+    Node.apply(this, [id, name]);
     this.type = "Country";
 
     this.id = id;
@@ -14994,7 +15002,7 @@
     minYear = minDate.getFullYear();
     maxYear = minDate.getFullYear();
 
-    var superior = new _Node("years", "years");
+    var superior = new Node("years", "years");
     tree.addNodeToTree(superior);
     superior.dates = dates.clone();
 
@@ -15005,7 +15013,7 @@
     //var N=0;
 
     for(y = minYear; y <= maxYear; y++) {
-      yNode = new _Node(String(y), String(y));
+      yNode = new Node(String(y), String(y));
       tree.addNodeToTree(yNode, superior);
     }
 
@@ -15017,7 +15025,7 @@
         yNode.dates = new DateList();
 
         for(m = 0; m < 12; m++) {
-          mNode = new _Node(DateOperators.MONTH_NAMES[m] + "_" + y, DateOperators.MONTH_NAMES[m]);
+          mNode = new Node(DateOperators.MONTH_NAMES[m] + "_" + y, DateOperators.MONTH_NAMES[m]);
           tree.addNodeToTree(mNode, yNode);
           nDaysOnMonth = DateOperators.getNDaysInMonth(y, m + 1);
         }
@@ -15030,7 +15038,7 @@
       if(mNode.dates == null) {
         mNode.dates = new DateList();
         for(d = 0; d < nDaysOnMonth; d++) {
-          dNode = new _Node((d + 1) + "_" + mNode.id, String(d + 1));
+          dNode = new Node((d + 1) + "_" + mNode.id, String(d + 1));
           tree.addNodeToTree(dNode, mNode);
         }
       }
@@ -15041,7 +15049,7 @@
       if(dNode.dates == null) {
         dNode.dates = new DateList();
         for(h = 0; h < 24; h++) {
-          hNode = new _Node(h + "_" + dNode.id, String(h) + ":00");
+          hNode = new Node(h + "_" + dNode.id, String(h) + ":00");
           tree.addNodeToTree(hNode, dNode);
         }
       }
@@ -15052,7 +15060,7 @@
       if(hNode.dates == null) {
         hNode.dates = new DateList();
         for(mn = 0; mn < 60; mn++) {
-          mnNode = new _Node(mn + "_" + hNode.id, String(mn));
+          mnNode = new Node(mn + "_" + hNode.id, String(mn));
           tree.addNodeToTree(mnNode, hNode);
         }
       }
@@ -16866,6 +16874,114 @@
   };
 
 
+
+  /**
+   * builds a network from columns or rows, taking into account similarity in numbers (correlation) and other elements (Jaccard)
+   * @param  {Table} table
+   *
+   * @param  {Boolean} nodesAreRows if true (default value) each node corresponds to a row in the table, and rows are compared, if false ([!] not yet deployed!) lists are compared
+   * @param  {Object} names (StringList|Number) optionally add names to nodes with a list that could be part of the table or not; receives a StringList for names, index for list in the providade table
+   * @param  {Number} mode 0:(default) takes into account numbers, uses Pearson Correlation
+   * @param {Object} colorsByList (List|Number) optionally add color to nodes from a NumberList (for scale) or any List (for categorical colors) that could be part of the table or not; receives a List or an index if the list is in the providade table
+   * @param {Number} correlationThreshold 0.3 by default, above that level a relation is created
+   * @param  {Boolean} negativeCorrelation takes into account negative correlations for building relations
+   * @return {Network}
+   * tags:
+   */
+  TableOperators.buildCorrelationsNetwork = function(table, nodesAreRows, names, mode, colorsByList, correlationThreshold, negativeCorrelation){
+    if(table==null) return null;
+
+    nodesAreRows = nodesAreRows==null?true:Boolean(nodesAreRows);
+    mode = mode||0;
+    correlationThreshold = correlationThreshold==null?0.3:correlationThreshold;
+    negativeCorrelation = Boolean(negativeCorrelation);
+
+    var types = table.getTypes();
+    var i, j;
+    var l = table.length;
+    var nRows = table[0].length;
+    var node, node1, relation;
+    var id, name;
+    var pearson, jaccard, weight;
+    var colorsList, colors;
+
+    var network = new Network();
+
+    if(colorsByList!=null){
+
+      if(typeOf(colorsByList)=="number"){
+        if(colorsByList<=l){
+          colorsList = table[colorsByList];
+        }
+      } else if(colorsByList["isList"]){
+        if(colorsByList.length>=l) colorsList = colorsByList;
+      }
+
+      if(colorsList!=null){
+        if(colorsList.type === "NumberList"){
+          colors = ColorListGenerators.createColorListFromNumberList(colorsList, ColorScales.blueToRed, 0);// ColorListOperators.colorListFromColorScaleFunctionAndNumberList(ColorScales.blueToRed, colorsList, true);
+        } else {
+          colors = ColorListGenerators.createCategoricalColorListForList(colorsList)[0].value; //@todo [!] this method will soon change
+        }
+      }
+    }
+    
+
+    if(names!=null && typeOf(names)=="number" && names<l) names = table[names];
+
+    
+
+    if(!nodesAreRows){
+      //@todo deploy
+    } else {
+      for(i=0; i<nRows; i++){
+        id = "_"+i;
+        name = names==null?id:names[i];
+        node = new Node(id, name);
+
+        node.row = table.getRow(i);
+        node.numbers = new NumberList();
+        node.categories = new List();
+
+        if(colors) node.color = colors[i];
+
+        for(j=0; j<l; j++){
+          types[j]==="NumberList"?node.numbers.push(node.row[j]):node.categories.push(node.row[j]);
+        }
+
+        network.addNode(node);
+      }
+
+      for(i=0; i<nRows-1; i++){
+        node = network.nodeList[i];
+        for(j=i+1; j<nRows; j++){
+          node1 = network.nodeList[j];
+          
+          pearson = NumberListOperators.pearsonProductMomentCorrelation(node.numbers, node1.numbers);
+          jaccard = ListOperators.jaccardIndex(node.categories, node1.categories);
+
+          weight = (pearson + (negativeCorrelation?(Math.sqrt(jaccard)*2-1):jaccard) )*0.5;
+
+          //if(Math.abs(pearson)>0.1){
+          if( (negativeCorrelation && Math.abs(weight)>correlationThreshold) || (!negativeCorrelation && weight>correlationThreshold) ){
+            id = i+"_"+j;
+            name = names==null?id:node.name+"_"+node1.name;
+            relation = new Relation(id, name, node, node1, Math.abs(weight)-correlationThreshold*0.9);
+            relation.color = weight>0?'blue':'red';
+            relation.pearson = pearson;
+            relation.jaccard = jaccard;
+            network.addRelation(relation);
+          }
+
+        }
+
+      }
+    }
+
+    return network;
+  };
+
+
   /**
    * builds a decision tree based on a table made of categorical lists, a list (the values of a supervised variable), and a value from the supervised variable. The result is a tree that contains on its leaves different populations obtained by iterative filterings by category values, and that contain extremes probabilities for having or not the valu ein the supervised variable.
    * [!] this method only works with categorical lists (in case you have lists with numbers, find a way to simplify by ranges or powers)
@@ -16909,7 +17025,6 @@
    * @ignore
    */
   TableOperators._buildDecisionTreeNode = function(tree, variablesTable, supervised, level, min_entropy, min_size_node, min_info_gain, parent, value, supervisedValue, indexes, generatePattern, colorScale) {
-    //if(level < 4) c.l('\nlevel', level);
     var entropy = ListOperators.getListEntropy(supervised, supervisedValue);
 
     //if(level < 4) c.l('entropy, min_entropy', entropy, min_entropy);
@@ -17302,6 +17417,40 @@
 
   TableOperators.getReportObject = function() {}; //TODO
 
+
+
+  /**
+  * takes a table and simplifies its lists, numberLists will be simplified using quantiles values (using getNumbersSimplified) and other lists reducing the number of different elements (using getSimplified)
+  * specially useful to build simpe decision trees using TableOperators.buildDecisionTree
+  * @param {Table} table to be simplified
+  * 
+  * @param  {Number} nCategories number of different elements on each list (20 by default)
+  * @param {Object} othersElement to be placed instead of the less common elements ("other" by default)
+  * @return {Table}
+  * tags:
+  */
+  TableOperators.getTableSimplified = function(table, nCategories, othersElement) {
+    if(table==null || !(table.length>0)) return null;
+   nCategories = nCategories||20;
+
+   var i;
+   var l = table.length;
+   var newTable = new Table();
+   newTable.name = table.name;
+
+   for(i=0; i<l; i++){
+    console.log(i, 'table[i].type:', table[i].type);
+     newTable.push(
+       table[i].type==='NumberList'?
+       table[i].getNumbersSimplified(2, nCategories)
+       :
+       table[i].getSimplified(nCategories, othersElement)
+     );
+   }
+
+   return newTable;
+  };
+
   /**
    * @classdesc Table Generators
    *
@@ -17489,7 +17638,6 @@
     N = (N==null || (N<=0))?1000:N;
 
     var clusters = new NumberTable();// = returnIndexesMode?new NumberList():new NumberTable();
-    ClassUtils
     var i, j, l;
     var jK;
     var row;
@@ -18089,7 +18237,7 @@
           list0 = numberTable[i];
 
           if(i === 0) {
-            node0 = new _Node(list0.name, list0.name);
+            node0 = new Node(list0.name, list0.name);
             network.addNode(node0);
           } else {
             node0 = network.nodeList[i];
@@ -18100,7 +18248,7 @@
             list1 = numberTable[j];
 
             if(i === 0) {
-              node1 = new _Node(list1.name, list1.name);
+              node1 = new Node(list1.name, list1.name);
               network.addNode(node1);
             } else {
               node1 = network.nodeList[j];
@@ -18441,14 +18589,14 @@
       //trace("______________ i, name0, name1:", i, name0, name1);
       node0 = network.nodeList.getNodeById(name0);
       if(node0 == null) {
-        node0 = new _Node(name0, name0);
+        node0 = new Node(name0, name0);
         network.addNode(node0);
       } else {
         node0.weight++;
       }
       node1 = network.nodeList.getNodeById(name1);
       if(node1 == null) {
-        node1 = new _Node(name1, name1);
+        node1 = new Node(name1, name1);
         network.addNode(node1);
       } else {
         node1.weight++;
@@ -19700,7 +19848,7 @@
     var matrix = StringListOperators.getWordsOccurrencesMatrix(texts, stopWords, false, 600, 800, false, true, false, 3);
 
     texts.forEach(function(text, i) {
-      var node = new _Node("_" + i, "_" + i);
+      var node = new Node("_" + i, "_" + i);
       node.content = text;
       node.wordsWeights = matrix[i + 1];
       network.addNode(node);
@@ -19798,7 +19946,7 @@
     _time = new Date().getTime();
 
     texts.forEach(function(text, i) {
-      var node = new _Node("_" + i, "_" + i);
+      var node = new Node("_" + i, "_" + i);
       network.addNode(node);
       node.content = text;
       var words = StringOperators.getWords(text, true, stopWords, false, false, 0, 3);
@@ -19932,7 +20080,7 @@
     var superiorNode;
 
     if(superiorNodeName !== "" && superiorNodeName != null) {
-      superiorNode = new _Node(superiorNodeName, superiorNodeName);
+      superiorNode = new Node(superiorNodeName, superiorNodeName);
       tree.addNodeToTree(superiorNode, null);
     }
 
@@ -19947,7 +20095,7 @@
         }
       }
 
-      node = new _Node(line, name);
+      node = new Node(line, name);
       //c.log("+ ", name);
       if(j === 0) {
         if(superiorNode != null) {
@@ -19998,7 +20146,7 @@
     var node, parent;
     var id;
 
-    var father = new _Node(fatherName, fatherName);
+    var father = new Node(fatherName, fatherName);
     tree.addNodeToTree(father, null);
 
     var nLists = table.length;
@@ -20015,7 +20163,7 @@
         id = TreeConversions._getId(table, i, j);
         node = tree.nodeList.getNodeById(id);
         if(node == null) {
-          node = new _Node(id, String(element));
+          node = new Node(id, String(element));
           if(i === 0) {
             tree.addNodeToTree(node, father);
           } else {
@@ -20651,7 +20799,7 @@
     node0 = node0==null?network.nodeList[0]:node0;
 
     var tree = new Tree();
-    var parent = new _Node(node0.id, node0.name);
+    var parent = new Node(node0.id, node0.name);
     parent.node = node0;
     tree.addNodeToTree(parent);
 
@@ -20667,7 +20815,7 @@
     var limitReached = false;
 
     for(i = 0; nodes[i] != null; i++) {
-      newNode = new _Node(nodes[i].id, nodes[i].name);
+      newNode = new Node(nodes[i].id, nodes[i].name);
       if(newNode.id == parent.id) continue;
       newNode.node = nodes[i];
       tree.addNodeToTree(newNode, parent);
@@ -20702,7 +20850,7 @@
       if(newNodes.length === 0) return tree;
 
       for(i = 0; newNodes[i] != null; i++) {
-        newNode = new _Node(newNodes[i].id, newNodes[i].name);
+        newNode = new Node(newNodes[i].id, newNodes[i].name);
         // console.log('                   ++'+newNodes[i].id);
         newNode.node = newNodes[i];
         for(var j = 0; newNodes[i].nodeList[j] != null; j++) {
@@ -20863,7 +21011,7 @@
     var pRelationPair = 2 * network.relationList.length / (nNodes * (nNodes - 1));
 
     for(i = 0; network.nodeList[i] != null; i++) {
-      newNode = new _Node("[" + network.nodeList[i].id + "]", "[" + network.nodeList[i].id + "]");
+      newNode = new Node("[" + network.nodeList[i].id + "]", "[" + network.nodeList[i].id + "]");
       newNode.nodes = new NodeList(network.nodeList[i]);
       tree.addNode(newNode);
       nodeList[i] = newNode;
@@ -20878,14 +21026,14 @@
 
       id = "[" + node0.id + "-" + node1.id + "]";
 
-      newNode = new _Node(id, id);
+      newNode = new Node(id, id);
       newNode.weight = closest.strength;
 
       tree.addNode(newNode);
       tree.createRelation(newNode, node0, id + "-" + node0.id);
       tree.createRelation(newNode, node1, id + "-" + node1.id);
 
-      newNode.node = new _Node(id, id);
+      newNode.node = new Node(id, id);
       newNode.nodes = node0.nodes.concat(node1.nodes);
 
       for(i = 0; node0.nodeList[i] != null; i++) {
@@ -21206,7 +21354,7 @@
         newNode = fusionNet.nodeList.getNodeById(node.id);
 
         if(newNode == null) {
-          newNode = new _Node(node.id, node.name);
+          newNode = new Node(node.id, node.name);
           newNode.basicId = node.basicId;
           newNode.mapId = "map_" + i;
           newNode.mapsIds = [newNode.mapId];
@@ -21692,7 +21840,7 @@
     var node;
 
     for(i = 0; i < nNodes; i++) {
-      network.addNode(new _Node("n" + i, "n" + i));
+      network.addNode(new Node("n" + i, "n" + i));
     }
 
     switch(mode) {
@@ -21768,7 +21916,7 @@
     for(i = 0; occurrencesTable[i] != null; i++) {
       string0 = occurrencesTable[i].name;
       if(i === 0) {
-        node0 = new _Node(string0, string0);
+        node0 = new Node(string0, string0);
         network.addNode(node0);
       } else {
         node0 = network.nodeList[i];
@@ -21778,7 +21926,7 @@
       for(j = i + 1; occurrencesTable[j] != null; j++) {
         string1 = occurrencesTable[j].name;
         if(i === 0) {
-          node1 = new _Node(string1, string1);
+          node1 = new Node(string1, string1);
           network.addNode(node1);
         } else {
           node1 = network.nodeList[j];
@@ -21821,12 +21969,12 @@
 
     for(i = 0; list[i + 1] != null; i++) {
       if(i === 0) {
-        network.addNode(new _Node("n_0", names == null ? "n_0" : names[i]));
+        network.addNode(new Node("n_0", names == null ? "n_0" : names[i]));
       }
       node = network.nodeList[i];
       for(j = i + 1; list[j] != null; j++) {
         if(i === 0) {
-          network.addNode(new _Node("n_" + j, names == null ? "n_" + j : names[j]));
+          network.addNode(new Node("n_" + j, names == null ? "n_" + j : names[j]));
         }
         w = weightFunction(list[i], list[j]);
         if(w > 0) {
@@ -21879,7 +22027,7 @@
     var maxWeight, maxNode;
 
     nounPhrases.forEach(function(np) {
-      node = new _Node(np, np);
+      node = new Node(np, np);
       network.addNode(node);
       mat = text.match(NetworkEncodings._regexWordForNoteWork(np));
       node.weight = mat == null ? 1 : mat.length;
@@ -30373,7 +30521,7 @@
   exports.ColorScale = ColorScale;
   exports.Space2D = Space2D;
   exports.StringList = StringList;
-  exports.Node = _Node;
+  exports.Node = Node;
   exports.Relation = Relation;
   exports.NodeList = NodeList;
   exports.RelationList = RelationList;

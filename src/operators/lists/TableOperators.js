@@ -8,7 +8,11 @@ import ListOperators from "src/operators/lists/ListOperators";
 import NumberListGenerators from "src/operators/numeric/numberList/NumberListGenerators";
 import ListGenerators from "src/operators/lists/ListGenerators";
 import ColorScales from "src/operators/graphic/ColorScales";
+import ColorListGenerators from "src/operators/graphic/ColorListGenerators";
 import Tree from "src/dataTypes/structures/networks/Tree";
+import Node from "src/dataTypes/structures/elements/Node";
+import Relation from "src/dataTypes/structures/elements/Relation";
+import Network from "src/dataTypes/structures/networks/Network";
 
 import StringOperators from "src/operators/strings/StringOperators";
 import NumberListOperators from "src/operators/numeric/numberList/NumberListOperators";
@@ -907,6 +911,114 @@ TableOperators.splitTableByCategoricList = function(table, list) {
 };
 
 
+
+/**
+ * builds a network from columns or rows, taking into account similarity in numbers (correlation) and other elements (Jaccard)
+ * @param  {Table} table
+ *
+ * @param  {Boolean} nodesAreRows if true (default value) each node corresponds to a row in the table, and rows are compared, if false ([!] not yet deployed!) lists are compared
+ * @param  {Object} names (StringList|Number) optionally add names to nodes with a list that could be part of the table or not; receives a StringList for names, index for list in the providade table
+ * @param  {Number} mode 0:(default) takes into account numbers, uses Pearson Correlation
+ * @param {Object} colorsByList (List|Number) optionally add color to nodes from a NumberList (for scale) or any List (for categorical colors) that could be part of the table or not; receives a List or an index if the list is in the providade table
+ * @param {Number} correlationThreshold 0.3 by default, above that level a relation is created
+ * @param  {Boolean} negativeCorrelation takes into account negative correlations for building relations
+ * @return {Network}
+ * tags:
+ */
+TableOperators.buildCorrelationsNetwork = function(table, nodesAreRows, names, mode, colorsByList, correlationThreshold, negativeCorrelation){
+  if(table==null) return null;
+
+  nodesAreRows = nodesAreRows==null?true:Boolean(nodesAreRows);
+  mode = mode||0;
+  correlationThreshold = correlationThreshold==null?0.3:correlationThreshold;
+  negativeCorrelation = Boolean(negativeCorrelation);
+
+  var types = table.getTypes();
+  var i, j;
+  var l = table.length;
+  var nRows = table[0].length;
+  var node, node1, relation;
+  var id, name;
+  var pearson, jaccard, weight;
+  var colorsList, colors;
+
+  var network = new Network();
+
+  if(colorsByList!=null){
+
+    if(typeOf(colorsByList)=="number"){
+      if(colorsByList<=l){
+        colorsList = table[colorsByList];
+      }
+    } else if(colorsByList["isList"]){
+      if(colorsByList.length>=l) colorsList = colorsByList;
+    }
+
+    if(colorsList!=null){
+      if(colorsList.type === "NumberList"){
+        colors = ColorListGenerators.createColorListFromNumberList(colorsList, ColorScales.blueToRed, 0);// ColorListOperators.colorListFromColorScaleFunctionAndNumberList(ColorScales.blueToRed, colorsList, true);
+      } else {
+        colors = ColorListGenerators.createCategoricalColorListForList(colorsList)[0].value; //@todo [!] this method will soon change
+      }
+    }
+  }
+  
+
+  if(names!=null && typeOf(names)=="number" && names<l) names = table[names];
+
+  
+
+  if(!nodesAreRows){
+    //@todo deploy
+  } else {
+    for(i=0; i<nRows; i++){
+      id = "_"+i;
+      name = names==null?id:names[i];
+      node = new Node(id, name);
+
+      node.row = table.getRow(i);
+      node.numbers = new NumberList();
+      node.categories = new List();
+
+      if(colors) node.color = colors[i];
+
+      for(j=0; j<l; j++){
+        types[j]==="NumberList"?node.numbers.push(node.row[j]):node.categories.push(node.row[j]);
+      }
+
+      network.addNode(node);
+    }
+
+    for(i=0; i<nRows-1; i++){
+      node = network.nodeList[i];
+      for(j=i+1; j<nRows; j++){
+        node1 = network.nodeList[j];
+        
+        pearson = NumberListOperators.pearsonProductMomentCorrelation(node.numbers, node1.numbers);
+        jaccard = ListOperators.jaccardIndex(node.categories, node1.categories);
+
+        weight = (pearson + (negativeCorrelation?(Math.sqrt(jaccard)*2-1):jaccard) )*0.5;
+
+        //if(Math.abs(pearson)>0.1){
+        if( (negativeCorrelation && Math.abs(weight)>correlationThreshold) || (!negativeCorrelation && weight>correlationThreshold) ){
+          id = i+"_"+j;
+          name = names==null?id:node.name+"_"+node1.name;
+          relation = new Relation(id, name, node, node1, Math.abs(weight)-correlationThreshold*0.9);
+          relation.color = weight>0?'blue':'red';
+          relation.pearson = pearson;
+          relation.jaccard = jaccard;
+          network.addRelation(relation);
+        }
+
+      }
+
+    }
+  }
+
+  return network;
+};
+
+
 /**
  * builds a decision tree based on a table made of categorical lists, a list (the values of a supervised variable), and a value from the supervised variable. The result is a tree that contains on its leaves different populations obtained by iterative filterings by category values, and that contain extremes probabilities for having or not the valu ein the supervised variable.
  * [!] this method only works with categorical lists (in case you have lists with numbers, find a way to simplify by ranges or powers)
@@ -950,7 +1062,6 @@ TableOperators.buildDecisionTree = function(variablesTable, supervised, supervis
  * @ignore
  */
 TableOperators._buildDecisionTreeNode = function(tree, variablesTable, supervised, level, min_entropy, min_size_node, min_info_gain, parent, value, supervisedValue, indexes, generatePattern, colorScale) {
-  //if(level < 4) c.l('\nlevel', level);
   var entropy = ListOperators.getListEntropy(supervised, supervisedValue);
 
   //if(level < 4) c.l('entropy, min_entropy', entropy, min_entropy);
@@ -1344,28 +1455,33 @@ TableOperators.getReportHtml = function(table,level) {
 TableOperators.getReportObject = function() {}; //TODO
 
 
+
 /**
 * takes a table and simplifies its lists, numberLists will be simplified using quantiles values (using getNumbersSimplified) and other lists reducing the number of different elements (using getSimplified)
 * specially useful to build simpe decision trees using TableOperators.buildDecisionTree
-* @param  {Number} nCategories number of different elements on each list
-*
+* @param {Table} table to be simplified
+* 
+* @param  {Number} nCategories number of different elements on each list (20 by default)
 * @param {Object} othersElement to be placed instead of the less common elements ("other" by default)
 * @return {Table}
 * tags:
 */
-Table.prototype.getTableSimplified = function(nCategories, othersElement) {
- if(nCategories===undefined) return null;
+TableOperators.getTableSimplified = function(table, nCategories, othersElement) {
+  if(table==null || !(table.length>0)) return null;
+ nCategories = nCategories||20;
 
  var i;
+ var l = table.length;
  var newTable = new Table();
- newTable.name = this.name;
+ newTable.name = table.name;
 
- for(i=0; this[i]!==undefined; i++){
+ for(i=0; i<l; i++){
+  console.log(i, 'table[i].type:', table[i].type);
    newTable.push(
-     this[i].type==='NumberList'?
-     this[i].getNumbersSimplified(2, nCategories)
+     table[i].type==='NumberList'?
+     table[i].getNumbersSimplified(2, nCategories)
      :
-     this[i].getSimplified(nCategories, othersElement)
+     table[i].getSimplified(nCategories, othersElement)
    );
  }
 
