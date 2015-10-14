@@ -110,7 +110,7 @@ Matrix.prototype.getInverse = function() {
    * @returns {Matrix} A new matrix, rotated by the specified amount.
    */
 Matrix.prototype.rotate = function(theta, aboutPoint) {
-  return this.concat(Matrix.rotation(theta, aboutPoint));
+  return this.concat(MatrixGenerators.createRotationMatrix(theta, aboutPoint));
 };
 
 /**

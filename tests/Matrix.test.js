@@ -34,5 +34,29 @@ describe("Matrix", function () {
     expect(p.y).toBe(-2);
   });
 
-  it("should rotate");
+  it("should scale");
+
+  it("should rotate", function () {
+    var A = new mo.Matrix();
+    var p = new mo.Point(0, 1);
+    var q = A.rotate(Math.PI / 2).transformPoint(p)
+
+    // "Close to" because Math.sin and Math.cos might have a little rounding error
+    expect(q.x).toBeCloseTo(-1);
+    expect(q.y).toBeCloseTo(0);
+  });
+
+  it("should rotate about a point", function () {
+    var A = new mo.Matrix();
+    var p = new mo.Point(0, 1);
+    var q = A.rotate(Math.PI / 2, new mo.Point(1, 1)).transformPoint(p);
+
+    // "Close to" because Math.sin and Math.cos might have a little rounding error
+    expect(q.x).toBeCloseTo(1);
+    expect(q.y).toBeCloseTo(0);
+  });
+
+  it("deltaTransformPoint");
+
+  it("getInverse");
 });

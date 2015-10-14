@@ -82,7 +82,7 @@ MatrixGenerators.applyTransformationOnCanvasFromPoints = function(context, v0, v
  * @returns {Matrix}
  */
 MatrixGenerators.createRotationMatrix = function(theta, aboutPoint) {
-  var rotationMatrix = Matrix(
+  var rotationMatrix = new Matrix(
     Math.cos(theta),
     Math.sin(theta),
     -Math.sin(theta),
@@ -91,10 +91,10 @@ MatrixGenerators.createRotationMatrix = function(theta, aboutPoint) {
 
   if(aboutPoint) {
     rotationMatrix =
-      Matrix.translation(aboutPoint.x, aboutPoint.y).concat(
+      MatrixGenerators.createTranslationMatrix(aboutPoint.x, aboutPoint.y).concat(
         rotationMatrix
       ).concat(
-        Matrix.translation(-aboutPoint.x, -aboutPoint.y)
+        MatrixGenerators.createTranslationMatrix(-aboutPoint.x, -aboutPoint.y)
       );
   }
 
