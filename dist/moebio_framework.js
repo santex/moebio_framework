@@ -12800,14 +12800,14 @@
   MatrixGenerators.createScaleMatrix = function(sx, sy, aboutPoint) {
     sy = sy || sx;
 
-    var scaleMatrix = Matrix(sx, 0, 0, sy);
+    var scaleMatrix = new Matrix(sx, 0, 0, sy);
 
     if(aboutPoint) {
       scaleMatrix =
-        Matrix.translation(aboutPoint.x, aboutPoint.y).concat(
+        Matrix.createTranslationMatrix(aboutPoint.x, aboutPoint.y).concat(
           scaleMatrix
         ).concat(
-          Matrix.translation(-aboutPoint.x, -aboutPoint.y)
+          Matrix.createTranslationMatrix(-aboutPoint.x, -aboutPoint.y)
         );
     }
 
@@ -12966,7 +12966,7 @@
    * @returns {Matrix}
    */
   Matrix.prototype.scale = function(sx, sy, aboutPoint) {
-    return this.concat(Matrix.scale(sx, sy, aboutPoint));
+    return this.concat(MatrixGenerators.createScaleMatrix(sx, sy, aboutPoint));
   };
 
 

@@ -34,7 +34,31 @@ describe("Matrix", function () {
     expect(p.y).toBe(-2);
   });
 
-  it("should scale");
+  describe("scale", function () {
+    var A, p;
+
+    beforeEach(function () {
+      A = new mo.Matrix();
+      p = new mo.Point(2, 3);
+    });
+
+    it("uniformly", function () {
+      var q = A.scale(2).transformPoint(p);
+
+      expect(q.x).toBe(4);
+      expect(q.y).toBe(6);
+    });
+
+    it("on two axes", function () {
+      var q = A.scale(0.5, -2).transformPoint(p);
+
+      expect(q.x).toBe(1);
+      expect(q.y).toBe(-6);
+    });
+
+    it("about a point");
+
+  });
 
   it("should rotate", function () {
     var A = new mo.Matrix();

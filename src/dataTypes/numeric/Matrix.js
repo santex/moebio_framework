@@ -124,7 +124,7 @@ Matrix.prototype.rotate = function(theta, aboutPoint) {
  * @returns {Matrix}
  */
 Matrix.prototype.scale = function(sx, sy, aboutPoint) {
-  return this.concat(Matrix.scale(sx, sy, aboutPoint));
+  return this.concat(MatrixGenerators.createScaleMatrix(sx, sy, aboutPoint));
 };
 
 
