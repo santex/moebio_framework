@@ -1,4 +1,5 @@
 import DataModel from "src/dataTypes/DataModel";
+import MatrixGenerators from "src/operators/numeric/MatrixGenerators";
 import Point from "src/dataTypes/geometry/Point";
 
 Matrix.prototype = new DataModel();
@@ -56,7 +57,7 @@ Matrix.prototype.transformPoint = function(point) {
  * @returns {Matrix} The result of the matrix multiplication, a new matrix.
  */
 Matrix.prototype.concat = function(matrix) {
-  return Matrix(
+  return new Matrix(
     this.a * matrix.a + this.c * matrix.b,
     this.b * matrix.a + this.d * matrix.b,
     this.a * matrix.c + this.c * matrix.d,
@@ -136,5 +137,5 @@ Matrix.prototype.scale = function(sx, sy, aboutPoint) {
  * @returns {Matrix} A new matrix with the translation applied.
  */
 Matrix.prototype.translate = function(tx, ty) {
-  return this.concat(Matrix.translation(tx, ty));
+  return this.concat(MatrixGenerators.createTranslationMatrix(tx, ty));
 };

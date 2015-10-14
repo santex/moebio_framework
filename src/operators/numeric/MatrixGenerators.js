@@ -141,7 +141,7 @@ MatrixGenerators.createScaleMatrix = function(sx, sy, aboutPoint) {
  * @returns {Matrix} A matrix transformation representing a translation by tx and ty.
  */
 MatrixGenerators.createTranslationMatrix = function(tx, ty) {
-  return Matrix(1, 0, 0, 1, tx, ty);
+  return new Matrix(1, 0, 0, 1, tx, ty);
 };
 //
 // /**
