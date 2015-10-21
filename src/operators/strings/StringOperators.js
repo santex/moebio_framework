@@ -209,9 +209,11 @@ StringOperators.getWords = function(string, withoutRepetitions, stopWords, sorte
   if(includeLinks) {
     links = string.match(StringOperators.LINK_REGEX);
   }
+
   string = string.toLowerCase().replace(StringOperators.LINK_REGEX, "");
 
   var list = string.match(/\w+/g);
+  
   if(list == null) return new StringList();
 
   list = StringList.fromArray(list);
@@ -224,8 +226,9 @@ StringOperators.getWords = function(string, withoutRepetitions, stopWords, sorte
   if(stopWords != null) { //TODO:check before if all stopwrds are strings
     //list.removeElements(stopWords);
     nMatches = list.length;
+    var nStopWords = stopWords.length;
     for(i = 0; i<nMatches; i++) {
-      for(j = 0; stopWords[j] != null; j++) {
+      for(j = 0; j<nStopWords; j++) {
         if((typeof stopWords[j]) == 'string') {
           if(stopWords[j] == list[i]) {
             list.splice(i, 1);
@@ -246,7 +249,7 @@ StringOperators.getWords = function(string, withoutRepetitions, stopWords, sorte
 
   if(minSizeWords > 0) {
     nMatches = list.length;
-    for(i = 0; list[i] != null; i++) {
+    for(i = 0; i<nMatches; i++) {
       if(list[i].length < minSizeWords) {
         list.splice(i, 1);
         i--;

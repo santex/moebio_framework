@@ -5700,10 +5700,14 @@
    * tags:conversion
    */
   ListConversions.toNumberList = function(list) {
+    if(list==null) return;
+
     var numberList = new NumberList();
-    numberList.name = list.name;
+    var l = list.length;
     var i;
-    for(i = 0; list[i] != null; i++) {
+
+    numberList.name = list.name;
+    for(i = 0; i<l; i++) {
       numberList[i] = Number(list[i]);
     }
     return numberList;
@@ -5717,10 +5721,14 @@
    * tags:conversion
    */
   ListConversions.toStringList = function(list) {
+    if(list==null) return;
+
+    var l = list.length;
     var i;
     var stringList = new StringList();
+
     stringList.name = list.name;
-    for(i = 0; list[i] != null; i++) {
+    for(i = 0; i<l; i++) {
       if(typeof list[i] == 'number') {
         stringList[i] = String(list[i]);
       } else {
@@ -7058,78 +7066,6 @@
     return List.fromArray(Array.prototype.slice.call(arguments, 0)).getImproved();
   };
 
-
-
-  /**
-   * returns a table with two Lists: words and occurrences
-   * @param {List} list
-   *
-   * @param {Boolean} sortListsByOccurrences optional, true by default, common words first
-   * @param {Boolean} consecutiveRepetitions optional false by default, if true only counts consecutive repetitions
-   * @param {Number} optional limit, limits the size of the lists
-   * @return {Table}
-   * tags:count,toimprove,deprecated
-   */
-  // ListOperators.countElementsRepetitionOnList = function(list, sortListsByOccurrences, consecutiveRepetitions, limit) { //transform this, use dictionary instead of indexOf !!!!!!!
-  //   if(list == null) return;
-
-  //   sortListsByOccurrences = sortListsByOccurrences == null ? true : sortListsByOccurrences;
-  //   consecutiveRepetitions = consecutiveRepetitions || false;
-  //   limit = limit == null ? 0 : limit;
-
-  //   var obj;
-  //   var elementList = instantiate(typeOf(list));
-  //   var numberList = new NumberList();
-  //   var index;
-  //   var i;
-
-  //   if(consecutiveRepetitions) {
-  //     if(list.length == 0) return null;
-  //     var previousElement = list[0];
-  //     elementList.push(previousElement);
-  //     numberList.push(1);
-  //     for(i = 1; i < nElements; i++) {
-  //       obj = list[i];
-  //       if(obj == previousElement) {
-  //         numberList[numberList.length - 1] = numberList[numberList.length - 1] + 1;
-  //       } else {
-  //         elementList.push(obj);
-  //         numberList.push(1);
-  //         previousElement = obj;
-  //       }
-  //     }
-  //   } else {
-  //     for(i = 0; list[i] != null; i++){
-  //       obj = list[i];
-  //       index = elementList.indexOf(obj);
-  //       if(index != -1) {
-  //         numberList[index]++;
-  //       } else {
-  //         elementList.push(obj);
-  //         numberList.push(1);
-  //       }
-  //     }
-  //   }
-
-  //   if(elementList.type == "NumberList") {
-  //     var table = new NumberTable();
-  //   } else {
-  //     var table = new Table();
-  //   }
-  //   table[0] = elementList;
-  //   table[1] = numberList;
-
-  //   if(sortListsByOccurrences) {
-  //     table = TableOperators.sortListsByNumberList(table, numberList);
-  //   }
-
-  //   if(limit != 0 && limit < elementList.length) {
-  //     table[0] = table[0].splice(0, limit);
-  //     table[1] = table[1].splice(0, limit);
-  //   }
-
-  //   return table;
-  // };
 
 
   /**
@@ -8877,9 +8813,11 @@
     if(includeLinks) {
       links = string.match(StringOperators.LINK_REGEX);
     }
+
     string = string.toLowerCase().replace(StringOperators.LINK_REGEX, "");
 
     var list = string.match(/\w+/g);
+    
     if(list == null) return new StringList();
 
     list = StringList.fromArray(list);
@@ -8892,8 +8830,9 @@
     if(stopWords != null) { //TODO:check before if all stopwrds are strings
       //list.removeElements(stopWords);
       nMatches = list.length;
+      var nStopWords = stopWords.length;
       for(i = 0; i<nMatches; i++) {
-        for(j = 0; stopWords[j] != null; j++) {
+        for(j = 0; j<nStopWords; j++) {
           if((typeof stopWords[j]) == 'string') {
             if(stopWords[j] == list[i]) {
               list.splice(i, 1);
@@ -8914,7 +8853,7 @@
 
     if(minSizeWords > 0) {
       nMatches = list.length;
-      for(i = 0; list[i] != null; i++) {
+      for(i = 0; i<nMatches; i++) {
         if(list[i].length < minSizeWords) {
           list.splice(i, 1);
           i--;
@@ -19614,15 +19553,18 @@
    * tags:filter
    */
   StringListOperators.filterStringListByString = function(stringList, string, asWord, returnIndexes) {
+    if(stringList==null || string==null) return null;
+
     var i;
     var newList = returnIndexes ? new NumberList() : new StringList();
     var regex;
+    var l = stringList.length;
 
     if(asWord) {
       regex = new RegExp("\\b" + string + "\\b");
     }
 
-    for(i = 0; stringList[i] != null; i++) {
+    for(i = 0; i<l; i++) {
       if(asWord) {
         if(stringList[i].match(regex).length > 0) {
           newList.push(returnIndexes ? i : stringList[i]);
@@ -19633,6 +19575,7 @@
         }
       }
     }
+    
     return newList;
   };
 

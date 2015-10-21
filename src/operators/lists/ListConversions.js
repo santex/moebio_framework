@@ -18,10 +18,14 @@ export default ListConversions;
  * tags:conversion
  */
 ListConversions.toNumberList = function(list) {
+  if(list==null) return;
+
   var numberList = new NumberList();
-  numberList.name = list.name;
+  var l = list.length;
   var i;
-  for(i = 0; list[i] != null; i++) {
+
+  numberList.name = list.name;
+  for(i = 0; i<l; i++) {
     numberList[i] = Number(list[i]);
   }
   return numberList;
@@ -35,10 +39,14 @@ ListConversions.toNumberList = function(list) {
  * tags:conversion
  */
 ListConversions.toStringList = function(list) {
+  if(list==null) return;
+
+  var l = list.length;
   var i;
   var stringList = new StringList();
+
   stringList.name = list.name;
-  for(i = 0; list[i] != null; i++) {
+  for(i = 0; i<l; i++) {
     if(typeof list[i] == 'number') {
       stringList[i] = String(list[i]);
     } else {

@@ -58,15 +58,18 @@ StringListOperators.join = function(stringList, character, prefix, sufix) {
  * tags:filter
  */
 StringListOperators.filterStringListByString = function(stringList, string, asWord, returnIndexes) {
+  if(stringList==null || string==null) return null;
+
   var i;
   var newList = returnIndexes ? new NumberList() : new StringList();
   var regex;
+  var l = stringList.length;
 
   if(asWord) {
     regex = new RegExp("\\b" + string + "\\b");
   }
 
-  for(i = 0; stringList[i] != null; i++) {
+  for(i = 0; i<l; i++) {
     if(asWord) {
       if(stringList[i].match(regex).length > 0) {
         newList.push(returnIndexes ? i : stringList[i]);
@@ -77,6 +80,7 @@ StringListOperators.filterStringListByString = function(stringList, string, asWo
       }
     }
   }
+  
   return newList;
 };
 
