@@ -1181,9 +1181,6 @@
     array.getFirstElementByPropertyValue = List.prototype.getFirstElementByPropertyValue;
     array.add = List.prototype.add;
     array.multiply = List.prototype.multiply;
-    array.getSubList = List.prototype.getSubList;
-    array.getSubListByIndexes = List.prototype.getSubListByIndexes;
-    array.getSubListByType = List.prototype.getSubListByType;
     array.getElementNumberOfOccurrences = List.prototype.getElementNumberOfOccurrences;
     array.getPropertyValues = List.prototype.getPropertyValues;
     array.getRandomElement = List.prototype.getRandomElement;
@@ -1204,6 +1201,9 @@
     array.getSortedByList = List.prototype.getSortedByList;
     array.getSortedRandom = List.prototype.getSortedRandom;
     //filter:
+    array.getSubList = List.prototype.getSubList;
+    array.getSubListByIndexes = List.prototype.getSubListByIndexes;
+    array.getSubListByType = List.prototype.getSubListByType;
     array.getFilteredByPropertyValue = List.prototype.getFilteredByPropertyValue;
     array.getFilteredByBooleanList = List.prototype.getFilteredByBooleanList;
 
@@ -1424,6 +1424,7 @@
   /**
    * returns a sub-list, params could be: tw numbers, an interval or a NumberList.
    * @param {Number} argument0 number, interval (in this it will include elements with initial and end indexes) or numberList
+   *
    * @param {Number} argument1 second index
    * @return {List}
    * tags:filter
@@ -1431,6 +1432,7 @@
   List.prototype.getSubList = function() {
     var interval;
     var i;
+    if(arguments[0]==null) return;
 
     if(arguments[0].isList) {
       return this.getSubListByIndexes(arguments[0]);
@@ -1931,7 +1933,7 @@
     if(ascending){
       for(i=1;i<l;i++){
         if(this[i]<this[i-1]){
-          console.log('~',i,this[i],this[i+1]);
+          console.log('~ non sorted elements i, i-1, (ascending):',i,this[i],this[i-1]);
         }
         if(this[i]<this[i-1]) return false;
       }
@@ -8281,6 +8283,14 @@
     return colors;
   };
 
+  /**
+   * Creates a ColorList of categorical colors based on an input List. All entries with the same value will get the same color.
+   * @param {List} the list containing categorical data with same length as given list
+   * tags:generator
+   */
+  ColorListGenerators.colorsForCategoricalList = function(list){
+    return ColorListGenerators.createCategoricalColorListForList(list)[0].value;
+  };
 
   //@todo: change this method (and try to not break things)
 
@@ -8746,44 +8756,6 @@
     return newText;
   };
 
-  /** depracted, replaced by StringListOperators.replaceStringsInText
-   * replaces in a string ocurrences of sub-strings by a string
-   * @param  {String} string to be modified
-   * @param  {StringList} subStrings sub-strings to be replaced
-   * @param  {String} replacement string to be placed instead
-   * @return {String}
-   */
-  // StringOperators.replaceSubStringsByString = function(string, subStrings, replacement) {
-  //   if(subStrings == null) return;
-
-  //   subStrings.forEach(function(subString) {
-  //     string = StringOperators.replaceStringInText(string, subString, replacement);
-  //   });
-
-  //   return string;
-  // };
-
-  /** deprecated, replaced by: 
-   * replaces in a string ocurrences of sub-strings by strings (1-1)
-   * @param  {String} string to be modified
-   * @param  {StringList} subStrings sub-strings to be replaced
-   * @param  {StringList} replacements strings to be placed instead
-   * @return {String}
-   * tags:
-   */
-  // StringOperators.replaceSubStringsByStrings = function(string, subStrings, replacements) {
-  //   if(subStrings == null || replacements == null) return;
-
-  //   var nElements = Math.min(subStrings.length, replacements.length);
-  //   var i;
-
-  //   for(i = 0; i < nElements; i++) {
-  //     string = StringOperators.replaceStringInText(string, subStrings[i], replacements[i]);
-  //   }
-
-  //   return string;
-  // };
-
   /**
    * builds a stringList of words contained in the text
    * @param  {String} string text to be analyzed
@@ -8817,7 +8789,7 @@
     string = string.toLowerCase().replace(StringOperators.LINK_REGEX, "");
 
     var list = string.match(/\w+/g);
-    
+
     if(list == null) return new StringList();
 
     list = StringList.fromArray(list);
@@ -9425,9 +9397,17 @@
   //counting / statistics
 
   /**
-   * @todo finish docs
+   * count the number of occurrences of a string into a text
+   * @param {String} text
+   * @param {String} string
+   *
+   * @param {Boolean} asWord if false (default) searches for substring, if true searches for word
+   * @return {Number} number of occurrences
+   * tags:count
    */
-  StringOperators.countOccurrences = function(text, string) { //seems to be th emost efficient: http://stackoverflow.com/questions/4009756/how-to-count-string-occurrence-in-string
+  StringOperators.countOccurrences = function(text, string, asWord) { //seems to be th emost efficient: http://stackoverflow.com/questions/4009756/how-to-count-string-occurrence-in-string
+    if(asWord) return StringOperators.countWordOccurrences(text, string);
+
     var n = 0;
     var index = text.indexOf(string);
     while(index != -1) {
@@ -9442,18 +9422,38 @@
    */
   StringOperators.countWordOccurrences = function(string, word) {
     var regex = new RegExp("\\b" + word + "\\b");
-    var match = string.match(regex);
-    return match == null ? 0 : match.length;
+    return StringOperators.countRegexOccurrences(string, regex);
   };
 
   /**
    * @todo finish docs
    */
-  StringOperators.countStringsOccurrences = function(text, strings) {
+  StringOperators.countRegexOccurrences = function(string, regex) {
+    var match = string.match(regex);
+    return match == null ? 0 : match.length;
+  };
+
+  /**
+   * count the number of occurrences of a list of strings into a text
+   * @param {String} text
+   * @param {StringList} strings
+   *
+   * @param {Boolean} asWords if false (default) searches for substrings, if true searches for words
+   * @return {NumberList} number of occurrences per string
+   * tags:count
+   */
+  StringOperators.countStringsOccurrences = function(text, strings, asWords) {
+    if(text==null || strings==null) return;
+
     var i;
     var numberList = new NumberList();
-    for(i = 0; strings[i] != null; i++) {
-      numberList[i] = text.split(strings[i]).length - 1;
+    var nStrings = strings.length;
+    for(i = 0; i<nStrings; i++) {
+      if(asWords){
+        numberList[i] = StringOperators.countRegexOccurrences(text, new RegExp("\\b" + strings[i] + "\\b"));
+      } else {
+        numberList[i] = StringOperators.countOccurrences(text, strings[i]);
+      }
     }
     return numberList;
   };
@@ -19682,25 +19682,34 @@
   * finds strings from a list in strings in another list (typically the strings in the first list are short, and in the second longer texts)
   * @param {StringList} list of strings or list of Regular Expressions
   * @param {StringList} list of texts were to search
+  *
+  * @param {Boolean} asWords if false (default) searches substrings, if true searches words
   * @return {NumberTable} matrix of results, each column being the vector of occurrences for each string
   * tags:count
   */
-  StringListOperators.countStringsOccurrencesOnTexts = function(strings, texts) {
+  StringListOperators.countStringsOccurrencesOnTexts = function(strings, texts, asWords) {
     var occurrencesTable = new NumberTable();
 
     var i;
     var j;
-    var pattern;
+    var string;
     var numberList;
-    var splitArray;
+    //var splitArray;
+    var nStrings = strings.length;
+    var nTexts = texts.length;
+    var wordRegex;
 
-    for(i = 0; strings[i] != null; i++) {
-      pattern = strings[i];
+    for(i = 0; i<nStrings; i++) {
+      string = strings[i];
+      wordRegex = new RegExp("\\b" + string + "\\b");
       numberList = new NumberList();
-      numberList.name = pattern;
-      for(j = 0; texts[j] != null; j++) {
-        splitArray = texts[j].split(pattern);
-        numberList[j] = splitArray.length - 1;
+      numberList.name = string;
+      for(j = 0; j<nTexts; j++) {
+        if(asWords){
+          numberList[j] = StringOperators.countRegexOccurrences(texts[j], wordRegex);
+        } else {
+          numberList[j] = StringOperators.countOccurrences(texts[j], string);
+        }
       }
       occurrencesTable[i] = numberList;
     }

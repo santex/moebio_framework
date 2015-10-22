@@ -90,9 +90,6 @@ List.fromArray = function(array) {
   array.getFirstElementByPropertyValue = List.prototype.getFirstElementByPropertyValue;
   array.add = List.prototype.add;
   array.multiply = List.prototype.multiply;
-  array.getSubList = List.prototype.getSubList;
-  array.getSubListByIndexes = List.prototype.getSubListByIndexes;
-  array.getSubListByType = List.prototype.getSubListByType;
   array.getElementNumberOfOccurrences = List.prototype.getElementNumberOfOccurrences;
   array.getPropertyValues = List.prototype.getPropertyValues;
   array.getRandomElement = List.prototype.getRandomElement;
@@ -113,6 +110,9 @@ List.fromArray = function(array) {
   array.getSortedByList = List.prototype.getSortedByList;
   array.getSortedRandom = List.prototype.getSortedRandom;
   //filter:
+  array.getSubList = List.prototype.getSubList;
+  array.getSubListByIndexes = List.prototype.getSubListByIndexes;
+  array.getSubListByType = List.prototype.getSubListByType;
   array.getFilteredByPropertyValue = List.prototype.getFilteredByPropertyValue;
   array.getFilteredByBooleanList = List.prototype.getFilteredByBooleanList;
 
@@ -333,6 +333,7 @@ List.prototype.getReversed = function() {
 /**
  * returns a sub-list, params could be: tw numbers, an interval or a NumberList.
  * @param {Number} argument0 number, interval (in this it will include elements with initial and end indexes) or numberList
+ *
  * @param {Number} argument1 second index
  * @return {List}
  * tags:filter
@@ -340,6 +341,7 @@ List.prototype.getReversed = function() {
 List.prototype.getSubList = function() {
   var interval;
   var i;
+  if(arguments[0]==null) return;
 
   if(arguments[0].isList) {
     return this.getSubListByIndexes(arguments[0]);
@@ -840,7 +842,7 @@ List.prototype.isSorted = function(ascending){
   if(ascending){
     for(i=1;i<l;i++){
       if(this[i]<this[i-1]){
-        console.log('~',i,this[i],this[i+1]);
+        console.log('~ non sorted elements i, i-1, (ascending):',i,this[i],this[i-1]);
       }
       if(this[i]<this[i-1]) return false;
     }

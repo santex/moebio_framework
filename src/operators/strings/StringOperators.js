@@ -142,44 +142,6 @@ StringOperators.replaceStringsInText = function(text, strings, replacement) {
   return newText;
 };
 
-/** depracted, replaced by StringListOperators.replaceStringsInText
- * replaces in a string ocurrences of sub-strings by a string
- * @param  {String} string to be modified
- * @param  {StringList} subStrings sub-strings to be replaced
- * @param  {String} replacement string to be placed instead
- * @return {String}
- */
-// StringOperators.replaceSubStringsByString = function(string, subStrings, replacement) {
-//   if(subStrings == null) return;
-
-//   subStrings.forEach(function(subString) {
-//     string = StringOperators.replaceStringInText(string, subString, replacement);
-//   });
-
-//   return string;
-// };
-
-/** deprecated, replaced by: 
- * replaces in a string ocurrences of sub-strings by strings (1-1)
- * @param  {String} string to be modified
- * @param  {StringList} subStrings sub-strings to be replaced
- * @param  {StringList} replacements strings to be placed instead
- * @return {String}
- * tags:
- */
-// StringOperators.replaceSubStringsByStrings = function(string, subStrings, replacements) {
-//   if(subStrings == null || replacements == null) return;
-
-//   var nElements = Math.min(subStrings.length, replacements.length);
-//   var i;
-
-//   for(i = 0; i < nElements; i++) {
-//     string = StringOperators.replaceStringInText(string, subStrings[i], replacements[i]);
-//   }
-
-//   return string;
-// };
-
 /**
  * builds a stringList of words contained in the text
  * @param  {String} string text to be analyzed
@@ -213,7 +175,7 @@ StringOperators.getWords = function(string, withoutRepetitions, stopWords, sorte
   string = string.toLowerCase().replace(StringOperators.LINK_REGEX, "");
 
   var list = string.match(/\w+/g);
-  
+
   if(list == null) return new StringList();
 
   list = StringList.fromArray(list);
@@ -821,9 +783,17 @@ StringOperators.repeatString = function(text, n) {
 //counting / statistics
 
 /**
- * @todo finish docs
+ * count the number of occurrences of a string into a text
+ * @param {String} text
+ * @param {String} string
+ *
+ * @param {Boolean} asWord if false (default) searches for substring, if true searches for word
+ * @return {Number} number of occurrences
+ * tags:count
  */
-StringOperators.countOccurrences = function(text, string) { //seems to be th emost efficient: http://stackoverflow.com/questions/4009756/how-to-count-string-occurrence-in-string
+StringOperators.countOccurrences = function(text, string, asWord) { //seems to be th emost efficient: http://stackoverflow.com/questions/4009756/how-to-count-string-occurrence-in-string
+  if(asWord) return StringOperators.countWordOccurrences(text, string);
+
   var n = 0;
   var index = text.indexOf(string);
   while(index != -1) {
@@ -838,18 +808,38 @@ StringOperators.countOccurrences = function(text, string) { //seems to be th emo
  */
 StringOperators.countWordOccurrences = function(string, word) {
   var regex = new RegExp("\\b" + word + "\\b");
-  var match = string.match(regex);
-  return match == null ? 0 : match.length;
+  return StringOperators.countRegexOccurrences(string, regex);
 };
 
 /**
  * @todo finish docs
  */
-StringOperators.countStringsOccurrences = function(text, strings) {
+StringOperators.countRegexOccurrences = function(string, regex) {
+  var match = string.match(regex);
+  return match == null ? 0 : match.length;
+};
+
+/**
+ * count the number of occurrences of a list of strings into a text
+ * @param {String} text
+ * @param {StringList} strings
+ *
+ * @param {Boolean} asWords if false (default) searches for substrings, if true searches for words
+ * @return {NumberList} number of occurrences per string
+ * tags:count
+ */
+StringOperators.countStringsOccurrences = function(text, strings, asWords) {
+  if(text==null || strings==null) return;
+
   var i;
   var numberList = new NumberList();
-  for(i = 0; strings[i] != null; i++) {
-    numberList[i] = text.split(strings[i]).length - 1;
+  var nStrings = strings.length;
+  for(i = 0; i<nStrings; i++) {
+    if(asWords){
+      numberList[i] = StringOperators.countRegexOccurrences(text, new RegExp("\\b" + strings[i] + "\\b"));
+    } else {
+      numberList[i] = StringOperators.countOccurrences(text, strings[i]);
+    }
   }
   return numberList;
 };
