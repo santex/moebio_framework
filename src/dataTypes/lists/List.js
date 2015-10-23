@@ -981,7 +981,7 @@ List.prototype.getSortedRandom = function() {
  * @return {NumberList}
  * tags:
  */
-List.prototype.indexesOf = function(element) {
+List.prototype.indexesOf = function(element) {//@todo: probably better to just traverse de list
   var index = this.indexOf(element);
   var numberList = new NumberList();
   while(index != -1) {
@@ -998,7 +998,7 @@ List.prototype.indexesOf = function(element) {
  * @return {NumberList}
  * tags:
  */
-List.prototype.indexOfElements = function(elements) {
+List.prototype.indexOfElements = function(elements) {//@todo: probably better to just traverse de list
   var numberList = new NumberList();
   var l = elements.length;
   for(var i = 0; i<l; i++) {

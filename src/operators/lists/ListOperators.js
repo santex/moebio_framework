@@ -11,6 +11,7 @@ import ColorScales from "src/operators/graphic/ColorScales";
 import ColorListGenerators from "src/operators/graphic/ColorListGenerators";
 import NumberOperators from "src/operators/numeric/NumberOperators";
 import NumberListOperators from "src/operators/numeric/numberList/NumberListOperators";
+import NumberListGenerators from "src/operators/numeric/numberList/NumberListGenerators";
 import { typeOf, instantiate, instantiateWithSameType } from "src/tools/utils/code/ClassUtils";
 
 /**
@@ -289,6 +290,7 @@ ListOperators.getIndexesTable = function(list){
   return indexesTable;
 };
 
+
 /**
  * builds a dictionar object (relational array) for a dictionar (table with two lists)
  * @param  {Table} dictionary table with two lists, typically without repetitions, elements of the second list being the 'translation' of the correspdonent on the first
@@ -329,6 +331,7 @@ ListOperators.translateWithDictionary = function(list, dictionary, nullElement) 
   return newList;
 };
 
+
 /**
  * creates a new list that is a translation of a list using a dictionar object (a relation array)
  * @param  {List} list
@@ -348,9 +351,6 @@ ListOperators.translateWithDictionaryObject = function(list, dictionaryObject, n
   for(i=0; i<nElements; i++){
     newList[i] = dictionaryObject[list[i]];
   }
-  // list.forEach(function(element, i) {
-  //   newList[i] = dictionaryObject[element];
-  // });
 
   if(nullElement!=null){
     var l = list.length;
@@ -361,26 +361,6 @@ ListOperators.translateWithDictionaryObject = function(list, dictionaryObject, n
   newList.name = list.name;
   return newList.getImproved();
 };
-
-
-// ListOperators.getIndexesOfElements=function(list, elements){
-// 	var numberList = new NumberList();
-// 	var i;
-// 	for(i=0; elements[i]!=null; i++){
-// 		numberList[i] = list.indexOf(elements[i]);
-// 	}
-// 	return numberList;
-// }
-
-
-// ListOperators.countOccurrencesOnList=function(list){
-// 	var occurrences=new NumberList();
-// 	var nElements=list.length;
-// 	for(var i=0; list[i]!=null; i++){
-// 		occurrences.push(this.getIndexesOfElement(list,list[i]).length);
-// 	}
-// 	return occurrences;
-// }
 
 
 /**
@@ -414,6 +394,31 @@ ListOperators.sortListByNumberList = function(list, numberList, descending) {
   }
   newList.name = list.name;
   return newList;
+};
+
+
+/**
+ * calculates the position of elements of a list if it were sorted (rankings)
+ * @param  {List} list
+ *
+ * @param  {Boolean} ascendant if true (default) rankings ara lower for lower values
+ * @return {NumberList} positions (or ranks) of elements
+ * tags:
+ */
+ListOperators.getRankings = function(list, ascendant){
+  ascendant = ascendant==null?true:ascendant;
+
+  var indexes = NumberListGenerators.createSortedNumberList(list.length);
+  indexes = indexes.getSortedByList(list, ascendant);
+  var rankings = new NumberList();
+  var l = list.length;
+  var i;
+  for(i=0;i<l; i++){
+    rankings[indexes[i]] = i;
+  }
+  rankings.name = 'rankings';
+
+  return rankings;
 };
 
 
@@ -640,44 +645,6 @@ ListOperators.getCommonElements = function(list0, list1) {
   if(nums || strs) return newList;
   return newList.getImproved();
 };
-
-
-
-
-/**
- * creates a List that contains the union of two List (removing repetitions) (deprecated, use union instead)
- * @param  {List} list0
- * @param  {List} list A
- * @param  {List} list B
- *
- * @return {List} the union of both NumberLists
- */
-// ListOperators.unionLists = function(x, y) {
-//   // Borrowed from here: http://stackoverflow.com/questions/3629817/getting-a-union-of-two-arrays-in-javascript
-//   var result;
-//   if(x.type != x.type || (x.type != "StringList" && x.type != "NumberList")) {
-//     // To-do: call generic method here (not yet implemented)
-//     //console.log( "ListOperators.unionLists for type '" + x.type + "' or '" + y.type + "' not yet implemented" );
-//     return x.concat(y).getWithoutRepetitions();
-//   }
-//   else {
-//     var obj = {};
-//     var i;
-//     for(i = x.length - 1; i >= 0; --i){
-//       obj[x[i]] = x[i];
-//     }
-//     for(i = y.length - 1; i >= 0; --i){
-//       obj[y[i]] = y[i];
-//     }
-//     result = x.type == "StringList" ? new StringList() : new NumberList();
-//     for(var k in obj) {
-//       if(obj.hasOwnProperty(k)) // <-- optional
-//         result.push(obj[k]);
-//     }
-//   }
-//   return result;
-// };
-
 
 
 /**

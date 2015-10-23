@@ -2072,7 +2072,7 @@
    * @return {NumberList}
    * tags:
    */
-  List.prototype.indexesOf = function(element) {
+  List.prototype.indexesOf = function(element) {//@todo: probably better to just traverse de list
     var index = this.indexOf(element);
     var numberList = new NumberList();
     while(index != -1) {
@@ -2089,7 +2089,7 @@
    * @return {NumberList}
    * tags:
    */
-  List.prototype.indexOfElements = function(elements) {
+  List.prototype.indexOfElements = function(elements) {//@todo: probably better to just traverse de list
     var numberList = new NumberList();
     var l = elements.length;
     for(var i = 0; i<l; i++) {
@@ -5688,6 +5688,253 @@
   };
 
   /**
+   * @classdesc Provides a set of tools that work with Numbers.
+   *
+   * @namespace
+   * @category numbers
+   */
+  function NumberOperators() {}
+  /**
+   * converts number into a string
+   *
+   * @param {Number} value The number to convert
+   * @param {Number} nDecimals Number of decimals to include. Defaults to 0.
+   */
+  NumberOperators.numberToString = function(value, nDecimals ) {
+    var string = value.toFixed(nDecimals);
+    while(string.charAt(string.length - 1) == '0') {
+      string = string.substring(0, string.length - 1);
+    }
+    if(string.charAt(string.length - 1) == '.') string = string.substring(0, string.length - 1);
+    return string;
+  };
+
+  /**
+   * decent method to create pseudo random numbers
+   * @param {Object} seed
+   */
+  NumberOperators.getRandomWithSeed = function(seed) {
+    seed = (seed * 9301 + 49297) % 233280;
+    return seed / (233280.0);
+  };
+
+  /**
+   * @todo write docs
+   */
+  NumberOperators.numberFromBinaryPositions = function(binaryPositions) {
+    var i;
+    var n = 0;
+    for(i = 0; binaryPositions[i] != null; i++) {
+      n += Math.pow(2, binaryPositions[i]);
+    }
+    return n;
+  };
+
+  /**
+   * @todo write docs
+   */
+  NumberOperators.numberFromBinaryValues = function(binaryValues) {
+    var n = 0;
+    var l = binaryValues.length;
+    for(var i = 0; i < l; i++) {
+      n += binaryValues[i] == 1 ? Math.pow(2, (l - (i + 1))) : 0;
+    }
+    return n;
+  };
+
+  /**
+   * @todo write docs
+   */
+  NumberOperators.powersOfTwoDecomposition = function(number, length) {
+
+    var powers = new NumberList();
+
+    var constructingNumber = 0;
+    var biggestPower;
+
+    while(constructingNumber < number) {
+      biggestPower = Math.floor(Math.log(number) / Math.LN2);
+      powers[biggestPower] = 1;
+      number -= Math.pow(2, biggestPower);
+    }
+
+    length = Math.max(powers.length, length == null ? 0 : length);
+
+    for(var i = 0; i < length; i++) {
+      powers[i] = powers[i] == 1 ? 1 : 0;
+    }
+
+    return powers;
+  };
+
+  /**
+   * @todo write docs
+   */
+  NumberOperators.positionsFromBinaryValues = function(binaryValues) {
+    var i;
+    var positions = new NumberList();
+    for(i = 0; binaryValues[i] != null; i++) {
+      if(binaryValues[i] == 1) positions.push(i);
+    }
+    return positions;
+  };
+
+  //////////Random Generator with Seed, From http://baagoe.org/en/w/index.php/Better_random_numbers_for_javascript
+
+  /**
+   * @ignore
+   */
+  NumberOperators._Alea = function() {
+    return(function(args) {
+      // Johannes Baagøe <baagoe@baagoe.com>, 2010
+      var s0 = 0;
+      var s1 = 0;
+      var s2 = 0;
+      var c = 1;
+
+      if(args.length === 0) {
+        args = [+new Date()];
+      }
+      var mash = NumberOperators._Mash();
+      s0 = mash(' ');
+      s1 = mash(' ');
+      s2 = mash(' ');
+
+      for(var i = 0; i < args.length; i++) {
+        s0 -= mash(args[i]);
+        if(s0 < 0) {
+          s0 += 1;
+        }
+        s1 -= mash(args[i]);
+        if(s1 < 0) {
+          s1 += 1;
+        }
+        s2 -= mash(args[i]);
+        if(s2 < 0) {
+          s2 += 1;
+        }
+      }
+      mash = null;
+
+      var random = function() {
+        var t = 2091639 * s0 + c * 2.3283064365386963e-10; // 2^-32
+        s0 = s1;
+        s1 = s2;
+        // https://github.com/nquinlan/better-random-numbers-for-javascript-mirror/blob/master/support/js/Alea.js#L38
+        return s2 = t - (c = t | 0);
+      };
+      random.uint32 = function() {
+        return random() * 0x100000000; // 2^32
+      };
+      random.fract53 = function() {
+        return random() +
+          (random() * 0x200000 | 0) * 1.1102230246251565e-16; // 2^-53
+      };
+      random.version = 'Alea 0.9';
+      random.args = args;
+      return random;
+
+    }(Array.prototype.slice.call(arguments)));
+  };
+
+  /**
+   * @ignore
+   */
+  NumberOperators._Mash = function() {
+    var n = 0xefc8249d;
+
+    var mash = function(data) {
+      data = data.toString();
+      for(var i = 0; i < data.length; i++) {
+        n += data.charCodeAt(i);
+        var h = 0.02519603282416938 * n;
+        n = h >>> 0;
+        h -= n;
+        h *= n;
+        n = h >>> 0;
+        h -= n;
+        n += h * 0x100000000; // 2^32
+      }
+      return(n >>> 0) * 2.3283064365386963e-10; // 2^-32
+    };
+
+    mash.version = 'Mash 0.9';
+    return mash;
+  };
+
+  /**
+   * @classdesc NumberList Generators
+   *
+   * @namespace
+   * @category numbers
+   */
+  function NumberListGenerators() {}
+  /**
+   * Generate a NumberList with sorted Numbers
+   * @param {Number} nValues length of the NumberList
+   *
+   * @param {Number} start first value
+   * @param {Number} step increment value
+   * @return {NumberList} generated NumberList
+   * tags:generator
+   */
+  NumberListGenerators.createSortedNumberList = function(nValues, start, step) {
+    start = start || 0;
+    step = step || 1;
+    if(step === 0) step = 1;
+    var i;
+    var numberList = new NumberList();
+    for(i = 0; i < nValues; i++) {
+      numberList.push(start + i * step);
+    }
+    return numberList;
+  };
+
+  // TODO: Should this function be here?
+  /**
+   * @todo finish docs
+   */
+  NumberList.createNumberListFromInterval = function(nElements, interval) {
+    if(interval == null) interval = new Interval(0, 1);
+    var numberList = new NumberList();
+    var range = interval.getAmplitude();
+    var i;
+    for(i = 0; i < nElements; i++) {
+      numberList.push(Number(interval.getMin()) + Number(Math.random() * range));
+    }
+    return numberList;
+  };
+
+  /**
+   * creates a list with random numbers
+   *
+   * @param  {Number} nValues
+   *
+   * @param  {Interval} interval range of the numberList
+   * @param  {Number} seed optional seed for seeded random numbers
+   * @return {NumberList}
+   * tags:random
+   */
+  NumberListGenerators.createRandomNumberList = function(nValues, interval, seed, func) {
+    seed = seed == null ? -1 : seed;
+    interval = interval == null ? new Interval(0, 1) : interval;
+
+    var numberList = new NumberList();
+    var amplitude = interval.getAmplitude();
+
+    var random = seed == -1 ? Math.random : new NumberOperators._Alea("my", seed, "seeds");
+
+    for(var i = 0; i < nValues; i++) {
+      //seed = (seed*9301+49297) % 233280; //old method, close enough: http://moebio.com/research/randomseedalgorithms/
+      //numberList[i] = interval.x + (seed/233280.0)*amplitude; //old method
+
+      numberList[i] = func == null ? (random() * amplitude + interval.x) : func(random() * amplitude + interval.x);
+    }
+
+    return numberList;
+  };
+
+  /**
    * @classdesc List Operators
    *
    * @namespace
@@ -5731,11 +5978,12 @@
 
     stringList.name = list.name;
     for(i = 0; i<l; i++) {
-      if(typeof list[i] == 'number') {
-        stringList[i] = String(list[i]);
-      } else {
-        stringList[i] = list[i].toString();
-      }
+      stringList[i] = String(list[i]);
+      // if(typeof list[i] == 'number') {
+      //   stringList[i] = String(list[i]);
+      // } else {
+      //   stringList[i] = list[i].toString();
+      // }
     }
     return stringList;
   };
@@ -6507,181 +6755,6 @@
   };
 
   /**
-   * @classdesc Provides a set of tools that work with Numbers.
-   *
-   * @namespace
-   * @category numbers
-   */
-  function NumberOperators() {}
-  /**
-   * converts number into a string
-   *
-   * @param {Number} value The number to convert
-   * @param {Number} nDecimals Number of decimals to include. Defaults to 0.
-   */
-  NumberOperators.numberToString = function(value, nDecimals ) {
-    var string = value.toFixed(nDecimals);
-    while(string.charAt(string.length - 1) == '0') {
-      string = string.substring(0, string.length - 1);
-    }
-    if(string.charAt(string.length - 1) == '.') string = string.substring(0, string.length - 1);
-    return string;
-  };
-
-  /**
-   * decent method to create pseudo random numbers
-   * @param {Object} seed
-   */
-  NumberOperators.getRandomWithSeed = function(seed) {
-    seed = (seed * 9301 + 49297) % 233280;
-    return seed / (233280.0);
-  };
-
-  /**
-   * @todo write docs
-   */
-  NumberOperators.numberFromBinaryPositions = function(binaryPositions) {
-    var i;
-    var n = 0;
-    for(i = 0; binaryPositions[i] != null; i++) {
-      n += Math.pow(2, binaryPositions[i]);
-    }
-    return n;
-  };
-
-  /**
-   * @todo write docs
-   */
-  NumberOperators.numberFromBinaryValues = function(binaryValues) {
-    var n = 0;
-    var l = binaryValues.length;
-    for(var i = 0; i < l; i++) {
-      n += binaryValues[i] == 1 ? Math.pow(2, (l - (i + 1))) : 0;
-    }
-    return n;
-  };
-
-  /**
-   * @todo write docs
-   */
-  NumberOperators.powersOfTwoDecomposition = function(number, length) {
-
-    var powers = new NumberList();
-
-    var constructingNumber = 0;
-    var biggestPower;
-
-    while(constructingNumber < number) {
-      biggestPower = Math.floor(Math.log(number) / Math.LN2);
-      powers[biggestPower] = 1;
-      number -= Math.pow(2, biggestPower);
-    }
-
-    length = Math.max(powers.length, length == null ? 0 : length);
-
-    for(var i = 0; i < length; i++) {
-      powers[i] = powers[i] == 1 ? 1 : 0;
-    }
-
-    return powers;
-  };
-
-  /**
-   * @todo write docs
-   */
-  NumberOperators.positionsFromBinaryValues = function(binaryValues) {
-    var i;
-    var positions = new NumberList();
-    for(i = 0; binaryValues[i] != null; i++) {
-      if(binaryValues[i] == 1) positions.push(i);
-    }
-    return positions;
-  };
-
-  //////////Random Generator with Seed, From http://baagoe.org/en/w/index.php/Better_random_numbers_for_javascript
-
-  /**
-   * @ignore
-   */
-  NumberOperators._Alea = function() {
-    return(function(args) {
-      // Johannes Baagøe <baagoe@baagoe.com>, 2010
-      var s0 = 0;
-      var s1 = 0;
-      var s2 = 0;
-      var c = 1;
-
-      if(args.length === 0) {
-        args = [+new Date()];
-      }
-      var mash = NumberOperators._Mash();
-      s0 = mash(' ');
-      s1 = mash(' ');
-      s2 = mash(' ');
-
-      for(var i = 0; i < args.length; i++) {
-        s0 -= mash(args[i]);
-        if(s0 < 0) {
-          s0 += 1;
-        }
-        s1 -= mash(args[i]);
-        if(s1 < 0) {
-          s1 += 1;
-        }
-        s2 -= mash(args[i]);
-        if(s2 < 0) {
-          s2 += 1;
-        }
-      }
-      mash = null;
-
-      var random = function() {
-        var t = 2091639 * s0 + c * 2.3283064365386963e-10; // 2^-32
-        s0 = s1;
-        s1 = s2;
-        // https://github.com/nquinlan/better-random-numbers-for-javascript-mirror/blob/master/support/js/Alea.js#L38
-        return s2 = t - (c = t | 0);
-      };
-      random.uint32 = function() {
-        return random() * 0x100000000; // 2^32
-      };
-      random.fract53 = function() {
-        return random() +
-          (random() * 0x200000 | 0) * 1.1102230246251565e-16; // 2^-53
-      };
-      random.version = 'Alea 0.9';
-      random.args = args;
-      return random;
-
-    }(Array.prototype.slice.call(arguments)));
-  };
-
-  /**
-   * @ignore
-   */
-  NumberOperators._Mash = function() {
-    var n = 0xefc8249d;
-
-    var mash = function(data) {
-      data = data.toString();
-      for(var i = 0; i < data.length; i++) {
-        n += data.charCodeAt(i);
-        var h = 0.02519603282416938 * n;
-        n = h >>> 0;
-        h -= n;
-        h *= n;
-        n = h >>> 0;
-        h -= n;
-        n += h * 0x100000000; // 2^32
-      }
-      return(n >>> 0) * 2.3283064365386963e-10; // 2^-32
-    };
-
-    mash.version = 'Mash 0.9';
-    return mash;
-  };
-
-  /**
    * @classdesc Default color scales.
    *
    * @namespace
@@ -7162,6 +7235,7 @@
     return indexesTable;
   };
 
+
   /**
    * builds a dictionar object (relational array) for a dictionar (table with two lists)
    * @param  {Table} dictionary table with two lists, typically without repetitions, elements of the second list being the 'translation' of the correspdonent on the first
@@ -7202,6 +7276,7 @@
     return newList;
   };
 
+
   /**
    * creates a new list that is a translation of a list using a dictionar object (a relation array)
    * @param  {List} list
@@ -7221,9 +7296,6 @@
     for(i=0; i<nElements; i++){
       newList[i] = dictionaryObject[list[i]];
     }
-    // list.forEach(function(element, i) {
-    //   newList[i] = dictionaryObject[element];
-    // });
 
     if(nullElement!=null){
       var l = list.length;
@@ -7234,26 +7306,6 @@
     newList.name = list.name;
     return newList.getImproved();
   };
-
-
-  // ListOperators.getIndexesOfElements=function(list, elements){
-  // 	var numberList = new NumberList();
-  // 	var i;
-  // 	for(i=0; elements[i]!=null; i++){
-  // 		numberList[i] = list.indexOf(elements[i]);
-  // 	}
-  // 	return numberList;
-  // }
-
-
-  // ListOperators.countOccurrencesOnList=function(list){
-  // 	var occurrences=new NumberList();
-  // 	var nElements=list.length;
-  // 	for(var i=0; list[i]!=null; i++){
-  // 		occurrences.push(this.getIndexesOfElement(list,list[i]).length);
-  // 	}
-  // 	return occurrences;
-  // }
 
 
   /**
@@ -7287,6 +7339,31 @@
     }
     newList.name = list.name;
     return newList;
+  };
+
+
+  /**
+   * calculates the position of elements of a list if it were sorted (rankings)
+   * @param  {List} list
+   *
+   * @param  {Boolean} ascendant if true (default) rankings ara lower for lower values
+   * @return {NumberList} positions (or ranks) of elements
+   * tags:
+   */
+  ListOperators.getRankings = function(list, ascendant){
+    ascendant = ascendant==null?true:ascendant;
+
+    var indexes = NumberListGenerators.createSortedNumberList(list.length);
+    indexes = indexes.getSortedByList(list, ascendant);
+    var rankings = new NumberList();
+    var l = list.length;
+    var i;
+    for(i=0;i<l; i++){
+      rankings[indexes[i]] = i;
+    }
+    rankings.name = 'rankings';
+
+    return rankings;
   };
 
 
@@ -7513,44 +7590,6 @@
     if(nums || strs) return newList;
     return newList.getImproved();
   };
-
-
-
-
-  /**
-   * creates a List that contains the union of two List (removing repetitions) (deprecated, use union instead)
-   * @param  {List} list0
-   * @param  {List} list A
-   * @param  {List} list B
-   *
-   * @return {List} the union of both NumberLists
-   */
-  // ListOperators.unionLists = function(x, y) {
-  //   // Borrowed from here: http://stackoverflow.com/questions/3629817/getting-a-union-of-two-arrays-in-javascript
-  //   var result;
-  //   if(x.type != x.type || (x.type != "StringList" && x.type != "NumberList")) {
-  //     // To-do: call generic method here (not yet implemented)
-  //     //console.log( "ListOperators.unionLists for type '" + x.type + "' or '" + y.type + "' not yet implemented" );
-  //     return x.concat(y).getWithoutRepetitions();
-  //   }
-  //   else {
-  //     var obj = {};
-  //     var i;
-  //     for(i = x.length - 1; i >= 0; --i){
-  //       obj[x[i]] = x[i];
-  //     }
-  //     for(i = y.length - 1; i >= 0; --i){
-  //       obj[y[i]] = y[i];
-  //     }
-  //     result = x.type == "StringList" ? new StringList() : new NumberList();
-  //     for(var k in obj) {
-  //       if(obj.hasOwnProperty(k)) // <-- optional
-  //         result.push(obj[k]);
-  //     }
-  //   }
-  //   return result;
-  // };
-
 
 
   /**
@@ -8176,78 +8215,6 @@
 
     ///add ideas to: analyze, visualize
     return text;
-  };
-
-  /**
-   * @classdesc NumberList Generators
-   *
-   * @namespace
-   * @category numbers
-   */
-  function NumberListGenerators() {}
-  /**
-   * Generate a NumberList with sorted Numbers
-   * @param {Number} nValues length of the NumberList
-   *
-   * @param {Number} start first value
-   * @param {Number} step increment value
-   * @return {NumberList} generated NumberList
-   * tags:generator
-   */
-  NumberListGenerators.createSortedNumberList = function(nValues, start, step) {
-    start = start || 0;
-    step = step || 1;
-    if(step === 0) step = 1;
-    var i;
-    var numberList = new NumberList();
-    for(i = 0; i < nValues; i++) {
-      numberList.push(start + i * step);
-    }
-    return numberList;
-  };
-
-  // TODO: Should this function be here?
-  /**
-   * @todo finish docs
-   */
-  NumberList.createNumberListFromInterval = function(nElements, interval) {
-    if(interval == null) interval = new Interval(0, 1);
-    var numberList = new NumberList();
-    var range = interval.getAmplitude();
-    var i;
-    for(i = 0; i < nElements; i++) {
-      numberList.push(Number(interval.getMin()) + Number(Math.random() * range));
-    }
-    return numberList;
-  };
-
-  /**
-   * creates a list with random numbers
-   *
-   * @param  {Number} nValues
-   *
-   * @param  {Interval} interval range of the numberList
-   * @param  {Number} seed optional seed for seeded random numbers
-   * @return {NumberList}
-   * tags:random
-   */
-  NumberListGenerators.createRandomNumberList = function(nValues, interval, seed, func) {
-    seed = seed == null ? -1 : seed;
-    interval = interval == null ? new Interval(0, 1) : interval;
-
-    var numberList = new NumberList();
-    var amplitude = interval.getAmplitude();
-
-    var random = seed == -1 ? Math.random : new NumberOperators._Alea("my", seed, "seeds");
-
-    for(var i = 0; i < nValues; i++) {
-      //seed = (seed*9301+49297) % 233280; //old method, close enough: http://moebio.com/research/randomseedalgorithms/
-      //numberList[i] = interval.x + (seed/233280.0)*amplitude; //old method
-
-      numberList[i] = func == null ? (random() * amplitude + interval.x) : func(random() * amplitude + interval.x);
-    }
-
-    return numberList;
   };
 
   ColorListGenerators._HARDCODED_CATEGORICAL_COLORS = new ColorList(

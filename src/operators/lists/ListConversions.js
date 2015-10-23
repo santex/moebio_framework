@@ -47,11 +47,12 @@ ListConversions.toStringList = function(list) {
 
   stringList.name = list.name;
   for(i = 0; i<l; i++) {
-    if(typeof list[i] == 'number') {
-      stringList[i] = String(list[i]);
-    } else {
-      stringList[i] = list[i].toString();
-    }
+    stringList[i] = String(list[i]);
+    // if(typeof list[i] == 'number') {
+    //   stringList[i] = String(list[i]);
+    // } else {
+    //   stringList[i] = list[i].toString();
+    // }
   }
   return stringList;
 };
