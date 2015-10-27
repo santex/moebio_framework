@@ -187,6 +187,8 @@ export function instantiateWithSameType(object, args) {
 }
 
 export function isArray(obj) {
+  if( (typeof obj)!='object' ) return false;
+  
   if(obj.constructor.toString().indexOf("Array") == -1)
     return false;
   else

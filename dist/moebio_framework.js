@@ -12240,6 +12240,8 @@
   }
 
   function isArray(obj) {
+    if( (typeof obj)!='object' ) return false;
+    
     if(obj.constructor.toString().indexOf("Array") == -1)
       return false;
     else
@@ -23403,8 +23405,12 @@
       clearTimeout(this._setTimeOutId);
       this._stopAfter(time);
     } else {
-      this._startCycle();
-      this._stopAfter(time);
+      if(time==1){
+        this._onCycle();
+      } else {
+        this._startCycle();
+        this._stopAfter(time);
+      }
     }
   };
 
@@ -23620,6 +23626,13 @@
   /*****************************
    * Public drawing functions
    *****************************/
+
+  /**
+   * Clear the canvas.
+   */
+  Graphics.prototype.clearCanvas = function() {
+    this.context.clearRect(0, 0, this.cW, this.cH);
+  };
 
   /**
    * Set the background color for the graphics object.
