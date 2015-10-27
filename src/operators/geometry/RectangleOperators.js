@@ -332,7 +332,8 @@ RectangleOperators.partitionRectangle = function(rectangle, normalizedWeightList
   var i;
   var rect;
   var highestRatio = 1;
-  for(i = 0; i < normalizedWeightList.length; i++) {
+  var l = normalizedWeightList.length;
+  for(i = 0; i < l; i++) {
     areai = normalizedWeightList[i] * area / sum;
     if(rectangle.width > rectangle.height) {
       rect = new Rectangle(freeRectangle.x, freeRectangle.y, areai / freeRectangle.height, freeRectangle.height);

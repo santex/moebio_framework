@@ -125,14 +125,14 @@ NumberTableOperators.averageSmootherOnLists = function(numberTable, intensity, n
 
 
 /**
- * return k means for k clusters of rows (waiting to be tested)
- * @param  {NumberTable} numberTable
+ * calculates k means for k clusters of rows in a numberTable
+ * @param  {NumberTable} numberTable with 2 or more numberLists
  * @param  {Number} k number of means
  *
  * @param  {Number} returnIndexesMode return mode:<br>0:return list of lists of indexes of rows (default)<br>1:return a list of number of mean, k different values, one per row<br>2:return a list of categorical colors, k different colors, one per row<br>3:return means<br>4:return list of sub-tables<br>5:return object with all the previous
  * @param  {Number} number of iterations (1000 by default)
  * @return {Object} result (list, numberList, colorList, numberTable or object)
- * tags:statistics,nontested
+ * tags:statistics
  */
 NumberTableOperators.kMeans = function(numberTable, k, returnIndexesMode, N){
   if(numberTable == null || numberTable[0]==null || k == null || k <= 0 || numberTable.getLengths().getInterval().getAmplitude()!==0) return null;
@@ -141,7 +141,6 @@ NumberTableOperators.kMeans = function(numberTable, k, returnIndexesMode, N){
   N = (N==null || (N<=0))?1000:N;
 
   var clusters = new NumberTable();// = returnIndexesMode?new NumberList():new NumberTable();
-
   var i, j, l;
   var jK;
   var row;

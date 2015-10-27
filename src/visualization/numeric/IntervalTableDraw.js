@@ -20,6 +20,8 @@ IntervalTableDraw.drawIntervalsFlowTable = function(intervalsFlowTable, frame, c
   bezier = bezier || false;
   offValue = offValue == null ? 0.45 : offValue;
 
+  if(graphics==null) graphics = frame.graphics;
+
   var i;
   var j;
 
@@ -135,7 +137,9 @@ IntervalTableDraw._isOnShape = function(prevPoint, point, prevYsup, newYsup, off
 
 
 
-IntervalTableDraw.drawCircularIntervalsFlowTable = function(intervalsFlowTable, center, radius, r0, colors, texts, returnHovered, angles, angle0, graphics) {
+IntervalTableDraw.drawCircularIntervalsFlowTable = function(frame, intervalsFlowTable, center, radius, r0, colors, texts, returnHovered, angles, angle0, graphics) {
+  if(graphics==null) graphics = frame.graphics; //momentary fix
+
   var nElements = intervalsFlowTable.length;
   var i;
   var j;
@@ -179,7 +183,7 @@ IntervalTableDraw.drawCircularIntervalsFlowTable = function(intervalsFlowTable, 
 
     intervalList = intervalsFlowTable[i];
 
-    graphics.context.fillStyle = colors[i % nElements];
+    graphics.setFill(colors[i % nElements]);//context.fillStyle = colors[i % nElements];
 
     graphics.context.beginPath();
 
@@ -247,7 +251,9 @@ IntervalTableDraw.drawCircularIntervalsFlowTable = function(intervalsFlowTable, 
 
   }
 
-  for(i = 0; filteredTexts[i] != null; i++) {
+  var nTexts = filteredTexts.length;
+
+  for(i = 0; i<nTexts; i++) {
     graphics.setText('black', textsSizes[i], null, 'center', 'middle');
     graphics.fTextRotated(filteredTexts[i], textsX[i], textsY[i], textsAngles[i]);
   }
@@ -281,6 +287,8 @@ IntervalTableDraw._isOnRadialShape = function(center, testPoint, a0, a1, r0a, r0
 
 
 IntervalTableDraw.drawIntervalsWordsFlowTable = function(frame, intervalsFlowTable, texts, colors, typode, graphics) {
+  if(graphics==null) graphics = frame.graphics; //momentary fix
+
   var nElements = intervalsFlowTable.length;
 
   var i;

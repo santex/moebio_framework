@@ -32,20 +32,39 @@ NumberListGenerators.createSortedNumberList = function(nValues, start, step) {
   return numberList;
 };
 
-// TODO: Should this function be here?
 /**
- * @todo finish docs
+ * creates a list with numbers within a range defined by an interval
+ * @param  {Number} nValues
+ *
+ * @param  {Interval} interval range of the numberList
+ * @param  {Number} mode <br>0:random <br>1:evenly distributed
+ * @param  {Number} seed optional seed for random numbers ([!] not yet working @todo: finish)
+ * @return {NumberList}
+ * tags:random,generator
  */
-NumberList.createNumberListFromInterval = function(nElements, interval) {
+NumberList.createNumberListWithinInterval = function(nValues, interval, mode, randomSeed) {
   if(interval == null) interval = new Interval(0, 1);
+  mode = mode==null?0:mode;
+
   var numberList = new NumberList();
   var range = interval.getAmplitude();
+  var min = Number(interval.getMin());
   var i;
-  for(i = 0; i < nElements; i++) {
-    numberList.push(Number(interval.getMin()) + Number(Math.random() * range));
+  switch(mode){
+    case 0://random
+      for(i = 0; i < nValues; i++) {
+        numberList.push(min + Number(Math.random() * range));
+      }
+      break;
   }
+  
   return numberList;
 };
+
+NumberList.createRandomNormalDistribution = function(nValues, mean, stdev){
+  var fac = stdev/6
+  (Math.random()+Math.random()+Math.random()+Math.random()+Math.random()+Math.random())*stdev/6+mean;
+}
 
 /**
  * creates a list with random numbers
@@ -55,7 +74,7 @@ NumberList.createNumberListFromInterval = function(nElements, interval) {
  * @param  {Interval} interval range of the numberList
  * @param  {Number} seed optional seed for seeded random numbers
  * @return {NumberList}
- * tags:random
+ * tags:random,generator
  */
 NumberListGenerators.createRandomNumberList = function(nValues, interval, seed, func) {
   seed = seed == null ? -1 : seed;

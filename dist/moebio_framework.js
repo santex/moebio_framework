@@ -385,8 +385,8 @@
     req.onreadystatechange = onLoadComplete;
   };
 
-  _Node.prototype = new DataModel();
-  _Node.prototype.constructor = _Node;
+  Node.prototype = new DataModel();
+  Node.prototype.constructor = Node;
 
   /**
    * @classdesc Represents a single node element in a Network. Can have both an id as well
@@ -398,7 +398,7 @@
    * @constructor
    * @category networks
    */
-  function _Node(id, name) {
+  function Node(id, name) {
     this.id = id == null ? '' : id;
     this.name = name != null ? name : '';
     this.type = "Node";
@@ -437,7 +437,7 @@
    * Removes all Relations and connected Nodes from
    * the current Node.
    */
-  _Node.prototype.cleanRelations = function() {
+  Node.prototype.cleanRelations = function() {
     this.nodeList = new NodeList();
     this.relationList = new RelationList();
 
@@ -449,7 +449,7 @@
   };
 
   //TODO: complete with all properties
-  _Node.prototype.destroy = function() {
+  Node.prototype.destroy = function() {
     DataModel.prototype.destroy.call(this);
     delete this.id;
     delete this.name;
@@ -480,7 +480,7 @@
    *
    * @return {Number} Number of Relations (edges) connecting to this Node instance.
    */
-  _Node.prototype.getDegree = function() {
+  Node.prototype.getDegree = function() {
     return this.relationList.length;
   };
 
@@ -492,7 +492,7 @@
    *
    * @return {Node} Parent Node of this Node.
    */
-  _Node.prototype.getParent = function() {
+  Node.prototype.getParent = function() {
     return this.parent;
   };
 
@@ -503,7 +503,7 @@
    * @return {NodeList} Leaf Nodes of this Node.
    * tags:
    */
-  _Node.prototype.getLeaves = function() {
+  Node.prototype.getLeaves = function() {
       var leaves = new NodeList();
       var addLeaves = function(node) {
         if(node.toNodeList.length === 0) {
@@ -522,7 +522,7 @@
    *
    * @param {String} urlImage The URL of the image to load.
    */
-  _Node.prototype.loadImage = function(urlImage) {
+  Node.prototype.loadImage = function(urlImage) {
     Loader.loadImage(urlImage, function(e) {
       this.image = e.result;
     }, this);
@@ -534,8 +534,8 @@
    *
    * @return {Node} New Node that is a copy of this Node.
    */
-  _Node.prototype.clone = function() {
-    var newNode = new _Node(this.id, this.name);
+  Node.prototype.clone = function() {
+    var newNode = new Node(this.id, this.name);
 
     newNode.x = this.x;
     newNode.y = this.y;
@@ -1155,11 +1155,12 @@
 
     array.setType = List.prototype.setType;
     array.setArray = List.prototype.setArray;
+    array.toArray = List.prototype.toArray;
     array._constructor = List;
 
     array.getImproved = List.prototype.getImproved;
     array.isEquivalent = List.prototype.isEquivalent;
-    array.getLength = List.prototype.getLength;
+    //array.getLength = List.prototype.getLength;
     array.getTypeOfElements = List.prototype.getTypeOfElements; //TODO: redundant?
     array.getTypes = List.prototype.getTypes;
     array.getType = List.prototype.getType;
@@ -1181,9 +1182,6 @@
     array.getFirstElementByPropertyValue = List.prototype.getFirstElementByPropertyValue;
     array.add = List.prototype.add;
     array.multiply = List.prototype.multiply;
-    array.getSubList = List.prototype.getSubList;
-    array.getSubListByIndexes = List.prototype.getSubListByIndexes;
-    array.getSubListByType = List.prototype.getSubListByType;
     array.getElementNumberOfOccurrences = List.prototype.getElementNumberOfOccurrences;
     array.getPropertyValues = List.prototype.getPropertyValues;
     array.getRandomElement = List.prototype.getRandomElement;
@@ -1191,6 +1189,7 @@
     array.containsElement = List.prototype.containsElement;
     array.indexOfElement = List.prototype.indexOfElement;
     //sorting:
+    array.isSorted = List.prototype.isSorted;
     array.sortIndexed = List.prototype.sortIndexed;
     array.sortNumericIndexed = List.prototype.sortNumericIndexed;
     array.sortNumeric = List.prototype.sortNumeric;
@@ -1203,6 +1202,9 @@
     array.getSortedByList = List.prototype.getSortedByList;
     array.getSortedRandom = List.prototype.getSortedRandom;
     //filter:
+    array.getSubList = List.prototype.getSubList;
+    array.getSubListByIndexes = List.prototype.getSubListByIndexes;
+    array.getSubListByType = List.prototype.getSubListByType;
     array.getFilteredByPropertyValue = List.prototype.getFilteredByPropertyValue;
     array.getFilteredByBooleanList = List.prototype.getFilteredByBooleanList;
 
@@ -1312,6 +1314,22 @@
   };
 
   /**
+   * Creates a simple Array from the list
+   * @return {Array}
+   * tags:
+   */
+  List.prototype.toArray = function() {//@todo: make this efficient
+    //return this.slice(0); //why this didn't work?
+    var i;
+    var l = this.length;
+    var array = [];
+    for(i=0; i<l; i++){
+      array.push(this[i]);
+    }
+    return array;
+  };
+
+  /**
    * Compares elements with another list.
    * @param  {List} list List to compare.
    * @return {Boolean} true if all elements are identical.
@@ -1332,11 +1350,10 @@
   /**
    * Returns the number of elements of the list.
    * @return {Number} Length of the list.
-   * tags:
    */
-  List.prototype.getLength = function() {
-    return this.length;
-  };
+  // List.prototype.getLength = function() {
+  //   return this.length;
+  // };
 
   /**
    * In sub-classes, this function returns a NumberList of lengths.
@@ -1424,6 +1441,7 @@
   /**
    * returns a sub-list, params could be: tw numbers, an interval or a NumberList.
    * @param {Number} argument0 number, interval (in this it will include elements with initial and end indexes) or numberList
+   *
    * @param {Number} argument1 second index
    * @return {List}
    * tags:filter
@@ -1431,6 +1449,7 @@
   List.prototype.getSubList = function() {
     var interval;
     var i;
+    if(arguments[0]==null) return;
 
     if(arguments[0].isList) {
       return this.getSubListByIndexes(arguments[0]);
@@ -1922,6 +1941,27 @@
     return newList.getImproved();
   };
 
+
+  List.prototype.isSorted = function(ascending){
+    ascending = ascending==null?true:Boolean(ascending);
+    
+    var l = this.length;
+    var i;
+    if(ascending){
+      for(i=1;i<l;i++){
+        if(this[i]<this[i-1]){
+          console.log('~ non sorted elements i, i-1, (ascending):',i,this[i],this[i-1]);
+        }
+        if(this[i]<this[i-1]) return false;
+      }
+    } else {
+      for(i=1;i<l;i++){
+        if(this[i]>this[i-1]) return false;
+      }
+    }
+    return true;
+  };
+
   List.prototype.sortIndexed = function() {
     var index = [];
     var i;
@@ -2000,17 +2040,17 @@
     var l = this.length;
 
     for(i = 0; i<l; i++) {
-      pairsArray[i] = [this[i], list[i]];
+      pairsArray[i] = [this[i], list[i],i];
     }
 
     var comparator;
     if(ascending) {
       comparator = function(a, b) {
-        return a[1] < b[1] ? -1 : 1;
+        return a[1] < b[1] ? -1 : a[1] > b[1] ?  1 : a[2] - b[2];
       };
     } else {
       comparator = function(a, b) {
-        return a[1] < b[1] ? 1 : -1;
+        return a[1] < b[1] ?  1 : a[1] > b[1] ? -1 : a[2] - b[2];
       };
     }
 
@@ -2049,7 +2089,7 @@
    * @return {NumberList}
    * tags:
    */
-  List.prototype.indexesOf = function(element) {
+  List.prototype.indexesOf = function(element) {//@todo: probably better to just traverse de list
     var index = this.indexOf(element);
     var numberList = new NumberList();
     while(index != -1) {
@@ -2066,7 +2106,7 @@
    * @return {NumberList}
    * tags:
    */
-  List.prototype.indexOfElements = function(elements) {
+  List.prototype.indexOfElements = function(elements) {//@todo: probably better to just traverse de list
     var numberList = new NumberList();
     var l = elements.length;
     for(var i = 0; i<l; i++) {
@@ -2309,7 +2349,8 @@
    * If multiple copies of the element exist, only exlcudes first copy.
    *
    * @param {Number|String|Object} element Element to exclude in the new List.
-   * @return {List} New List missing the given element.
+   * @return {List} new List missing the given element
+   * tags:
    */
   List.prototype.getWithoutElement = function(element) {
     var index = this.indexOf(element);
@@ -2335,8 +2376,15 @@
     return newList;
   };
 
+  /**
+   * removes elements from a list
+   * @param {List} list with elements to be removed
+   * @return {List} new List missing the given elements
+   * tags:
+  */
   List.prototype.getWithoutElements = function(list) {//TODO: more efficiency with dictionary
     var newList;
+    var i;
     var l = this.length;
     if(this.type == 'List') {
       newList = new List();
@@ -2344,9 +2392,12 @@
       newList = instantiateWithSameType(this);
     }
 
-    for(var i = 0; i<l; i++) {
-      if(list.indexOf(this[i]) == -1) {
-        newList.push(this[i]);
+    var booleanDictionary = ListOperators.getBooleanDictionaryForList(list);
+
+    for(i = 0; i<l; i++) {
+      //if(list.indexOf(this[i]) == -1) {
+      if(!booleanDictionary[this[i]]) {
+        newList.push(this[i]);//@todo: solve NodeList case
       }
     }
     newList.name = this.name;
@@ -3088,8 +3139,9 @@
    */
   function NumberList() {
     var args = [];
+    var l = arguments.length;
 
-    for(var i = 0; i < arguments.length; i++) {
+    for(var i = 0; i < l; i++) {
       args[i] = Number(arguments[i]);
     }
     var array = List.apply(this, args);
@@ -4457,6 +4509,7 @@
     result.getListsSortedByList = Table.prototype.getListsSortedByList;
     result.sortListsByList = Table.prototype.sortListsByList;
     result.clone = Table.prototype.clone;
+    result.cloneWithEmptyLists = Table.prototype.cloneWithEmptyLists;
     result.print = Table.prototype.print;
 
     //transformative
@@ -4514,10 +4567,11 @@
    * @param  {Number} index The Column to return its length.
    * Defaults to 0.
    * @return {Number} Length of column at given index.
-   * tags:
    */
   Table.prototype.getListLength = function(index) {
-    return this[index || 0].length;
+    index = index || 0;
+    if(index>=this.length) return;
+    return this[index].length;
   };
 
   /**
@@ -4529,7 +4583,7 @@
     var l = this.length;
 
     for(var i = 0; i<l; i++) {
-      lengths[i] = this[i].length;
+      lengths[i] = this[i]==null?0:this[i].length;
     }
     return lengths;
   };
@@ -4639,10 +4693,13 @@
     if(listOrIndex == null) return;
     var newTable = instantiateWithSameType(this);
     var sortinglist = listOrIndex.isList ? listOrIndex.clone() : this[listOrIndex];
+    var l = this.length;
+    var i;
 
-    this.forEach(function(list) {
-      newTable.push(list.getSortedByList(sortinglist, ascending));
-    });
+    //this.forEach(function(list) {
+    for(i=0; i<l; i++){
+      newTable.push(this[i].getSortedByList(sortinglist, ascending));
+    }
 
     return newTable;
   };
@@ -4704,18 +4761,45 @@
   };
 
   /**
-   * makes a copy of the Table.
+   * makes a clone of the Table, that contains clones of the lists
    * @return {Table} Copy of table.
    */
   Table.prototype.clone = function() {
     var l = this.length;
     var clonedTable = instantiateWithSameType(this);
+    var i;
+
     clonedTable.name = this.name;
-    for(var i = 0; i<l; i++) {
+
+    for(i = 0; i<l; i++) {
       clonedTable.push(this[i].clone());
     }
+
     return clonedTable;
   };
+
+  /**
+   * makes a copy of the Table, with empty lists having same types
+   * @return {Table} Copy of table.
+   */
+  Table.prototype.cloneWithEmptyLists = function() {
+    var l = this.length;
+    var i;
+    var newTable = instantiateWithSameType(this);
+    var newList;
+
+    newTable.name = this.name;
+
+    for(i = 0; i<l; i++) {
+      newList = instantiateWithSameType(this[i]);
+      newList.name = this[i].name;
+      newTable.push(newList);
+    }
+
+    return newTable;
+  };
+
+
 
   /**
    * Removes all contents of the Table.
@@ -5087,10 +5171,11 @@
 
     var newStringList = new StringList();
     var i;
+    var l = this.length;
 
     newStringList.name = this.name;
 
-    for(i = 0; this[i] != null; i++){
+    for(i = 0; i<l; i++){
       newStringList[i] = this[i].replace(regExp, string);
     }
 
@@ -5103,7 +5188,8 @@
   StringList.prototype.getConcatenated = function(separator) {
     var i;
     var string = "";
-    for(i = 0; this[i] != null; i++) {
+    var l = this.length;
+    for(i = 0; i<l; i++) {
       string += this[i];
       if(i < this.length - 1) string += separator;
     }
@@ -5111,26 +5197,32 @@
   };
 
   /**
-   * @todo write docs
+   * applies toLowercase to all strings
+   * @return {StringList}
+   * tags:
    */
   StringList.prototype.toLowerCase = function() {
     var newStringList = new StringList();
     newStringList.name = this.name;
     var i;
-    for(i = 0; this[i] != null; i++) {
+    var l = this.length;
+    for(i = 0; i<l; i++) {
       newStringList[i] = this[i].toLowerCase();
     }
     return newStringList;
   };
 
   /**
-   * @todo write docs
+   * applies toUpperCase to all strings
+   * @return {StringList}
+   * tags:
    */
   StringList.prototype.toUpperCase = function() {
     var newStringList = new StringList();
     newStringList.name = this.name;
     var i;
-    for(i = 0; this[i] != null; i++) {
+    var l = this.length;
+    for(i = 0; i<l; i++) {
       newStringList[i] = this[i].toUpperCase();
     }
     return newStringList;
@@ -5143,8 +5235,9 @@
    */
   StringList.prototype.trim = function() {
     var i;
+    var l = this.length;
     var newStringList = new StringList();
-    for(i = 0; this[i] != null; i++) {
+    for(i = 0; i<l; i++) {
       newStringList[i] = this[i].trim();
     }
     newStringList.name = this.name;
@@ -5545,7 +5638,7 @@
     return (num << cnt) | (num >>> (32 - cnt));
   };
 
-  Relation.prototype = Object.create(_Node.prototype);
+  Relation.prototype = Object.create(Node.prototype);
   Relation.prototype.constructor = Relation;
 
   /**
@@ -5565,7 +5658,7 @@
    * @category networks
    */
   function Relation(id, name, node0, node1, weight, content) {
-    _Node.call(this, id, name);
+    Node.call(this, id, name);
     this.type = "Relation";
 
     this.node0 = node0;
@@ -5577,7 +5670,7 @@
    * @todo write docs
    */
   Relation.prototype.destroy = function() {
-    _Node.prototype.destroy.call(this);
+    Node.prototype.destroy.call(this);
     delete this.node0;
     delete this.node1;
     delete this.content;
@@ -5609,6 +5702,326 @@
     relation.descentWeight = this.descentWeight;
 
     return relation;
+  };
+
+  /**
+   * @classdesc Provides a set of tools that work with Numbers.
+   *
+   * @namespace
+   * @category numbers
+   */
+  function NumberOperators() {}
+  /**
+   * converts number into a string
+   *
+   * @param {Number} value The number to convert
+   * @param {Number} nDecimals Number of decimals to include. Defaults to 0.
+   */
+  NumberOperators.numberToString = function(value, nDecimals ) {
+    var string = value.toFixed(nDecimals);
+    while(string.charAt(string.length - 1) == '0') {
+      string = string.substring(0, string.length - 1);
+    }
+    if(string.charAt(string.length - 1) == '.') string = string.substring(0, string.length - 1);
+    return string;
+  };
+
+  /**
+   * decent method to create pseudo random numbers
+   * @param {Object} seed
+   */
+  NumberOperators.getRandomWithSeed = function(seed) {
+    seed = (seed * 9301 + 49297) % 233280;
+    return seed / (233280.0);
+  };
+
+  /**
+   * @todo write docs
+   */
+  NumberOperators.numberFromBinaryPositions = function(binaryPositions) {
+    var i;
+    var n = 0;
+    for(i = 0; binaryPositions[i] != null; i++) {
+      n += Math.pow(2, binaryPositions[i]);
+    }
+    return n;
+  };
+
+  /**
+   * @todo write docs
+   */
+  NumberOperators.numberFromBinaryValues = function(binaryValues) {
+    var n = 0;
+    var l = binaryValues.length;
+    for(var i = 0; i < l; i++) {
+      n += binaryValues[i] == 1 ? Math.pow(2, (l - (i + 1))) : 0;
+    }
+    return n;
+  };
+
+  /**
+   * @todo write docs
+   */
+  NumberOperators.powersOfTwoDecomposition = function(number, length) {
+
+    var powers = new NumberList();
+
+    var constructingNumber = 0;
+    var biggestPower;
+
+    while(constructingNumber < number) {
+      biggestPower = Math.floor(Math.log(number) / Math.LN2);
+      powers[biggestPower] = 1;
+      number -= Math.pow(2, biggestPower);
+    }
+
+    length = Math.max(powers.length, length == null ? 0 : length);
+
+    for(var i = 0; i < length; i++) {
+      powers[i] = powers[i] == 1 ? 1 : 0;
+    }
+
+    return powers;
+  };
+
+  /**
+   * @todo write docs
+   */
+  NumberOperators.positionsFromBinaryValues = function(binaryValues) {
+    var i;
+    var positions = new NumberList();
+    for(i = 0; binaryValues[i] != null; i++) {
+      if(binaryValues[i] == 1) positions.push(i);
+    }
+    return positions;
+  };
+
+  //////////Random Generator with Seed, From http://baagoe.org/en/w/index.php/Better_random_numbers_for_javascript
+
+  /**
+   * @ignore
+   */
+  NumberOperators._Alea = function() {
+    return(function(args) {
+      // Johannes Baagøe <baagoe@baagoe.com>, 2010
+      var s0 = 0;
+      var s1 = 0;
+      var s2 = 0;
+      var c = 1;
+
+      if(args.length === 0) {
+        args = [+new Date()];
+      }
+      var mash = NumberOperators._Mash();
+      s0 = mash(' ');
+      s1 = mash(' ');
+      s2 = mash(' ');
+
+      for(var i = 0; i < args.length; i++) {
+        s0 -= mash(args[i]);
+        if(s0 < 0) {
+          s0 += 1;
+        }
+        s1 -= mash(args[i]);
+        if(s1 < 0) {
+          s1 += 1;
+        }
+        s2 -= mash(args[i]);
+        if(s2 < 0) {
+          s2 += 1;
+        }
+      }
+      mash = null;
+
+      var random = function() {
+        var t = 2091639 * s0 + c * 2.3283064365386963e-10; // 2^-32
+        s0 = s1;
+        s1 = s2;
+        // https://github.com/nquinlan/better-random-numbers-for-javascript-mirror/blob/master/support/js/Alea.js#L38
+        return s2 = t - (c = t | 0);
+      };
+      random.uint32 = function() {
+        return random() * 0x100000000; // 2^32
+      };
+      random.fract53 = function() {
+        return random() +
+          (random() * 0x200000 | 0) * 1.1102230246251565e-16; // 2^-53
+      };
+      random.version = 'Alea 0.9';
+      random.args = args;
+      return random;
+
+    }(Array.prototype.slice.call(arguments)));
+  };
+
+  /**
+   * @ignore
+   */
+  NumberOperators._Mash = function() {
+    var n = 0xefc8249d;
+
+    var mash = function(data) {
+      data = data.toString();
+      for(var i = 0; i < data.length; i++) {
+        n += data.charCodeAt(i);
+        var h = 0.02519603282416938 * n;
+        n = h >>> 0;
+        h -= n;
+        h *= n;
+        n = h >>> 0;
+        h -= n;
+        n += h * 0x100000000; // 2^32
+      }
+      return(n >>> 0) * 2.3283064365386963e-10; // 2^-32
+    };
+
+    mash.version = 'Mash 0.9';
+    return mash;
+  };
+
+  /**
+   * @classdesc NumberList Generators
+   *
+   * @namespace
+   * @category numbers
+   */
+  function NumberListGenerators() {}
+  /**
+   * Generate a NumberList with sorted Numbers
+   * @param {Number} nValues length of the NumberList
+   *
+   * @param {Number} start first value
+   * @param {Number} step increment value
+   * @return {NumberList} generated NumberList
+   * tags:generator
+   */
+  NumberListGenerators.createSortedNumberList = function(nValues, start, step) {
+    start = start || 0;
+    step = step || 1;
+    if(step === 0) step = 1;
+    var i;
+    var numberList = new NumberList();
+    for(i = 0; i < nValues; i++) {
+      numberList.push(start + i * step);
+    }
+    return numberList;
+  };
+
+  /**
+   * creates a list with numbers within a range defined by an interval
+   * @param  {Number} nValues
+   *
+   * @param  {Interval} interval range of the numberList
+   * @param  {Number} mode <br>0:random <br>1:evenly distributed
+   * @param  {Number} seed optional seed for random numbers ([!] not yet working @todo: finish)
+   * @return {NumberList}
+   * tags:random,generator
+   */
+  NumberList.createNumberListWithinInterval = function(nValues, interval, mode, randomSeed) {
+    if(interval == null) interval = new Interval(0, 1);
+    mode = mode==null?0:mode;
+
+    var numberList = new NumberList();
+    var range = interval.getAmplitude();
+    var min = Number(interval.getMin());
+    var i;
+    switch(mode){
+      case 0://random
+        for(i = 0; i < nValues; i++) {
+          numberList.push(min + Number(Math.random() * range));
+        }
+        break;
+    }
+    
+    return numberList;
+  };
+
+  NumberList.createRandomNormalDistribution = function(nValues, mean, stdev){
+    var fac = stdev/6
+    (Math.random()+Math.random()+Math.random()+Math.random()+Math.random()+Math.random())*stdev/6+mean;
+  }
+
+  /**
+   * creates a list with random numbers
+   *
+   * @param  {Number} nValues
+   *
+   * @param  {Interval} interval range of the numberList
+   * @param  {Number} seed optional seed for seeded random numbers
+   * @return {NumberList}
+   * tags:random,generator
+   */
+  NumberListGenerators.createRandomNumberList = function(nValues, interval, seed, func) {
+    seed = seed == null ? -1 : seed;
+    interval = interval == null ? new Interval(0, 1) : interval;
+
+    var numberList = new NumberList();
+    var amplitude = interval.getAmplitude();
+
+    var random = seed == -1 ? Math.random : new NumberOperators._Alea("my", seed, "seeds");
+
+    for(var i = 0; i < nValues; i++) {
+      //seed = (seed*9301+49297) % 233280; //old method, close enough: http://moebio.com/research/randomseedalgorithms/
+      //numberList[i] = interval.x + (seed/233280.0)*amplitude; //old method
+
+      numberList[i] = func == null ? (random() * amplitude + interval.x) : func(random() * amplitude + interval.x);
+    }
+
+    return numberList;
+  };
+
+  /**
+   * @classdesc List Operators
+   *
+   * @namespace
+   * @category basics
+   */
+  function ListConversions() {}
+  /**
+   * Converts the List into a NumberList.
+   *
+   * @param  {List} list
+   * @return {NumberList}
+   * tags:conversion
+   */
+  ListConversions.toNumberList = function(list) {
+    if(list==null) return;
+
+    var numberList = new NumberList();
+    var l = list.length;
+    var i;
+
+    numberList.name = list.name;
+    for(i = 0; i<l; i++) {
+      numberList[i] = Number(list[i]);
+    }
+    return numberList;
+  };
+
+  /**
+   * Converts the List into a StringList.
+   *
+   * @param  {List} list
+   * @return {StringList}
+   * tags:conversion
+   */
+  ListConversions.toStringList = function(list) {
+    if(list==null) return;
+
+    var l = list.length;
+    var i;
+    var stringList = new StringList();
+
+    stringList.name = list.name;
+    for(i = 0; i<l; i++) {
+      stringList[i] = String(list[i]);
+      // if(typeof list[i] == 'number') {
+      //   stringList[i] = String(list[i]);
+      // } else {
+      //   stringList[i] = list[i].toString();
+      // }
+    }
+    return stringList;
   };
 
   RectangleList.prototype = new List();
@@ -5923,6 +6336,8 @@
    * tags:
    */
   NumberListOperators.normalized = function(numberlist, factor) {
+    if(numberlist==null) return;
+
     factor = factor == null ? 1 : factor;
 
     if(numberlist.length === 0) return null;
@@ -5947,6 +6362,8 @@
    * tags:
    */
   NumberListOperators.normalizedToMax = function(numberlist, factor) {
+    if(numberlist==null) return;
+    
     factor = factor == null ? 1 : factor;
 
     if(numberlist.length === 0) return null;
@@ -6108,6 +6525,7 @@
    * @todo finish docs
    */
   NumberListOperators.standardDeviationBetweenTwoNumberLists = function(numberList0, numberList1) {
+    if(numberList0==null || numberList1==null) return;
     var s = 0;
     var l = Math.min(numberList0.length, numberList1.length);
 
@@ -6126,6 +6544,7 @@
    * tags:statistics
    */
   NumberListOperators.pearsonProductMomentCorrelation = function(numberList0, numberList1) { //TODO:make more efficient
+    if(numberList0==null || numberList1==null) return;
     return NumberListOperators.covariance(numberList0, numberList1) / (numberList0.getStandardDeviation() * numberList1.getStandardDeviation());
   };
 
@@ -6133,12 +6552,15 @@
   /**
    * smooth a numberList by calculating averages with neighbors
    * @param  {NumberList} numberList
+   *
    * @param  {Number} intensity weight for neighbors in average (0<=intensity<=0.5)
    * @param  {Number} nIterations number of ieterations
    * @return {NumberList}
    * tags:statistics
    */
   NumberListOperators.averageSmoother = function(numberList, intensity, nIterations) {
+    if(numberList==null) return;
+
     nIterations = nIterations == null ? 1 : nIterations;
     intensity = intensity == null ? 0.1 : intensity;
 
@@ -6168,6 +6590,13 @@
     newNumberList.name = numberList.name;
 
     return newNumberList;
+  };
+
+  /**
+   *@todo: finish
+   */
+  NumberListOperators.filterNumberListByInterval = function(numberList, min, max, includeMin, includeMax, returnMode) {
+    return null;
   };
 
   /**
@@ -6281,23 +6710,22 @@
    * @param  {NumberList} y list B
    *
    * @return {NumberList} the union of both NumberLists
-   * tags:
    */
-  NumberListOperators.union = function(x, y) {//TODO: should be refactored, and placed in ListOperators
-    // Borrowed from here: http://stackoverflow.com/questions/3629817/getting-a-union-of-two-arrays-in-javascript
-    var i;
-    var obj = {};
-    for(i = x.length - 1; i >= 0; --i)
-      obj[x[i]] = x[i];
-    for(i = y.length - 1; i >= 0; --i)
-      obj[y[i]] = y[i];
-    var res = new NumberList();
-    for(var k in obj) {
-      if(obj.hasOwnProperty(k)) // <-- optional
-        res.push(obj[k]);
-    }
-    return res;
-  };
+  // NumberListOperators.union = function(x, y) {//TODO: should be refactored, and placed in ListOperators
+  //   // Borrowed from here: http://stackoverflow.com/questions/3629817/getting-a-union-of-two-arrays-in-javascript
+  //   var i;
+  //   var obj = {};
+  //   for(i = x.length - 1; i >= 0; --i)
+  //     obj[x[i]] = x[i];
+  //   for(i = y.length - 1; i >= 0; --i)
+  //     obj[y[i]] = y[i];
+  //   var res = new NumberList();
+  //   for(var k in obj) {
+  //     if(obj.hasOwnProperty(k)) // <-- optional
+  //       res.push(obj[k]);
+  //   }
+  //   return res;
+  // };
 
   /**
    * creates a NumberList that contains the intersection of two NumberList (elements present in BOTH lists)
@@ -6305,49 +6733,48 @@
    * @param  {NumberList} list B
    *
    * @return {NumberList} the intersection of both NumberLists
-   * tags:deprecated
    */
-  NumberListOperators.intersection = function(a, b) {//TODO: refactor method that should be at ListOperators
-    // Borrowed from here: http://stackoverflow.com/questions/1885557/simplest-code-for-array-intersection-in-javascript
-    //console.log( "arguments: ", arguments );
-    var i;
-    if(arguments.length > 2) {
-      var sets = [];
-      for(i = 0; i < arguments.length; i++) {
-        sets.push(arguments[i]);
-      }
-      sets.sort(function(a, b) {
-        return a.length - b.length;
-      });
-      console.log("sets: ", sets);
-      var resultsTrail = sets[0];
-      for(i = 1; i < sets.length; i++) {
-        var newSet = sets[i];
-        resultsTrail = NumberListOperators.intersection(resultsTrail, newSet);
-      }
-      return resultsTrail;
-    }
+  // NumberListOperators.intersection = function(a, b) {//TODO: refactor method that should be at ListOperators
+  //   // Borrowed from here: http://stackoverflow.com/questions/1885557/simplest-code-for-array-intersection-in-javascript
+  //   //console.log( "arguments: ", arguments );
+  //   var i;
+  //   if(arguments.length > 2) {
+  //     var sets = [];
+  //     for(i = 0; i < arguments.length; i++) {
+  //       sets.push(arguments[i]);
+  //     }
+  //     sets.sort(function(a, b) {
+  //       return a.length - b.length;
+  //     });
+  //     console.log("sets: ", sets);
+  //     var resultsTrail = sets[0];
+  //     for(i = 1; i < sets.length; i++) {
+  //       var newSet = sets[i];
+  //       resultsTrail = NumberListOperators.intersection(resultsTrail, newSet);
+  //     }
+  //     return resultsTrail;
+  //   }
 
-    var result = new NumberList();
-    a = a.slice();
-    b = b.slice();
-    while(a.length > 0 && b.length > 0)
-    {
-      if(a[0] < b[0]) {
-        a.shift();
-      }
-      else if(a[0] > b[0]) {
-        b.shift();
-      }
-      else /* they're equal */
-      {
-        result.push(a.shift());
-        b.shift();
-      }
-    }
+  //   var result = new NumberList();
+  //   a = a.slice();
+  //   b = b.slice();
+  //   while(a.length > 0 && b.length > 0)
+  //   {
+  //     if(a[0] < b[0]) {
+  //       a.shift();
+  //     }
+  //     else if(a[0] > b[0]) {
+  //       b.shift();
+  //     }
+  //     else /* they're equal */
+  //     {
+  //       result.push(a.shift());
+  //       b.shift();
+  //     }
+  //   }
 
-    return result;
-  };
+  //   return result;
+  // };
 
 
   /**
@@ -6577,226 +7004,6 @@
    * @namespace
    * @category basics
    */
-  function ListConversions() {}
-  /**
-   * Converts the List into a NumberList.
-   *
-   * @param  {List} list
-   * @return {NumberList}
-   * tags:conversion
-   */
-  ListConversions.toNumberList = function(list) {
-    var numberList = new NumberList();
-    numberList.name = list.name;
-    var i;
-    for(i = 0; list[i] != null; i++) {
-      numberList[i] = Number(list[i]);
-    }
-    return numberList;
-  };
-
-  /**
-   * Converts the List into a StringList.
-   *
-   * @param  {List} list
-   * @return {StringList}
-   * tags:conversion
-   */
-  ListConversions.toStringList = function(list) {
-    var i;
-    var stringList = new StringList();
-    stringList.name = list.name;
-    for(i = 0; list[i] != null; i++) {
-      if(typeof list[i] == 'number') {
-        stringList[i] = String(list[i]);
-      } else {
-        stringList[i] = list[i].toString();
-      }
-    }
-    return stringList;
-  };
-
-  /**
-   * @classdesc Provides a set of tools that work with Numbers.
-   *
-   * @namespace
-   * @category numbers
-   */
-  function NumberOperators() {}
-  /**
-   * converts number into a string
-   *
-   * @param {Number} value The number to convert
-   * @param {Number} nDecimals Number of decimals to include. Defaults to 0.
-   */
-  NumberOperators.numberToString = function(value, nDecimals ) {
-    var string = value.toFixed(nDecimals);
-    while(string.charAt(string.length - 1) == '0') {
-      string = string.substring(0, string.length - 1);
-    }
-    if(string.charAt(string.length - 1) == '.') string = string.substring(0, string.length - 1);
-    return string;
-  };
-
-  /**
-   * decent method to create pseudo random numbers
-   * @param {Object} seed
-   */
-  NumberOperators.getRandomWithSeed = function(seed) {
-    seed = (seed * 9301 + 49297) % 233280;
-    return seed / (233280.0);
-  };
-
-  /**
-   * @todo write docs
-   */
-  NumberOperators.numberFromBinaryPositions = function(binaryPositions) {
-    var i;
-    var n = 0;
-    for(i = 0; binaryPositions[i] != null; i++) {
-      n += Math.pow(2, binaryPositions[i]);
-    }
-    return n;
-  };
-
-  /**
-   * @todo write docs
-   */
-  NumberOperators.numberFromBinaryValues = function(binaryValues) {
-    var n = 0;
-    var l = binaryValues.length;
-    for(var i = 0; i < l; i++) {
-      n += binaryValues[i] == 1 ? Math.pow(2, (l - (i + 1))) : 0;
-    }
-    return n;
-  };
-
-  /**
-   * @todo write docs
-   */
-  NumberOperators.powersOfTwoDecomposition = function(number, length) {
-
-    var powers = new NumberList();
-
-    var constructingNumber = 0;
-    var biggestPower;
-
-    while(constructingNumber < number) {
-      biggestPower = Math.floor(Math.log(number) / Math.LN2);
-      powers[biggestPower] = 1;
-      number -= Math.pow(2, biggestPower);
-    }
-
-    length = Math.max(powers.length, length == null ? 0 : length);
-
-    for(var i = 0; i < length; i++) {
-      powers[i] = powers[i] == 1 ? 1 : 0;
-    }
-
-    return powers;
-  };
-
-  /**
-   * @todo write docs
-   */
-  NumberOperators.positionsFromBinaryValues = function(binaryValues) {
-    var i;
-    var positions = new NumberList();
-    for(i = 0; binaryValues[i] != null; i++) {
-      if(binaryValues[i] == 1) positions.push(i);
-    }
-    return positions;
-  };
-
-  //////////Random Generator with Seed, From http://baagoe.org/en/w/index.php/Better_random_numbers_for_javascript
-
-  /**
-   * @ignore
-   */
-  NumberOperators._Alea = function() {
-    return(function(args) {
-      // Johannes Baagøe <baagoe@baagoe.com>, 2010
-      var s0 = 0;
-      var s1 = 0;
-      var s2 = 0;
-      var c = 1;
-
-      if(args.length === 0) {
-        args = [+new Date()];
-      }
-      var mash = NumberOperators._Mash();
-      s0 = mash(' ');
-      s1 = mash(' ');
-      s2 = mash(' ');
-
-      for(var i = 0; i < args.length; i++) {
-        s0 -= mash(args[i]);
-        if(s0 < 0) {
-          s0 += 1;
-        }
-        s1 -= mash(args[i]);
-        if(s1 < 0) {
-          s1 += 1;
-        }
-        s2 -= mash(args[i]);
-        if(s2 < 0) {
-          s2 += 1;
-        }
-      }
-      mash = null;
-
-      var random = function() {
-        var t = 2091639 * s0 + c * 2.3283064365386963e-10; // 2^-32
-        s0 = s1;
-        s1 = s2;
-        // https://github.com/nquinlan/better-random-numbers-for-javascript-mirror/blob/master/support/js/Alea.js#L38
-        return s2 = t - (c = t | 0);
-      };
-      random.uint32 = function() {
-        return random() * 0x100000000; // 2^32
-      };
-      random.fract53 = function() {
-        return random() +
-          (random() * 0x200000 | 0) * 1.1102230246251565e-16; // 2^-53
-      };
-      random.version = 'Alea 0.9';
-      random.args = args;
-      return random;
-
-    }(Array.prototype.slice.call(arguments)));
-  };
-
-  /**
-   * @ignore
-   */
-  NumberOperators._Mash = function() {
-    var n = 0xefc8249d;
-
-    var mash = function(data) {
-      data = data.toString();
-      for(var i = 0; i < data.length; i++) {
-        n += data.charCodeAt(i);
-        var h = 0.02519603282416938 * n;
-        n = h >>> 0;
-        h -= n;
-        h *= n;
-        n = h >>> 0;
-        h -= n;
-        n += h * 0x100000000; // 2^32
-      }
-      return(n >>> 0) * 2.3283064365386963e-10; // 2^-32
-    };
-
-    mash.version = 'Mash 0.9';
-    return mash;
-  };
-
-  /**
-   * @classdesc List Operators
-   *
-   * @namespace
-   * @category basics
-   */
   function ListOperators() {}
   /**
    * gets an element in a specified position from a List
@@ -6973,78 +7180,6 @@
 
 
   /**
-   * returns a table with two Lists: words and occurrences
-   * @param {List} list
-   *
-   * @param {Boolean} sortListsByOccurrences optional, true by default, common words first
-   * @param {Boolean} consecutiveRepetitions optional false by default, if true only counts consecutive repetitions
-   * @param {Number} optional limit, limits the size of the lists
-   * @return {Table}
-   * tags:count,toimprove,deprecated
-   */
-  // ListOperators.countElementsRepetitionOnList = function(list, sortListsByOccurrences, consecutiveRepetitions, limit) { //transform this, use dictionary instead of indexOf !!!!!!!
-  //   if(list == null) return;
-
-  //   sortListsByOccurrences = sortListsByOccurrences == null ? true : sortListsByOccurrences;
-  //   consecutiveRepetitions = consecutiveRepetitions || false;
-  //   limit = limit == null ? 0 : limit;
-
-  //   var obj;
-  //   var elementList = instantiate(typeOf(list));
-  //   var numberList = new NumberList();
-  //   var index;
-  //   var i;
-
-  //   if(consecutiveRepetitions) {
-  //     if(list.length == 0) return null;
-  //     var previousElement = list[0];
-  //     elementList.push(previousElement);
-  //     numberList.push(1);
-  //     for(i = 1; i < nElements; i++) {
-  //       obj = list[i];
-  //       if(obj == previousElement) {
-  //         numberList[numberList.length - 1] = numberList[numberList.length - 1] + 1;
-  //       } else {
-  //         elementList.push(obj);
-  //         numberList.push(1);
-  //         previousElement = obj;
-  //       }
-  //     }
-  //   } else {
-  //     for(i = 0; list[i] != null; i++){
-  //       obj = list[i];
-  //       index = elementList.indexOf(obj);
-  //       if(index != -1) {
-  //         numberList[index]++;
-  //       } else {
-  //         elementList.push(obj);
-  //         numberList.push(1);
-  //       }
-  //     }
-  //   }
-
-  //   if(elementList.type == "NumberList") {
-  //     var table = new NumberTable();
-  //   } else {
-  //     var table = new Table();
-  //   }
-  //   table[0] = elementList;
-  //   table[1] = numberList;
-
-  //   if(sortListsByOccurrences) {
-  //     table = TableOperators.sortListsByNumberList(table, numberList);
-  //   }
-
-  //   if(limit != 0 && limit < elementList.length) {
-  //     table[0] = table[0].splice(0, limit);
-  //     table[1] = table[1].splice(0, limit);
-  //   }
-
-  //   return table;
-  // };
-
-
-  /**
    * reverses a list
    * @param {List} list
    * @return {List}
@@ -7067,6 +7202,75 @@
 
     return dictionary;
   };
+
+
+
+  /**
+   * builds a dictionary that matches an element of a List with its index on the List (indexesDictionary[element] --> index)
+   * it assumes there's no repetitions on the list (if that's not tha case the last index of the element will be delivered)
+   * efficiently replaces indexOf
+   * @param  {List} list
+   * @return {Object}
+   * tags:dictionary
+   */
+  ListOperators.getSingleIndexDictionaryForList = function(list){
+    if(list==null) return;
+
+    var i;
+    var l = list.length;
+
+    var dictionary = {};
+    for(i=0; i<l; i++){
+      dictionary[list[i]] = i;
+    }
+
+    return dictionary;
+  };
+
+  /**
+   * builds a dictionary that matches an element of a List with all its indexes on the List (indexesDictionary[element] --> numberList of indexes of element on list)
+   * if the list has no repeated elements, and a single is required per element, use ListOperators.getSingleIndexDictionaryForList
+   * @param  {List} list
+   * @return {Object}
+   * tags:dictionary
+   */
+  ListOperators.getIndexesDictionary = function(list){
+    var indexesDictionary = {};
+
+    list.forEach(function(element, i){
+      if(indexesDictionary[element]==null) indexesDictionary[element]=new NumberList();
+      indexesDictionary[element].push(i);
+    });
+
+    return indexesDictionary;
+  };
+
+  /**
+   * @todo write docs
+   */
+  ListOperators.getIndexesTable = function(list){
+    var indexesTable = new Table();
+    indexesTable[0] = new List();
+    indexesTable[1] = new NumberTable();
+    var indexesDictionary = {};
+    var indexOnTable;
+
+    list.forEach(function(element, i){
+      indexOnTable = indexesDictionary[element];
+      if(indexOnTable==null){
+        indexesTable[0].push(element);
+        indexesTable[1].push(new NumberList(i));
+        indexesDictionary[element]=indexesTable[0].length-1;
+      } else {
+        indexesTable[1][indexOnTable].push(i);
+      }
+    });
+
+    indexesTable[0] = indexesTable[0].getImproved();
+
+    return indexesTable;
+  };
+
 
   /**
    * builds a dictionar object (relational array) for a dictionar (table with two lists)
@@ -7108,6 +7312,7 @@
     return newList;
   };
 
+
   /**
    * creates a new list that is a translation of a list using a dictionar object (a relation array)
    * @param  {List} list
@@ -7127,9 +7332,6 @@
     for(i=0; i<nElements; i++){
       newList[i] = dictionaryObject[list[i]];
     }
-    // list.forEach(function(element, i) {
-    //   newList[i] = dictionaryObject[element];
-    // });
 
     if(nullElement!=null){
       var l = list.length;
@@ -7140,26 +7342,6 @@
     newList.name = list.name;
     return newList.getImproved();
   };
-
-
-  // ListOperators.getIndexesOfElements=function(list, elements){
-  // 	var numberList = new NumberList();
-  // 	var i;
-  // 	for(i=0; elements[i]!=null; i++){
-  // 		numberList[i] = list.indexOf(elements[i]);
-  // 	}
-  // 	return numberList;
-  // }
-
-
-  // ListOperators.countOccurrencesOnList=function(list){
-  // 	var occurrences=new NumberList();
-  // 	var nElements=list.length;
-  // 	for(var i=0; list[i]!=null; i++){
-  // 		occurrences.push(this.getIndexesOfElement(list,list[i]).length);
-  // 	}
-  // 	return occurrences;
-  // }
 
 
   /**
@@ -7174,19 +7356,17 @@
     var i;
 
     for(i = 0; list[i] != null; i++) {
-      pairs.push([list[i], numberList[i]]);
+      pairs.push([list[i], numberList[i],i]);
     }
 
 
     if(descending) {
       pairs.sort(function(a, b) {
-        if(a[1] < b[1]) return 1;
-        return -1;
+        return a[1] < b[1] ?  1 : a[1] > b[1] ? -1 : a[2] - b[2];
       });
     } else {
       pairs.sort(function(a, b) {
-        if(a[1] < b[1]) return -1;
-        return 1;
+        return a[1] < b[1] ? -1 : a[1] > b[1] ?  1 : a[2] - b[2];
       });
     }
 
@@ -7195,6 +7375,31 @@
     }
     newList.name = list.name;
     return newList;
+  };
+
+
+  /**
+   * calculates the position of elements of a list if it were sorted (rankings)
+   * @param  {List} list
+   *
+   * @param  {Boolean} ascendant if true (default) rankings ara lower for lower values
+   * @return {NumberList} positions (or ranks) of elements
+   * tags:
+   */
+  ListOperators.getRankings = function(list, ascendant){
+    ascendant = ascendant==null?true:ascendant;
+
+    var indexes = NumberListGenerators.createSortedNumberList(list.length);
+    indexes = indexes.getSortedByList(list, ascendant);
+    var rankings = new NumberList();
+    var l = list.length;
+    var i;
+    for(i=0;i<l; i++){
+      rankings[indexes[i]] = i;
+    }
+    rankings.name = 'rankings';
+
+    return rankings;
   };
 
 
@@ -7217,13 +7422,21 @@
    * @todo write docs
    */
   ListOperators.concatWithoutRepetitions = function() {
-    var i;
+    var l = arguments.length;
+    if(l===0) return;
+    if(l==1) return arguments[0];
+
+    var i, j;
     var newList = arguments[0].clone();
-    for(i = 1; i < arguments.length; i++) {
-      var addList = arguments[i];
-      var nElements = addList.length;
-      for(i = 0; i < nElements; i++) { // TODO Is the redefing of i intentional?
-        if(newList.indexOf(addList[i]) == -1) newList.push(addList[i]);
+    var newListBooleanDictionary = ListOperators.getBooleanDictionaryForList(newList);
+    var addList;
+    var nElements;
+    for(i = 1; i < l; i++) {
+      addList = arguments[i];
+      nElements = addList.length;
+      for(j = 0; j < nElements; j++) { // TODO Is the redefing of i intentional? <----- !
+        //if(newList.indexOf(addList[i]) == -1) newList.push(addList[i]);
+        if(!newListBooleanDictionary[addList[j]]) newList.push(addList[j]);
       }
     }
     return newList.getImproved();
@@ -7310,24 +7523,85 @@
    * creates a List that contains the union of two List (removing repetitions)
    * @param  {List} list0 first list
    * @param  {List} list1 second list
-   *
    * @return {List} the union of both Lists
    * tags:
    */
-  ListOperators.union = function(list0, list1) {//TODO: this should be refactored, and placed in ListOperators
+  ListOperators.union = function(list0, list1) {//TODO:expand for more lists
     if(list0==null || list1==null) return;
 
-    var obj = {};
+    var union = new List();
+    var l0 = list0.length;
+    var l1 = list1.length;
     var i, k;
 
-    for(i = 0; list0[i]!=null; i++) obj[list0[i]] = list0[i];
-    for(i = 0; list1[i]!=null; i++) obj[list1[i]] = list1[i];
-    var union = new List();
+    if(list0.type=='NodeList' || list1.type=='NodeList'){
+      union = new NodeList();
+      union = list0.clone();
+      for(i = 0; i<l1; i++){
+        if(list0.getNodeById(list1[i].id)==null) union.addNode(list1[i]);
+      }
+      return union;
+    }
+
+    var obj = {};
+
+    for(i = 0; i<l0; i++) obj[list0[i]] = list0[i];
+    for(i = 0; i<l1; i++) obj[list1[i]] = list1[i];
+    
     for(k in obj) {
       //if(obj.hasOwnProperty(k)) // <-- optional
       union.push(obj[k]);
     }
-    return union;
+    return union.getImproved();
+  };
+
+  /**
+   * creates a List that contains the intersection of two List (elements present in BOTH lists, result without repetions)
+   * @param  {List} list0 first list
+   * @param  {List} list1 second list
+   * @return {List} intersection of both lists
+   * tags:
+   */
+  ListOperators.intersection = function(list0, list1) {//TODO:expand for more lists
+    if(list0==null || list1==null) return;
+
+    var intersection;
+    //var l0  = list0.length;
+    var l1  = list1.length;
+    var i;
+    var element;
+
+    if(list0.type=="NodeList" && list1.type=="NodeList"){
+      intersection = new NodeList();
+
+      list0.forEach(function(node){
+        if(list1.getNodeById(node.id)){
+          intersection.addNode(node);
+        }
+      });
+
+      return intersection;
+    }
+
+    var dictionary =  ListOperators.getBooleanDictionaryForList(list0);//{};
+    var dictionaryIntersected = {};
+    
+    intersection = new List();
+
+
+    // list0.forEach(function(element){
+    //   dictionary[element] = true;
+    // });
+    //list1.forEach(function(element){
+    for(i=0; i<l1; i++){
+      element = list1[i];
+      if(dictionary[element] && dictionaryIntersected[element]==null){
+        dictionaryIntersected[element]=true;
+        intersection.push(element);
+      }
+    }
+    //});
+    return intersection.getImproved();
   };
 
 
@@ -7354,86 +7628,6 @@
   };
 
 
-
-
-  /**
-   * creates a List that contains the union of two List (removing repetitions) (deprecated, use union instead)
-   * @param  {List} list0
-   * @param  {List} list A
-   * @param  {List} list B
-   *
-   * @return {List} the union of both NumberLists
-   * tags:deprecated
-   */
-  ListOperators.unionLists = function(x, y) {
-    // Borrowed from here: http://stackoverflow.com/questions/3629817/getting-a-union-of-two-arrays-in-javascript
-    var result;
-    if(x.type != x.type || (x.type != "StringList" && x.type != "NumberList")) {
-      // To-do: call generic method here (not yet implemented)
-      //console.log( "ListOperators.unionLists for type '" + x.type + "' or '" + y.type + "' not yet implemented" );
-      return x.concat(y).getWithoutRepetitions();
-    }
-    else {
-      var obj = {};
-      var i;
-      for(i = x.length - 1; i >= 0; --i){
-        obj[x[i]] = x[i];
-      }
-      for(i = y.length - 1; i >= 0; --i){
-        obj[y[i]] = y[i];
-      }
-      result = x.type == "StringList" ? new StringList() : new NumberList();
-      for(var k in obj) {
-        if(obj.hasOwnProperty(k)) // <-- optional
-          result.push(obj[k]);
-      }
-    }
-    return result;
-  };
-
-  /**
-   * creates a List that contains the intersection of two List (elements present in BOTH lists)
-   *
-   * @param  {List} list0 list A
-   * @param  {List} list1 list B
-   *
-   * @return {List} intersection of both NumberLists
-   *
-   * tags:
-   */
-  ListOperators.intersection = function(list0, list1) {
-    if(list0==null || list1==null) return;
-
-    var intersection;
-
-    if(list0.type=="NodeList" && list1.type=="NodeList"){
-      intersection = new NodeList();
-
-      list0.forEach(function(node){
-        if(list1.getNodeById(node.id)){
-          intersection.addNode(node);
-        }
-      });
-
-      return intersection;
-    }
-
-    var dictionary = {};
-    var dictionaryIntersected = {};
-    intersection = new List();
-
-    list0.forEach(function(element){
-      dictionary[element] = true;
-    });
-    list1.forEach(function(element){
-      if(dictionary[element] && dictionaryIntersected[element]==null){
-        dictionaryIntersected[element]=true;
-        intersection.push(element);
-      }
-    });
-    return intersection.getImproved();
-  };
-
   /**
    * calculates Jaccard index |list0 ∩ list1|/|list0 ∪ list1| see: https://en.wikipedia.org/wiki/Jaccard_index
    * @param  {List} list0
@@ -7442,7 +7636,7 @@
    * tags:
    */
   ListOperators.jaccardIndex = function(list0, list1) {//TODO: see if this can be more efficient, maybe one idctionar for doing union and interstection at the same time
-    return ListOperators.intersection(list0, list1).length/ListOperators.unionLists(list0, list1).length;
+    return ListOperators.intersection(list0, list1).length/ListOperators.union(list0, list1).length;
   };
 
   /**
@@ -7457,71 +7651,6 @@
   };
 
 
-
-  /**
-   * builds a dictionary that matches an element of a List with its index on the List (indexesDictionary[element] --> index)
-   * it assumes there's no repetitions on the list (if that's not tha case the last index of the element will be delivered)
-   * @param  {List} list
-   * @return {Object}
-   * tags:dictionary
-   */
-  ListOperators.getSingleIndexDictionaryForList = function(list){
-    if(list==null) return;
-
-    var i;
-    var l = list.length;
-
-    var dictionary = {};
-    for(i=0; i<l; i++){
-      dictionary[list[i]] = i;
-    }
-
-    return dictionary;
-  };
-
-  /**
-   * builds a dictionary that matches an element of a List with all its indexes on the List (indexesDictionary[element] --> numberList of indexes of element on list)
-   * if the list has no repeated elements, and a single is required per element, use ListOperators.getSingleIndexDictionaryForList
-   * @param  {List} list
-   * @return {Object}
-   * tags:dictionary
-   */
-  ListOperators.getIndexesDictionary = function(list){
-    var indexesDictionary = {};
-
-    list.forEach(function(element, i){
-      if(indexesDictionary[element]==null) indexesDictionary[element]=new NumberList();
-      indexesDictionary[element].push(i);
-    });
-
-    return indexesDictionary;
-  };
-
-  /**
-   * @todo write docs
-   */
-  ListOperators.getIndexesTable = function(list){
-    var indexesTable = new Table();
-    indexesTable[0] = new List();
-    indexesTable[1] = new NumberTable();
-    var indexesDictionary = {};
-    var indexOnTable;
-
-    list.forEach(function(element, i){
-      indexOnTable = indexesDictionary[element];
-      if(indexOnTable==null){
-        indexesTable[0].push(element);
-        indexesTable[1].push(new NumberList(i));
-        indexesDictionary[element]=indexesTable[0].length-1;
-      } else {
-        indexesTable[1][indexOnTable].push(i);
-      }
-    });
-
-    indexesTable[0] = indexesTable[0].getImproved();
-
-    return indexesTable;
-  };
 
   /**
    * aggregates values of a list using an aggregator list as reference
@@ -8124,81 +8253,9 @@
     return text;
   };
 
-  /**
-   * @classdesc NumberList Generators
-   *
-   * @namespace
-   * @category numbers
-   */
-  function NumberListGenerators() {}
-  /**
-   * Generate a NumberList with sorted Numbers
-   * @param {Number} nValues length of the NumberList
-   *
-   * @param {Number} start first value
-   * @param {Number} step increment value
-   * @return {NumberList} generated NumberList
-   * tags:generator
-   */
-  NumberListGenerators.createSortedNumberList = function(nValues, start, step) {
-    start = start || 0;
-    step = step || 1;
-    if(step === 0) step = 1;
-    var i;
-    var numberList = new NumberList();
-    for(i = 0; i < nValues; i++) {
-      numberList.push(start + i * step);
-    }
-    return numberList;
-  };
-
-  // TODO: Should this function be here?
-  /**
-   * @todo finish docs
-   */
-  NumberList.createNumberListFromInterval = function(nElements, interval) {
-    if(interval == null) interval = new Interval(0, 1);
-    var numberList = new NumberList();
-    var range = interval.getAmplitude();
-    var i;
-    for(i = 0; i < nElements; i++) {
-      numberList.push(Number(interval.getMin()) + Number(Math.random() * range));
-    }
-    return numberList;
-  };
-
-  /**
-   * creates a list with random numbers
-   *
-   * @param  {Number} nValues
-   *
-   * @param  {Interval} interval range of the numberList
-   * @param  {Number} seed optional seed for seeded random numbers
-   * @return {NumberList}
-   * tags:random
-   */
-  NumberListGenerators.createRandomNumberList = function(nValues, interval, seed, func) {
-    seed = seed == null ? -1 : seed;
-    interval = interval == null ? new Interval(0, 1) : interval;
-
-    var numberList = new NumberList();
-    var amplitude = interval.getAmplitude();
-
-    var random = seed == -1 ? Math.random : new NumberOperators._Alea("my", seed, "seeds");
-
-    for(var i = 0; i < nValues; i++) {
-      //seed = (seed*9301+49297) % 233280; //old method, close enough: http://moebio.com/research/randomseedalgorithms/
-      //numberList[i] = interval.x + (seed/233280.0)*amplitude; //old method
-
-      numberList[i] = func == null ? (random() * amplitude + interval.x) : func(random() * amplitude + interval.x);
-    }
-
-    return numberList;
-  };
-
   ColorListGenerators._HARDCODED_CATEGORICAL_COLORS = new ColorList(
-    "#dd4411", "#2200bb", "#1f77b4", "#ff660e", "#2ca02c", "#d62728", "#9467bd", "#8c564b", "#e377c2", "#7f7f7f", "#bcbd22", "#17becf", "#dd8811",
-    "#dd0011", "#221140", "#1f66a3", "#ff220e", "#2ba01c", "#442728", "#945600", "#8c453a", "#e37700"
+    "#d62728", "#1f77b4", "#2ca02c", "#ff7f00", "#9467bd", "#bcbd22", "#8c564b", "#17becf", "#dd4411", "#206010", "#e377c2",
+    "#2200bb", "#dd8811", "#ff220e", "#1f66a3", "#8c453a", "#2ba01c", "#dfc500", "#945600", "#ff008b", "#e37700", "#7f7f7f"
   );
 
   /**
@@ -8214,17 +8271,99 @@
    *
    * @param  {Number} alpha 1 by default
    * @param {Boolean} invert invert colors
+   * @param {Boolean} darken colors beyond starting colorList length (default=false)
    * @return {ColorList}
    * tags:generator
    */
-  ColorListGenerators.createDefaultCategoricalColorList = function(nColors, alpha, invert) {
+  ColorListGenerators.createDefaultCategoricalColorList = function(nColors, alpha, invert, bDarken) {
     alpha = alpha == null ? 1 : alpha;
-    var colors = ColorListGenerators.createCategoricalColors(1, nColors).getInterpolated('black', 0.15);
+    bDarken = bDarken == null ? false : bDarken;
+    var colors = ColorListGenerators.createCategoricalColors(2, nColors,null,null,null,null,null,bDarken);
     if(alpha < 1) colors = colors.addAlpha(alpha);
 
     if(invert) colors = colors.getInverted();
 
     return colors;
+  };
+
+  /**
+   * Creates a ColorList of categorical colors based on an input List. All entries with the same value will get the same color.
+   * @param {List} the list containing categorical data with same length as given list
+   * tags:generator
+   */
+  ColorListGenerators.colorsForCategoricalList = function(list){
+    return ColorListGenerators.createCategoricalColorListForList(list)[0].value;
+  };
+
+  //@todo: change this method (and try to not break things)
+
+  /**
+   * Creates a ColorList of categorical colors based on an input List. All entries with the same value will get the same color.
+   * @param {List} the list containing categorical data
+   *
+   * @param {ColorList} ColorList with categorical colors
+   * @param {Number} alpha transparency
+   * @param {String} color to mix
+   * @param {Number} interpolation value (0-1) for color mix
+   * @param {Boolean} invert invert colors
+   * @param {Boolean} darken colors beyond internal colorList length (default=false)
+   * @return {ColorList} ColorList with categorical colors that match the given list
+   * @return {List} elements list of elemnts that match colors (equivalent to getWithoutRepetions)
+   * @return {ColorList} ColorList with different categorical colors
+   * @return {Table} dictionary dictionary table with elemnts and matching colors
+   * @return {Object} citionaryObject (relational array, from objects to colors)
+   * tags:generator
+   */
+  ColorListGenerators.createCategoricalColorListForList = function(list, colorList, alpha, color, interpolate, invert, bDarken)
+  {
+
+    if(!list)
+      return new ColorList();
+    if(!alpha)
+      alpha = 1;
+    if(!color)
+      color = "#fff";
+    if(!interpolate)
+      interpolate = 0;
+    bDarken = bDarken == null ? false : bDarken;
+
+    list = List.fromArray(list);
+    var diffValues = list.getWithoutRepetitions();
+    var diffColors;
+    if(colorList && interpolate !== 0) {
+      diffColors = colorList.getInterpolated(color, interpolate);
+    } else {
+      diffColors = ColorListGenerators.createCategoricalColors(2, diffValues.length, null, alpha, color, interpolate, colorList,bDarken);
+    }
+    if(alpha<1) diffColors = diffColors.addAlpha(alpha);
+
+    if(invert) diffColors = diffColors.getInverted();
+
+    var colorDictTable = Table.fromArray([diffValues, diffColors]);
+    var dictionaryObject = ListOperators.buildDictionaryObjectForDictionary(colorDictTable);
+
+    var fullColorList = ListOperators.translateWithDictionary(list, colorDictTable, 'black');
+
+    fullColorList = ColorList.fromArray(fullColorList);
+
+    return [
+      {
+        value: fullColorList,
+        type: 'ColorList'
+      }, {
+        value: diffValues,
+        type: diffValues.type
+      }, {
+        value: diffColors,
+        type: 'ColorList'
+      }, {
+        value: new Table(diffValues, fullColorList),
+        type: 'Table'
+      }, {
+        value: dictionaryObject,
+        type: 'Object'
+      }
+    ];
   };
 
 
@@ -8282,8 +8421,34 @@
 
 
   /**
+   * Creates a new ColorList from the full spectrum. Size of the List
+   * is controlled by the nColors input.
+   *
+   * @param {Number} nColors Length of the list (default 8).
+   * @param {Number} saturation in range [0,1]
+   * @param {Number} value in range [0,1]
+   * @return {ColorList} ColorList with spectrum colors
+   * tags:generator
+  */
+  ColorListGenerators.createColorListSpectrum = function(nColors, saturation,value) {
+    // use HSV and rotate through hues
+    nColors = nColors == null? 8:nColors;
+    saturation = saturation == null? 1:saturation;
+    value = value == null? 1:value;
+    var colorList = new ColorList();
+    var hue;
+    for(var i = 0; i < nColors; i++) {
+      // hue of 0 == hue of 360 so we go to nColors-1
+      hue = 360*i/nColors;
+      colorList.push(ColorOperators.HSVtoHEX(hue,saturation,value));
+    }
+    return colorList;
+  };
+
+
+  /**
    * Creates a ColorList of categorical colors
-   * @param {Number} mode 0:simple picking from color scale function, 1:random (with seed), 2:hardcoded colors, 3:, 4:, 5:evolutionary algorithm, guarantees non consecutive similar colors
+   * @param {Number} mode 0:simple picking from color scale function, 1:random (with seed), 2:hardcoded colors, 3:spectrum colors, 4:evolutionary algorithm, guarantees non consecutive similar colors(spectrum), 5:evolutionary algorithm, guarantees non consecutive similar colors(colorScale)
    * @param {Number} nColors
    *
    * @param {ColorScale} colorScaleFunction
@@ -8291,12 +8456,13 @@
    * @param {String} interpolateColor color to interpolate
    * @param {Number} interpolateValue interpolation value [0, 1]
    * @param {ColorList} colorList colorList to be used in mode 2 (if not colorList is provided it will use default categorical colors)
+   * @param {Boolean} darken colors beyond starting colorList length for mode 2(default=false)
    * @return {ColorList} ColorList with categorical colors
    * tags:generator
    */
-  ColorListGenerators.createCategoricalColors = function(mode, nColors, colorScaleFunction, alpha, interpolateColor, interpolateValue, colorList) {
+  ColorListGenerators.createCategoricalColors = function(mode, nColors, colorScaleFunction, alpha, interpolateColor, interpolateValue, colorList, bDarken) {
     colorScaleFunction = colorScaleFunction == null ? ColorScales.temperature : colorScaleFunction;
-
+    bDarken = bDarken == null ? false : bDarken;
     var i;
     var newColorList = new ColorList();
     switch(mode) {
@@ -8313,10 +8479,22 @@
         break;
       case 2:
         colorList = colorList==null?ColorListGenerators._HARDCODED_CATEGORICAL_COLORS:colorList;
+        var nInterpolate;
         for(i = 0; i < nColors; i++) {
           newColorList[i] = colorList[i%colorList.length];
+          if(bDarken && i >= colorList.length){
+            // move towards black
+            nInterpolate = Math.floor(i/colorList.length);
+            for(var j=0; j < nInterpolate;j++){
+              newColorList[i]= ColorOperators.interpolateColors(newColorList[i],'black',0.20);
+            }
+          }
         }
         break;
+      case 3:
+        newColorList = ColorListGenerators.createColorListSpectrum(nColors);
+        break;
+      case 4:
       case 5:
         var randomNumbersSource = NumberListGenerators.createRandomNumberList(1001, null, 0);
         var positions = NumberListGenerators.createSortedNumberList(nColors);
@@ -8325,7 +8503,9 @@
 
         var nGenerations = Math.floor(nColors * 2) + 100;
         var nChildren = Math.floor(nColors * 0.6) + 5;
-        var bestEvaluation = ColorListGenerators._evaluationFunction(randomPositions);
+        var bCircular = mode == 4;
+        var bExtendedNeighbourhood = mode == 4;
+        var bestEvaluation = ColorListGenerators._evaluationFunction(randomPositions,bCircular,bExtendedNeighbourhood);
         var child;
         var bestChildren = randomPositions;
         var j;
@@ -8336,7 +8516,7 @@
           for(j = 0; j < nChildren; j++) {
             child = ColorListGenerators._sortingVariation(randomPositions, randomNumbersSource[nr], randomNumbersSource[nr + 1]);
             nr = (nr + 2) % 1001;
-            evaluation = ColorListGenerators._evaluationFunction(child);
+            evaluation = ColorListGenerators._evaluationFunction(child,bCircular,bExtendedNeighbourhood);
             if(evaluation > bestEvaluation) {
               bestChildren = child;
               bestEvaluation = evaluation;
@@ -8344,9 +8524,16 @@
           }
           randomPositions = bestChildren;
         }
-
-        for(i = 0; i < nColors; i++) {
-          newColorList.push(colorScaleFunction((1 / nColors) + randomPositions[i] / (nColors + 1))); //TODO: make more efficient by pre-nuilding the colorList
+        if(mode == 4){
+          var colorListSpectrum = ColorListGenerators.createColorListSpectrum(nColors);
+          for(i = 0; i < nColors; i++) {
+            newColorList.push(colorListSpectrum[randomPositions[i]]);
+          }
+        }
+        else{ // 5
+          for(i = 0; i < nColors; i++) {
+            newColorList.push(colorScaleFunction((1 / nColors) + randomPositions[i] / (nColors + 1))); //TODO: make more efficient by pre-nuilding the colorList
+          }
         }
         break;
     }
@@ -8378,11 +8565,23 @@
   /**
    * @ignore
    */
-  ColorListGenerators._evaluationFunction = function(numberList) { //private
+  ColorListGenerators._evaluationFunction = function(numberList, bCircular, bExtendedNeighbourhood) { //private
+    // bCircular == true means distance between 0 and n-1 is 1
+    // bExtendedNeighbourhood == true means consider diffs beyond adjacent pairs
     var sum = 0;
-    var i;
-    for(i = 0; numberList[i + 1] != null; i++) {
-      sum += Math.sqrt(Math.abs(numberList[i + 1] - numberList[i]));
+    var i,d,r2,
+      len=numberList.length,
+      h=Math.floor(len/2);
+    var range = bExtendedNeighbourhood ? 4 : 1;
+    for(var r=1; r <= range; r++){
+      r2 = r*r;
+      for(i = 0; numberList[i + r] != null; i++) {
+        d = Math.abs(numberList[i + r] - numberList[i]);
+        if(bCircular && d > h){
+          d = len-d;
+        }
+        sum += Math.sqrt(d/r2);
+      }
     }
     return sum;
   };
@@ -8403,84 +8602,26 @@
     if(list==null) return;
 
     var diffValues = list.getWithoutRepetitions();
+
     var diffColors = ColorListGenerators.createCategoricalColors(2, diffValues.length, null, alpha, color, interpolate, colorList);
+
     if(invert) diffColors = diffColors.getInverted();
 
     var dictionaryObject = {};
 
-    diffValues.forEach(function(element, i){
-      dictionaryObject[element] = diffColors[i];
-    });
+    var l = diffColors.length;
+    var i;
+
+    for(i=0; i<l; i++){
+      dictionaryObject[diffValues[i]] = diffColors[i];
+    }
+
+    // diffValues.forEach(function(element, i){
+    //   dictionaryObject[element] = diffColors[i];
+    // });
 
     return dictionaryObject;
 
-  };
-
-  /**
-   * Creates a ColorList of categorical colors based on an input List. All entries with the same value will get the same color.
-   * @param {List} the list containing categorical data
-   *
-   * @param {ColorList} ColorList with categorical colors
-   * @param {Number} alpha transparency
-   * @param {String} color to mix
-   * @param {Number} interpolation value (0-1) for color mix
-   * @param {Boolean} invert invert colors
-   * @return {ColorList} ColorList with categorical colors that match the given list
-   * @return {List} elements list of elemnts that match colors (equivalent to getWithoutRepetions)
-   * @return {ColorList} ColorList with different categorical colors
-   * @return {Table} dictionary dictionary table with elemnts and matching colors
-   * @return {Object} citionaryObject (relational array, from objects to colors)
-   * tags:generator
-   */
-  ColorListGenerators.createCategoricalColorListForList = function(list, colorList, alpha, color, interpolate, invert)
-  {
-
-    if(!list)
-      return new ColorList();
-    if(!alpha)
-      alpha = 1;
-    if(!color)
-      color = "#fff";
-    if(!interpolate)
-      interpolate = 0;
-
-    list = List.fromArray(list);
-    var diffValues = list.getWithoutRepetitions();
-    var diffColors;
-    if(colorList && interpolate !== 0) {
-      diffColors = colorList.getInterpolated(color, interpolate);
-    } else {
-      diffColors = ColorListGenerators.createCategoricalColors(2, diffValues.length, null, alpha, color, interpolate, colorList);
-    }
-    if(alpha<1) diffColors = diffColors.addAlpha(alpha);
-
-    if(invert) diffColors = diffColors.getInverted();
-
-    var colorDictTable = Table.fromArray([diffValues, diffColors]);
-    var dictionaryObject = ListOperators.buildDictionaryObjectForDictionary(colorDictTable);
-
-    var fullColorList = ListOperators.translateWithDictionary(list, colorDictTable, 'black');
-
-    fullColorList = ColorList.fromArray(fullColorList);
-    
-    return [
-      {
-        value: fullColorList,
-        type: 'ColorList'
-      }, {
-        value: diffValues,
-        type: diffValues.type
-      }, {
-        value: diffColors,
-        type: 'ColorList'
-      }, {
-        value: new Table(diffValues, fullColorList),
-        type: 'Table'
-      }, {
-        value: dictionaryObject,
-        type: 'Object'
-      }
-    ];
   };
 
   /**
@@ -8593,43 +8734,30 @@
     return text.replace(string, replacement);
   };
 
-  /** depracted, replaced by StringListOperators.replaceStringsInText
-   * replaces in a string ocurrences of sub-strings by a string
-   * @param  {String} string to be modified
-   * @param  {StringList} subStrings sub-strings to be replaced
+  /**
+   * replaces in each string, a sub-string by a string
+   * @param  {String} text where to replaces strings
+   * @param  {StringList} strings to be replaced (could be Regular Expressions)
    * @param  {String} replacement string to be placed instead
-   * @return {String}
-   */
-  // StringOperators.replaceSubStringsByString = function(string, subStrings, replacement) {
-  //   if(subStrings == null) return;
-
-  //   subStrings.forEach(function(subString) {
-  //     string = StringOperators.replaceStringInText(string, subString, replacement);
-  //   });
-
-  //   return string;
-  // };
-
-  /** deprecated, replaced by: 
-   * replaces in a string ocurrences of sub-strings by strings (1-1)
-   * @param  {String} string to be modified
-   * @param  {StringList} subStrings sub-strings to be replaced
-   * @param  {StringList} replacements strings to be placed instead
    * @return {String}
    * tags:
    */
-  // StringOperators.replaceSubStringsByStrings = function(string, subStrings, replacements) {
-  //   if(subStrings == null || replacements == null) return;
+  StringOperators.replaceStringsInText = function(text, strings, replacement) {
+    if(text==null || strings==null || replacement==null) return null;
 
-  //   var nElements = Math.min(subStrings.length, replacements.length);
-  //   var i;
+    var newText = text;
+    var nStrings = strings.length;
+    var j;
+    var string;
 
-  //   for(i = 0; i < nElements; i++) {
-  //     string = StringOperators.replaceStringInText(string, subStrings[i], replacements[i]);
-  //   }
+    for(j=0; j<nStrings; j++){
+      string = strings[j];
+      if(!(string instanceof RegExp)) string = new RegExp(string, "g");
+      newText = newText.replace(string, replacement);
+    }
 
-  //   return string;
-  // };
+    return newText;
+  };
 
   /**
    * builds a stringList of words contained in the text
@@ -8660,28 +8788,37 @@
     if(includeLinks) {
       links = string.match(StringOperators.LINK_REGEX);
     }
+
     string = string.toLowerCase().replace(StringOperators.LINK_REGEX, "");
 
     var list = string.match(/\w+/g);
+
     if(list == null) return new StringList();
+
+    list = StringList.fromArray(list);
 
     if(includeLinks && links != null) list = list.concat(links);
     list = StringList.fromArray(list).replace(/ /g, "");
 
+    var nMatches;
+
     if(stopWords != null) { //TODO:check before if all stopwrds are strings
       //list.removeElements(stopWords);
-
-      for(i = 0; list[i] != null; i++) {
-        for(j = 0; stopWords[j] != null; j++) {
+      nMatches = list.length;
+      var nStopWords = stopWords.length;
+      for(i = 0; i<nMatches; i++) {
+        for(j = 0; j<nStopWords; j++) {
           if((typeof stopWords[j]) == 'string') {
             if(stopWords[j] == list[i]) {
               list.splice(i, 1);
               i--;
+              nMatches = list.length;
               break;
             }
           } else if(stopWords[j].test(list[i])) {
             list.splice(i, 1);
             i--;
+            nMatches = list.length;
             break;
           }
         }
@@ -8690,10 +8827,12 @@
     }
 
     if(minSizeWords > 0) {
-      for(i = 0; list[i] != null; i++) {
+      nMatches = list.length;
+      for(i = 0; i<nMatches; i++) {
         if(list[i].length < minSizeWords) {
           list.splice(i, 1);
           i--;
+          nMatches = list.length;
         }
       }
     }
@@ -8706,7 +8845,7 @@
         return list;
       }
 
-      var occurrences = ListOperators.countOccurrencesOnList(list);
+      var occurrences = list.getFrequenciesTable();
       list = list.getSortedByList(occurrences);
       if(limit !== 0) list = list.substr(0, limit);
 
@@ -9044,21 +9183,71 @@
   };
 
   /**
-   * @todo finish docs
+   * transforms a text by performing multiple optional cleaning operations (applied in the same order as parameters suggest)
+   * @param {String} string to be transformed
+   *
+   * @param {Boolean} removeEnters
+   * @param {Boolean} removeTabs
+   * @param {String} replaceTabsAndEntersBy
+   * @param {Boolean} removePunctuation
+   * @param {Boolean} toLowerCase
+   * @param {StringList} stopWords removes strings from text
+   * @param {Boolean} removeDoubleSpaces
+   * @return {String}
+   * tags:filter
    */
-  StringOperators.removeEnters = function(string) {
-    return string.replace(/(\StringOperators.ENTER|\StringOperators.ENTER2|\StringOperators.ENTER3)/gi, " ");
+  StringOperators.cleanText = function(string, removeEnters, removeTabs, replaceTabsAndEntersBy, removePunctuation, toLowerCase, stopWords, removeDoubleSpaces){
+    if(string==null) return null;
+
+    //console.log("string["+string+"]");
+
+    if(removeEnters) string = StringOperators.removeEnters(string, replaceTabsAndEntersBy);
+    if(removeTabs) string = StringOperators.removeTabs(string, replaceTabsAndEntersBy);
+    if(removePunctuation) string = StringOperators.removePunctuation(string);
+    if(toLowerCase) string = string.toLowerCase();
+
+    if(stopWords!=null){
+      string = StringOperators.replaceStringsInText(string, stopWords, "");
+    }
+
+    if(removeDoubleSpaces) string = StringOperators.removeDoubleSpaces(string);
+
+    return string;
   };
 
   /**
-   * @todo finish docs
+   * removes enters from string
+   * @param {String} string to be transformed
+
+   * @param {String} replaceBy optional string to replace enters
+   * @return {String}
+   * tags:
    */
-  StringOperators.removeTabs = function(string) {
-    return string.replace(/(\StringOperators.TAB|\StringOperators.TAB2|\t)/gi, "");
+  StringOperators.removeEnters = function(string, replaceBy) {
+    replaceBy = replaceBy==null?"":replaceBy;
+    return string.replace(/(\StringOperators.ENTER|\StringOperators.ENTER2|\StringOperators.ENTER3)/gi, replaceBy);
   };
 
   /**
-   * @todo finish docs
+   * removes tabs from string
+   * @param {String} string to be transformed
+
+   * @param {String} replaceBy optional string to replace tabs
+   * @return {String}
+   * tags:
+   */
+  StringOperators.removeTabs = function(string, replaceBy) {
+    replaceBy = replaceBy || "";
+    return string.replace(/(\StringOperators.TAB|\StringOperators.TAB2|\t)/gi, replaceBy);
+  };
+
+  /**
+   * removes punctuation from a string, using regex /[:,.;?!\(\)\"\']/gi
+   * @param {String} string to be transformed
+
+   * @param {String} replaceBy optional string to replace punctuation signs
+   * @return {String}
+   * tags:
    */
   StringOperators.removePunctuation = function(string, replaceBy) {
     replaceBy = replaceBy || "";
@@ -9066,7 +9255,10 @@
   };
 
   /**
-   * @todo finish docs
+   * removes double spaces from a string
+   * @param {String} string to be transformed
+   * @return {String}
+   * tags:
    */
   StringOperators.removeDoubleSpaces = function(string) {
     var retString = string;
@@ -9208,9 +9400,17 @@
   //counting / statistics
 
   /**
-   * @todo finish docs
+   * count the number of occurrences of a string into a text
+   * @param {String} text
+   * @param {String} string
+   *
+   * @param {Boolean} asWord if false (default) searches for substring, if true searches for word
+   * @return {Number} number of occurrences
+   * tags:count
    */
-  StringOperators.countOccurrences = function(text, string) { //seems to be th emost efficient: http://stackoverflow.com/questions/4009756/how-to-count-string-occurrence-in-string
+  StringOperators.countOccurrences = function(text, string, asWord) { //seems to be th emost efficient: http://stackoverflow.com/questions/4009756/how-to-count-string-occurrence-in-string
+    if(asWord) return StringOperators.countWordOccurrences(text, string);
+
     var n = 0;
     var index = text.indexOf(string);
     while(index != -1) {
@@ -9225,18 +9425,38 @@
    */
   StringOperators.countWordOccurrences = function(string, word) {
     var regex = new RegExp("\\b" + word + "\\b");
-    var match = string.match(regex);
-    return match == null ? 0 : match.length;
+    return StringOperators.countRegexOccurrences(string, regex);
   };
 
   /**
    * @todo finish docs
    */
-  StringOperators.countStringsOccurrences = function(text, strings) {
+  StringOperators.countRegexOccurrences = function(string, regex) {
+    var match = string.match(regex);
+    return match == null ? 0 : match.length;
+  };
+
+  /**
+   * count the number of occurrences of a list of strings into a text
+   * @param {String} text
+   * @param {StringList} strings
+   *
+   * @param {Boolean} asWords if false (default) searches for substrings, if true searches for words
+   * @return {NumberList} number of occurrences per string
+   * tags:count
+   */
+  StringOperators.countStringsOccurrences = function(text, strings, asWords) {
+    if(text==null || strings==null) return;
+
     var i;
     var numberList = new NumberList();
-    for(i = 0; strings[i] != null; i++) {
-      numberList[i] = text.split(strings[i]).length - 1;
+    var nStrings = strings.length;
+    for(i = 0; i<nStrings; i++) {
+      if(asWords){
+        numberList[i] = StringOperators.countRegexOccurrences(text, new RegExp("\\b" + strings[i] + "\\b"));
+      } else {
+        numberList[i] = StringOperators.countOccurrences(text, strings[i]);
+      }
     }
     return numberList;
   };
@@ -9491,7 +9711,7 @@
     namesSubfix = namesSubfix == null ? '' : String(namesSubfix);
 
     this.nodeList.forEach(function(node) {
-      newNode = new _Node(idsSubfix + node.id, namesSubfix + node.name);
+      newNode = new Node(idsSubfix + node.id, namesSubfix + node.name);
       if(idsSubfix !== '') newNode.basicId = node.id;
       if(namesSubfix !== '') newNode.basicName = node.name;
       if(nodePropertiesNames) {
@@ -9549,7 +9769,7 @@
   /**
    * parses a Date
    * @param  {String} string date in string format
-   * @param  {String} formatCase <br>0: MM-DD-YYYY<br>1: YYYY-MM-DD<br>2: MM-DD-YY<br>3: YY-MM-DD<br>4: DD-MM-YY<br>5: DD-MM-YYYY
+   * @param  {Number} formatCase <br>0: MM-DD-YYYY<br>1: YYYY-MM-DD<br>2: MM-DD-YY<br>3: YY-MM-DD<br>4: DD-MM-YY<br>5: DD-MM-YYYY
    * @param  {String} separator
    * @return {Date}
    * tags:decoder
@@ -9557,6 +9777,8 @@
   DateOperators.stringToDate = function(string, formatCase, separator) {// @todo: move to StringConversions
     separator = separator == null ? "-" : separator;
     formatCase = formatCase == null ? 1 : formatCase;
+
+    formatCase = Number(formatCase);
 
     if(formatCase == 1) {
       if(separator != "-") string = string.replace(new RegExp(string, "g"), "-");
@@ -9654,28 +9876,28 @@
   /**
    * @todo write docs
    */
-  DateOperators.getHoursBetweenDates = function(date0, date1) {
+  DateOperators.hoursBetweenDates = function(date0, date1) {
     return(date1.getTime() - date0.getTime()) * DateOperators.millisecondsToHours;
   };
 
   /**
    * @todo write docs
    */
-  DateOperators.getDaysBetweenDates = function(date0, date1) {
+  DateOperators.daysBetweenDates = function(date0, date1) {
     return(date1.getTime() - date0.getTime()) * DateOperators.millisecondsToDays;
   };
 
   /**
    * @todo write docs
    */
-  DateOperators.getWeeksBetweenDates = function(date0, date1) {
+  DateOperators.weeksBetweenDates = function(date0, date1) {
     return(date1.getTime() - date0.getTime()) * DateOperators.millisecondsToWeeks;
   };
 
   /**
    * @todo write docs
    */
-  DateOperators.getYearsBetweenDates = function(date0, date1) {
+  DateOperators.yearsBetweenDates = function(date0, date1) {
     return(date1.getTime() - date0.getTime()) * DateOperators.millisecondsToYears;
   };
 
@@ -9902,7 +10124,7 @@
 
           if(node == null) {
 
-            node = new _Node(id, name);
+            node = new Node(id, name);
             node._nLine = nLineParagraph;
             network.addNode(node);
             node.content = index != -1 ? line.substr(index + sep.length).trim() : "";
@@ -10246,7 +10468,7 @@
       }
       line = NetworkEncodings.replaceChomasInLine(line);
       parts = line.split(",");
-      var node = new _Node(String(parts[0]), String(parts[1]));
+      var node = new Node(String(parts[0]), String(parts[1]));
       for(j = 0; (nodesPropertiesNames[j] != null && parts[j] != null); j++) {
         if(nodesPropertiesNames[j] == "weight") {
           node.weight = Number(parts[j]);
@@ -10401,7 +10623,7 @@
 
       lineParts = lines[0].split(" ");
 
-      node = new _Node(StringOperators.removeQuotes(lineParts[1]), StringOperators.removeQuotes(lineParts[1]));
+      node = new Node(StringOperators.removeQuotes(lineParts[1]), StringOperators.removeQuotes(lineParts[1]));
 
       network.addNode(node);
 
@@ -10604,7 +10826,7 @@
             id = bits[2];
             name = lines[i + 1].substr(0, 5) == "name:" ? lines[i + 1].substr(5).trim() : "";
             name = name.replace(/\\n/g, '\n').replace(/\\'/g, "'");
-            node = new _Node(id, name);
+            node = new Node(id, name);
             network.addNode(node);
             j = i + 1;
             while(j < lines.length && lines[j].indexOf(":") != -1) {
@@ -11357,7 +11579,7 @@
       var lengthResult = result.length;
 
       for(var i = 0; i < lengthResult; i++) {
-        result[i] = typeOf(result[i]) == "Node" ? result[i] : (new _Node(String(result[i]), String(result[i])));
+        result[i] = typeOf(result[i]) == "Node" ? result[i] : (new Node(String(result[i]), String(result[i])));
       }
     }
     
@@ -12018,6 +12240,8 @@
   }
 
   function isArray(obj) {
+    if( (typeof obj)!='object' ) return false;
+    
     if(obj.constructor.toString().indexOf("Array") == -1)
       return false;
     else
@@ -12025,7 +12249,7 @@
   }
 
   function evalJavaScriptFunction(functionText, args, scope){
-  	if(functionText==null) return;
+  	if(functionText==null || functionText=="") return;
 
   	var res;
 
@@ -12293,8 +12517,10 @@
       }
     }
 
+    separator = separator==null?",":separator;
+
     var table = new Table();
-    var comaCharacter = separator != undefined ? separator : ",";
+    var comaCharacter = separator;
 
     if(csvString == null || csvString === "" || csvString == " " || lines.length === 0) return null;
 
@@ -12308,6 +12534,7 @@
     var element;
     var cellContent;
     var numberCandidate;
+
     for(i = startIndex; i < lines.length; i++) {
       if(lines[i].length < 2) continue;
 
@@ -12328,7 +12555,7 @@
 
         numberCandidate = Number(cellContent.replace(',', '.'));
 
-        element = (numberCandidate || (numberCandidate == 0 && cellContent !== '')) ? numberCandidate : cellContent;
+        element = (numberCandidate || (numberCandidate === 0 && cellContent !== '')) ? numberCandidate : cellContent;
 
         if(typeof element == 'string') element = TableEncodings._removeQuotes(element);
 
@@ -12371,6 +12598,7 @@
     var j;
     var list;
     var type;
+    if(table == null) return null;
     var lines = ListGenerators.createListWithSameElement(table[0].length, "");
     var addSeparator;
     for(i = 0; table[i] != null; i++) {
@@ -12402,6 +12630,165 @@
 
     return headers + lines.getConcatenated("\n");
   };
+
+  /**
+   * @classdesc Create default Matrix instances.
+   *
+   * @namespace
+   * @category numbers
+   */
+  function MatrixGenerators() {}
+  //all Matrix objects and methods should be ported to NumberTable (same at Matrix.json)
+
+
+  /**
+   * Returns a transformation matrix from a triangle mapping
+   *
+   * @returns Matrix
+   *
+   **/
+  // TODO: resolve particular cases (right angles)
+  MatrixGenerators.createMatrixFromTrianglesMapping = function(v0, v1, v2, w0, w1, w2) {
+    var a, b, c, d;
+
+    if(v1.y != v0.y) {
+      var k = (v2.y - v0.y) / (v1.y - v0.y);
+
+      a = (w2.x - w0.x - (w1.x - w0.x) * k) / (v2.x - v0.x - (v1.x - v0.x) * k);
+      b = k * (w1.x - w0.x) / (v2.y - v0.y) - a * (v1.x - v0.x) / (v1.y - v0.y);
+
+      c = (w2.y - w0.y - (w1.y - w0.y) * k) / (v2.x - v0.x - (v1.x - v0.x) * k);
+      d = k * (w1.y - w0.y) / (v2.y - v0.y) - c * (v1.x - v0.x) / (v1.y - v0.y);
+    } else {
+      a = (w1.x - w0.x) / (v1.x - v0.x);
+      b = (w2.x - w0.x) / (v2.y - v0.y) - a * (v2.x - v0.x) / (v2.y - v0.y);
+
+      c = (w1.y - w0.y) / (v1.x - v0.x);
+      d = (w2.y - w0.y) / (v2.y - v0.y) - c * (v2.x - v0.x) / (v2.y - v0.y);
+    }
+
+    return new Matrix(a, c, b, d, w0.x - a * v0.x - b * v0.y, w0.y - c * v0.x - d * v0.y);
+  };
+
+
+  //TODO: place this in the correct place
+  /**
+   * @todo write docs
+   */
+  MatrixGenerators.applyTransformationOnCanvasFromPoints = function(context, v0, v1, v2, w0, w1, w2) {
+    var a, b, c, d;
+
+    if(v1.y != v0.y) {
+      var k = (v2.y - v0.y) / (v1.y - v0.y);
+
+      a = (w2.x - w0.x - (w1.x - w0.x) * k) / (v2.x - v0.x - (v1.x - v0.x) * k);
+      b = k * (w1.x - w0.x) / (v2.y - v0.y) - a * (v1.x - v0.x) / (v1.y - v0.y);
+
+      c = (w2.y - w0.y - (w1.y - w0.y) * k) / (v2.x - v0.x - (v1.x - v0.x) * k);
+      d = k * (w1.y - w0.y) / (v2.y - v0.y) - c * (v1.x - v0.x) / (v1.y - v0.y);
+    } else {
+      a = (w1.x - w0.x) / (v1.x - v0.x);
+      b = (w2.x - w0.x) / (v2.y - v0.y) - a * (v2.x - v0.x) / (v2.y - v0.y);
+
+      c = (w1.y - w0.y) / (v1.x - v0.x);
+      d = (w2.y - w0.y) / (v2.y - v0.y) - c * (v2.x - v0.x) / (v2.y - v0.y);
+    }
+    context.transform(a, c, b, d, w0.x - a * v0.x - b * v0.y, w0.y - c * v0.x - d * v0.y);
+  };
+
+
+
+
+  /**
+   * Creates a matrix transformation that corresponds to the given rotation,
+   * around (0,0) or the specified point.
+   * @see Matrix#rotate
+   *
+   * @param {Number} theta Rotation in radians.
+   * @param {Point} [aboutPoint] The point about which this rotation occurs. Defaults to (0,0).
+   * @returns {Matrix}
+   */
+  MatrixGenerators.createRotationMatrix = function(theta, aboutPoint) {
+    var rotationMatrix = new Matrix(
+      Math.cos(theta),
+      Math.sin(theta),
+      -Math.sin(theta),
+      Math.cos(theta)
+    );
+
+    if(aboutPoint) {
+      rotationMatrix =
+        MatrixGenerators.createTranslationMatrix(aboutPoint.x, aboutPoint.y).concat(
+          rotationMatrix
+        ).concat(
+          MatrixGenerators.createTranslationMatrix(-aboutPoint.x, -aboutPoint.y)
+        );
+    }
+
+    return rotationMatrix;
+  };
+
+  /**
+   * Returns a matrix that corresponds to scaling by factors of sx, sy along
+   * the x and y axis respectively.
+   * If only one parameter is given the matrix is scaled uniformly along both axis.
+   * If the optional aboutPoint parameter is given the scaling takes place
+   * about the given point.
+   * @see Matrix#scale
+   *
+   * @param {Number} sx The amount to scale by along the x axis or uniformly if no sy is given.
+   * @param {Number} [sy] The amount to scale by along the y axis.
+   * @param {Point} [aboutPoint] The point about which the scaling occurs. Defaults to (0,0).
+   * @returns {Matrix} A matrix transformation representing scaling by sx and sy.
+   */
+  MatrixGenerators.createScaleMatrix = function(sx, sy, aboutPoint) {
+    sy = sy || sx;
+
+    var scaleMatrix = new Matrix(sx, 0, 0, sy);
+
+    if(aboutPoint) {
+      scaleMatrix =
+        Matrix.createTranslationMatrix(aboutPoint.x, aboutPoint.y).concat(
+          scaleMatrix
+        ).concat(
+          Matrix.createTranslationMatrix(-aboutPoint.x, -aboutPoint.y)
+        );
+    }
+
+    return scaleMatrix;
+  };
+
+
+  /**
+   * Returns a matrix that corresponds to a translation of tx, ty.
+   * @see Matrix#translate
+   *
+   * @param {Number} tx The amount to translate in the x direction.
+   * @param {Number} ty The amount to translate in the y direction.
+   * @returns {Matrix} A matrix transformation representing a translation by tx and ty.
+   */
+  MatrixGenerators.createTranslationMatrix = function(tx, ty) {
+    return new Matrix(1, 0, 0, 1, tx, ty);
+  };
+  //
+  // /**
+  // * A constant representing the identity matrix.
+  // * @name IDENTITY
+  // * @fieldOf Matrix
+  // */
+  // Matrix.IDENTITY = Matrix();
+  // /**
+  // * A constant representing the horizontal flip transformation matrix.
+  // * @name HORIZONTAL_FLIP
+  // * @fieldOf Matrix
+  // */
+  // Matrix.HORIZONTAL_FLIP = Matrix(-1, 0, 0, 1);
+  // /**
+  // * A constant representing the vertical flip transformation matrix.
+  // * @name VERTICAL_FLIP
+  // * @fieldOf Matrix
+  // */
+  // Matrix.VERTICAL_FLIP = Matrix(1, 0, 0, -1);
 
   Matrix.prototype = new DataModel();
   Matrix.prototype.constructor = Matrix;
@@ -12456,7 +12843,7 @@
    * @returns {Matrix} The result of the matrix multiplication, a new matrix.
    */
   Matrix.prototype.concat = function(matrix) {
-    return Matrix(
+    return new Matrix(
       this.a * matrix.a + this.c * matrix.b,
       this.b * matrix.a + this.d * matrix.b,
       this.a * matrix.c + this.c * matrix.d,
@@ -12509,7 +12896,7 @@
      * @returns {Matrix} A new matrix, rotated by the specified amount.
      */
   Matrix.prototype.rotate = function(theta, aboutPoint) {
-    return this.concat(Matrix.rotation(theta, aboutPoint));
+    return this.concat(MatrixGenerators.createRotationMatrix(theta, aboutPoint));
   };
 
   /**
@@ -12523,7 +12910,7 @@
    * @returns {Matrix}
    */
   Matrix.prototype.scale = function(sx, sy, aboutPoint) {
-    return this.concat(Matrix.scale(sx, sy, aboutPoint));
+    return this.concat(MatrixGenerators.createScaleMatrix(sx, sy, aboutPoint));
   };
 
 
@@ -12536,7 +12923,7 @@
    * @returns {Matrix} A new matrix with the translation applied.
    */
   Matrix.prototype.translate = function(tx, ty) {
-    return this.concat(Matrix.translation(tx, ty));
+    return this.concat(MatrixGenerators.createTranslationMatrix(tx, ty));
   };
 
   Axis2D.prototype = new DataModel();
@@ -13799,7 +14186,7 @@
     var node0, node1, nodeList = new _Polygon();
 
     polygon.forEach(function(point, i) {
-      node = new _Node('point_' + i, 'point_' + i);
+      node = new Node('point_' + i, 'point_' + i);
       node.weight = 1;
       node.barycenter = point;
       node.point = point;
@@ -13814,7 +14201,7 @@
     //c.l('-');
 
     var buildNodeFromPair = function(node0, node1) {
-      var parent = new _Node("(" + node0.id + "," + node1.id + ")", "(" + node0.id + "," + node1.id + ")");
+      var parent = new Node("(" + node0.id + "," + node1.id + ")", "(" + node0.id + "," + node1.id + ")");
       parent.polygon = node0.polygon.concat(node1.polygon);
       //c.l("node0.polygon.length, node1.polygon.length, parent.polygon.length", node0.polygon.length, node1.polygon.length, parent.polygon.length);
       parent.weight = parent.polygon.length;
@@ -14354,7 +14741,7 @@
     return simplifiedNames;
   };
 
-  Country.prototype = new _Node();
+  Country.prototype = new Node();
   Country.prototype.constructor = Country;
 
   /**
@@ -14368,7 +14755,7 @@
    * @category geo
    */
   function Country(id, name) {
-    _Node.apply(this, [id, name]);
+    Node.apply(this, [id, name]);
     this.type = "Country";
 
     this.id = id;
@@ -14718,7 +15105,7 @@
     minYear = minDate.getFullYear();
     maxYear = minDate.getFullYear();
 
-    var superior = new _Node("years", "years");
+    var superior = new Node("years", "years");
     tree.addNodeToTree(superior);
     superior.dates = dates.clone();
 
@@ -14729,7 +15116,7 @@
     //var N=0;
 
     for(y = minYear; y <= maxYear; y++) {
-      yNode = new _Node(String(y), String(y));
+      yNode = new Node(String(y), String(y));
       tree.addNodeToTree(yNode, superior);
     }
 
@@ -14741,7 +15128,7 @@
         yNode.dates = new DateList();
 
         for(m = 0; m < 12; m++) {
-          mNode = new _Node(DateOperators.MONTH_NAMES[m] + "_" + y, DateOperators.MONTH_NAMES[m]);
+          mNode = new Node(DateOperators.MONTH_NAMES[m] + "_" + y, DateOperators.MONTH_NAMES[m]);
           tree.addNodeToTree(mNode, yNode);
           nDaysOnMonth = DateOperators.getNDaysInMonth(y, m + 1);
         }
@@ -14754,7 +15141,7 @@
       if(mNode.dates == null) {
         mNode.dates = new DateList();
         for(d = 0; d < nDaysOnMonth; d++) {
-          dNode = new _Node((d + 1) + "_" + mNode.id, String(d + 1));
+          dNode = new Node((d + 1) + "_" + mNode.id, String(d + 1));
           tree.addNodeToTree(dNode, mNode);
         }
       }
@@ -14765,7 +15152,7 @@
       if(dNode.dates == null) {
         dNode.dates = new DateList();
         for(h = 0; h < 24; h++) {
-          hNode = new _Node(h + "_" + dNode.id, String(h) + ":00");
+          hNode = new Node(h + "_" + dNode.id, String(h) + ":00");
           tree.addNodeToTree(hNode, dNode);
         }
       }
@@ -14776,7 +15163,7 @@
       if(hNode.dates == null) {
         hNode.dates = new DateList();
         for(mn = 0; mn < 60; mn++) {
-          mnNode = new _Node(mn + "_" + hNode.id, String(mn));
+          mnNode = new Node(mn + "_" + hNode.id, String(mn));
           tree.addNodeToTree(mnNode, hNode);
         }
       }
@@ -15276,7 +15663,8 @@
     var i;
     var rect;
     var highestRatio = 1;
-    for(i = 0; i < normalizedWeightList.length; i++) {
+    var l = normalizedWeightList.length;
+    for(i = 0; i < l; i++) {
       areai = normalizedWeightList[i] * area / sum;
       if(rectangle.width > rectangle.height) {
         rect = new Rectangle(freeRectangle.x, freeRectangle.y, areai / freeRectangle.height, freeRectangle.height);
@@ -16223,80 +16611,6 @@
     return newTable;
   };
 
-
-
-  /**
-   * aggregates a table
-   * @param  {Table} table to be aggregated, deprecated: a new more powerful method has been built
-   * @param  {Number} nList list in the table used as basis to aggregation
-   * @param  {Number} mode mode of aggregation, 0:picks first element 1:adds numbers, 2:averages
-   * @return {Table} aggregated table
-   * tags:deprecated
-   */
-  TableOperators.aggregateTableOld = function(table, nList, mode) {
-    nList = nList == null ? 0 : nList;
-    if(table == null || table[0] == null || table[0][0] == null || table[nList] == null) return null;
-    mode = mode == null ? 0 : mode;
-
-    var newTable = new Table();
-    var i, j;
-    var index;
-    var notRepeated;
-
-    newTable.name = table.name;
-
-    for(j = 0; table[j] != null; j++) {
-      newTable[j] = new List();
-      newTable[j].name = table[j].name;
-    }
-
-    switch(mode) {
-      case 0: //leaves the first element of the aggregated subLists
-        for(i = 0; table[0][i] != null; i++) {
-          notRepeated = newTable[nList].indexOf(table[nList][i]) == -1;
-          if(notRepeated) {
-            for(j = 0; table[j] != null; j++) {
-              newTable[j].push(table[j][i]);
-            }
-          }
-        }
-        break;
-      case 1: //adds values in numberLists
-        for(i = 0; table[0][i] != null; i++) {
-          index = newTable[nList].indexOf(table[nList][i]);
-          notRepeated = index == -1;
-          if(notRepeated) {
-            for(j = 0; table[j] != null; j++) {
-              newTable[j].push(table[j][i]);
-            }
-          } else {
-            for(j = 0; table[j] != null; j++) {
-              if(j != nList && table[j].type == 'NumberList') {
-                newTable[j][index] += table[j][i];
-              }
-            }
-          }
-        }
-        break;
-      case 2: //averages values in numberLists
-        var nRepetitionsList = table[nList].getFrequenciesTable(false);
-        newTable = TableOperators.aggregateTableOld(table, nList, 1);
-
-        for(j = 0; newTable[j] != null; j++) {
-          if(j != nList && newTable[j].type == 'NumberList') {
-            newTable[j] = newTable[j].divide(nRepetitionsList[1]);
-          }
-        }
-
-        newTable.push(nRepetitionsList[1]);
-        break;
-    }
-    for(j = 0; newTable[j] != null; j++) {
-      newTable[j] = newTable[j].getImproved();
-    }
-    return newTable.getImproved();
-  };
-
   /**
    * counts pairs of elements in same positions in two lists (the result is the adjacent matrix of the network defined by pairs)
    * @param  {Table} table with at least two lists
@@ -16346,38 +16660,96 @@
 
     var newTable = new Table();
     var i, j;
+    var l = table.length;
+    var l0 = table[0].length;
 
     newTable.name = table.name;
 
-    for(j = 0; table[j] != null; j++) {
+    for(j = 0; j<l; j++) {
       newTable[j] = new List();
       newTable[j].name = table[j].name;
     }
 
     if(keepRowIfElementIsPresent){
-      for(i = 0; table[0][i] != null; i++) {
+      for(i = 0; i<l0; i++) {
         if(table[nList][i] == element) {
-          for(j = 0; table[j] != null; j++) {
+          for(j = 0; j<l; j++) {
             newTable[j].push(table[j][i]);
           }
         }
       }
     } else {
-      for(i = 0; table[0][i] != null; i++) {
+      for(i = 0; i<l0; i++) {
         if(table[nList][i] != element) {
-          for(j = 0; table[j] != null; j++) {
+          for(j = 0; j<l; j++) {
             newTable[j].push(table[j][i]);
           }
         }
       }
     }
 
-    for(j = 0; newTable[j] != null; j++) {
+    for(j = 0; j<l; j++) {
       newTable[j] = newTable[j].getImproved();
     }
 
     return newTable;
   };
+
+  /**
+   * filter a table selecting rows that have one of the elements provided on one of its lists
+   * @param  {Table} table
+   * @param  {Number} nList list that could contain some of the elements in several positions
+   * @param  {List} elements
+   *
+   * @param {Boolean} keepRowIfElementIsPresent if true (default value) the row is selected if the list contains the given element, if false the row is discarded
+   * @return {Table}
+   * tags:filter
+   */
+  TableOperators.filterTableByElementsInList = function(table, nList, elements, keepRowIfElementIsPresent) {
+    if(table == null ||  table.length <= 0 || nList == null) return;
+    if(elements == null || elements.length===0) return table;
+
+    keepRowIfElementIsPresent = keepRowIfElementIsPresent==null?true:keepRowIfElementIsPresent;
+
+    var elementsDictionary = ListOperators.getBooleanDictionaryForList(elements);
+
+    var newTable = new Table();
+    var i, j;
+    var l = table.length;
+    var l0 = table[0].length;
+
+    newTable.name = table.name;
+
+    for(j = 0; j<l; j++) {
+      newTable[j] = new List();
+      newTable[j].name = table[j].name;
+    }
+
+    if(keepRowIfElementIsPresent){
+      for(i = 0; i<l0; i++) {
+        if(elementsDictionary[ table[nList][i] ]) {
+          for(j = 0; j<l; j++) {
+            newTable[j].push(table[j][i]);
+          }
+        }
+      }
+    } else {
+      for(i = 0; i<l0; i++) {
+        if(!elementsDictionary[ table[nList][i] ]) {
+          for(j = 0; j<l; j++) {
+            newTable[j].push(table[j][i]);
+          }
+        }
+      }
+    }
+
+    for(j = 0; j<l; j++) {
+      newTable[j] = newTable[j].getImproved();
+    }
+
+    return newTable;
+  };
+
 
   /**
    * @todo finish docs
@@ -16395,17 +16767,29 @@
   };
 
   /**
-   * creates a new table with an updated first List of elements and an added new numberList with the new values
+   * creates a new table with an updated first categorical List of elements and  added new numberLists with the new values
+   * @param {Table} table0 table wit a list of elements and a numberList of numbers associated to elements
+   * @param {Table} table1 wit a list of elements and a numberList of numbers associated to elements
+   * @return {Table}
+   * tags:
    */
   TableOperators.mergeDataTables = function(table0, table1) {
+    if(table0==null || table1==null || table0.length<2 || table1.length<2) return;
+    
     if(table1[0].length === 0) {
       var merged = table0.clone();
       merged.push(ListGenerators.createListWithSameElement(table0[0].length, 0));
       return merged;
     }
 
+    var categories0 = table0[0];
+    var categories1 = table1[0];
+
+    var dictionaryIndexesCategories0 = ListOperators.getSingleIndexDictionaryForList(categories0);
+    var dictionaryIndexesCategories1 = ListOperators.getSingleIndexDictionaryForList(categories1);
+
     var table = new Table();
-    var list = ListOperators.concatWithoutRepetitions(table0[0], table1[0]);
+    var list = ListOperators.concatWithoutRepetitions(categories0, categories1);
 
     var nElements = list.length;
 
@@ -16420,7 +16804,8 @@
     var i, j;
 
     for(i = 0; i < nElements; i++) {
-      index = table0[0].indexOf(list[i]);
+      //index = categories0.indexOf(list[i]);//@todo: imporve efficiency by creating dictionary
+      index = dictionaryIndexesCategories0[list[i]];
       if(index > -1) {
         for(j = 0; j < nNumbers0; j++) {
           if(i === 0) {
@@ -16439,7 +16824,8 @@
         }
       }
 
-      index = table1[0].indexOf(list[i]);
+      //index = categories1.indexOf(list[i]);
+      index = dictionaryIndexesCategories1[list[i]];
       if(index > -1) {
         for(j = 0; j < nNumbers1; j++) {
           if(i === 0) {
@@ -16461,10 +16847,15 @@
 
     table[0] = list;
 
-    for(i = 0; numberTable0[i] != null; i++) {
+    var l = numberTable0.length;
+
+    for(i = 0; i<l; i++) {
       table.push(numberTable0[i]);
     }
-    for(i = 0; numberTable1[i] != null; i++) {
+
+    l = numberTable1.length;
+
+    for(i = 0; i<l; i++) {
       table.push(numberTable1[i]);
     }
     return table;
@@ -16476,13 +16867,13 @@
    * @param {Object} table1
    * @return {Table}
    */
-  TableOperators.fusionDataTables = function(table0, table1) {
+  TableOperators.sumDataTables = function(table0, table1) {//
     var table = table0.clone();
     var index;
     var element;
     for(var i = 0; table1[0][i] != null; i++) {
       element = table1[0][i];
-      index = table[0].indexOf(element);
+      index = table[0].indexOf(element);//@todo make more efficient with dictionary
       if(index == -1) {
         table[0].push(element);
         table[1].push(table1[1][i]);
@@ -16585,6 +16976,115 @@
     return tablesList;
   };
 
+
+
+  /**
+   * builds a network from columns or rows, taking into account similarity in numbers (correlation) and other elements (Jaccard)
+   * @param  {Table} table
+   *
+   * @param  {Boolean} nodesAreRows if true (default value) each node corresponds to a row in the table, and rows are compared, if false ([!] not yet deployed!) lists are compared
+   * @param  {Object} names (StringList|Number) optionally add names to nodes with a list that could be part of the table or not; receives a StringList for names, index for list in the providade table
+   * @param  {Number} mode 0:(default) takes into account numbers, uses Pearson Correlation
+   * @param {Object} colorsByList (List|Number) optionally add color to nodes from a NumberList (for scale) or any List (for categorical colors) that could be part of the table or not; receives a List or an index if the list is in the providade table
+   * @param {Number} correlationThreshold 0.3 by default, above that level a relation is created
+   * @param  {Boolean} negativeCorrelation takes into account negative correlations for building relations
+   * @return {Network}
+   * tags:
+   */
+  TableOperators.buildCorrelationsNetwork = function(table, nodesAreRows, names, mode, colorsByList, correlationThreshold, negativeCorrelation){
+    if(table==null) return null;
+
+    nodesAreRows = nodesAreRows==null?true:Boolean(nodesAreRows);
+    mode = mode||0;
+    correlationThreshold = correlationThreshold==null?0.3:correlationThreshold;
+    negativeCorrelation = Boolean(negativeCorrelation);
+
+    var types = table.getTypes();
+    var i, j;
+    var l = table.length;
+    var nRows = table[0].length;
+    var node, node1, relation;
+    var id, name;
+    var pearson, jaccard, weight;
+    var colorsList, colors;
+
+    var network = new Network();
+
+    if(colorsByList!=null){
+
+      if(typeOf(colorsByList)=="number"){
+        if(colorsByList<=l){
+          colorsList = table[colorsByList];
+        }
+      } else if(colorsByList["isList"]){
+        if(colorsByList.length>=l) colorsList = colorsByList;
+      }
+
+      if(colorsList!=null){
+        if(colorsList.type === "NumberList"){
+          colors = ColorListGenerators.createColorListFromNumberList(colorsList, ColorScales.blueToRed, 0);// ColorListOperators.colorListFromColorScaleFunctionAndNumberList(ColorScales.blueToRed, colorsList, true);
+        } else {
+          colors = ColorListGenerators.createCategoricalColorListForList(colorsList)[0].value; //@todo [!] this method will soon change
+        }
+      }
+    }
+    
+
+    if(names!=null && typeOf(names)=="number" && names<l) names = table[names];
+
+    
+
+    if(!nodesAreRows){
+      //@todo deploy
+    } else {
+      for(i=0; i<nRows; i++){
+        id = "_"+i;
+        name = names==null?id:names[i];
+        node = new Node(id, name);
+
+        node.row = table.getRow(i);
+        node.numbers = new NumberList();
+        node.categories = new List();
+
+        if(colors) node.color = colors[i];
+
+        for(j=0; j<l; j++){
+          types[j]==="NumberList"?node.numbers.push(node.row[j]):node.categories.push(node.row[j]);
+        }
+
+        network.addNode(node);
+      }
+
+      for(i=0; i<nRows-1; i++){
+        node = network.nodeList[i];
+        for(j=i+1; j<nRows; j++){
+          node1 = network.nodeList[j];
+          
+          pearson = NumberListOperators.pearsonProductMomentCorrelation(node.numbers, node1.numbers);
+          jaccard = ListOperators.jaccardIndex(node.categories, node1.categories);
+
+          weight = (pearson + (negativeCorrelation?(Math.sqrt(jaccard)*2-1):jaccard) )*0.5;
+
+          //if(Math.abs(pearson)>0.1){
+          if( (negativeCorrelation && Math.abs(weight)>correlationThreshold) || (!negativeCorrelation && weight>correlationThreshold) ){
+            id = i+"_"+j;
+            name = names==null?id:node.name+"_"+node1.name;
+            relation = new Relation(id, name, node, node1, Math.abs(weight)-correlationThreshold*0.9);
+            relation.color = weight>0?'blue':'red';
+            relation.pearson = pearson;
+            relation.jaccard = jaccard;
+            network.addRelation(relation);
+          }
+
+        }
+
+      }
+    }
+
+    return network;
+  };
+
+
   /**
    * builds a decision tree based on a table made of categorical lists, a list (the values of a supervised variable), and a value from the supervised variable. The result is a tree that contains on its leaves different populations obtained by iterative filterings by category values, and that contain extremes probabilities for having or not the valu ein the supervised variable.
    * [!] this method only works with categorical lists (in case you have lists with numbers, find a way to simplify by ranges or powers)
@@ -16628,7 +17128,6 @@
    * @ignore
    */
   TableOperators._buildDecisionTreeNode = function(tree, variablesTable, supervised, level, min_entropy, min_size_node, min_info_gain, parent, value, supervisedValue, indexes, generatePattern, colorScale) {
-    //if(level < 4) c.l('\nlevel', level);
     var entropy = ListOperators.getListEntropy(supervised, supervisedValue);
 
     //if(level < 4) c.l('entropy, min_entropy', entropy, min_entropy);
@@ -17021,6 +17520,40 @@
 
   TableOperators.getReportObject = function() {}; //TODO
 
+
+
+  /**
+  * takes a table and simplifies its lists, numberLists will be simplified using quantiles values (using getNumbersSimplified) and other lists reducing the number of different elements (using getSimplified)
+  * specially useful to build simpe decision trees using TableOperators.buildDecisionTree
+  * @param {Table} table to be simplified
+  * 
+  * @param  {Number} nCategories number of different elements on each list (20 by default)
+  * @param {Object} othersElement to be placed instead of the less common elements ("other" by default)
+  * @return {Table}
+  * tags:
+  */
+  TableOperators.getTableSimplified = function(table, nCategories, othersElement) {
+    if(table==null || !(table.length>0)) return null;
+   nCategories = nCategories||20;
+
+   var i;
+   var l = table.length;
+   var newTable = new Table();
+   newTable.name = table.name;
+
+   for(i=0; i<l; i++){
+    console.log(i, 'table[i].type:', table[i].type);
+     newTable.push(
+       table[i].type==='NumberList'?
+       table[i].getNumbersSimplified(2, nCategories)
+       :
+       table[i].getSimplified(nCategories, othersElement)
+     );
+   }
+
+   return newTable;
+  };
+
   /**
    * @classdesc Table Generators
    *
@@ -17192,14 +17725,14 @@
 
 
   /**
-   * return k means for k clusters of rows (waiting to be tested)
-   * @param  {NumberTable} numberTable
+   * calculates k means for k clusters of rows in a numberTable
+   * @param  {NumberTable} numberTable with 2 or more numberLists
    * @param  {Number} k number of means
    *
    * @param  {Number} returnIndexesMode return mode:<br>0:return list of lists of indexes of rows (default)<br>1:return a list of number of mean, k different values, one per row<br>2:return a list of categorical colors, k different colors, one per row<br>3:return means<br>4:return list of sub-tables<br>5:return object with all the previous
    * @param  {Number} number of iterations (1000 by default)
    * @return {Object} result (list, numberList, colorList, numberTable or object)
-   * tags:statistics,nontested
+   * tags:statistics
    */
   NumberTableOperators.kMeans = function(numberTable, k, returnIndexesMode, N){
     if(numberTable == null || numberTable[0]==null || k == null || k <= 0 || numberTable.getLengths().getInterval().getAmplitude()!==0) return null;
@@ -17208,7 +17741,6 @@
     N = (N==null || (N<=0))?1000:N;
 
     var clusters = new NumberTable();// = returnIndexesMode?new NumberList():new NumberTable();
-
     var i, j, l;
     var jK;
     var row;
@@ -17669,6 +18201,9 @@
         flowTable[j + include0Add][i] = ((numberList[i] - minToNormalize) / maxToNormalize) + flowTable[j - 1 + include0Add][i];
       }
     }
+
+    console.log('flowTable', flowTable);
+
     return flowTable;
   };
 
@@ -17733,7 +18268,6 @@
           } else {
             intervalTable[i][j] = interval.add((1 - maxCols[j]) * 0.5);
           }
-
         }
       }
     }
@@ -17806,7 +18340,7 @@
           list0 = numberTable[i];
 
           if(i === 0) {
-            node0 = new _Node(list0.name, list0.name);
+            node0 = new Node(list0.name, list0.name);
             network.addNode(node0);
           } else {
             node0 = network.nodeList[i];
@@ -17817,7 +18351,7 @@
             list1 = numberTable[j];
 
             if(i === 0) {
-              node1 = new _Node(list1.name, list1.name);
+              node1 = new Node(list1.name, list1.name);
               network.addNode(node1);
             } else {
               node1 = network.nodeList[j];
@@ -17848,165 +18382,6 @@
   };
 
   /**
-   * @classdesc Create default Matrix instances.
-   *
-   * @namespace
-   * @category numbers
-   */
-  function MatrixGenerators() {}
-  //all Matrix objects and methods should be ported to NumberTable (same at Matrix.json)
-
-
-  /**
-   * Returns a transformation matrix from a triangle mapping
-   *
-   * @returns Matrix
-   *
-   **/
-  // TODO: resolve particular cases (right angles)
-  MatrixGenerators.createMatrixFromTrianglesMapping = function(v0, v1, v2, w0, w1, w2) {
-    var a, b, c, d;
-
-    if(v1.y != v0.y) {
-      var k = (v2.y - v0.y) / (v1.y - v0.y);
-
-      a = (w2.x - w0.x - (w1.x - w0.x) * k) / (v2.x - v0.x - (v1.x - v0.x) * k);
-      b = k * (w1.x - w0.x) / (v2.y - v0.y) - a * (v1.x - v0.x) / (v1.y - v0.y);
-
-      c = (w2.y - w0.y - (w1.y - w0.y) * k) / (v2.x - v0.x - (v1.x - v0.x) * k);
-      d = k * (w1.y - w0.y) / (v2.y - v0.y) - c * (v1.x - v0.x) / (v1.y - v0.y);
-    } else {
-      a = (w1.x - w0.x) / (v1.x - v0.x);
-      b = (w2.x - w0.x) / (v2.y - v0.y) - a * (v2.x - v0.x) / (v2.y - v0.y);
-
-      c = (w1.y - w0.y) / (v1.x - v0.x);
-      d = (w2.y - w0.y) / (v2.y - v0.y) - c * (v2.x - v0.x) / (v2.y - v0.y);
-    }
-
-    return new Matrix(a, c, b, d, w0.x - a * v0.x - b * v0.y, w0.y - c * v0.x - d * v0.y);
-  };
-
-
-  //TODO: place this in the correct place
-  /**
-   * @todo write docs
-   */
-  MatrixGenerators.applyTransformationOnCanvasFromPoints = function(context, v0, v1, v2, w0, w1, w2) {
-    var a, b, c, d;
-
-    if(v1.y != v0.y) {
-      var k = (v2.y - v0.y) / (v1.y - v0.y);
-
-      a = (w2.x - w0.x - (w1.x - w0.x) * k) / (v2.x - v0.x - (v1.x - v0.x) * k);
-      b = k * (w1.x - w0.x) / (v2.y - v0.y) - a * (v1.x - v0.x) / (v1.y - v0.y);
-
-      c = (w2.y - w0.y - (w1.y - w0.y) * k) / (v2.x - v0.x - (v1.x - v0.x) * k);
-      d = k * (w1.y - w0.y) / (v2.y - v0.y) - c * (v1.x - v0.x) / (v1.y - v0.y);
-    } else {
-      a = (w1.x - w0.x) / (v1.x - v0.x);
-      b = (w2.x - w0.x) / (v2.y - v0.y) - a * (v2.x - v0.x) / (v2.y - v0.y);
-
-      c = (w1.y - w0.y) / (v1.x - v0.x);
-      d = (w2.y - w0.y) / (v2.y - v0.y) - c * (v2.x - v0.x) / (v2.y - v0.y);
-    }
-    context.transform(a, c, b, d, w0.x - a * v0.x - b * v0.y, w0.y - c * v0.x - d * v0.y);
-  };
-
-
-
-
-  /**
-   * Creates a matrix transformation that corresponds to the given rotation,
-   * around (0,0) or the specified point.
-   * @see Matrix#rotate
-   *
-   * @param {Number} theta Rotation in radians.
-   * @param {Point} [aboutPoint] The point about which this rotation occurs. Defaults to (0,0).
-   * @returns {Matrix}
-   */
-  MatrixGenerators.createRotationMatrix = function(theta, aboutPoint) {
-    var rotationMatrix = Matrix(
-      Math.cos(theta),
-      Math.sin(theta),
-      -Math.sin(theta),
-      Math.cos(theta)
-    );
-
-    if(aboutPoint) {
-      rotationMatrix =
-        Matrix.translation(aboutPoint.x, aboutPoint.y).concat(
-          rotationMatrix
-        ).concat(
-          Matrix.translation(-aboutPoint.x, -aboutPoint.y)
-        );
-    }
-
-    return rotationMatrix;
-  };
-
-  /**
-   * Returns a matrix that corresponds to scaling by factors of sx, sy along
-   * the x and y axis respectively.
-   * If only one parameter is given the matrix is scaled uniformly along both axis.
-   * If the optional aboutPoint parameter is given the scaling takes place
-   * about the given point.
-   * @see Matrix#scale
-   *
-   * @param {Number} sx The amount to scale by along the x axis or uniformly if no sy is given.
-   * @param {Number} [sy] The amount to scale by along the y axis.
-   * @param {Point} [aboutPoint] The point about which the scaling occurs. Defaults to (0,0).
-   * @returns {Matrix} A matrix transformation representing scaling by sx and sy.
-   */
-  MatrixGenerators.createScaleMatrix = function(sx, sy, aboutPoint) {
-    sy = sy || sx;
-
-    var scaleMatrix = Matrix(sx, 0, 0, sy);
-
-    if(aboutPoint) {
-      scaleMatrix =
-        Matrix.translation(aboutPoint.x, aboutPoint.y).concat(
-          scaleMatrix
-        ).concat(
-          Matrix.translation(-aboutPoint.x, -aboutPoint.y)
-        );
-    }
-
-    return scaleMatrix;
-  };
-
-
-  /**
-   * Returns a matrix that corresponds to a translation of tx, ty.
-   * @see Matrix#translate
-   *
-   * @param {Number} tx The amount to translate in the x direction.
-   * @param {Number} ty The amount to translate in the y direction.
-   * @returns {Matrix} A matrix transformation representing a translation by tx and ty.
-   */
-  MatrixGenerators.createTranslationMatrix = function(tx, ty) {
-    return Matrix(1, 0, 0, 1, tx, ty);
-  };
-  //
-  // /**
-  // * A constant representing the identity matrix.
-  // * @name IDENTITY
-  // * @fieldOf Matrix
-  // */
-  // Matrix.IDENTITY = Matrix();
-  // /**
-  // * A constant representing the horizontal flip transformation matrix.
-  // * @name HORIZONTAL_FLIP
-  // * @fieldOf Matrix
-  // */
-  // Matrix.HORIZONTAL_FLIP = Matrix(-1, 0, 0, 1);
-  // /**
-  // * A constant representing the vertical flip transformation matrix.
-  // * @name VERTICAL_FLIP
-  // * @fieldOf Matrix
-  // */
-  // Matrix.VERTICAL_FLIP = Matrix(1, 0, 0, -1);
-
-  /**
    * @classdesc Provides a set of tools that work with Interval Lists.
    *
    * @namespace
@@ -18017,11 +18392,20 @@
    * @todo write docs
    */
   IntervalListOperators.scaleIntervals = function(intervalList, value) {
+  	if(intervalList==null) return;
+
+  	value = value==null?1:value;
+
     var newIntervalList = new List();
+    var l = intervalList.length;
+    var i;
+
     newIntervalList.name = intervalList.name;
-    for(var i = 0; intervalList[i] !== null; i++) {
+
+    for(i = 0; i<l; i++) {
       newIntervalList[i] = intervalList[i].getScaled(value);
     }
+
     return newIntervalList;
   };
 
@@ -18037,11 +18421,19 @@
    * @todo write docs
    */
   IntervalTableOperators.scaleIntervals = function(intervalTable, value) {
+  	if(intervalTable==null) return null;
+
     var newIntervalTable = new Table();
+
     newIntervalTable.name = intervalTable.name;
-    for(var i = 0; intervalTable[i] !== null; i++) {
+
+    var l = intervalTable.length;
+    var i;
+
+    for(i = 0; i<l; i++) {
       newIntervalTable[i] = IntervalListOperators.scaleIntervals(intervalTable[i], value);
     }
+
     return newIntervalTable;
   };
 
@@ -18141,14 +18533,14 @@
       //trace("______________ i, name0, name1:", i, name0, name1);
       node0 = network.nodeList.getNodeById(name0);
       if(node0 == null) {
-        node0 = new _Node(name0, name0);
+        node0 = new Node(name0, name0);
         network.addNode(node0);
       } else {
         node0.weight++;
       }
       node1 = network.nodeList.getNodeById(name1);
       if(node1 == null) {
-        node1 = new _Node(name1, name1);
+        node1 = new Node(name1, name1);
         network.addNode(node1);
       } else {
         node1.weight++;
@@ -18556,6 +18948,17 @@
     return text;
   };
 
+
+  /**
+   * return length of list, string or Object with length property
+   * @param {Object} object with length property
+   * @return {Number} length of number
+   * tags:
+   */
+  ObjectOperators.getLength = function(object){
+    if(object==null || object["length"]==null) return;
+    return object.length;
+  };
 
 
   /**
@@ -19155,15 +19558,18 @@
    * tags:filter
    */
   StringListOperators.filterStringListByString = function(stringList, string, asWord, returnIndexes) {
+    if(stringList==null || string==null) return null;
+
     var i;
     var newList = returnIndexes ? new NumberList() : new StringList();
     var regex;
+    var l = stringList.length;
 
     if(asWord) {
       regex = new RegExp("\\b" + string + "\\b");
     }
 
-    for(i = 0; stringList[i] != null; i++) {
+    for(i = 0; i<l; i++) {
       if(asWord) {
         if(stringList[i].match(regex).length > 0) {
           newList.push(returnIndexes ? i : stringList[i]);
@@ -19174,6 +19580,7 @@
         }
       }
     }
+    
     return newList;
   };
 
@@ -19234,31 +19641,6 @@
 
   /**
    * replaces in each string, a sub-string by a string
-   * @param  {String} text where to replaces strings
-   * @param  {StringList} strings to be replaced (could be Regular Expressions)
-   * @param  {String} replacement string to be placed instead
-   * @return {String}
-   * tags:
-   */
-  StringListOperators.replaceStringsInText = function(text, strings, replacement) {
-    if(text==null || strings==null || replacement==null) return null;
-
-    var newText = text;
-    var nStrings = strings.length;
-    var j;
-    var string;
-
-    for(j=0; j<nStrings; j++){
-      string = strings[j];
-      if(!(string instanceof RegExp)) string = new RegExp(string, "g");
-      newText = newText.replace(string, replacement);
-    }
-
-    return newText;
-  };
-
-  /**
-   * replaces in each string, a sub-string by a string
    * @param  {StringList} texts  where to replace strings
    * @param  {StringList} strings to be replaced (could be Regular Expressions)
    * @param  {StringList} replacements strings to be placed instead (should have same length as strings)
@@ -19305,25 +19687,34 @@
   * finds strings from a list in strings in another list (typically the strings in the first list are short, and in the second longer texts)
   * @param {StringList} list of strings or list of Regular Expressions
   * @param {StringList} list of texts were to search
+  *
+  * @param {Boolean} asWords if false (default) searches substrings, if true searches words
   * @return {NumberTable} matrix of results, each column being the vector of occurrences for each string
   * tags:count
   */
-  StringListOperators.countStringsOccurrencesOnTexts = function(strings, texts) {
+  StringListOperators.countStringsOccurrencesOnTexts = function(strings, texts, asWords) {
     var occurrencesTable = new NumberTable();
 
     var i;
     var j;
-    var pattern;
+    var string;
     var numberList;
-    var splitArray;
+    //var splitArray;
+    var nStrings = strings.length;
+    var nTexts = texts.length;
+    var wordRegex;
 
-    for(i = 0; strings[i] != null; i++) {
-      pattern = strings[i];
+    for(i = 0; i<nStrings; i++) {
+      string = strings[i];
+      wordRegex = new RegExp("\\b" + string + "\\b");
       numberList = new NumberList();
-      numberList.name = pattern;
-      for(j = 0; texts[j] != null; j++) {
-        splitArray = texts[j].split(pattern);
-        numberList[j] = splitArray.length - 1;
+      numberList.name = string;
+      for(j = 0; j<nTexts; j++) {
+        if(asWords){
+          numberList[j] = StringOperators.countRegexOccurrences(texts[j], wordRegex);
+        } else {
+          numberList[j] = StringOperators.countOccurrences(texts[j], string);
+        }
       }
       occurrencesTable[i] = numberList;
     }
@@ -19414,7 +19805,7 @@
     var matrix = StringListOperators.getWordsOccurrencesMatrix(texts, stopWords, false, 600, 800, false, true, false, 3);
 
     texts.forEach(function(text, i) {
-      var node = new _Node("_" + i, "_" + i);
+      var node = new Node("_" + i, "_" + i);
       node.content = text;
       node.wordsWeights = matrix[i + 1];
       network.addNode(node);
@@ -19512,7 +19903,7 @@
     _time = new Date().getTime();
 
     texts.forEach(function(text, i) {
-      var node = new _Node("_" + i, "_" + i);
+      var node = new Node("_" + i, "_" + i);
       network.addNode(node);
       node.content = text;
       var words = StringOperators.getWords(text, true, stopWords, false, false, 0, 3);
@@ -19646,7 +20037,7 @@
     var superiorNode;
 
     if(superiorNodeName !== "" && superiorNodeName != null) {
-      superiorNode = new _Node(superiorNodeName, superiorNodeName);
+      superiorNode = new Node(superiorNodeName, superiorNodeName);
       tree.addNodeToTree(superiorNode, null);
     }
 
@@ -19661,7 +20052,7 @@
         }
       }
 
-      node = new _Node(line, name);
+      node = new Node(line, name);
       //c.log("+ ", name);
       if(j === 0) {
         if(superiorNode != null) {
@@ -19695,11 +20086,13 @@
   function TreeConversions() {}
   /**
    * convert a table that describes a tree (higher hierarchies in first lists) into a Tree
+   * count ocurrences of leaves in the table and assigns value to nodes weight
+   * assigns the index of row associated to leaves in properties: firstIndexInTable and indexesInTable
    * @param {Table} table
    *
    * @param {String} fatherName name of father node
    * @return {Tree}
-   * tags:convertion
+   * tags:conversion
    */
   TreeConversions.TableToTree = function(table, fatherName)  {
     if(table == null) return;
@@ -19710,26 +20103,74 @@
     var node, parent;
     var id;
 
-    var father = new _Node(fatherName, fatherName);
+    var father = new Node(fatherName, fatherName);
     tree.addNodeToTree(father, null);
 
-    table.forEach(function(list, i) {
-      table[i].forEach(function(element, j) {
-        id = TreeConversions.getId(table, i, j);
+    var nLists = table.length;
+    var nElements = table[0].length;
+    var i, j;
+    var list, element;
+
+    for(i=0; i<nLists; i++){
+      list = table[i];
+      if(list.length!=nElements) return null;
+      for(j=0; j<nElements; j++){
+        element = list[j];
+        
+        id = TreeConversions._getId(table, i, j);
         node = tree.nodeList.getNodeById(id);
         if(node == null) {
-          node = new _Node(id, String(element));
+          node = new Node(id, String(element));
           if(i === 0) {
             tree.addNodeToTree(node, father);
           } else {
-            parent = tree.nodeList.getNodeById(TreeConversions.getId(table, i - 1, j));
+            parent = tree.nodeList.getNodeById(TreeConversions._getId(table, i - 1, j));
             tree.addNodeToTree(node, parent);
           }
+
+          node.firstIndexInTable = j;
+          node.indexesInTable = new NumberList(j);
+
+        } else {
+          node.weight++;
+          node.indexesInTable.push(j);
         }
-      });
-    });
+      }
+    }
+
+
+    // table.forEach(function(list, i) {
+    //   table[i].forEach(function(element, j) {
+    //     id = TreeConversions._getId(table, i, j);
+    //     node = tree.nodeList.getNodeById(id);
+    //     if(node == null) {
+    //       node = new Node(id, String(element));
+    //       if(i === 0) {
+    //         tree.addNodeToTree(node, father);
+    //       } else {
+    //         parent = tree.nodeList.getNodeById(TreeConversions._getId(table, i - 1, j));
+    //         tree.addNodeToTree(node, parent);
+    //       }
+    //     }
+    //   });
+    // });
 
     tree.assignDescentWeightsToNodes();
+
+    var _assignIndexesToNode = function(node) {
+      var i;
+      if(node.toNodeList.length === 0) {
+        return node.indexesInTable;
+      } else {
+        node.indexesInTable = new NumberList();
+      }
+      for(i = 0; node.toNodeList[i] != null; i++) {
+        node.indexesInTable = node.indexesInTable.concat( _assignIndexesToNode(node.toNodeList[i]) );
+      }
+      return node.indexesInTable;
+    };
+
+    _assignIndexesToNode(tree.nodeList[0]);
 
     return tree;
   };
@@ -19737,7 +20178,7 @@
   /**
    * @todo write docs
    */
-  TreeConversions.getId = function(table, i, j) {
+  TreeConversions._getId = function(table, i, j) {
     var iCol = 1;
     var id = String(table[0][j]);
     while(iCol <= i) {
@@ -20315,7 +20756,7 @@
     node0 = node0==null?network.nodeList[0]:node0;
 
     var tree = new Tree();
-    var parent = new _Node(node0.id, node0.name);
+    var parent = new Node(node0.id, node0.name);
     parent.node = node0;
     tree.addNodeToTree(parent);
 
@@ -20331,7 +20772,7 @@
     var limitReached = false;
 
     for(i = 0; nodes[i] != null; i++) {
-      newNode = new _Node(nodes[i].id, nodes[i].name);
+      newNode = new Node(nodes[i].id, nodes[i].name);
       if(newNode.id == parent.id) continue;
       newNode.node = nodes[i];
       tree.addNodeToTree(newNode, parent);
@@ -20366,7 +20807,7 @@
       if(newNodes.length === 0) return tree;
 
       for(i = 0; newNodes[i] != null; i++) {
-        newNode = new _Node(newNodes[i].id, newNodes[i].name);
+        newNode = new Node(newNodes[i].id, newNodes[i].name);
         // console.log('                   ++'+newNodes[i].id);
         newNode.node = newNodes[i];
         for(var j = 0; newNodes[i].nodeList[j] != null; j++) {
@@ -20527,7 +20968,7 @@
     var pRelationPair = 2 * network.relationList.length / (nNodes * (nNodes - 1));
 
     for(i = 0; network.nodeList[i] != null; i++) {
-      newNode = new _Node("[" + network.nodeList[i].id + "]", "[" + network.nodeList[i].id + "]");
+      newNode = new Node("[" + network.nodeList[i].id + "]", "[" + network.nodeList[i].id + "]");
       newNode.nodes = new NodeList(network.nodeList[i]);
       tree.addNode(newNode);
       nodeList[i] = newNode;
@@ -20542,14 +20983,14 @@
 
       id = "[" + node0.id + "-" + node1.id + "]";
 
-      newNode = new _Node(id, id);
+      newNode = new Node(id, id);
       newNode.weight = closest.strength;
 
       tree.addNode(newNode);
       tree.createRelation(newNode, node0, id + "-" + node0.id);
       tree.createRelation(newNode, node1, id + "-" + node1.id);
 
-      newNode.node = new _Node(id, id);
+      newNode.node = new Node(id, id);
       newNode.nodes = node0.nodes.concat(node1.nodes);
 
       for(i = 0; node0.nodeList[i] != null; i++) {
@@ -20623,7 +21064,6 @@
     nodes = new NodeList(nodeList[indexes[0]], nodeList[indexes[1]]);
     nodes.strength = maxStrength;
     return nodes;
-
   };
 
   /**
@@ -20650,25 +21090,48 @@
 
   /**
    * Builds a Table of clusters, based on an dendrogram Tree (if not provided it will be calculated), and a weight bias
-   * @param  {Network} network
+   * @param {Network} network
    *
-   * @param  {Tree} dendrogramTree Dendrogram Tree, if precalculated, changes in weight bias will perform faster
-   * @param  {Number} minWeight Weight bias, criteria to group clusters (0.5 default, the higher the value, the higer the number of clusters)
+   * @param {Number} mode cluster mode, 0: Louvain (default), 1: Moebio algorithm
+   * @param {Tree} dendrogramTree Dendrogram Tree, if precalculated, changes in weight bias will perform faster (not required for Louvain)
+   * @param {Number} minWeight Weight bias, criteria to group clusters (0.5 default, the higher the value, the higer the number of clusters, not required for Louvain)
+   * @param {Boolean} addColorToNodes if true, adds a color associated to cluster, [!] modifies nodes color property
    * @return {Table} List of NodeLists
    * tags:analysis
    */
-  NetworkOperators.buildNetworkClusters = function(network, dendrogramTree, minWeight) {
+  NetworkOperators.buildNetworkClusters = function(network, mode, dendrogramTree, minWeight, addColorToNodes) {
     if(network == null) return;
 
-    if(dendrogramTree == null) dendrogramTree = NetworkOperators.buildDendrogram(network);
-    minWeight = minWeight || 0.5;
+    var clusters;
+    var colors;
+    var i, j;
+    var nClusters, nNodes;
 
-    var clusters = new Table();
+    if(mode==null || mode===0){
+      clusters = NetworkOperators._buildNetworkClustersLouvain(network);
+    } else {
+      if(dendrogramTree == null) dendrogramTree = NetworkOperators.buildDendrogram(network);
+      minWeight = minWeight || 0.5;
 
-    NetworkOperators._iterativeBuildClusters(dendrogramTree.nodeList[dendrogramTree.nodeList.length - 1], clusters, minWeight);
+      clusters = new Table();
+
+      NetworkOperators._iterativeBuildClusters(dendrogramTree.nodeList[dendrogramTree.nodeList.length - 1], clusters, minWeight);
+    }
+
+    if(addColorToNodes){
+      colors = ColorListGenerators.createDefaultCategoricalColorList(clusters.length);
+      nClusters = clusters.length;
+      for(i=0; i<nClusters; i++){
+        nNodes = clusters[i].length;
+        for(j=0; j<nNodes; j++){
+          clusters[i][j].color = colors[i];
+        }
+      }
+    }
 
     return clusters;
   };
+
 
   /**
    * @ignore
@@ -20690,6 +21153,49 @@
     } else {
       NetworkOperators._iterativeBuildClusters(node.nodeList[1], clusters, minWeight);
     }
+  };
+
+  /**
+   * Builds a Table of clusters based on Louvain community detection.
+   * @param {Network} network
+   * @return {Table} List of NodeLists
+   */
+  NetworkOperators._buildNetworkClustersLouvain = function(network) {
+    if(network==null) return network;
+
+    var node_data = [];
+    var i;
+    for(i=0; i < network.nodeList.length; i++){
+      // force nodes to be stringlike since they get used as properties in result
+      node_data.push('n'+network.nodeList[i].id);
+    }
+    var edge_data = [];
+    for(i=0; i < network.relationList.length; i++){
+      var obj = {source: 'n'+network.relationList[i].node0.id,
+                 target: 'n'+network.relationList[i].node1.id,
+                 weight:network.relationList[i].weight};
+      edge_data.push(obj);
+    }
+
+    // Object with ids of nodes as properties and community number assigned as value.
+    var community = NetworkOperators._jLouvain().nodes(node_data).edges(edge_data);
+    var result  = community();
+    var clusters = new Table();
+
+    if(result)
+      for(i=0; i < network.nodeList.length; i++){
+        var j = result['n'+network.nodeList[i].id];
+        if(clusters[j] == undefined)
+          clusters[j]= new NodeList();
+        clusters[j].addNode(network.nodeList[i]);
+      }
+    else{
+      // no results mean no communities, make them all unique
+      for(i=0; i < network.nodeList.length; i++){
+        clusters.push(new NodeList(network.nodeList[i]));
+      }
+    }
+    return clusters;
   };
 
 
@@ -20805,7 +21311,7 @@
         newNode = fusionNet.nodeList.getNodeById(node.id);
 
         if(newNode == null) {
-          newNode = new _Node(node.id, node.name);
+          newNode = new Node(node.id, node.name);
           newNode.basicId = node.basicId;
           newNode.mapId = "map_" + i;
           newNode.mapsIds = [newNode.mapId];
@@ -21240,49 +21746,6 @@
     return core;
   };
 
-  /**
-   * Builds a Table of clusters based on Louvain community detection.
-   * @param {Network} network
-   * @return {Table} List of NodeLists
-   * tags:analysis
-   */
-  NetworkOperators.buildNetworkClustersLouvain = function(network) {
-    if(network==null) return network;
-
-    var node_data = [];
-    var i;
-    for(i=0; i < network.nodeList.length; i++){
-      // force nodes to be stringlike since they get used as properties in result
-      node_data.push('n'+network.nodeList[i].id);
-    }
-    var edge_data = [];
-    for(i=0; i < network.relationList.length; i++){
-      var obj = {source: 'n'+network.relationList[i].node0.id,
-                 target: 'n'+network.relationList[i].node1.id,
-                 weight:network.relationList[i].weight};
-      edge_data.push(obj);
-    }
-
-    // Object with ids of nodes as properties and community number assigned as value.
-    var community = NetworkOperators._jLouvain().nodes(node_data).edges(edge_data);
-    var result  = community();
-    var clusters = new Table();
-
-    if(result)
-      for(i=0; i < network.nodeList.length; i++){
-        var j = result['n'+network.nodeList[i].id];
-        if(clusters[j] == undefined)
-          clusters[j]= new NodeList();
-        clusters[j].addNode(network.nodeList[i]);
-      }
-    else{
-      // no results mean no communities, make them all unique
-      for(i=0; i < network.nodeList.length; i++){
-        clusters.push(new NodeList(network.nodeList[i]));
-      }
-    }
-    return clusters;
-  };
 
 
   /**
@@ -21334,7 +21797,7 @@
     var node;
 
     for(i = 0; i < nNodes; i++) {
-      network.addNode(new _Node("n" + i, "n" + i));
+      network.addNode(new Node("n" + i, "n" + i));
     }
 
     switch(mode) {
@@ -21410,7 +21873,7 @@
     for(i = 0; occurrencesTable[i] != null; i++) {
       string0 = occurrencesTable[i].name;
       if(i === 0) {
-        node0 = new _Node(string0, string0);
+        node0 = new Node(string0, string0);
         network.addNode(node0);
       } else {
         node0 = network.nodeList[i];
@@ -21420,7 +21883,7 @@
       for(j = i + 1; occurrencesTable[j] != null; j++) {
         string1 = occurrencesTable[j].name;
         if(i === 0) {
-          node1 = new _Node(string1, string1);
+          node1 = new Node(string1, string1);
           network.addNode(node1);
         } else {
           node1 = network.nodeList[j];
@@ -21463,12 +21926,12 @@
 
     for(i = 0; list[i + 1] != null; i++) {
       if(i === 0) {
-        network.addNode(new _Node("n_0", names == null ? "n_0" : names[i]));
+        network.addNode(new Node("n_0", names == null ? "n_0" : names[i]));
       }
       node = network.nodeList[i];
       for(j = i + 1; list[j] != null; j++) {
         if(i === 0) {
-          network.addNode(new _Node("n_" + j, names == null ? "n_" + j : names[j]));
+          network.addNode(new Node("n_" + j, names == null ? "n_" + j : names[j]));
         }
         w = weightFunction(list[i], list[j]);
         if(w > 0) {
@@ -21521,7 +21984,7 @@
     var maxWeight, maxNode;
 
     nounPhrases.forEach(function(np) {
-      node = new _Node(np, np);
+      node = new Node(np, np);
       network.addNode(node);
       mat = text.match(NetworkEncodings._regexWordForNoteWork(np));
       node.weight = mat == null ? 1 : mat.length;
@@ -22942,8 +23405,12 @@
       clearTimeout(this._setTimeOutId);
       this._stopAfter(time);
     } else {
-      this._startCycle();
-      this._stopAfter(time);
+      if(time==1){
+        this._onCycle();
+      } else {
+        this._startCycle();
+        this._stopAfter(time);
+      }
     }
   };
 
@@ -23159,6 +23626,13 @@
   /*****************************
    * Public drawing functions
    *****************************/
+
+  /**
+   * Clear the canvas.
+   */
+  Graphics.prototype.clearCanvas = function() {
+    this.context.clearRect(0, 0, this.cW, this.cH);
+  };
 
   /**
    * Set the background color for the graphics object.
@@ -27096,6 +27570,8 @@
   ListDraw.drawList = function(frame, list, returnMode, colorList, textSize, mode, selectedInit, graphics) {
     if(list == null || list.length < 0) return;
 
+    if(graphics==null) graphics = frame.graphics;
+
     textSize = textSize || 14;
     returnMode = returnMode == null ? 0 : returnMode;
 
@@ -27328,6 +27804,8 @@
     bezier = bezier || false;
     offValue = offValue == null ? 0.45 : offValue;
 
+    if(graphics==null) graphics = frame.graphics;
+
     var i;
     var j;
 
@@ -27443,7 +27921,9 @@
 
 
 
-  IntervalTableDraw.drawCircularIntervalsFlowTable = function(intervalsFlowTable, center, radius, r0, colors, texts, returnHovered, angles, angle0, graphics) {
+  IntervalTableDraw.drawCircularIntervalsFlowTable = function(frame, intervalsFlowTable, center, radius, r0, colors, texts, returnHovered, angles, angle0, graphics) {
+    if(graphics==null) graphics = frame.graphics; //momentary fix
+
     var nElements = intervalsFlowTable.length;
     var i;
     var j;
@@ -27487,7 +27967,7 @@
 
       intervalList = intervalsFlowTable[i];
 
-      graphics.context.fillStyle = colors[i % nElements];
+      graphics.setFill(colors[i % nElements]);//context.fillStyle = colors[i % nElements];
 
       graphics.context.beginPath();
 
@@ -27555,7 +28035,9 @@
 
     }
 
-    for(i = 0; filteredTexts[i] != null; i++) {
+    var nTexts = filteredTexts.length;
+
+    for(i = 0; i<nTexts; i++) {
       graphics.setText('black', textsSizes[i], null, 'center', 'middle');
       graphics.fTextRotated(filteredTexts[i], textsX[i], textsY[i], textsAngles[i]);
     }
@@ -27589,6 +28071,8 @@
 
 
   IntervalTableDraw.drawIntervalsWordsFlowTable = function(frame, intervalsFlowTable, texts, colors, typode, graphics) {
+    if(graphics==null) graphics = frame.graphics; //momentary fix
+
     var nElements = intervalsFlowTable.length;
 
     var i;
@@ -27805,6 +28289,8 @@
    */
   NumberTableDraw.drawSimpleScatterPlot = function(frame, numberTable, texts, colors, maxRadius, loglog, margin, graphics) {
     if(frame == null ||  numberTable == null || numberTable.type != "NumberTable" ||  numberTable.length < 2 ||  numberTable[0].length === 0 || numberTable[1].length === 0) return; //todo:provisional, this is System's work
+
+    if(graphics==null) graphics = frame.graphics; //momentary fix
 
     if(numberTable.length < 2) return;
 
@@ -28072,6 +28558,8 @@
   NumberTableDraw.drawStreamgraph = function(frame, numberTable, normalized, sorted, intervalsFactor, bezier, colorList, horizontalLabels, showValues, logFactor, graphics) {
     if(numberTable == null ||  numberTable.length < 2 || numberTable.type != "NumberTable") return;
 
+    if(graphics==null) graphics = frame.graphics; //momentary fix
+
     bezier = bezier == null ? true : bezier;
 
     //var self = NumberTableDraw.drawStreamgraph;
@@ -28097,6 +28585,7 @@
         logFactor: logFactor,
         image: null
       };
+
     }
 
     if(colorList && frame.memory.colorList != colorList) frame.memory.image = null;
@@ -28107,21 +28596,23 @@
     }
 
     var flowFrame = new Rectangle(0, 0, frame.width, horizontalLabels == null ? frame.height : (frame.height - 14));
+    flowFrame.graphics = graphics;
 
     if(frame.memory.image == null) {
+      //frame.memory.image = new Image(10,10);
       // TODO refactor to not reassign context
       ///// capture image
-      // var newCanvas = document.createElement("canvas");
-      // newCanvas.width = frame.width;
-      // newCanvas.height = frame.height;
-      // var newContext = newCanvas.getContext("2d");
-      // newContext.clearRect(0, 0, frame.width, frame.height);
-      // var mainContext = context;
-      // context = newContext;
-      // IntervalTableDraw.drawIntervalsFlowTable(frame.memory.flowIntervals, flowFrame, frame.memory.actualColorList, bezier, 0.3);
-      // context = mainContext;
-      // frame.memory.image = new Image();
-      // frame.memory.image.src = newCanvas.toDataURL();
+      var newCanvas = document.createElement("canvas");
+      newCanvas.width = frame.width;
+      newCanvas.height = frame.height;
+      var newContext = newCanvas.getContext("2d");
+      newContext.clearRect(0, 0, frame.width, frame.height);
+      var mainContext = graphics.context;
+      graphics.context = newContext;
+      IntervalTableDraw.drawIntervalsFlowTable(frame.memory.flowIntervals, flowFrame, frame.memory.actualColorList, bezier, 0.3);
+      graphics.context = mainContext;
+      frame.memory.image = new Image();
+      frame.memory.image.src = newCanvas.toDataURL();
       /////
     }
 
@@ -28153,6 +28644,8 @@
   };
 
   NumberTableDraw._drawHorizontalLabels = function(frame, y, numberTable, horizontalLabels, x0, x1, graphics) {
+    if(graphics==null) graphics = frame.graphics; //momentary fix
+
     var dx = frame.width / (numberTable[0].length - 1);
     var x;
     var mX2 = Math.min(Math.max(graphics.mX, frame.x + 1), frame.getRight() - 1);
@@ -28182,6 +28675,8 @@
   };
 
   NumberTableDraw._drawPartialFlow = function(frame, flowIntervals, labels, colors, x, x0, x1, OFF_X, sorted, numberTable, graphics) {
+    if(graphics==null) graphics = frame.graphics; //momentary fix
+
     var w = x1 - x0;
     var wForText = numberTable == null ? (x1 - x0) : (x1 - x0) * 0.85;
 
@@ -28272,31 +28767,45 @@
   /**
    * draws a circular steamgraph Without labels
    * @param {Rectangle} frame
-   * @param {NumberTable} numberTable
+   * @param {Table} dataTable table with a categorical list and many numberLists
    *
    * @param {Boolean} normalized normalize each column, making the graph of constant height
    * @param {Boolean} sorted sort flow polygons
    * @param {Number} intervalsFactor number between 0 and 1, factors the height of flow polygons
    * @param {ColorList} colorList colors of polygons
-   * @param {List} names names of rows
-   * @return {NumberList} list of positions of elements on clicked coordinates
+   * @return {Number} index of position of element on first list associated with shape
    * tags:draw
    */
-  NumberTableDraw.drawCircularStreamgraph = function(frame, numberTable, normalized, sorted, intervalsFactor, colorList, names, graphics) {
-    if(numberTable == null ||  numberTable.length < 2 || numberTable[0].length < 2 || numberTable.type != "NumberTable") return;
+  NumberTableDraw.drawCircularStreamgraph = function(frame, dataTable, normalized, sorted, intervalsFactor, colorList, graphics) {
+    if(dataTable == null ||  dataTable.length < 3 || dataTable[0].length < 2) return;
+
+    if(graphics==null) graphics = frame.graphics; //momentary fix
 
     intervalsFactor = intervalsFactor == null ? 1 : intervalsFactor;
 
+    var over;
+
     //setup
-    if(frame.memory == null || numberTable != frame.memory.numberTable || normalized != frame.memory.normalized || sorted != frame.memory.sorted || intervalsFactor != frame.memory.intervalsFactor || frame.width != frame.memory.width || frame.height != frame.memory.height) {
+    if(frame.memory == null || dataTable != frame.memory.dataTable || normalized != frame.memory.normalized || sorted != frame.memory.sorted || intervalsFactor != frame.memory.intervalsFactor || frame.width != frame.memory.width || frame.height != frame.memory.height) {
+      var numberTable = TableOperators.getNumberTableFromTable(dataTable);
+      
+      if(numberTable.length<2) return;
+
+      numberTable = numberTable.getTransposed();
+
+      var names = dataTable.getNames().slice(1);
+      if(names!=null && names.join('')==='') names = null;
+
       frame.memory = {
+        dataTable:dataTable,
         numberTable: numberTable,
+        categories:dataTable[0],
+        names:names,
         normalized: normalized,
         sorted: sorted,
         intervalsFactor: intervalsFactor,
         flowIntervals: IntervalTableOperators.scaleIntervals(NumberTableFlowOperators.getFlowTableIntervals(numberTable, normalized, sorted), intervalsFactor),
         fOpen: 1,
-        names: numberTable.getNames(),
         mXF: graphics.mX,
         width: frame.width,
         height: frame.height,
@@ -28313,8 +28822,9 @@
         frame.memory.angles[i] = i * dA;
       });
     }
+
     if(frame.memory.colorList != colorList || frame.memory.colorList == null) {
-      frame.memory.actualColorList = colorList == null ? ColorListGenerators.createDefaultCategoricalColorList(numberTable.length, 0.4) : colorList;
+      frame.memory.actualColorList = colorList == null ? ColorListGenerators.createDefaultCategoricalColorList(frame.memory.numberTable.length, 0.4) : colorList;
       frame.memory.colorList = colorList;
     }
 
@@ -28349,14 +28859,15 @@
 
     if(mouseOnFrame) frame.memory.image = null;
 
-    var captureImage = frame.memory.image == null && !mouseOnFrame;
-    var drawingImage = !mouseOnFrame && frame.memory.image != null &&  !captureImage;
+    var captureImage = false;// frame.memory.image == null && !mouseOnFrame;
+    var drawingImage = false;// !mouseOnFrame && frame.memory.image != null &&  !captureImage;
 
     if(drawingImage) {
       graphics.drawImage(frame.memory.image, frame.x, frame.y, frame.width, frame.height);
     } else {
       if(captureImage) {
         // TODO refactor to not reassign context
+
         // var newCanvas = document.createElement("canvas");
         // newCanvas.width = frame.width;
         // newCanvas.height = frame.height;
@@ -28375,22 +28886,24 @@
       graphics.context.save();
       graphics.clipRectangle(frame.x, frame.y, frame.width, frame.height);
 
-      IntervalTableDraw.drawCircularIntervalsFlowTable(frame.memory.flowIntervals, frame.getCenter(), frame.memory.radius * frame.memory.zoom, frame.memory.r0, frame.memory.actualColorList, frame.memory.names, true, frame.memory.angles, frame.memory.angle0);
+      over = IntervalTableDraw.drawCircularIntervalsFlowTable(frame, frame.memory.flowIntervals, frame.getCenter(), frame.memory.radius * frame.memory.zoom, frame.memory.r0, frame.memory.actualColorList, frame.memory.categories, true, frame.memory.angles, frame.memory.angle0);
+      
+      frame.memory.zoom = Math.max(Math.min(frame.memory.zoom, 2000), 0.08);
 
-      graphics.context.restore();
-
-      if(names) {
+      if(frame.memory.names) {
         var a;
         var r = frame.memory.radius * frame.memory.zoom + 8;
 
         graphics.setText('black', 14, null, 'center', 'middle');
 
-        names.forEach(function(name, i) {
+        frame.memory.names.forEach(function(name, i) {
           a = frame.memory.angle0 + frame.memory.angles[i];
 
           graphics.fTextRotated(String(name), frame.getCenter().x + r * Math.cos(a), frame.getCenter().y + r * Math.sin(a), a + HalfPi);
         });
       }
+
+      graphics.context.restore();
 
 
       if(captureImage) {
@@ -28403,6 +28916,8 @@
         // drawImage(frame.memory.image, frame.x, frame.y, frame.width, frame.height);
       }
     }
+
+    return over;
   };
 
   /**
@@ -28814,39 +29329,65 @@
     if(externalSelectedNode != null) externalSelectedNode = tree.nodeList.getNodeById(externalSelectedNode.id);
 
     var changeSelection = (externalSelectedNode != null && (frame.memory == null || externalSelectedNode != frame.memory.nodeSelected));
+    var nNodes = tree.nodeList.length;
+    var node;
+    var i;
 
     if(change) {
-      var changeInTree = frame.memory != null && frame.memory.tree != null != tree;
+      var changeInTree = frame.memory==null || frame.memory.tree!=tree;
+      //console.log('changeInTree', changeInTree);
       //var changeInWeights = frame.memory != null && frame.memory.weights != weights;
+      //var prevNodeSelected = frame.memory==null?null:frame.memory.nodeSelected;
+      //var prevFocusFrame = frame.memory==null?null:frame.memory.prevFocusFrame;
 
-      frame.memory = {
-        tree: tree,
-        width: frame.width,
-        height: frame.height,
-        weights: weights,
-        nodeSelected: tree.nodeList[0],
-        nFLastChange: graphics.nF,
-        image: null
-      };
+      if(frame.memory==null){
+        frame.memory = {
+          width: frame.width,
+          height: frame.height,
+          weights: weights,
+          nFLastChange: graphics.nF,
+          tree:tree,
+          nodeSelected:tree.nodeList[0]
+        };
+      } else {
+        frame.memory.nFLastChange = graphics.nF;
+        frame.memory.weights = weights;
+        frame.memory.width = frame.width;
+        frame.memory.height = frame.height;
+
+        if(changeInTree) frame.memory.tree = tree;
+        if(changeSelection) frame.memory.nodeSelected = externalSelectedNode;
+      }
+
+      //frame.memory.nodeSelected = prevNodeSelected==null?tree.nodeList[0]:prevNodeSelected;
 
       var leaves = (!changeInTree && frame.memory.leaves) ? frame.memory.leaves : tree.getLeaves();
       frame.memory.leaves = leaves;
 
       if(weights == null) {
-        tree.nodeList.forEach(function(node) {
-          node._treeMapWeight = node.descentWeight;
-        });
+        //tree.nodeList.forEach(function(node) {
+        for(i=0; i<nNodes; i++){
+          tree.nodeList[i]._treeMapWeight = tree.nodeList[i].descentWeight;
+        }
+        //});
       } else {
-        leaves.forEach(function(node, i) {
-          node._treeMapWeight = weights[i];
-        });
+        var nLeaves = leaves.length;
+
+        //leaves.forEach(function(node, i) {
+        for(i=0; i<nLeaves; i++){
+          leaves[i]._treeMapWeight = weights[i];
+        }
+        //});
+
         var assignTreemapWeight = function(node) {
           var i;
+          var n;
           if(node.toNodeList.length === 0) {
             return node._treeMapWeight;
           } else {
             node._treeMapWeight = 0;
-            for(i = 0; node.toNodeList[i] != null; i++) {
+            n = node.toNodeList.length;
+            for(i = 0; i<n; i++) {
               node._treeMapWeight += assignTreemapWeight(node.toNodeList[i]);
             }
           }
@@ -28859,18 +29400,28 @@
       tree.nodeList[0]._inRectangle = TreeDraw._inRectFromOutRect(tree.nodeList[0]._outRectangle);
       TreeDraw._generateRectangles(tree.nodeList[0]);
 
-      frame.memory.focusFrame = TreeDraw._expandRect(tree.nodeList[0]._outRectangle);
-      //c.l('frame.memory.focusFrame', frame.memory.focusFrame);
+      //frame.memory.focusFrame = prevFocusFrame==null?TreeDraw._expandRect(tree.nodeList[0]._outRectangle):prevFocusFrame;
+      //console.log('frame.memory.focusFrame', frame.memory.focusFrame);
+      //if(frame.memory.nodeSelected!=null) console.log('frame.memory.nodeSelected.id', frame.memory.nodeSelected.id);
 
-      frame.memory.kx = frame.width / frame.memory.focusFrame.width;
-      frame.memory.mx = -frame.memory.kx * frame.memory.focusFrame.x;
-      frame.memory.ky = frame.height / frame.memory.focusFrame.height;
-      frame.memory.my = -frame.memory.ky * frame.memory.focusFrame.y;
+      //if(frame.memory.focusFrame==null || changeSelection) frame.memory.focusFrame = TreeDraw._expandRect(frame.memory.nodeSelected._outRectangle);
+      frame.memory.focusFrame = TreeDraw._expandRect(frame.memory.nodeSelected._outRectangle);
+
+      if(changeInTree){
+        //console.log('----->kx…');
+        frame.memory.kx = frame.width / frame.memory.focusFrame.width;
+        frame.memory.mx = -frame.memory.kx * frame.memory.focusFrame.x;
+        frame.memory.ky = frame.height / frame.memory.focusFrame.height;
+        frame.memory.my = -frame.memory.ky * frame.memory.focusFrame.y;
+      }
 
       graphics.setText('black', 12);
-      tree.nodeList.forEach(function(node) {
+      //tree.nodeList.forEach(function(node) {
+      for(i=0; i<nNodes; i++){
+        node = tree.nodeList[i];
         node._textWidth = graphics.getTextW(node.name);
-      });
+      }
+      //});
     }
 
     if(frame.memory.colorList != colorList || frame.memory.colorList == null) {
@@ -28881,9 +29432,12 @@
       if(textColor == null) frame.memory.textsColorList = new ColorList();
 
       if(frame.memory.actualColorList.length <= tree.nLevels) {
-        tree.nodeList.forEach(function(node, i) {
+        //tree.nodeList.forEach(function(node, i) {
+        for(i=0; i<nNodes; i++){
+          node = tree.nodeList[i];
           frame.memory.nodesColorList[i] = node._color = frame.memory.actualColorList[node.level % frame.memory.actualColorList.length];
-        });
+        }
+        //});
       } else if(frame.memory.actualColorList.length == frame.memory.leaves.length) {
         frame.memory.leaves.forEach(function(node, i) {
           node._color = frame.memory.actualColorList[i];
@@ -28905,22 +29459,31 @@
           node._rgb[2] = Math.floor(node._rgb[2] / node.toNodeList.length);
         };
         assignColor(tree.nodeList[0]);
-        tree.nodeList.forEach(function(node, i) {
+        //tree.nodeList.forEach(function(node, i) {
+        for(i=0; i<nNodes; i++){
+          node = tree.nodeList[i];
           if(node._rgb && node._rgbF == null) node._rgbF = [node._rgb[0], node._rgb[1], node._rgb[2]];
           frame.memory.nodesColorList[i] = 'rgb(' + node._rgb[0] + ',' + node._rgb[1] + ',' + node._rgb[2] + ')';
-        });
+        }
+        //});
       } else {
-        tree.nodeList.forEach(function(node, i) {
+        //tree.nodeList.forEach(function(node, i) {
+        for(i=0; i<nNodes; i++){
+          node = tree.nodeList[i];
           node._color = frame.memory.nodesColorList[i] = frame.memory.actualColorList[i % frame.memory.actualColorList.length];
-        });
+        }
+        //});
       }
 
       if(textColor == null) {
         var rgb;
-        tree.nodeList.forEach(function(node, i) {
+        //tree.nodeList.forEach(function(node, i) {
+        for(i=0; i<nNodes; i++){
+          node = tree.nodeList[i];
           rgb = node._color ? ColorOperators.colorStringToRGB(node._color) : [0, 0, 0];
           frame.memory.textsColorList[i] = (rgb[0] + rgb[1] + rgb[2] > 360) ? 'black' : 'white';
-        });
+        }
+        //});
       }
 
       frame.memory.colorList = colorList;
@@ -28961,9 +29524,9 @@
     var overNode = null;
     var overI;
     var mouseOnFrame = frame.containsPoint(graphics.mP);
-    var moving = graphics.nF - frame.memory.nFLastChange < 50 || Math.pow(frame.memory.kx - kxF, 2) + Math.pow(frame.memory.ky - kyF, 2) + Math.pow(frame.memory.mx - mxF, 2) + Math.pow(frame.memory.my - myF, 2) > 0.01;
-    var captureImage = !moving && frame.memory.image == null && !mouseOnFrame;
-    var drawingImage = !moving && !mouseOnFrame && frame.memory.image != null &&  !captureImage && frame.memory.image.width > 0 && !changeSelection;
+    //var moving = graphics.nF - frame.memory.nFLastChange < 50 || Math.pow(frame.memory.kx - kxF, 2) + Math.pow(frame.memory.ky - kyF, 2) + Math.pow(frame.memory.mx - mxF, 2) + Math.pow(frame.memory.my - myF, 2) > 0.01;
+    var captureImage = false;// !moving && frame.memory.image == null && !mouseOnFrame;
+    var drawingImage = false;// !moving && !mouseOnFrame && frame.memory.image != null &&  !captureImage && frame.memory.image.width > 0 && !changeSelection;
 
     if(drawingImage) {
       graphics.drawImage(frame.memory.image, frame.x, frame.y, frame.width, frame.height);
@@ -29107,19 +29670,27 @@
    * @ignore
    */
   TreeDraw._generateRectangles = function(node) {
-
+    var n = node.toNodeList.length;
+    var i;
     var weights = new NumberList();
-    node.toNodeList.forEach(function(node) {
-      weights.push(node._treeMapWeight);
-    });
+    var child;
+    //node.toNodeList.forEach(function(node) {
+    for(i=0; i<n; i++){
+      child = node.toNodeList[i];
+      weights.push(child._treeMapWeight);
+    }
+    //});
 
     var rectangles = RectangleOperators.squarify(node._inRectangle, weights, false, false);
 
-    node.toNodeList.forEach(function(child, i) {
+    //node.toNodeList.forEach(function(child, i) {
+    for(i=0; i<n; i++){
+      child = node.toNodeList[i];
       child._outRectangle = TreeDraw._reduceRect(rectangles[i]);
       child._inRectangle = TreeDraw._inRectFromOutRect(child._outRectangle);
       TreeDraw._generateRectangles(child);
-    });
+    }
+    //});
   };
 
   /**
@@ -29918,7 +30489,7 @@
   exports.ColorScale = ColorScale;
   exports.Space2D = Space2D;
   exports.StringList = StringList;
-  exports.Node = _Node;
+  exports.Node = Node;
   exports.Relation = Relation;
   exports.NodeList = NodeList;
   exports.RelationList = RelationList;

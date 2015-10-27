@@ -65,8 +65,10 @@ TableEncodings.CSVtoTable = function(csvString, firstRowIsHeader, separator, val
     }
   }
 
+  separator = separator==null?",":separator;
+
   var table = new Table();
-  var comaCharacter = separator != undefined ? separator : ",";
+  var comaCharacter = separator;
 
   if(csvString == null || csvString === "" || csvString == " " || lines.length === 0) return null;
 
@@ -80,6 +82,7 @@ TableEncodings.CSVtoTable = function(csvString, firstRowIsHeader, separator, val
   var element;
   var cellContent;
   var numberCandidate;
+
   for(i = startIndex; i < lines.length; i++) {
     if(lines[i].length < 2) continue;
 
@@ -100,7 +103,7 @@ TableEncodings.CSVtoTable = function(csvString, firstRowIsHeader, separator, val
 
       numberCandidate = Number(cellContent.replace(',', '.'));
 
-      element = (numberCandidate || (numberCandidate == 0 && cellContent !== '')) ? numberCandidate : cellContent;
+      element = (numberCandidate || (numberCandidate === 0 && cellContent !== '')) ? numberCandidate : cellContent;
 
       if(typeof element == 'string') element = TableEncodings._removeQuotes(element);
 
@@ -143,6 +146,7 @@ TableEncodings.TableToCSV = function(table, separator, namesAsHeaders) {
   var j;
   var list;
   var type;
+  if(table == null) return null;
   var lines = ListGenerators.createListWithSameElement(table[0].length, "");
   var addSeparator;
   for(i = 0; table[i] != null; i++) {

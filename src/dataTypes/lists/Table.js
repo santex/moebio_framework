@@ -71,6 +71,7 @@ Table.fromArray = function(array) {
   result.getListsSortedByList = Table.prototype.getListsSortedByList;
   result.sortListsByList = Table.prototype.sortListsByList;
   result.clone = Table.prototype.clone;
+  result.cloneWithEmptyLists = Table.prototype.cloneWithEmptyLists;
   result.print = Table.prototype.print;
 
   //transformative
@@ -128,10 +129,11 @@ Table.prototype.getRow = function(index) {
  * @param  {Number} index The Column to return its length.
  * Defaults to 0.
  * @return {Number} Length of column at given index.
- * tags:
  */
 Table.prototype.getListLength = function(index) {
-  return this[index || 0].length;
+  index = index || 0;
+  if(index>=this.length) return;
+  return this[index].length;
 };
 
 /**
@@ -143,7 +145,7 @@ Table.prototype.getLengths = function() {
   var l = this.length;
 
   for(var i = 0; i<l; i++) {
-    lengths[i] = this[i].length;
+    lengths[i] = this[i]==null?0:this[i].length;
   }
   return lengths;
 };
@@ -253,10 +255,13 @@ Table.prototype.getListsSortedByList = function(listOrIndex, ascending) { //depr
   if(listOrIndex == null) return;
   var newTable = instantiateWithSameType(this);
   var sortinglist = listOrIndex.isList ? listOrIndex.clone() : this[listOrIndex];
+  var l = this.length;
+  var i;
 
-  this.forEach(function(list) {
-    newTable.push(list.getSortedByList(sortinglist, ascending));
-  });
+  //this.forEach(function(list) {
+  for(i=0; i<l; i++){
+    newTable.push(this[i].getSortedByList(sortinglist, ascending));
+  }
 
   return newTable;
 };
@@ -318,18 +323,45 @@ Table.prototype.removeRow = function(index) {
 };
 
 /**
- * makes a copy of the Table.
+ * makes a clone of the Table, that contains clones of the lists
  * @return {Table} Copy of table.
  */
 Table.prototype.clone = function() {
   var l = this.length;
   var clonedTable = instantiateWithSameType(this);
+  var i;
+
   clonedTable.name = this.name;
-  for(var i = 0; i<l; i++) {
+
+  for(i = 0; i<l; i++) {
     clonedTable.push(this[i].clone());
   }
+
   return clonedTable;
 };
+
+/**
+ * makes a copy of the Table, with empty lists having same types
+ * @return {Table} Copy of table.
+ */
+Table.prototype.cloneWithEmptyLists = function() {
+  var l = this.length;
+  var i;
+  var newTable = instantiateWithSameType(this);
+  var newList;
+
+  newTable.name = this.name;
+
+  for(i = 0; i<l; i++) {
+    newList = instantiateWithSameType(this[i]);
+    newList.name = this[i].name;
+    newTable.push(newList);
+  }
+
+  return newTable;
+};
+
+
 
 /**
  * Removes all contents of the Table.

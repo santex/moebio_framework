@@ -382,8 +382,12 @@ Graphics.prototype.cycleFor = function(time) {
     clearTimeout(this._setTimeOutId);
     this._stopAfter(time);
   } else {
-    this._startCycle();
-    this._stopAfter(time);
+    if(time==1){
+      this._onCycle();
+    } else {
+      this._startCycle();
+      this._stopAfter(time);
+    }
   }
 };
 
@@ -599,6 +603,13 @@ Graphics.prototype.off = function(eventName, callback) {
 /*****************************
  * Public drawing functions
  *****************************/
+
+/**
+ * Clear the canvas.
+ */
+Graphics.prototype.clearCanvas = function() {
+  this.context.clearRect(0, 0, this.cW, this.cH);
+};
 
 /**
  * Set the background color for the graphics object.

@@ -22,8 +22,9 @@ NumberList.prototype.constructor = NumberList;
  */
 function NumberList() {
   var args = [];
+  var l = arguments.length;
 
-  for(var i = 0; i < arguments.length; i++) {
+  for(var i = 0; i < l; i++) {
     args[i] = Number(arguments[i]);
   }
   var array = List.apply(this, args);

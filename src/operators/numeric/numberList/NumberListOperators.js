@@ -162,6 +162,8 @@ NumberListOperators.normalizedToSum = function(numberlist, factor, sum) {
  * tags:
  */
 NumberListOperators.normalized = function(numberlist, factor) {
+  if(numberlist==null) return;
+
   factor = factor == null ? 1 : factor;
 
   if(numberlist.length === 0) return null;
@@ -186,6 +188,8 @@ NumberListOperators.normalized = function(numberlist, factor) {
  * tags:
  */
 NumberListOperators.normalizedToMax = function(numberlist, factor) {
+  if(numberlist==null) return;
+  
   factor = factor == null ? 1 : factor;
 
   if(numberlist.length === 0) return null;
@@ -347,6 +351,7 @@ NumberListOperators.linearKMeans = function(numberList, k, returnIndexes) {
  * @todo finish docs
  */
 NumberListOperators.standardDeviationBetweenTwoNumberLists = function(numberList0, numberList1) {
+  if(numberList0==null || numberList1==null) return;
   var s = 0;
   var l = Math.min(numberList0.length, numberList1.length);
 
@@ -365,6 +370,7 @@ NumberListOperators.standardDeviationBetweenTwoNumberLists = function(numberList
  * tags:statistics
  */
 NumberListOperators.pearsonProductMomentCorrelation = function(numberList0, numberList1) { //TODO:make more efficient
+  if(numberList0==null || numberList1==null) return;
   return NumberListOperators.covariance(numberList0, numberList1) / (numberList0.getStandardDeviation() * numberList1.getStandardDeviation());
 };
 
@@ -372,12 +378,15 @@ NumberListOperators.pearsonProductMomentCorrelation = function(numberList0, numb
 /**
  * smooth a numberList by calculating averages with neighbors
  * @param  {NumberList} numberList
+ *
  * @param  {Number} intensity weight for neighbors in average (0<=intensity<=0.5)
  * @param  {Number} nIterations number of ieterations
  * @return {NumberList}
  * tags:statistics
  */
 NumberListOperators.averageSmoother = function(numberList, intensity, nIterations) {
+  if(numberList==null) return;
+
   nIterations = nIterations == null ? 1 : nIterations;
   intensity = intensity == null ? 0.1 : intensity;
 
@@ -407,6 +416,13 @@ NumberListOperators.averageSmoother = function(numberList, intensity, nIteration
   newNumberList.name = numberList.name;
 
   return newNumberList;
+};
+
+/**
+ *@todo: finish
+ */
+NumberListOperators.filterNumberListByInterval = function(numberList, min, max, includeMin, includeMax, returnMode) {
+  return null;
 };
 
 /**
@@ -520,23 +536,22 @@ NumberListOperators.filterNumberListByNumber = function(numberList, value, compa
  * @param  {NumberList} y list B
  *
  * @return {NumberList} the union of both NumberLists
- * tags:
  */
-NumberListOperators.union = function(x, y) {//TODO: should be refactored, and placed in ListOperators
-  // Borrowed from here: http://stackoverflow.com/questions/3629817/getting-a-union-of-two-arrays-in-javascript
-  var i;
-  var obj = {};
-  for(i = x.length - 1; i >= 0; --i)
-    obj[x[i]] = x[i];
-  for(i = y.length - 1; i >= 0; --i)
-    obj[y[i]] = y[i];
-  var res = new NumberList();
-  for(var k in obj) {
-    if(obj.hasOwnProperty(k)) // <-- optional
-      res.push(obj[k]);
-  }
-  return res;
-};
+// NumberListOperators.union = function(x, y) {//TODO: should be refactored, and placed in ListOperators
+//   // Borrowed from here: http://stackoverflow.com/questions/3629817/getting-a-union-of-two-arrays-in-javascript
+//   var i;
+//   var obj = {};
+//   for(i = x.length - 1; i >= 0; --i)
+//     obj[x[i]] = x[i];
+//   for(i = y.length - 1; i >= 0; --i)
+//     obj[y[i]] = y[i];
+//   var res = new NumberList();
+//   for(var k in obj) {
+//     if(obj.hasOwnProperty(k)) // <-- optional
+//       res.push(obj[k]);
+//   }
+//   return res;
+// };
 
 /**
  * creates a NumberList that contains the intersection of two NumberList (elements present in BOTH lists)
@@ -544,49 +559,48 @@ NumberListOperators.union = function(x, y) {//TODO: should be refactored, and pl
  * @param  {NumberList} list B
  *
  * @return {NumberList} the intersection of both NumberLists
- * tags:deprecated
  */
-NumberListOperators.intersection = function(a, b) {//TODO: refactor method that should be at ListOperators
-  // Borrowed from here: http://stackoverflow.com/questions/1885557/simplest-code-for-array-intersection-in-javascript
-  //console.log( "arguments: ", arguments );
-  var i;
-  if(arguments.length > 2) {
-    var sets = [];
-    for(i = 0; i < arguments.length; i++) {
-      sets.push(arguments[i]);
-    }
-    sets.sort(function(a, b) {
-      return a.length - b.length;
-    });
-    console.log("sets: ", sets);
-    var resultsTrail = sets[0];
-    for(i = 1; i < sets.length; i++) {
-      var newSet = sets[i];
-      resultsTrail = NumberListOperators.intersection(resultsTrail, newSet);
-    }
-    return resultsTrail;
-  }
+// NumberListOperators.intersection = function(a, b) {//TODO: refactor method that should be at ListOperators
+//   // Borrowed from here: http://stackoverflow.com/questions/1885557/simplest-code-for-array-intersection-in-javascript
+//   //console.log( "arguments: ", arguments );
+//   var i;
+//   if(arguments.length > 2) {
+//     var sets = [];
+//     for(i = 0; i < arguments.length; i++) {
+//       sets.push(arguments[i]);
+//     }
+//     sets.sort(function(a, b) {
+//       return a.length - b.length;
+//     });
+//     console.log("sets: ", sets);
+//     var resultsTrail = sets[0];
+//     for(i = 1; i < sets.length; i++) {
+//       var newSet = sets[i];
+//       resultsTrail = NumberListOperators.intersection(resultsTrail, newSet);
+//     }
+//     return resultsTrail;
+//   }
 
-  var result = new NumberList();
-  a = a.slice();
-  b = b.slice();
-  while(a.length > 0 && b.length > 0)
-  {
-    if(a[0] < b[0]) {
-      a.shift();
-    }
-    else if(a[0] > b[0]) {
-      b.shift();
-    }
-    else /* they're equal */
-    {
-      result.push(a.shift());
-      b.shift();
-    }
-  }
+//   var result = new NumberList();
+//   a = a.slice();
+//   b = b.slice();
+//   while(a.length > 0 && b.length > 0)
+//   {
+//     if(a[0] < b[0]) {
+//       a.shift();
+//     }
+//     else if(a[0] > b[0]) {
+//       b.shift();
+//     }
+//     else /* they're equal */
+//     {
+//       result.push(a.shift());
+//       b.shift();
+//     }
+//   }
 
-  return result;
-};
+//   return result;
+// };
 
 
 /**

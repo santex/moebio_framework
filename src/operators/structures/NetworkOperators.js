@@ -889,7 +889,6 @@ NetworkOperators._getClosestPair = function(nodeList, returnIndexes, pRelationPa
   nodes = new NodeList(nodeList[indexes[0]], nodeList[indexes[1]]);
   nodes.strength = maxStrength;
   return nodes;
-
 };
 
 /**
@@ -916,25 +915,48 @@ NetworkOperators._strengthBetweenSets = function(nodeList0, nodeList1, pRelation
 
 /**
  * Builds a Table of clusters, based on an dendrogram Tree (if not provided it will be calculated), and a weight bias
- * @param  {Network} network
+ * @param {Network} network
  *
- * @param  {Tree} dendrogramTree Dendrogram Tree, if precalculated, changes in weight bias will perform faster
- * @param  {Number} minWeight Weight bias, criteria to group clusters (0.5 default, the higher the value, the higer the number of clusters)
+ * @param {Number} mode cluster mode, 0: Louvain (default), 1: Moebio algorithm
+ * @param {Tree} dendrogramTree Dendrogram Tree, if precalculated, changes in weight bias will perform faster (not required for Louvain)
+ * @param {Number} minWeight Weight bias, criteria to group clusters (0.5 default, the higher the value, the higer the number of clusters, not required for Louvain)
+ * @param {Boolean} addColorToNodes if true, adds a color associated to cluster, [!] modifies nodes color property
  * @return {Table} List of NodeLists
  * tags:analysis
  */
-NetworkOperators.buildNetworkClusters = function(network, dendrogramTree, minWeight) {
+NetworkOperators.buildNetworkClusters = function(network, mode, dendrogramTree, minWeight, addColorToNodes) {
   if(network == null) return;
 
-  if(dendrogramTree == null) dendrogramTree = NetworkOperators.buildDendrogram(network);
-  minWeight = minWeight || 0.5;
+  var clusters;
+  var colors;
+  var i, j;
+  var nClusters, nNodes;
 
-  var clusters = new Table();
+  if(mode==null || mode===0){
+    clusters = NetworkOperators._buildNetworkClustersLouvain(network);
+  } else {
+    if(dendrogramTree == null) dendrogramTree = NetworkOperators.buildDendrogram(network);
+    minWeight = minWeight || 0.5;
 
-  NetworkOperators._iterativeBuildClusters(dendrogramTree.nodeList[dendrogramTree.nodeList.length - 1], clusters, minWeight);
+    clusters = new Table();
+
+    NetworkOperators._iterativeBuildClusters(dendrogramTree.nodeList[dendrogramTree.nodeList.length - 1], clusters, minWeight);
+  }
+
+  if(addColorToNodes){
+    colors = ColorListGenerators.createDefaultCategoricalColorList(clusters.length);
+    nClusters = clusters.length;
+    for(i=0; i<nClusters; i++){
+      nNodes = clusters[i].length;
+      for(j=0; j<nNodes; j++){
+        clusters[i][j].color = colors[i];
+      }
+    }
+  }
 
   return clusters;
 };
+
 
 /**
  * @ignore
@@ -956,6 +978,49 @@ NetworkOperators._iterativeBuildClusters = function(node, clusters, minWeight) {
   } else {
     NetworkOperators._iterativeBuildClusters(node.nodeList[1], clusters, minWeight);
   }
+};
+
+/**
+ * Builds a Table of clusters based on Louvain community detection.
+ * @param {Network} network
+ * @return {Table} List of NodeLists
+ */
+NetworkOperators._buildNetworkClustersLouvain = function(network) {
+  if(network==null) return network;
+
+  var node_data = [];
+  var i;
+  for(i=0; i < network.nodeList.length; i++){
+    // force nodes to be stringlike since they get used as properties in result
+    node_data.push('n'+network.nodeList[i].id);
+  }
+  var edge_data = [];
+  for(i=0; i < network.relationList.length; i++){
+    var obj = {source: 'n'+network.relationList[i].node0.id,
+               target: 'n'+network.relationList[i].node1.id,
+               weight:network.relationList[i].weight};
+    edge_data.push(obj);
+  }
+
+  // Object with ids of nodes as properties and community number assigned as value.
+  var community = NetworkOperators._jLouvain().nodes(node_data).edges(edge_data);
+  var result  = community();
+  var clusters = new Table();
+
+  if(result)
+    for(i=0; i < network.nodeList.length; i++){
+      var j = result['n'+network.nodeList[i].id];
+      if(clusters[j] == undefined)
+        clusters[j]= new NodeList();
+      clusters[j].addNode(network.nodeList[i]);
+    }
+  else{
+    // no results mean no communities, make them all unique
+    for(i=0; i < network.nodeList.length; i++){
+      clusters.push(new NodeList(network.nodeList[i]));
+    }
+  }
+  return clusters;
 };
 
 
@@ -1506,49 +1571,6 @@ NetworkOperators._jLouvain = function() {
   return core;
 };
 
-/**
- * Builds a Table of clusters based on Louvain community detection.
- * @param {Network} network
- * @return {Table} List of NodeLists
- * tags:analysis
- */
-NetworkOperators.buildNetworkClustersLouvain = function(network) {
-  if(network==null) return network;
-
-  var node_data = [];
-  var i;
-  for(i=0; i < network.nodeList.length; i++){
-    // force nodes to be stringlike since they get used as properties in result
-    node_data.push('n'+network.nodeList[i].id);
-  }
-  var edge_data = [];
-  for(i=0; i < network.relationList.length; i++){
-    var obj = {source: 'n'+network.relationList[i].node0.id,
-               target: 'n'+network.relationList[i].node1.id,
-               weight:network.relationList[i].weight};
-    edge_data.push(obj);
-  }
-
-  // Object with ids of nodes as properties and community number assigned as value.
-  var community = NetworkOperators._jLouvain().nodes(node_data).edges(edge_data);
-  var result  = community();
-  var clusters = new Table();
-
-  if(result)
-    for(i=0; i < network.nodeList.length; i++){
-      var j = result['n'+network.nodeList[i].id];
-      if(clusters[j] == undefined)
-        clusters[j]= new NodeList();
-      clusters[j].addNode(network.nodeList[i]);
-    }
-  else{
-    // no results mean no communities, make them all unique
-    for(i=0; i < network.nodeList.length; i++){
-      clusters.push(new NodeList(network.nodeList[i]));
-    }
-  }
-  return clusters;
-};
 
 
 /**

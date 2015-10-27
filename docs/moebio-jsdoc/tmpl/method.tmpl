@@ -11,6 +11,15 @@ var self = this;
     <h3 class="name" id="<?js= id ?>"><?js= data.attribs + (kind === 'class' ? 'new ' : '') +
     name + (data.signature || '') ?></h3>
 
+    <?js if ( !(data.kind === 'class' && data.classdesc ) ) {
+        var copiableText = data.scope === 'static' ?
+            'mo.' + data.longname + "( " + data.meta.code.paramnames.join(", ") + " )" :
+            ( data.memberof ? data.memberof.toLowerCase()+'.' : '' )  + data.name + "( " + data.meta.code.paramnames.join(", ") + " )" ;
+    ?>
+    <div data-clipboard-text="<?js= copiableText ?>" class="copyCode">How to use (click to copy): <b><?js= copiableText ?></b></div>
+    <?js } ?>
+
+
     <?js if (data.summary) { ?>
     <p><?js= summary ?></p>
     <?js } ?>

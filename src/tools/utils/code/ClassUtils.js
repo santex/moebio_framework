@@ -187,6 +187,8 @@ export function instantiateWithSameType(object, args) {
 }
 
 export function isArray(obj) {
+  if( (typeof obj)!='object' ) return false;
+  
   if(obj.constructor.toString().indexOf("Array") == -1)
     return false;
   else
@@ -200,7 +202,7 @@ Date.prototype.getType = function() {
 
 
 export function evalJavaScriptFunction(functionText, args, scope){
-	if(functionText==null) return;
+	if(functionText==null || functionText=="") return;
 
 	var res;
 

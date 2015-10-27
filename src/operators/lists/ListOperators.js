@@ -11,6 +11,7 @@ import ColorScales from "src/operators/graphic/ColorScales";
 import ColorListGenerators from "src/operators/graphic/ColorListGenerators";
 import NumberOperators from "src/operators/numeric/NumberOperators";
 import NumberListOperators from "src/operators/numeric/numberList/NumberListOperators";
+import NumberListGenerators from "src/operators/numeric/numberList/NumberListGenerators";
 import { typeOf, instantiate, instantiateWithSameType } from "src/tools/utils/code/ClassUtils";
 
 /**
@@ -198,78 +199,6 @@ ListOperators.assemble = function() {
 
 
 /**
- * returns a table with two Lists: words and occurrences
- * @param {List} list
- *
- * @param {Boolean} sortListsByOccurrences optional, true by default, common words first
- * @param {Boolean} consecutiveRepetitions optional false by default, if true only counts consecutive repetitions
- * @param {Number} optional limit, limits the size of the lists
- * @return {Table}
- * tags:count,toimprove,deprecated
- */
-// ListOperators.countElementsRepetitionOnList = function(list, sortListsByOccurrences, consecutiveRepetitions, limit) { //transform this, use dictionary instead of indexOf !!!!!!!
-//   if(list == null) return;
-
-//   sortListsByOccurrences = sortListsByOccurrences == null ? true : sortListsByOccurrences;
-//   consecutiveRepetitions = consecutiveRepetitions || false;
-//   limit = limit == null ? 0 : limit;
-
-//   var obj;
-//   var elementList = instantiate(typeOf(list));
-//   var numberList = new NumberList();
-//   var index;
-//   var i;
-
-//   if(consecutiveRepetitions) {
-//     if(list.length == 0) return null;
-//     var previousElement = list[0];
-//     elementList.push(previousElement);
-//     numberList.push(1);
-//     for(i = 1; i < nElements; i++) {
-//       obj = list[i];
-//       if(obj == previousElement) {
-//         numberList[numberList.length - 1] = numberList[numberList.length - 1] + 1;
-//       } else {
-//         elementList.push(obj);
-//         numberList.push(1);
-//         previousElement = obj;
-//       }
-//     }
-//   } else {
-//     for(i = 0; list[i] != null; i++){
-//       obj = list[i];
-//       index = elementList.indexOf(obj);
-//       if(index != -1) {
-//         numberList[index]++;
-//       } else {
-//         elementList.push(obj);
-//         numberList.push(1);
-//       }
-//     }
-//   }
-
-//   if(elementList.type == "NumberList") {
-//     var table = new NumberTable();
-//   } else {
-//     var table = new Table();
-//   }
-//   table[0] = elementList;
-//   table[1] = numberList;
-
-//   if(sortListsByOccurrences) {
-//     table = TableOperators.sortListsByNumberList(table, numberList);
-//   }
-
-//   if(limit != 0 && limit < elementList.length) {
-//     table[0] = table[0].splice(0, limit);
-//     table[1] = table[1].splice(0, limit);
-//   }
-
-//   return table;
-// };
-
-
-/**
  * reverses a list
  * @param {List} list
  * @return {List}
@@ -292,6 +221,75 @@ ListOperators.getBooleanDictionaryForList = function(list){
 
   return dictionary;
 };
+
+
+
+/**
+ * builds a dictionary that matches an element of a List with its index on the List (indexesDictionary[element] --> index)
+ * it assumes there's no repetitions on the list (if that's not tha case the last index of the element will be delivered)
+ * efficiently replaces indexOf
+ * @param  {List} list
+ * @return {Object}
+ * tags:dictionary
+ */
+ListOperators.getSingleIndexDictionaryForList = function(list){
+  if(list==null) return;
+
+  var i;
+  var l = list.length;
+
+  var dictionary = {};
+  for(i=0; i<l; i++){
+    dictionary[list[i]] = i;
+  }
+
+  return dictionary;
+};
+
+/**
+ * builds a dictionary that matches an element of a List with all its indexes on the List (indexesDictionary[element] --> numberList of indexes of element on list)
+ * if the list has no repeated elements, and a single is required per element, use ListOperators.getSingleIndexDictionaryForList
+ * @param  {List} list
+ * @return {Object}
+ * tags:dictionary
+ */
+ListOperators.getIndexesDictionary = function(list){
+  var indexesDictionary = {};
+
+  list.forEach(function(element, i){
+    if(indexesDictionary[element]==null) indexesDictionary[element]=new NumberList();
+    indexesDictionary[element].push(i);
+  });
+
+  return indexesDictionary;
+};
+
+/**
+ * @todo write docs
+ */
+ListOperators.getIndexesTable = function(list){
+  var indexesTable = new Table();
+  indexesTable[0] = new List();
+  indexesTable[1] = new NumberTable();
+  var indexesDictionary = {};
+  var indexOnTable;
+
+  list.forEach(function(element, i){
+    indexOnTable = indexesDictionary[element];
+    if(indexOnTable==null){
+      indexesTable[0].push(element);
+      indexesTable[1].push(new NumberList(i));
+      indexesDictionary[element]=indexesTable[0].length-1;
+    } else {
+      indexesTable[1][indexOnTable].push(i);
+    }
+  });
+
+  indexesTable[0] = indexesTable[0].getImproved();
+
+  return indexesTable;
+};
+
 
 /**
  * builds a dictionar object (relational array) for a dictionar (table with two lists)
@@ -333,6 +331,7 @@ ListOperators.translateWithDictionary = function(list, dictionary, nullElement) 
   return newList;
 };
 
+
 /**
  * creates a new list that is a translation of a list using a dictionar object (a relation array)
  * @param  {List} list
@@ -352,9 +351,6 @@ ListOperators.translateWithDictionaryObject = function(list, dictionaryObject, n
   for(i=0; i<nElements; i++){
     newList[i] = dictionaryObject[list[i]];
   }
-  // list.forEach(function(element, i) {
-  //   newList[i] = dictionaryObject[element];
-  // });
 
   if(nullElement!=null){
     var l = list.length;
@@ -365,26 +361,6 @@ ListOperators.translateWithDictionaryObject = function(list, dictionaryObject, n
   newList.name = list.name;
   return newList.getImproved();
 };
-
-
-// ListOperators.getIndexesOfElements=function(list, elements){
-// 	var numberList = new NumberList();
-// 	var i;
-// 	for(i=0; elements[i]!=null; i++){
-// 		numberList[i] = list.indexOf(elements[i]);
-// 	}
-// 	return numberList;
-// }
-
-
-// ListOperators.countOccurrencesOnList=function(list){
-// 	var occurrences=new NumberList();
-// 	var nElements=list.length;
-// 	for(var i=0; list[i]!=null; i++){
-// 		occurrences.push(this.getIndexesOfElement(list,list[i]).length);
-// 	}
-// 	return occurrences;
-// }
 
 
 /**
@@ -399,19 +375,17 @@ ListOperators.sortListByNumberList = function(list, numberList, descending) {
   var i;
 
   for(i = 0; list[i] != null; i++) {
-    pairs.push([list[i], numberList[i]]);
+    pairs.push([list[i], numberList[i],i]);
   }
 
 
   if(descending) {
     pairs.sort(function(a, b) {
-      if(a[1] < b[1]) return 1;
-      return -1;
+      return a[1] < b[1] ?  1 : a[1] > b[1] ? -1 : a[2] - b[2];
     });
   } else {
     pairs.sort(function(a, b) {
-      if(a[1] < b[1]) return -1;
-      return 1;
+      return a[1] < b[1] ? -1 : a[1] > b[1] ?  1 : a[2] - b[2];
     });
   }
 
@@ -420,6 +394,31 @@ ListOperators.sortListByNumberList = function(list, numberList, descending) {
   }
   newList.name = list.name;
   return newList;
+};
+
+
+/**
+ * calculates the position of elements of a list if it were sorted (rankings)
+ * @param  {List} list
+ *
+ * @param  {Boolean} ascendant if true (default) rankings ara lower for lower values
+ * @return {NumberList} positions (or ranks) of elements
+ * tags:
+ */
+ListOperators.getRankings = function(list, ascendant){
+  ascendant = ascendant==null?true:ascendant;
+
+  var indexes = NumberListGenerators.createSortedNumberList(list.length);
+  indexes = indexes.getSortedByList(list, ascendant);
+  var rankings = new NumberList();
+  var l = list.length;
+  var i;
+  for(i=0;i<l; i++){
+    rankings[indexes[i]] = i;
+  }
+  rankings.name = 'rankings';
+
+  return rankings;
 };
 
 
@@ -442,13 +441,21 @@ ListOperators.sortListByIndexes = function(list, indexedArray) {
  * @todo write docs
  */
 ListOperators.concatWithoutRepetitions = function() {
-  var i;
+  var l = arguments.length;
+  if(l===0) return;
+  if(l==1) return arguments[0];
+
+  var i, j;
   var newList = arguments[0].clone();
-  for(i = 1; i < arguments.length; i++) {
-    var addList = arguments[i];
-    var nElements = addList.length;
-    for(i = 0; i < nElements; i++) { // TODO Is the redefing of i intentional?
-      if(newList.indexOf(addList[i]) == -1) newList.push(addList[i]);
+  var newListBooleanDictionary = ListOperators.getBooleanDictionaryForList(newList);
+  var addList;
+  var nElements;
+  for(i = 1; i < l; i++) {
+    addList = arguments[i];
+    nElements = addList.length;
+    for(j = 0; j < nElements; j++) { // TODO Is the redefing of i intentional? <----- !
+      //if(newList.indexOf(addList[i]) == -1) newList.push(addList[i]);
+      if(!newListBooleanDictionary[addList[j]]) newList.push(addList[j]);
     }
   }
   return newList.getImproved();
@@ -535,24 +542,85 @@ deprectaed, use intersection instead
  * creates a List that contains the union of two List (removing repetitions)
  * @param  {List} list0 first list
  * @param  {List} list1 second list
- *
  * @return {List} the union of both Lists
  * tags:
  */
-ListOperators.union = function(list0, list1) {//TODO: this should be refactored, and placed in ListOperators
+ListOperators.union = function(list0, list1) {//TODO:expand for more lists
   if(list0==null || list1==null) return;
 
-  var obj = {};
+  var union = new List();
+  var l0 = list0.length;
+  var l1 = list1.length;
   var i, k;
 
-  for(i = 0; list0[i]!=null; i++) obj[list0[i]] = list0[i];
-  for(i = 0; list1[i]!=null; i++) obj[list1[i]] = list1[i];
-  var union = new List();
+  if(list0.type=='NodeList' || list1.type=='NodeList'){
+    union = new NodeList();
+    union = list0.clone();
+    for(i = 0; i<l1; i++){
+      if(list0.getNodeById(list1[i].id)==null) union.addNode(list1[i]);
+    }
+    return union;
+  }
+
+  var obj = {};
+
+  for(i = 0; i<l0; i++) obj[list0[i]] = list0[i];
+  for(i = 0; i<l1; i++) obj[list1[i]] = list1[i];
+  
   for(k in obj) {
     //if(obj.hasOwnProperty(k)) // <-- optional
     union.push(obj[k]);
   }
-  return union;
+  return union.getImproved();
+};
+
+/**
+ * creates a List that contains the intersection of two List (elements present in BOTH lists, result without repetions)
+ * @param  {List} list0 first list
+ * @param  {List} list1 second list
+ * @return {List} intersection of both lists
+ * tags:
+ */
+ListOperators.intersection = function(list0, list1) {//TODO:expand for more lists
+  if(list0==null || list1==null) return;
+
+  var intersection;
+  //var l0  = list0.length;
+  var l1  = list1.length;
+  var i;
+  var element;
+
+  if(list0.type=="NodeList" && list1.type=="NodeList"){
+    intersection = new NodeList();
+
+    list0.forEach(function(node){
+      if(list1.getNodeById(node.id)){
+        intersection.addNode(node);
+      }
+    });
+
+    return intersection;
+  }
+
+  var dictionary =  ListOperators.getBooleanDictionaryForList(list0);//{};
+  var dictionaryIntersected = {};
+  
+  intersection = new List();
+
+
+  // list0.forEach(function(element){
+  //   dictionary[element] = true;
+  // });
+  //list1.forEach(function(element){
+  for(i=0; i<l1; i++){
+    element = list1[i];
+    if(dictionary[element] && dictionaryIntersected[element]==null){
+      dictionaryIntersected[element]=true;
+      intersection.push(element);
+    }
+  }
+  //});
+  return intersection.getImproved();
 };
 
 
@@ -579,86 +647,6 @@ ListOperators.getCommonElements = function(list0, list1) {
 };
 
 
-
-
-/**
- * creates a List that contains the union of two List (removing repetitions) (deprecated, use union instead)
- * @param  {List} list0
- * @param  {List} list A
- * @param  {List} list B
- *
- * @return {List} the union of both NumberLists
- * tags:deprecated
- */
-ListOperators.unionLists = function(x, y) {
-  // Borrowed from here: http://stackoverflow.com/questions/3629817/getting-a-union-of-two-arrays-in-javascript
-  var result;
-  if(x.type != x.type || (x.type != "StringList" && x.type != "NumberList")) {
-    // To-do: call generic method here (not yet implemented)
-    //console.log( "ListOperators.unionLists for type '" + x.type + "' or '" + y.type + "' not yet implemented" );
-    return x.concat(y).getWithoutRepetitions();
-  }
-  else {
-    var obj = {};
-    var i;
-    for(i = x.length - 1; i >= 0; --i){
-      obj[x[i]] = x[i];
-    }
-    for(i = y.length - 1; i >= 0; --i){
-      obj[y[i]] = y[i];
-    }
-    result = x.type == "StringList" ? new StringList() : new NumberList();
-    for(var k in obj) {
-      if(obj.hasOwnProperty(k)) // <-- optional
-        result.push(obj[k]);
-    }
-  }
-  return result;
-};
-
-/**
- * creates a List that contains the intersection of two List (elements present in BOTH lists)
- *
- * @param  {List} list0 list A
- * @param  {List} list1 list B
- *
- * @return {List} intersection of both NumberLists
- *
- * tags:
- */
-ListOperators.intersection = function(list0, list1) {
-  if(list0==null || list1==null) return;
-
-  var intersection;
-
-  if(list0.type=="NodeList" && list1.type=="NodeList"){
-    intersection = new NodeList();
-
-    list0.forEach(function(node){
-      if(list1.getNodeById(node.id)){
-        intersection.addNode(node);
-      }
-    });
-
-    return intersection;
-  }
-
-  var dictionary = {};
-  var dictionaryIntersected = {};
-  intersection = new List();
-
-  list0.forEach(function(element){
-    dictionary[element] = true;
-  });
-  list1.forEach(function(element){
-    if(dictionary[element] && dictionaryIntersected[element]==null){
-      dictionaryIntersected[element]=true;
-      intersection.push(element);
-    }
-  });
-  return intersection.getImproved();
-};
-
 /**
  * calculates Jaccard index |list0 ∩ list1|/|list0 ∪ list1| see: https://en.wikipedia.org/wiki/Jaccard_index
  * @param  {List} list0
@@ -667,7 +655,7 @@ ListOperators.intersection = function(list0, list1) {
  * tags:
  */
 ListOperators.jaccardIndex = function(list0, list1) {//TODO: see if this can be more efficient, maybe one idctionar for doing union and interstection at the same time
-  return ListOperators.intersection(list0, list1).length/ListOperators.unionLists(list0, list1).length;
+  return ListOperators.intersection(list0, list1).length/ListOperators.union(list0, list1).length;
 };
 
 /**
@@ -682,71 +670,6 @@ ListOperators.jaccardDistance = function(list0, list1) {
 };
 
 
-
-/**
- * builds a dictionary that matches an element of a List with its index on the List (indexesDictionary[element] --> index)
- * it assumes there's no repetitions on the list (if that's not tha case the last index of the element will be delivered)
- * @param  {List} list
- * @return {Object}
- * tags:dictionary
- */
-ListOperators.getSingleIndexDictionaryForList = function(list){
-  if(list==null) return;
-
-  var i;
-  var l = list.length;
-
-  var dictionary = {};
-  for(i=0; i<l; i++){
-    dictionary[list[i]] = i;
-  }
-
-  return dictionary;
-};
-
-/**
- * builds a dictionary that matches an element of a List with all its indexes on the List (indexesDictionary[element] --> numberList of indexes of element on list)
- * if the list has no repeated elements, and a single is required per element, use ListOperators.getSingleIndexDictionaryForList
- * @param  {List} list
- * @return {Object}
- * tags:dictionary
- */
-ListOperators.getIndexesDictionary = function(list){
-  var indexesDictionary = {};
-
-  list.forEach(function(element, i){
-    if(indexesDictionary[element]==null) indexesDictionary[element]=new NumberList();
-    indexesDictionary[element].push(i);
-  });
-
-  return indexesDictionary;
-};
-
-/**
- * @todo write docs
- */
-ListOperators.getIndexesTable = function(list){
-  var indexesTable = new Table();
-  indexesTable[0] = new List();
-  indexesTable[1] = new NumberTable();
-  var indexesDictionary = {};
-  var indexOnTable;
-
-  list.forEach(function(element, i){
-    indexOnTable = indexesDictionary[element];
-    if(indexOnTable==null){
-      indexesTable[0].push(element);
-      indexesTable[1].push(new NumberList(i));
-      indexesDictionary[element]=indexesTable[0].length-1;
-    } else {
-      indexesTable[1][indexOnTable].push(i);
-    }
-  });
-
-  indexesTable[0] = indexesTable[0].getImproved();
-
-  return indexesTable;
-};
 
 /**
  * aggregates values of a list using an aggregator list as reference

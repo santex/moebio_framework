@@ -117,43 +117,30 @@ StringOperators.replaceStringInText = function(text, string, replacement) {
   return text.replace(string, replacement);
 };
 
-/** depracted, replaced by StringListOperators.replaceStringsInText
- * replaces in a string ocurrences of sub-strings by a string
- * @param  {String} string to be modified
- * @param  {StringList} subStrings sub-strings to be replaced
+/**
+ * replaces in each string, a sub-string by a string
+ * @param  {String} text where to replaces strings
+ * @param  {StringList} strings to be replaced (could be Regular Expressions)
  * @param  {String} replacement string to be placed instead
- * @return {String}
- */
-// StringOperators.replaceSubStringsByString = function(string, subStrings, replacement) {
-//   if(subStrings == null) return;
-
-//   subStrings.forEach(function(subString) {
-//     string = StringOperators.replaceStringInText(string, subString, replacement);
-//   });
-
-//   return string;
-// };
-
-/** deprecated, replaced by: 
- * replaces in a string ocurrences of sub-strings by strings (1-1)
- * @param  {String} string to be modified
- * @param  {StringList} subStrings sub-strings to be replaced
- * @param  {StringList} replacements strings to be placed instead
  * @return {String}
  * tags:
  */
-// StringOperators.replaceSubStringsByStrings = function(string, subStrings, replacements) {
-//   if(subStrings == null || replacements == null) return;
+StringOperators.replaceStringsInText = function(text, strings, replacement) {
+  if(text==null || strings==null || replacement==null) return null;
 
-//   var nElements = Math.min(subStrings.length, replacements.length);
-//   var i;
+  var newText = text;
+  var nStrings = strings.length;
+  var j;
+  var string;
 
-//   for(i = 0; i < nElements; i++) {
-//     string = StringOperators.replaceStringInText(string, subStrings[i], replacements[i]);
-//   }
+  for(j=0; j<nStrings; j++){
+    string = strings[j];
+    if(!(string instanceof RegExp)) string = new RegExp(string, "g");
+    newText = newText.replace(string, replacement);
+  }
 
-//   return string;
-// };
+  return newText;
+};
 
 /**
  * builds a stringList of words contained in the text
@@ -184,28 +171,37 @@ StringOperators.getWords = function(string, withoutRepetitions, stopWords, sorte
   if(includeLinks) {
     links = string.match(StringOperators.LINK_REGEX);
   }
+
   string = string.toLowerCase().replace(StringOperators.LINK_REGEX, "");
 
   var list = string.match(/\w+/g);
+
   if(list == null) return new StringList();
+
+  list = StringList.fromArray(list);
 
   if(includeLinks && links != null) list = list.concat(links);
   list = StringList.fromArray(list).replace(/ /g, "");
 
+  var nMatches;
+
   if(stopWords != null) { //TODO:check before if all stopwrds are strings
     //list.removeElements(stopWords);
-
-    for(i = 0; list[i] != null; i++) {
-      for(j = 0; stopWords[j] != null; j++) {
+    nMatches = list.length;
+    var nStopWords = stopWords.length;
+    for(i = 0; i<nMatches; i++) {
+      for(j = 0; j<nStopWords; j++) {
         if((typeof stopWords[j]) == 'string') {
           if(stopWords[j] == list[i]) {
             list.splice(i, 1);
             i--;
+            nMatches = list.length;
             break;
           }
         } else if(stopWords[j].test(list[i])) {
           list.splice(i, 1);
           i--;
+          nMatches = list.length;
           break;
         }
       }
@@ -214,10 +210,12 @@ StringOperators.getWords = function(string, withoutRepetitions, stopWords, sorte
   }
 
   if(minSizeWords > 0) {
-    for(i = 0; list[i] != null; i++) {
+    nMatches = list.length;
+    for(i = 0; i<nMatches; i++) {
       if(list[i].length < minSizeWords) {
         list.splice(i, 1);
         i--;
+        nMatches = list.length;
       }
     }
   }
@@ -230,7 +228,7 @@ StringOperators.getWords = function(string, withoutRepetitions, stopWords, sorte
       return list;
     }
 
-    var occurrences = ListOperators.countOccurrencesOnList(list);
+    var occurrences = list.getFrequenciesTable();
     list = list.getSortedByList(occurrences);
     if(limit !== 0) list = list.substr(0, limit);
 
@@ -568,21 +566,71 @@ StringOperators.insertString = function(string, stringToInsert, index) {
 };
 
 /**
- * @todo finish docs
+ * transforms a text by performing multiple optional cleaning operations (applied in the same order as parameters suggest)
+ * @param {String} string to be transformed
+ *
+ * @param {Boolean} removeEnters
+ * @param {Boolean} removeTabs
+ * @param {String} replaceTabsAndEntersBy
+ * @param {Boolean} removePunctuation
+ * @param {Boolean} toLowerCase
+ * @param {StringList} stopWords removes strings from text
+ * @param {Boolean} removeDoubleSpaces
+ * @return {String}
+ * tags:filter
  */
-StringOperators.removeEnters = function(string) {
-  return string.replace(/(\StringOperators.ENTER|\StringOperators.ENTER2|\StringOperators.ENTER3)/gi, " ");
+StringOperators.cleanText = function(string, removeEnters, removeTabs, replaceTabsAndEntersBy, removePunctuation, toLowerCase, stopWords, removeDoubleSpaces){
+  if(string==null) return null;
+
+  //console.log("string["+string+"]");
+
+  if(removeEnters) string = StringOperators.removeEnters(string, replaceTabsAndEntersBy);
+  if(removeTabs) string = StringOperators.removeTabs(string, replaceTabsAndEntersBy);
+  if(removePunctuation) string = StringOperators.removePunctuation(string);
+  if(toLowerCase) string = string.toLowerCase();
+
+  if(stopWords!=null){
+    string = StringOperators.replaceStringsInText(string, stopWords, "");
+  }
+
+  if(removeDoubleSpaces) string = StringOperators.removeDoubleSpaces(string);
+
+  return string;
 };
 
 /**
- * @todo finish docs
+ * removes enters from string
+ * @param {String} string to be transformed
+
+ * @param {String} replaceBy optional string to replace enters
+ * @return {String}
+ * tags:
  */
-StringOperators.removeTabs = function(string) {
-  return string.replace(/(\StringOperators.TAB|\StringOperators.TAB2|\t)/gi, "");
+StringOperators.removeEnters = function(string, replaceBy) {
+  replaceBy = replaceBy==null?"":replaceBy;
+  return string.replace(/(\StringOperators.ENTER|\StringOperators.ENTER2|\StringOperators.ENTER3)/gi, replaceBy);
 };
 
 /**
- * @todo finish docs
+ * removes tabs from string
+ * @param {String} string to be transformed
+
+ * @param {String} replaceBy optional string to replace tabs
+ * @return {String}
+ * tags:
+ */
+StringOperators.removeTabs = function(string, replaceBy) {
+  replaceBy = replaceBy || "";
+  return string.replace(/(\StringOperators.TAB|\StringOperators.TAB2|\t)/gi, replaceBy);
+};
+
+/**
+ * removes punctuation from a string, using regex /[:,.;?!\(\)\"\']/gi
+ * @param {String} string to be transformed
+
+ * @param {String} replaceBy optional string to replace punctuation signs
+ * @return {String}
+ * tags:
  */
 StringOperators.removePunctuation = function(string, replaceBy) {
   replaceBy = replaceBy || "";
@@ -590,7 +638,10 @@ StringOperators.removePunctuation = function(string, replaceBy) {
 };
 
 /**
- * @todo finish docs
+ * removes double spaces from a string
+ * @param {String} string to be transformed
+ * @return {String}
+ * tags:
  */
 StringOperators.removeDoubleSpaces = function(string) {
   var retString = string;
@@ -732,9 +783,17 @@ StringOperators.repeatString = function(text, n) {
 //counting / statistics
 
 /**
- * @todo finish docs
+ * count the number of occurrences of a string into a text
+ * @param {String} text
+ * @param {String} string
+ *
+ * @param {Boolean} asWord if false (default) searches for substring, if true searches for word
+ * @return {Number} number of occurrences
+ * tags:count
  */
-StringOperators.countOccurrences = function(text, string) { //seems to be th emost efficient: http://stackoverflow.com/questions/4009756/how-to-count-string-occurrence-in-string
+StringOperators.countOccurrences = function(text, string, asWord) { //seems to be th emost efficient: http://stackoverflow.com/questions/4009756/how-to-count-string-occurrence-in-string
+  if(asWord) return StringOperators.countWordOccurrences(text, string);
+
   var n = 0;
   var index = text.indexOf(string);
   while(index != -1) {
@@ -749,18 +808,38 @@ StringOperators.countOccurrences = function(text, string) { //seems to be th emo
  */
 StringOperators.countWordOccurrences = function(string, word) {
   var regex = new RegExp("\\b" + word + "\\b");
-  var match = string.match(regex);
-  return match == null ? 0 : match.length;
+  return StringOperators.countRegexOccurrences(string, regex);
 };
 
 /**
  * @todo finish docs
  */
-StringOperators.countStringsOccurrences = function(text, strings) {
+StringOperators.countRegexOccurrences = function(string, regex) {
+  var match = string.match(regex);
+  return match == null ? 0 : match.length;
+};
+
+/**
+ * count the number of occurrences of a list of strings into a text
+ * @param {String} text
+ * @param {StringList} strings
+ *
+ * @param {Boolean} asWords if false (default) searches for substrings, if true searches for words
+ * @return {NumberList} number of occurrences per string
+ * tags:count
+ */
+StringOperators.countStringsOccurrences = function(text, strings, asWords) {
+  if(text==null || strings==null) return;
+
   var i;
   var numberList = new NumberList();
-  for(i = 0; strings[i] != null; i++) {
-    numberList[i] = text.split(strings[i]).length - 1;
+  var nStrings = strings.length;
+  for(i = 0; i<nStrings; i++) {
+    if(asWords){
+      numberList[i] = StringOperators.countRegexOccurrences(text, new RegExp("\\b" + strings[i] + "\\b"));
+    } else {
+      numberList[i] = StringOperators.countOccurrences(text, strings[i]);
+    }
   }
   return numberList;
 };

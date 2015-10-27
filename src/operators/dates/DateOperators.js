@@ -23,7 +23,7 @@ DateOperators.WEEK_NAMES = ['monday', 'tuesday', 'wednesday', 'thursday', 'frida
 /**
  * parses a Date
  * @param  {String} string date in string format
- * @param  {String} formatCase <br>0: MM-DD-YYYY<br>1: YYYY-MM-DD<br>2: MM-DD-YY<br>3: YY-MM-DD<br>4: DD-MM-YY<br>5: DD-MM-YYYY
+ * @param  {Number} formatCase <br>0: MM-DD-YYYY<br>1: YYYY-MM-DD<br>2: MM-DD-YY<br>3: YY-MM-DD<br>4: DD-MM-YY<br>5: DD-MM-YYYY
  * @param  {String} separator
  * @return {Date}
  * tags:decoder
@@ -31,6 +31,8 @@ DateOperators.WEEK_NAMES = ['monday', 'tuesday', 'wednesday', 'thursday', 'frida
 DateOperators.stringToDate = function(string, formatCase, separator) {// @todo: move to StringConversions
   separator = separator == null ? "-" : separator;
   formatCase = formatCase == null ? 1 : formatCase;
+
+  formatCase = Number(formatCase);
 
   if(formatCase == 1) {
     if(separator != "-") string = string.replace(new RegExp(string, "g"), "-");
@@ -128,28 +130,28 @@ DateOperators.parseDates = function(stringList) {
 /**
  * @todo write docs
  */
-DateOperators.getHoursBetweenDates = function(date0, date1) {
+DateOperators.hoursBetweenDates = function(date0, date1) {
   return(date1.getTime() - date0.getTime()) * DateOperators.millisecondsToHours;
 };
 
 /**
  * @todo write docs
  */
-DateOperators.getDaysBetweenDates = function(date0, date1) {
+DateOperators.daysBetweenDates = function(date0, date1) {
   return(date1.getTime() - date0.getTime()) * DateOperators.millisecondsToDays;
 };
 
 /**
  * @todo write docs
  */
-DateOperators.getWeeksBetweenDates = function(date0, date1) {
+DateOperators.weeksBetweenDates = function(date0, date1) {
   return(date1.getTime() - date0.getTime()) * DateOperators.millisecondsToWeeks;
 };
 
 /**
  * @todo write docs
  */
-DateOperators.getYearsBetweenDates = function(date0, date1) {
+DateOperators.yearsBetweenDates = function(date0, date1) {
   return(date1.getTime() - date0.getTime()) * DateOperators.millisecondsToYears;
 };
 

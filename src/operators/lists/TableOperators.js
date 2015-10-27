@@ -8,7 +8,11 @@ import ListOperators from "src/operators/lists/ListOperators";
 import NumberListGenerators from "src/operators/numeric/numberList/NumberListGenerators";
 import ListGenerators from "src/operators/lists/ListGenerators";
 import ColorScales from "src/operators/graphic/ColorScales";
+import ColorListGenerators from "src/operators/graphic/ColorListGenerators";
 import Tree from "src/dataTypes/structures/networks/Tree";
+import Node from "src/dataTypes/structures/elements/Node";
+import Relation from "src/dataTypes/structures/elements/Relation";
+import Network from "src/dataTypes/structures/networks/Network";
 
 import StringOperators from "src/operators/strings/StringOperators";
 import NumberListOperators from "src/operators/numeric/numberList/NumberListOperators";
@@ -710,80 +714,6 @@ TableOperators.pivotTable = function(table, indexFirstAggregationList, indexSeco
   return newTable;
 };
 
-
-
-/**
- * aggregates a table
- * @param  {Table} table to be aggregated, deprecated: a new more powerful method has been built
- * @param  {Number} nList list in the table used as basis to aggregation
- * @param  {Number} mode mode of aggregation, 0:picks first element 1:adds numbers, 2:averages
- * @return {Table} aggregated table
- * tags:deprecated
- */
-TableOperators.aggregateTableOld = function(table, nList, mode) {
-  nList = nList == null ? 0 : nList;
-  if(table == null || table[0] == null || table[0][0] == null || table[nList] == null) return null;
-  mode = mode == null ? 0 : mode;
-
-  var newTable = new Table();
-  var i, j;
-  var index;
-  var notRepeated;
-
-  newTable.name = table.name;
-
-  for(j = 0; table[j] != null; j++) {
-    newTable[j] = new List();
-    newTable[j].name = table[j].name;
-  }
-
-  switch(mode) {
-    case 0: //leaves the first element of the aggregated subLists
-      for(i = 0; table[0][i] != null; i++) {
-        notRepeated = newTable[nList].indexOf(table[nList][i]) == -1;
-        if(notRepeated) {
-          for(j = 0; table[j] != null; j++) {
-            newTable[j].push(table[j][i]);
-          }
-        }
-      }
-      break;
-    case 1: //adds values in numberLists
-      for(i = 0; table[0][i] != null; i++) {
-        index = newTable[nList].indexOf(table[nList][i]);
-        notRepeated = index == -1;
-        if(notRepeated) {
-          for(j = 0; table[j] != null; j++) {
-            newTable[j].push(table[j][i]);
-          }
-        } else {
-          for(j = 0; table[j] != null; j++) {
-            if(j != nList && table[j].type == 'NumberList') {
-              newTable[j][index] += table[j][i];
-            }
-          }
-        }
-      }
-      break;
-    case 2: //averages values in numberLists
-      var nRepetitionsList = table[nList].getFrequenciesTable(false);
-      newTable = TableOperators.aggregateTableOld(table, nList, 1);
-
-      for(j = 0; newTable[j] != null; j++) {
-        if(j != nList && newTable[j].type == 'NumberList') {
-          newTable[j] = newTable[j].divide(nRepetitionsList[1]);
-        }
-      }
-
-      newTable.push(nRepetitionsList[1]);
-      break;
-  }
-  for(j = 0; newTable[j] != null; j++) {
-    newTable[j] = newTable[j].getImproved();
-  }
-  return newTable.getImproved();
-};
-
 /**
  * counts pairs of elements in same positions in two lists (the result is the adjacent matrix of the network defined by pairs)
  * @param  {Table} table with at least two lists
@@ -833,38 +763,96 @@ TableOperators.filterTableByElementInList = function(table, nList, element, keep
 
   var newTable = new Table();
   var i, j;
+  var l = table.length;
+  var l0 = table[0].length;
 
   newTable.name = table.name;
 
-  for(j = 0; table[j] != null; j++) {
+  for(j = 0; j<l; j++) {
     newTable[j] = new List();
     newTable[j].name = table[j].name;
   }
 
   if(keepRowIfElementIsPresent){
-    for(i = 0; table[0][i] != null; i++) {
+    for(i = 0; i<l0; i++) {
       if(table[nList][i] == element) {
-        for(j = 0; table[j] != null; j++) {
+        for(j = 0; j<l; j++) {
           newTable[j].push(table[j][i]);
         }
       }
     }
   } else {
-    for(i = 0; table[0][i] != null; i++) {
+    for(i = 0; i<l0; i++) {
       if(table[nList][i] != element) {
-        for(j = 0; table[j] != null; j++) {
+        for(j = 0; j<l; j++) {
           newTable[j].push(table[j][i]);
         }
       }
     }
   }
 
-  for(j = 0; newTable[j] != null; j++) {
+  for(j = 0; j<l; j++) {
     newTable[j] = newTable[j].getImproved();
   }
 
   return newTable;
 };
+
+/**
+ * filter a table selecting rows that have one of the elements provided on one of its lists
+ * @param  {Table} table
+ * @param  {Number} nList list that could contain some of the elements in several positions
+ * @param  {List} elements
+ *
+ * @param {Boolean} keepRowIfElementIsPresent if true (default value) the row is selected if the list contains the given element, if false the row is discarded
+ * @return {Table}
+ * tags:filter
+ */
+TableOperators.filterTableByElementsInList = function(table, nList, elements, keepRowIfElementIsPresent) {
+  if(table == null ||  table.length <= 0 || nList == null) return;
+  if(elements == null || elements.length===0) return table;
+
+  keepRowIfElementIsPresent = keepRowIfElementIsPresent==null?true:keepRowIfElementIsPresent;
+
+  var elementsDictionary = ListOperators.getBooleanDictionaryForList(elements);
+
+  var newTable = new Table();
+  var i, j;
+  var l = table.length;
+  var l0 = table[0].length;
+
+  newTable.name = table.name;
+
+  for(j = 0; j<l; j++) {
+    newTable[j] = new List();
+    newTable[j].name = table[j].name;
+  }
+
+  if(keepRowIfElementIsPresent){
+    for(i = 0; i<l0; i++) {
+      if(elementsDictionary[ table[nList][i] ]) {
+        for(j = 0; j<l; j++) {
+          newTable[j].push(table[j][i]);
+        }
+      }
+    }
+  } else {
+    for(i = 0; i<l0; i++) {
+      if(!elementsDictionary[ table[nList][i] ]) {
+        for(j = 0; j<l; j++) {
+          newTable[j].push(table[j][i]);
+        }
+      }
+    }
+  }
+
+  for(j = 0; j<l; j++) {
+    newTable[j] = newTable[j].getImproved();
+  }
+
+  return newTable;
+};
+
 
 /**
  * @todo finish docs
@@ -882,17 +870,29 @@ TableOperators.mergeDataTablesInList = function(tableList) {
 };
 
 /**
- * creates a new table with an updated first List of elements and an added new numberList with the new values
+ * creates a new table with an updated first categorical List of elements and  added new numberLists with the new values
+ * @param {Table} table0 table wit a list of elements and a numberList of numbers associated to elements
+ * @param {Table} table1 wit a list of elements and a numberList of numbers associated to elements
+ * @return {Table}
+ * tags:
  */
 TableOperators.mergeDataTables = function(table0, table1) {
+  if(table0==null || table1==null || table0.length<2 || table1.length<2) return;
+  
   if(table1[0].length === 0) {
     var merged = table0.clone();
     merged.push(ListGenerators.createListWithSameElement(table0[0].length, 0));
     return merged;
   }
 
+  var categories0 = table0[0];
+  var categories1 = table1[0];
+
+  var dictionaryIndexesCategories0 = ListOperators.getSingleIndexDictionaryForList(categories0);
+  var dictionaryIndexesCategories1 = ListOperators.getSingleIndexDictionaryForList(categories1);
+
   var table = new Table();
-  var list = ListOperators.concatWithoutRepetitions(table0[0], table1[0]);
+  var list = ListOperators.concatWithoutRepetitions(categories0, categories1);
 
   var nElements = list.length;
 
@@ -907,7 +907,8 @@ TableOperators.mergeDataTables = function(table0, table1) {
   var i, j;
 
   for(i = 0; i < nElements; i++) {
-    index = table0[0].indexOf(list[i]);
+    //index = categories0.indexOf(list[i]);//@todo: imporve efficiency by creating dictionary
+    index = dictionaryIndexesCategories0[list[i]];
     if(index > -1) {
       for(j = 0; j < nNumbers0; j++) {
         if(i === 0) {
@@ -926,7 +927,8 @@ TableOperators.mergeDataTables = function(table0, table1) {
       }
     }
 
-    index = table1[0].indexOf(list[i]);
+    //index = categories1.indexOf(list[i]);
+    index = dictionaryIndexesCategories1[list[i]];
     if(index > -1) {
       for(j = 0; j < nNumbers1; j++) {
         if(i === 0) {
@@ -948,10 +950,15 @@ TableOperators.mergeDataTables = function(table0, table1) {
 
   table[0] = list;
 
-  for(i = 0; numberTable0[i] != null; i++) {
+  var l = numberTable0.length;
+
+  for(i = 0; i<l; i++) {
     table.push(numberTable0[i]);
   }
-  for(i = 0; numberTable1[i] != null; i++) {
+
+  l = numberTable1.length;
+
+  for(i = 0; i<l; i++) {
     table.push(numberTable1[i]);
   }
   return table;
@@ -963,13 +970,13 @@ TableOperators.mergeDataTables = function(table0, table1) {
  * @param {Object} table1
  * @return {Table}
  */
-TableOperators.fusionDataTables = function(table0, table1) {
+TableOperators.sumDataTables = function(table0, table1) {//
   var table = table0.clone();
   var index;
   var element;
   for(var i = 0; table1[0][i] != null; i++) {
     element = table1[0][i];
-    index = table[0].indexOf(element);
+    index = table[0].indexOf(element);//@todo make more efficient with dictionary
     if(index == -1) {
       table[0].push(element);
       table[1].push(table1[1][i]);
@@ -1072,6 +1079,115 @@ TableOperators.splitTableByCategoricList = function(table, list) {
   return tablesList;
 };
 
+
+
+/**
+ * builds a network from columns or rows, taking into account similarity in numbers (correlation) and other elements (Jaccard)
+ * @param  {Table} table
+ *
+ * @param  {Boolean} nodesAreRows if true (default value) each node corresponds to a row in the table, and rows are compared, if false ([!] not yet deployed!) lists are compared
+ * @param  {Object} names (StringList|Number) optionally add names to nodes with a list that could be part of the table or not; receives a StringList for names, index for list in the providade table
+ * @param  {Number} mode 0:(default) takes into account numbers, uses Pearson Correlation
+ * @param {Object} colorsByList (List|Number) optionally add color to nodes from a NumberList (for scale) or any List (for categorical colors) that could be part of the table or not; receives a List or an index if the list is in the providade table
+ * @param {Number} correlationThreshold 0.3 by default, above that level a relation is created
+ * @param  {Boolean} negativeCorrelation takes into account negative correlations for building relations
+ * @return {Network}
+ * tags:
+ */
+TableOperators.buildCorrelationsNetwork = function(table, nodesAreRows, names, mode, colorsByList, correlationThreshold, negativeCorrelation){
+  if(table==null) return null;
+
+  nodesAreRows = nodesAreRows==null?true:Boolean(nodesAreRows);
+  mode = mode||0;
+  correlationThreshold = correlationThreshold==null?0.3:correlationThreshold;
+  negativeCorrelation = Boolean(negativeCorrelation);
+
+  var types = table.getTypes();
+  var i, j;
+  var l = table.length;
+  var nRows = table[0].length;
+  var node, node1, relation;
+  var id, name;
+  var pearson, jaccard, weight;
+  var colorsList, colors;
+
+  var network = new Network();
+
+  if(colorsByList!=null){
+
+    if(typeOf(colorsByList)=="number"){
+      if(colorsByList<=l){
+        colorsList = table[colorsByList];
+      }
+    } else if(colorsByList["isList"]){
+      if(colorsByList.length>=l) colorsList = colorsByList;
+    }
+
+    if(colorsList!=null){
+      if(colorsList.type === "NumberList"){
+        colors = ColorListGenerators.createColorListFromNumberList(colorsList, ColorScales.blueToRed, 0);// ColorListOperators.colorListFromColorScaleFunctionAndNumberList(ColorScales.blueToRed, colorsList, true);
+      } else {
+        colors = ColorListGenerators.createCategoricalColorListForList(colorsList)[0].value; //@todo [!] this method will soon change
+      }
+    }
+  }
+  
+
+  if(names!=null && typeOf(names)=="number" && names<l) names = table[names];
+
+  
+
+  if(!nodesAreRows){
+    //@todo deploy
+  } else {
+    for(i=0; i<nRows; i++){
+      id = "_"+i;
+      name = names==null?id:names[i];
+      node = new Node(id, name);
+
+      node.row = table.getRow(i);
+      node.numbers = new NumberList();
+      node.categories = new List();
+
+      if(colors) node.color = colors[i];
+
+      for(j=0; j<l; j++){
+        types[j]==="NumberList"?node.numbers.push(node.row[j]):node.categories.push(node.row[j]);
+      }
+
+      network.addNode(node);
+    }
+
+    for(i=0; i<nRows-1; i++){
+      node = network.nodeList[i];
+      for(j=i+1; j<nRows; j++){
+        node1 = network.nodeList[j];
+        
+        pearson = NumberListOperators.pearsonProductMomentCorrelation(node.numbers, node1.numbers);
+        jaccard = ListOperators.jaccardIndex(node.categories, node1.categories);
+
+        weight = (pearson + (negativeCorrelation?(Math.sqrt(jaccard)*2-1):jaccard) )*0.5;
+
+        //if(Math.abs(pearson)>0.1){
+        if( (negativeCorrelation && Math.abs(weight)>correlationThreshold) || (!negativeCorrelation && weight>correlationThreshold) ){
+          id = i+"_"+j;
+          name = names==null?id:node.name+"_"+node1.name;
+          relation = new Relation(id, name, node, node1, Math.abs(weight)-correlationThreshold*0.9);
+          relation.color = weight>0?'blue':'red';
+          relation.pearson = pearson;
+          relation.jaccard = jaccard;
+          network.addRelation(relation);
+        }
+
+      }
+
+    }
+  }
+
+  return network;
+};
+
+
 /**
  * builds a decision tree based on a table made of categorical lists, a list (the values of a supervised variable), and a value from the supervised variable. The result is a tree that contains on its leaves different populations obtained by iterative filterings by category values, and that contain extremes probabilities for having or not the valu ein the supervised variable.
  * [!] this method only works with categorical lists (in case you have lists with numbers, find a way to simplify by ranges or powers)
@@ -1115,7 +1231,6 @@ TableOperators.buildDecisionTree = function(variablesTable, supervised, supervis
  * @ignore
  */
 TableOperators._buildDecisionTreeNode = function(tree, variablesTable, supervised, level, min_entropy, min_size_node, min_info_gain, parent, value, supervisedValue, indexes, generatePattern, colorScale) {
-  //if(level < 4) c.l('\nlevel', level);
   var entropy = ListOperators.getListEntropy(supervised, supervisedValue);
 
   //if(level < 4) c.l('entropy, min_entropy', entropy, min_entropy);
@@ -1507,3 +1622,37 @@ TableOperators.getReportHtml = function(table,level) {
 };
 
 TableOperators.getReportObject = function() {}; //TODO
+
+
+
+/**
+* takes a table and simplifies its lists, numberLists will be simplified using quantiles values (using getNumbersSimplified) and other lists reducing the number of different elements (using getSimplified)
+* specially useful to build simpe decision trees using TableOperators.buildDecisionTree
+* @param {Table} table to be simplified
+* 
+* @param  {Number} nCategories number of different elements on each list (20 by default)
+* @param {Object} othersElement to be placed instead of the less common elements ("other" by default)
+* @return {Table}
+* tags:
+*/
+TableOperators.getTableSimplified = function(table, nCategories, othersElement) {
+  if(table==null || !(table.length>0)) return null;
+ nCategories = nCategories||20;
+
+ var i;
+ var l = table.length;
+ var newTable = new Table();
+ newTable.name = table.name;
+
+ for(i=0; i<l; i++){
+  console.log(i, 'table[i].type:', table[i].type);
+   newTable.push(
+     table[i].type==='NumberList'?
+     table[i].getNumbersSimplified(2, nCategories)
+     :
+     table[i].getSimplified(nCategories, othersElement)
+   );
+ }
+
+ return newTable;
+};

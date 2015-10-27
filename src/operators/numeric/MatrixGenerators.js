@@ -82,7 +82,7 @@ MatrixGenerators.applyTransformationOnCanvasFromPoints = function(context, v0, v
  * @returns {Matrix}
  */
 MatrixGenerators.createRotationMatrix = function(theta, aboutPoint) {
-  var rotationMatrix = Matrix(
+  var rotationMatrix = new Matrix(
     Math.cos(theta),
     Math.sin(theta),
     -Math.sin(theta),
@@ -91,10 +91,10 @@ MatrixGenerators.createRotationMatrix = function(theta, aboutPoint) {
 
   if(aboutPoint) {
     rotationMatrix =
-      Matrix.translation(aboutPoint.x, aboutPoint.y).concat(
+      MatrixGenerators.createTranslationMatrix(aboutPoint.x, aboutPoint.y).concat(
         rotationMatrix
       ).concat(
-        Matrix.translation(-aboutPoint.x, -aboutPoint.y)
+        MatrixGenerators.createTranslationMatrix(-aboutPoint.x, -aboutPoint.y)
       );
   }
 
@@ -117,14 +117,14 @@ MatrixGenerators.createRotationMatrix = function(theta, aboutPoint) {
 MatrixGenerators.createScaleMatrix = function(sx, sy, aboutPoint) {
   sy = sy || sx;
 
-  var scaleMatrix = Matrix(sx, 0, 0, sy);
+  var scaleMatrix = new Matrix(sx, 0, 0, sy);
 
   if(aboutPoint) {
     scaleMatrix =
-      Matrix.translation(aboutPoint.x, aboutPoint.y).concat(
+      Matrix.createTranslationMatrix(aboutPoint.x, aboutPoint.y).concat(
         scaleMatrix
       ).concat(
-        Matrix.translation(-aboutPoint.x, -aboutPoint.y)
+        Matrix.createTranslationMatrix(-aboutPoint.x, -aboutPoint.y)
       );
   }
 
@@ -141,7 +141,7 @@ MatrixGenerators.createScaleMatrix = function(sx, sy, aboutPoint) {
  * @returns {Matrix} A matrix transformation representing a translation by tx and ty.
  */
 MatrixGenerators.createTranslationMatrix = function(tx, ty) {
-  return Matrix(1, 0, 0, 1, tx, ty);
+  return new Matrix(1, 0, 0, 1, tx, ty);
 };
 //
 // /**

@@ -68,7 +68,7 @@ List.fromArray = function(array) {
 
   array.getImproved = List.prototype.getImproved;
   array.isEquivalent = List.prototype.isEquivalent;
-  array.getLength = List.prototype.getLength;
+  //array.getLength = List.prototype.getLength;
   array.getTypeOfElements = List.prototype.getTypeOfElements; //TODO: redundant?
   array.getTypes = List.prototype.getTypes;
   array.getType = List.prototype.getType;
@@ -90,9 +90,6 @@ List.fromArray = function(array) {
   array.getFirstElementByPropertyValue = List.prototype.getFirstElementByPropertyValue;
   array.add = List.prototype.add;
   array.multiply = List.prototype.multiply;
-  array.getSubList = List.prototype.getSubList;
-  array.getSubListByIndexes = List.prototype.getSubListByIndexes;
-  array.getSubListByType = List.prototype.getSubListByType;
   array.getElementNumberOfOccurrences = List.prototype.getElementNumberOfOccurrences;
   array.getPropertyValues = List.prototype.getPropertyValues;
   array.getRandomElement = List.prototype.getRandomElement;
@@ -100,6 +97,7 @@ List.fromArray = function(array) {
   array.containsElement = List.prototype.containsElement;
   array.indexOfElement = List.prototype.indexOfElement;
   //sorting:
+  array.isSorted = List.prototype.isSorted;
   array.sortIndexed = List.prototype.sortIndexed;
   array.sortNumericIndexed = List.prototype.sortNumericIndexed;
   array.sortNumeric = List.prototype.sortNumeric;
@@ -112,6 +110,9 @@ List.fromArray = function(array) {
   array.getSortedByList = List.prototype.getSortedByList;
   array.getSortedRandom = List.prototype.getSortedRandom;
   //filter:
+  array.getSubList = List.prototype.getSubList;
+  array.getSubListByIndexes = List.prototype.getSubListByIndexes;
+  array.getSubListByType = List.prototype.getSubListByType;
   array.getFilteredByPropertyValue = List.prototype.getFilteredByPropertyValue;
   array.getFilteredByBooleanList = List.prototype.getFilteredByBooleanList;
 
@@ -241,11 +242,10 @@ List.prototype.isEquivalent = function(list) {
 /**
  * Returns the number of elements of the list.
  * @return {Number} Length of the list.
- * tags:
  */
-List.prototype.getLength = function() {
-  return this.length;
-};
+// List.prototype.getLength = function() {
+//   return this.length;
+// };
 
 /**
  * In sub-classes, this function returns a NumberList of lengths.
@@ -333,6 +333,7 @@ List.prototype.getReversed = function() {
 /**
  * returns a sub-list, params could be: tw numbers, an interval or a NumberList.
  * @param {Number} argument0 number, interval (in this it will include elements with initial and end indexes) or numberList
+ *
  * @param {Number} argument1 second index
  * @return {List}
  * tags:filter
@@ -340,6 +341,7 @@ List.prototype.getReversed = function() {
 List.prototype.getSubList = function() {
   var interval;
   var i;
+  if(arguments[0]==null) return;
 
   if(arguments[0].isList) {
     return this.getSubListByIndexes(arguments[0]);
@@ -831,6 +833,27 @@ List.prototype.getPropertyValues = function(propertyName, valueIfNull) {
   return newList.getImproved();
 };
 
+
+List.prototype.isSorted = function(ascending){
+  ascending = ascending==null?true:Boolean(ascending);
+  
+  var l = this.length;
+  var i;
+  if(ascending){
+    for(i=1;i<l;i++){
+      if(this[i]<this[i-1]){
+        console.log('~ non sorted elements i, i-1, (ascending):',i,this[i],this[i-1]);
+      }
+      if(this[i]<this[i-1]) return false;
+    }
+  } else {
+    for(i=1;i<l;i++){
+      if(this[i]>this[i-1]) return false;
+    }
+  }
+  return true;
+};
+
 List.prototype.sortIndexed = function() {
   var index = [];
   var i;
@@ -909,17 +932,17 @@ List.prototype.getSortedByList = function(list, ascending) {
   var l = this.length;
 
   for(i = 0; i<l; i++) {
-    pairsArray[i] = [this[i], list[i]];
+    pairsArray[i] = [this[i], list[i],i];
   }
 
   var comparator;
   if(ascending) {
     comparator = function(a, b) {
-      return a[1] < b[1] ? -1 : 1;
+      return a[1] < b[1] ? -1 : a[1] > b[1] ?  1 : a[2] - b[2];
     };
   } else {
     comparator = function(a, b) {
-      return a[1] < b[1] ? 1 : -1;
+      return a[1] < b[1] ?  1 : a[1] > b[1] ? -1 : a[2] - b[2];
     };
   }
 
@@ -958,7 +981,7 @@ List.prototype.getSortedRandom = function() {
  * @return {NumberList}
  * tags:
  */
-List.prototype.indexesOf = function(element) {
+List.prototype.indexesOf = function(element) {//@todo: probably better to just traverse de list
   var index = this.indexOf(element);
   var numberList = new NumberList();
   while(index != -1) {
@@ -975,7 +998,7 @@ List.prototype.indexesOf = function(element) {
  * @return {NumberList}
  * tags:
  */
-List.prototype.indexOfElements = function(elements) {
+List.prototype.indexOfElements = function(elements) {//@todo: probably better to just traverse de list
   var numberList = new NumberList();
   var l = elements.length;
   for(var i = 0; i<l; i++) {
@@ -1218,7 +1241,8 @@ List.prototype.getWithoutElementAtIndex = function(index) {
  * If multiple copies of the element exist, only exlcudes first copy.
  *
  * @param {Number|String|Object} element Element to exclude in the new List.
- * @return {List} New List missing the given element.
+ * @return {List} new List missing the given element
+ * tags:
  */
 List.prototype.getWithoutElement = function(element) {
   var index = this.indexOf(element);
@@ -1244,8 +1268,15 @@ List.prototype.getWithoutElement = function(element) {
   return newList;
 };
 
+/**
+ * removes elements from a list
+ * @param {List} list with elements to be removed
+ * @return {List} new List missing the given elements
+ * tags:
+*/
 List.prototype.getWithoutElements = function(list) {//TODO: more efficiency with dictionary
   var newList;
+  var i;
   var l = this.length;
   if(this.type == 'List') {
     newList = new List();
@@ -1253,9 +1284,12 @@ List.prototype.getWithoutElements = function(list) {//TODO: more efficiency with
     newList = instantiateWithSameType(this);
   }
 
-  for(var i = 0; i<l; i++) {
-    if(list.indexOf(this[i]) == -1) {
-      newList.push(this[i]);
+  var booleanDictionary = ListOperators.getBooleanDictionaryForList(list);
+
+  for(i = 0; i<l; i++) {
+    //if(list.indexOf(this[i]) == -1) {
+    if(!booleanDictionary[this[i]]) {
+      newList.push(this[i]);//@todo: solve NodeList case
     }
   }
   newList.name = this.name;

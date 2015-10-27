@@ -27,17 +27,99 @@ export default ColorListGenerators;
  *
  * @param  {Number} alpha 1 by default
  * @param {Boolean} invert invert colors
+ * @param {Boolean} darken colors beyond starting colorList length (default=false)
  * @return {ColorList}
  * tags:generator
  */
-ColorListGenerators.createDefaultCategoricalColorList = function(nColors, alpha, invert) {
+ColorListGenerators.createDefaultCategoricalColorList = function(nColors, alpha, invert, bDarken) {
   alpha = alpha == null ? 1 : alpha;
-  var colors = ColorListGenerators.createCategoricalColors(2, nColors);
+  bDarken = bDarken == null ? false : bDarken;
+  var colors = ColorListGenerators.createCategoricalColors(2, nColors,null,null,null,null,null,bDarken);
   if(alpha < 1) colors = colors.addAlpha(alpha);
 
   if(invert) colors = colors.getInverted();
 
   return colors;
+};
+
+/**
+ * Creates a ColorList of categorical colors based on an input List. All entries with the same value will get the same color.
+ * @param {List} the list containing categorical data with same length as given list
+ * tags:generator
+ */
+ColorListGenerators.colorsForCategoricalList = function(list){
+  return ColorListGenerators.createCategoricalColorListForList(list)[0].value;
+};
+
+//@todo: change this method (and try to not break things)
+
+/**
+ * Creates a ColorList of categorical colors based on an input List. All entries with the same value will get the same color.
+ * @param {List} the list containing categorical data
+ *
+ * @param {ColorList} ColorList with categorical colors
+ * @param {Number} alpha transparency
+ * @param {String} color to mix
+ * @param {Number} interpolation value (0-1) for color mix
+ * @param {Boolean} invert invert colors
+ * @param {Boolean} darken colors beyond internal colorList length (default=false)
+ * @return {ColorList} ColorList with categorical colors that match the given list
+ * @return {List} elements list of elemnts that match colors (equivalent to getWithoutRepetions)
+ * @return {ColorList} ColorList with different categorical colors
+ * @return {Table} dictionary dictionary table with elemnts and matching colors
+ * @return {Object} citionaryObject (relational array, from objects to colors)
+ * tags:generator
+ */
+ColorListGenerators.createCategoricalColorListForList = function(list, colorList, alpha, color, interpolate, invert, bDarken)
+{
+
+  if(!list)
+    return new ColorList();
+  if(!alpha)
+    alpha = 1;
+  if(!color)
+    color = "#fff";
+  if(!interpolate)
+    interpolate = 0;
+  bDarken = bDarken == null ? false : bDarken;
+
+  list = List.fromArray(list);
+  var diffValues = list.getWithoutRepetitions();
+  var diffColors;
+  if(colorList && interpolate !== 0) {
+    diffColors = colorList.getInterpolated(color, interpolate);
+  } else {
+    diffColors = ColorListGenerators.createCategoricalColors(2, diffValues.length, null, alpha, color, interpolate, colorList,bDarken);
+  }
+  if(alpha<1) diffColors = diffColors.addAlpha(alpha);
+
+  if(invert) diffColors = diffColors.getInverted();
+
+  var colorDictTable = Table.fromArray([diffValues, diffColors]);
+  var dictionaryObject = ListOperators.buildDictionaryObjectForDictionary(colorDictTable);
+
+  var fullColorList = ListOperators.translateWithDictionary(list, colorDictTable, 'black');
+
+  fullColorList = ColorList.fromArray(fullColorList);
+
+  return [
+    {
+      value: fullColorList,
+      type: 'ColorList'
+    }, {
+      value: diffValues,
+      type: diffValues.type
+    }, {
+      value: diffColors,
+      type: 'ColorList'
+    }, {
+      value: new Table(diffValues, fullColorList),
+      type: 'Table'
+    }, {
+      value: dictionaryObject,
+      type: 'Object'
+    }
+  ];
 };
 
 
@@ -130,12 +212,13 @@ ColorListGenerators.createColorListSpectrum = function(nColors, saturation,value
  * @param {String} interpolateColor color to interpolate
  * @param {Number} interpolateValue interpolation value [0, 1]
  * @param {ColorList} colorList colorList to be used in mode 2 (if not colorList is provided it will use default categorical colors)
+ * @param {Boolean} darken colors beyond starting colorList length for mode 2(default=false)
  * @return {ColorList} ColorList with categorical colors
  * tags:generator
  */
-ColorListGenerators.createCategoricalColors = function(mode, nColors, colorScaleFunction, alpha, interpolateColor, interpolateValue, colorList) {
+ColorListGenerators.createCategoricalColors = function(mode, nColors, colorScaleFunction, alpha, interpolateColor, interpolateValue, colorList, bDarken) {
   colorScaleFunction = colorScaleFunction == null ? ColorScales.temperature : colorScaleFunction;
-
+  bDarken = bDarken == null ? false : bDarken;
   var i;
   var newColorList = new ColorList();
   switch(mode) {
@@ -155,7 +238,7 @@ ColorListGenerators.createCategoricalColors = function(mode, nColors, colorScale
       var nInterpolate;
       for(i = 0; i < nColors; i++) {
         newColorList[i] = colorList[i%colorList.length];
-        if(i >= colorList.length){
+        if(bDarken && i >= colorList.length){
           // move towards black
           nInterpolate = Math.floor(i/colorList.length);
           for(var j=0; j < nInterpolate;j++){
@@ -275,82 +358,24 @@ ColorListGenerators.createCategoricalColorListDictionaryObject = function(list, 
   if(list==null) return;
 
   var diffValues = list.getWithoutRepetitions();
+
   var diffColors = ColorListGenerators.createCategoricalColors(2, diffValues.length, null, alpha, color, interpolate, colorList);
+
   if(invert) diffColors = diffColors.getInverted();
 
   var dictionaryObject = {};
 
-  diffValues.forEach(function(element, i){
-    dictionaryObject[element] = diffColors[i];
-  });
+  var l = diffColors.length;
+  var i;
+
+  for(i=0; i<l; i++){
+    dictionaryObject[diffValues[i]] = diffColors[i];
+  }
+
+  // diffValues.forEach(function(element, i){
+  //   dictionaryObject[element] = diffColors[i];
+  // });
 
   return dictionaryObject;
 
-};
-
-/**
- * Creates a ColorList of categorical colors based on an input List. All entries with the same value will get the same color.
- * @param {List} the list containing categorical data
- *
- * @param {ColorList} ColorList with categorical colors
- * @param {Number} alpha transparency
- * @param {String} color to mix
- * @param {Number} interpolation value (0-1) for color mix
- * @param {Boolean} invert invert colors
- * @return {ColorList} ColorList with categorical colors that match the given list
- * @return {List} elements list of elemnts that match colors (equivalent to getWithoutRepetions)
- * @return {ColorList} ColorList with different categorical colors
- * @return {Table} dictionary dictionary table with elemnts and matching colors
- * @return {Object} citionaryObject (relational array, from objects to colors)
- * tags:generator
- */
-ColorListGenerators.createCategoricalColorListForList = function(list, colorList, alpha, color, interpolate, invert)
-{
-
-  if(!list)
-    return new ColorList();
-  if(!alpha)
-    alpha = 1;
-  if(!color)
-    color = "#fff";
-  if(!interpolate)
-    interpolate = 0;
-
-  list = List.fromArray(list);
-  var diffValues = list.getWithoutRepetitions();
-  var diffColors;
-  if(colorList && interpolate !== 0) {
-    diffColors = colorList.getInterpolated(color, interpolate);
-  } else {
-    diffColors = ColorListGenerators.createCategoricalColors(2, diffValues.length, null, alpha, color, interpolate, colorList);
-  }
-  if(alpha<1) diffColors = diffColors.addAlpha(alpha);
-
-  if(invert) diffColors = diffColors.getInverted();
-
-  var colorDictTable = Table.fromArray([diffValues, diffColors]);
-  var dictionaryObject = ListOperators.buildDictionaryObjectForDictionary(colorDictTable);
-
-  var fullColorList = ListOperators.translateWithDictionary(list, colorDictTable, 'black');
-
-  fullColorList = ColorList.fromArray(fullColorList);
-
-  return [
-    {
-      value: fullColorList,
-      type: 'ColorList'
-    }, {
-      value: diffValues,
-      type: diffValues.type
-    }, {
-      value: diffColors,
-      type: 'ColorList'
-    }, {
-      value: new Table(diffValues, fullColorList),
-      type: 'Table'
-    }, {
-      value: dictionaryObject,
-      type: 'Object'
-    }
-  ];
 };
