@@ -16,7 +16,7 @@ module.exports = function (grunt) {
     watch: {
       js:  {
         files: buildFileList().concat('gruntfile.js'),
-        tasks: ['build-fast']
+        tasks: ['build']
       },
     }
 
