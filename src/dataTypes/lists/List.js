@@ -1170,7 +1170,7 @@ List.prototype.getFilteredByPropertyValue = function(propertyName, propertyValue
     break;
     case "lower":
       for(i = 0; i<l; i++) {
-      if(this[i][propertyName] > propertyValue) newList.push(this[i]);
+      if(this[i][propertyName] < propertyValue) newList.push(this[i]);
     }
     break;
   }
