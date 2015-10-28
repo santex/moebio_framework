@@ -3788,6 +3788,7 @@
     var i;
     var newNumberList = new NumberList();
     var l = this.length;
+    console.log('+++log', l, this[0], Math.log(this[0] + add));
     for(i = 0; i<l; i++) {
       newNumberList[i] = Math.log(this[i] + add);
     }

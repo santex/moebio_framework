@@ -50,7 +50,6 @@ function List() {
 }
 export default List;
 
-
 /**
  * Creates a new List from a raw array of values
  *
@@ -64,6 +63,7 @@ List.fromArray = function(array) {
 
   array.setType = List.prototype.setType;
   array.setArray = List.prototype.setArray;
+  array.toArray = List.prototype.toArray;
   array._constructor = List;
 
   array.getImproved = List.prototype.getImproved;
@@ -219,6 +219,22 @@ List.prototype.getImproved = function() {
     return newList;
   }
   return this;
+};
+
+/**
+ * Creates a simple Array from the list
+ * @return {Array}
+ * tags:
+ */
+List.prototype.toArray = function() {//@todo: make this efficient
+  //return this.slice(0); //why this didn't work?
+  var i;
+  var l = this.length;
+  var array = [];
+  for(i=0; i<l; i++){
+    array.push(this[i]);
+  }
+  return array;
 };
 
 /**
@@ -618,8 +634,7 @@ List.prototype.getFrequenciesTable = function(sortListsByOccurrences, addWeights
 
   table[0] = elementList;
   table[1] = numberList;
-
-  //if(this.type == 'NumberList' || this.type == 'StringList') {//TODO:check other cases
+  
   table._indexesDictionary = {};
 
   var l = this.length;
@@ -634,21 +649,6 @@ List.prototype.getFrequenciesTable = function(sortListsByOccurrences, addWeights
     }
     numberList[index]++;
   }
-
-
-
-  // } else {
-  //   for(i = 0; this[i]!=null; i++) {
-  //     element = this[i];
-  //     index = elementList.indexOf(element);
-  //     if(index != -1) {
-  //       numberList[index]++;
-  //     } else {
-  //       elementList.push(element);
-  //       numberList.push(1);
-  //     }
-  //   }
-  // }
 
   if(sortListsByOccurrences){
     table[0] = elementList.getSortedByList(numberList, false);
