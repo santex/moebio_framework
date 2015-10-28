@@ -1726,8 +1726,7 @@
 
     table[0] = elementList;
     table[1] = numberList;
-
-    //if(this.type == 'NumberList' || this.type == 'StringList') {//TODO:check other cases
+    
     table._indexesDictionary = {};
 
     var l = this.length;
@@ -1742,21 +1741,6 @@
       }
       numberList[index]++;
     }
-
-
-
-    // } else {
-    //   for(i = 0; this[i]!=null; i++) {
-    //     element = this[i];
-    //     index = elementList.indexOf(element);
-    //     if(index != -1) {
-    //       numberList[index]++;
-    //     } else {
-    //       elementList.push(element);
-    //       numberList.push(1);
-    //     }
-    //   }
-    // }
 
     if(sortListsByOccurrences){
       table[0] = elementList.getSortedByList(numberList, false);
@@ -3788,7 +3772,6 @@
     var i;
     var newNumberList = new NumberList();
     var l = this.length;
-    console.log('+++log', l, this[0], Math.log(this[0] + add));
     for(i = 0; i<l; i++) {
       newNumberList[i] = Math.log(this[i] + add);
     }
