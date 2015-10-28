@@ -1095,48 +1095,6 @@ List.prototype.getFilteredByBooleanList = function(booleanList) {
 };
 
 /**
- * Filters a list by its elements, and a type of comparison (equal by default).
- *
- * @param  {String} propertyName property to check.
- * @param  {Object} propertyValue object (for equal or different comparison) or number or date
- * (for equal, different, greater, lesser).
- * @param  {String} comparison equal (default), different, greater, lesser.
- * @return {List} Filtered list
- * tags:filter
- */
-List.prototype.getFilteredByValue = function(propertyName, propertyValue, comparison) {
-  comparison = comparison == null ? "equal" : comparison;
-
-  var newList = new List();
-  newList.name = "filtered_" + this.name;
-  var i;
-  switch(comparison) {
-    case "equal":
-      for(i = 0; this[i] != null; i++) {
-      if(this[i][propertyName] == propertyValue) newList.push(this[i]);
-    }
-    break;
-    case "different":
-      for(i = 0; this[i] != null; i++) {
-      if(this[i][propertyName] != propertyValue) newList.push(this[i]);
-    }
-    break;
-    case "greater":
-      for(i = 0; this[i] != null; i++) {
-      if(this[i][propertyName] > propertyValue) newList.push(this[i]);
-    }
-    break;
-    case "lower":
-      for(i = 0; this[i] != null; i++) {
-      if(this[i][propertyName] > propertyValue) newList.push(this[i]);
-    }
-    break;
-  }
-
-  return newList.getImproved();
-};
-
-/**
  * Filters a list by the values of a property on its elements, and a type of comparison (equal by default).
  *
  * @param  {String} propertyName name of property
@@ -1170,7 +1128,7 @@ List.prototype.getFilteredByPropertyValue = function(propertyName, propertyValue
     break;
     case "lower":
       for(i = 0; i<l; i++) {
-      if(this[i][propertyName] > propertyValue) newList.push(this[i]);
+      if(this[i][propertyName] < propertyValue) newList.push(this[i]);
     }
     break;
   }
