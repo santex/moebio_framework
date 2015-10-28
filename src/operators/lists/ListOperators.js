@@ -2,6 +2,7 @@ import List from "src/dataTypes/lists/List";
 import ListConversions from "src/operators/lists/ListConversions";
 import NumberTable from "src/dataTypes/numeric/NumberTable";
 import Table from "src/dataTypes/lists/Table";
+import TableOperators from "src/operators/lists/TableOperators";
 import NumberList from "src/dataTypes/numeric/NumberList";
 import StringList from "src/dataTypes/strings/StringList";
 import NodeList from "src/dataTypes/structures/lists/NodeList";
@@ -1271,3 +1272,21 @@ ListOperators.getReportHtml = function(list, level) { //TODO:complete
   ///add ideas to: analyze, visualize
   return text;
 };
+
+/**
+ * filter the elements of a list
+ * @param  {List} list List.
+ * @param  {String} operator "=c"(default, exact match for numbers, contains for strings), "==", "<", "<=", ">", ">=", "!=", "contains", "between"
+ * @param  {Object} value to compare against, can be String or Number
+ * @param  {Object} value2 only used for "between" operator
+ * @param  {Boolean} bIgnoreCase for string compares, defaults to true
+ * @return {List}
+ */
+ListOperators.getFilteredByValue = function(list, operator, value, value2, bIgnoreCase){
+  if(list==null || list.length === 0 || value == null) return;
+  var table = new Table();
+  table.push(list);
+  var tableFiltered = TableOperators.getFilteredByValue(table,operator,value,0,value2,bIgnoreCase);
+  return tableFiltered[0];
+}
+
