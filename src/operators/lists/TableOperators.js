@@ -91,7 +91,7 @@ TableOperators.getSubTable = function(table, x, y, width, height) {
  * @return {Table}
  * tags:filter
  */
-TableOperators.filterTable = function(table, operator, value, nList, value2, bIgnoreCase){
+TableOperators.getFilteredByValue = function(table, operator, value, nList, value2, bIgnoreCase){
   // input validation and defaults
   if(table==null || table.length === 0 || value == null) return;
   if(operator==null) operator='=c';
