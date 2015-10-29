@@ -37,12 +37,12 @@ NumberListGenerators.createSortedNumberList = function(nValues, start, step) {
  * @param  {Number} nValues
  *
  * @param  {Interval} interval range of the numberList
- * @param  {Number} mode <br>0:random <br>1:evenly distributed
+ * @param  {Number} mode <br>0:random <br>1:evenly distributed (not yet deployed)
  * @param  {Number} seed optional seed for random numbers ([!] not yet working @todo: finish)
  * @return {NumberList}
  * tags:random,generator
  */
-NumberList.createNumberListWithinInterval = function(nValues, interval, mode, randomSeed) {
+NumberListGenerators.createNumberListWithinInterval = function(nValues, interval, mode, randomSeed) {
   if(interval == null) interval = new Interval(0, 1);
   mode = mode==null?0:mode;
 
@@ -61,10 +61,26 @@ NumberList.createNumberListWithinInterval = function(nValues, interval, mode, ra
   return numberList;
 };
 
-NumberList.createRandomNormalDistribution = function(nValues, mean, stdev){
-  var fac = stdev/6
-  (Math.random()+Math.random()+Math.random()+Math.random()+Math.random()+Math.random())*stdev/6+mean;
-}
+/**
+ * generates a numberList with random numbers in a normal distribution
+ * @param  {Number} nValues size of generated numberList
+ * @param  {Number} mean
+ * @param  {Number} standardDeviation
+ * @return {NumberList}
+ * tags:random,generator,statistics
+ */
+NumberListGenerators.createRandomNormalDistribution = function(nValues, mean, standardDeviation) {
+  var nL = new mo.NumberList();
+  var i;
+  
+  for(i=0; i<nValues; i++){
+    nL.push(
+ ( (Math.random()+Math.random()+Math.random()+Math.random()+Math.random()+Math.random()-3)/3 )*standardDeviation + mean
+    );
+  }
+  
+  return nL;
+};
 
 /**
  * creates a list with random numbers
