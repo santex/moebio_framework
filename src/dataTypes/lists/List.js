@@ -99,10 +99,10 @@ List.fromArray = function(array) {
   //sorting:
   array.isSorted = List.prototype.isSorted;
   array.sortIndexed = List.prototype.sortIndexed;
-  array.sortNumericIndexed = List.prototype.sortNumericIndexed;
-  array.sortNumeric = List.prototype.sortNumeric;
-  array.sortNumericIndexedDescending = List.prototype.sortNumericIndexedDescending;
-  array.sortNumericDescending = List.prototype.sortNumericDescending;
+  //array.sortNumericIndexed = List.prototype.sortNumericIndexed;
+  //array.sortNumeric = List.prototype.sortNumeric;
+  //array.sortNumericIndexedDescending = List.prototype.sortNumericIndexedDescending;
+  //array.sortNumericDescending = List.prototype.sortNumericDescending;
   array.sortOnIndexes = List.prototype.sortOnIndexes;
   array.getReversed = List.prototype.getReversed;
   array.getSortedByProperty = List.prototype.getSortedByProperty;
@@ -227,14 +227,27 @@ List.prototype.getImproved = function() {
  * tags:
  */
 List.prototype.toArray = function() {//@todo: make this efficient
-  //return this.slice(0); //why this didn't work?
-  var i;
-  var l = this.length;
-  var array = [];
-  for(i=0; i<l; i++){
-    array.push(this[i]);
+  var array = this.slice(0);
+  console.log('List.prototype.toArray | this.name:', this.name);
+  console.log('List.prototype.toArray | array.name, array.type:', array.name, array.type);
+  var propName;
+  for(propName in array){
+    if(typeof array[propName] == 'function'){
+      delete array[propName];
+    }
   }
+  array.name = this.name;
   return array;
+
+
+  //return this.slice(0); //why this didn't work?
+  // var i;
+  // var l = this.length;
+  // var array = [];
+  // for(i=0; i<l; i++){
+  //   array.push(this[i]);
+  // }
+  // return array;
 };
 
 /**
@@ -634,7 +647,7 @@ List.prototype.getFrequenciesTable = function(sortListsByOccurrences, addWeights
 
   table[0] = elementList;
   table[1] = numberList;
-  
+
   table._indexesDictionary = {};
 
   var l = this.length;
@@ -1373,7 +1386,6 @@ List.prototype.removeElements = function(elements) { //TODO: make it more effici
   }
 
   for(i = 0; i<l; i++) {
-    //if(elements.indexOf(this[i]) > -1) {
     if(dictionary[this[i]]) {
       this.splice(i, 1);
       i--;
