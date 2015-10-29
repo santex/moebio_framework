@@ -819,6 +819,47 @@ TableOperators.sumDataTables = function(table0, table1) {//
 };
 
 /**
+ * calcualtes the sum of products of numbers associated with same elements
+ * @param  {Table} table0 dataTable with categories and numbers
+ * @param  {Table} table1 dataTable with categories and numbers
+ * @return {Number}
+ * tags:statistics
+ */
+NumberListOperators.dotProductDataTables = function(table0, table1) {
+  if(table0==null || table1==null || table0.length<2 || table1.length<2) return null;
+
+  var i, j;
+  var l0 = table0[0].length;
+  var l1 = table1[0].length;
+  var product = 0;
+  var element, element1;
+  for(i=0; i<l0; i++){
+    element = table0[0][i];
+    for(j=0; j<l1; j++){
+      element1 = table1[0][j];
+      if(element==element1) product+=table0[1][i]*table1[1][j];
+    }
+  }
+  
+  return product;
+};
+
+/**
+ * calcualtes the cosine similarity based on NumberListOperators.dotProductDataTables
+ * @param  {Table} table0 dataTable with categories and numbers
+ * @param  {Table} table1 dataTable with categories and numbers
+ * @return {Number}
+ * tags:statistics
+ */
+NumberListOperators.cosineSimilarityDataTables = function(table0, table1) {
+  if(table0==null || table1==null || table0.length<2 || table1.length<2) return null;
+
+  var norms = table0[1].getNorm()*table1[1].getNorm();
+  if(norms === 0) return 0;
+  return NumberListOperators.dotProductDataTables(table0, table1)/norms;
+};
+
+/**
  * @todo finish docs
  */
 TableOperators.completeTable = function(table, nRows, value) {
