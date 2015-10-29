@@ -1191,10 +1191,10 @@
     //sorting:
     array.isSorted = List.prototype.isSorted;
     array.sortIndexed = List.prototype.sortIndexed;
-    array.sortNumericIndexed = List.prototype.sortNumericIndexed;
-    array.sortNumeric = List.prototype.sortNumeric;
-    array.sortNumericIndexedDescending = List.prototype.sortNumericIndexedDescending;
-    array.sortNumericDescending = List.prototype.sortNumericDescending;
+    //array.sortNumericIndexed = List.prototype.sortNumericIndexed;
+    //array.sortNumeric = List.prototype.sortNumeric;
+    //array.sortNumericIndexedDescending = List.prototype.sortNumericIndexedDescending;
+    //array.sortNumericDescending = List.prototype.sortNumericDescending;
     array.sortOnIndexes = List.prototype.sortOnIndexes;
     array.getReversed = List.prototype.getReversed;
     array.getSortedByProperty = List.prototype.getSortedByProperty;
@@ -1319,14 +1319,27 @@
    * tags:
    */
   List.prototype.toArray = function() {//@todo: make this efficient
-    //return this.slice(0); //why this didn't work?
-    var i;
-    var l = this.length;
-    var array = [];
-    for(i=0; i<l; i++){
-      array.push(this[i]);
+    var array = this.slice(0);
+    console.log('List.prototype.toArray | this.name:', this.name);
+    console.log('List.prototype.toArray | array.name, array.type:', array.name, array.type);
+    var propName;
+    for(propName in array){
+      if(typeof array[propName] == 'function'){
+        delete array[propName];
+      }
     }
+    array.name = this.name;
     return array;
+
+
+    //return this.slice(0); //why this didn't work?
+    // var i;
+    // var l = this.length;
+    // var array = [];
+    // for(i=0; i<l; i++){
+    //   array.push(this[i]);
+    // }
+    // return array;
   };
 
   /**
@@ -1726,7 +1739,7 @@
 
     table[0] = elementList;
     table[1] = numberList;
-    
+
     table._indexesDictionary = {};
 
     var l = this.length;
@@ -2465,7 +2478,6 @@
     }
 
     for(i = 0; i<l; i++) {
-      //if(elements.indexOf(this[i]) > -1) {
       if(dictionary[this[i]]) {
         this.splice(i, 1);
         i--;
@@ -5896,12 +5908,12 @@
    * @param  {Number} nValues
    *
    * @param  {Interval} interval range of the numberList
-   * @param  {Number} mode <br>0:random <br>1:evenly distributed
+   * @param  {Number} mode <br>0:random <br>1:evenly distributed (not yet deployed)
    * @param  {Number} seed optional seed for random numbers ([!] not yet working @todo: finish)
    * @return {NumberList}
    * tags:random,generator
    */
-  NumberList.createNumberListWithinInterval = function(nValues, interval, mode, randomSeed) {
+  NumberListGenerators.createNumberListWithinInterval = function(nValues, interval, mode, randomSeed) {
     if(interval == null) interval = new Interval(0, 1);
     mode = mode==null?0:mode;
 
@@ -5920,10 +5932,26 @@
     return numberList;
   };
 
-  NumberList.createRandomNormalDistribution = function(nValues, mean, stdev){
-    var fac = stdev/6
-    (Math.random()+Math.random()+Math.random()+Math.random()+Math.random()+Math.random())*stdev/6+mean;
-  }
+  /**
+   * generates a numberList with random numbers in a normal distribution
+   * @param  {Number} nValues size of generated numberList
+   * @param  {Number} mean
+   * @param  {Number} standardDeviation
+   * @return {NumberList}
+   * tags:random,generator,statistics
+   */
+  NumberListGenerators.createRandomNormalDistribution = function(nValues, mean, standardDeviation) {
+    var nL = new mo.NumberList();
+    var i;
+    
+    for(i=0; i<nValues; i++){
+      nL.push(
+   ( (Math.random()+Math.random()+Math.random()+Math.random()+Math.random()+Math.random()-3)/3 )*standardDeviation + mean
+      );
+    }
+    
+    return nL;
+  };
 
   /**
    * creates a list with random numbers
@@ -16866,6 +16894,47 @@
       }
     }
     return table;
+  };
+
+  /**
+   * calcualtes the sum of products of numbers associated with same elements
+   * @param  {Table} table0 dataTable with categories and numbers
+   * @param  {Table} table1 dataTable with categories and numbers
+   * @return {Number}
+   * tags:statistics
+   */
+  NumberListOperators.dotProductDataTables = function(table0, table1) {
+    if(table0==null || table1==null || table0.length<2 || table1.length<2) return null;
+
+    var i, j;
+    var l0 = table0[0].length;
+    var l1 = table1[0].length;
+    var product = 0;
+    var element, element1;
+    for(i=0; i<l0; i++){
+      element = table0[0][i];
+      for(j=0; j<l1; j++){
+        element1 = table1[0][j];
+        if(element==element1) product+=table0[1][i]*table1[1][j];
+      }
+    }
+    
+    return product;
+  };
+
+  /**
+   * calcualtes the cosine similarity based on NumberListOperators.dotProductDataTables
+   * @param  {Table} table0 dataTable with categories and numbers
+   * @param  {Table} table1 dataTable with categories and numbers
+   * @return {Number}
+   * tags:statistics
+   */
+  NumberListOperators.cosineSimilarityDataTables = function(table0, table1) {
+    if(table0==null || table1==null || table0.length<2 || table1.length<2) return null;
+
+    var norms = table0[1].getNorm()*table1[1].getNorm();
+    if(norms === 0) return 0;
+    return NumberListOperators.dotProductDataTables(table0, table1)/norms;
   };
 
   /**
