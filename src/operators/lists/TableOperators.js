@@ -81,6 +81,175 @@ TableOperators.getSubTable = function(table, x, y, width, height) {
 };
 
 /**
+ * filter the rows of a table
+ * @param  {Table} table Table.
+ * @param  {String} operator "=c"(default, exact match for numbers, contains for strings), "==", "<", "<=", ">", ">=", "!=", "contains", "between"
+ * @param  {Object} value to compare against, can be String or Number
+ * @param  {Number} nList null(default) means check every column, otherwise column index to test
+ * @param  {Object} value2 only used for "between" operator
+ * @param  {Boolean} bIgnoreCase for string compares, defaults to true
+ * @return {Table}
+ * tags:filter
+ */
+TableOperators.getFilteredByValue = function(table, operator, value, nList, value2, bIgnoreCase){
+  // input validation and defaults
+  if(table==null || table.length === 0 || value == null) return;
+  if(operator==null) operator='=c';
+  if(operator == '=') operator = '==';
+  var nLKeep = new NumberList();
+  var nRows = table.getListLength();
+  var r,c,val,bKeep;
+  var cStart=0;
+  var cEnd=table.length;
+  var type = typeOf(value);
+  if(type == 'string' && !isNaN(value) && value.trim() !== ''){
+    type='number';
+    value=Number(value);
+  }
+  if(operator == '=c'){
+    if(type == 'string')
+      operator = 'contains';
+    else
+      operator = '==';
+  }
+  if(type == 'number' && operator == 'between'){
+    if(isNaN(value2))
+      operator='noop';
+    else {
+      value2 = Number(value2);
+    }
+  }
+  if(operator == 'between' && value2 == null)
+    operator='noop';
+  if(nList != null){
+    cStart=nList;
+    cEnd=nList+1;
+  }
+  if(bIgnoreCase == null || (bIgnoreCase !== true && bIgnoreCase !== false) )
+    bIgnoreCase = true;
+  if(type == 'string' && bIgnoreCase){
+    value = value.toLowerCase();
+    value2 = value2 ? String(value2).toLowerCase() : value2;
+  }
+  if(operator == '==' && bIgnoreCase)
+    operator = '==i';
+  if(operator == '!=' && bIgnoreCase)
+    operator = '!=i';
+  // row matching, not using RegExp because value can contain control characters
+  switch(operator){
+    case "==":
+      for(r=0; r<nRows; r++){
+        for(c=cStart; c<cEnd; c++){
+          if(table[c][r] == value){
+            nLKeep.push(r);
+            break;
+          }
+        }
+      }
+      break;
+    case "==i":
+      for(r=0; r<nRows; r++){
+        for(c=cStart; c<cEnd; c++){
+          val = String(table[c][r]).toLowerCase();
+          if(val == value){
+            nLKeep.push(r);
+            break;
+          }
+        }
+      }
+      break;
+    case "!=":
+      for(r=0; r<nRows; r++){
+        bKeep=true;
+        for(c=cStart; c<cEnd; c++){
+          if(table[c][r] == value){
+            bKeep=false;
+            break;
+          }
+        }
+        if(bKeep)
+          nLKeep.push(r);
+      }
+      break;
+    case "!=i":
+      for(r=0; r<nRows; r++){
+        bKeep=true;
+        for(c=cStart; c<cEnd; c++){
+          val = String(table[c][r]).toLowerCase();
+          if(val == value){
+            bKeep=false;
+            break;
+          }
+        }
+        if(bKeep)
+          nLKeep.push(r);
+      }
+      break;
+    case "contains":
+      for(r=0; r<nRows; r++){
+        for(c=cStart; c<cEnd; c++){
+          val = bIgnoreCase ? String(table[c][r]).toLowerCase() : String(table[c][r]);
+          if(val.indexOf(value) > -1){
+            nLKeep.push(r);
+            break;
+          }
+        }
+      }
+      break;
+    case "<":
+    case "<=":
+      for(r=0; r<nRows; r++){
+        for(c=cStart; c<cEnd; c++){
+          if(type != typeOf(table[c][r])) continue;
+          val = bIgnoreCase ? String(table[c][r]).toLowerCase() : String(table[c][r]);
+          if(val < value){
+            nLKeep.push(r);
+            break;
+          }
+          else if(val == value && operator == '<='){
+            nLKeep.push(r);
+            break;
+          }
+        }
+      }
+      break;
+    case ">":
+    case ">=":
+      for(r=0; r<nRows; r++){
+        for(c=cStart; c<cEnd; c++){
+          if(type != typeOf(table[c][r])) continue;
+          val = bIgnoreCase ? String(table[c][r]).toLowerCase() : String(table[c][r]);
+          if(val > value){
+            nLKeep.push(r);
+            break;
+          }
+          else if(val == value && operator == '>='){
+            nLKeep.push(r);
+            break;
+          }
+        }
+      }
+      break;
+    case "between":
+      for(r=0; r<nRows; r++){
+        for(c=cStart; c<cEnd; c++){
+          if(type != typeOf(table[c][r])) continue;
+          val = bIgnoreCase ? String(table[c][r]).toLowerCase() : String(table[c][r]);
+          if(type == 'number')
+            val = Number(val);
+          if(value <= val && val <= value2){
+            nLKeep.push(r);
+            break;
+          }
+        }
+      }
+      break;
+  }
+  var newTable = table.getSubListsByIndexes(nLKeep);
+  return newTable;
+};
+
+/**
  * filters lists on a table, keeping elements that are in the same of row of a certain element of a given list from the table
  * @param  {Table} table Table.
  * @param  {Number} nList index of list containing the element

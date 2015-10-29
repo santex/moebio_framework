@@ -1271,3 +1271,4 @@ ListOperators.getReportHtml = function(list, level) { //TODO:complete
   ///add ideas to: analyze, visualize
   return text;
 };
+
