@@ -116,7 +116,7 @@ NumberTableDraw.drawSimpleScatterPlot = function(frame, numberTable, texts, colo
     y = subframe.bottom - list1[i] * subframe.height;
 
     if(radii == null) {
-      if(NumberTableDraw._drawCrossScatterPlot(x, y, colors == null ? 'rgb(150,150,150)' : colors[i % nColors])) iOver = i;
+      if(NumberTableDraw._drawCrossScatterPlot(x, y, colors == null ? 'rgb(150,150,150)' : colors[i % nColors],graphics)) iOver = i;
     } else {
       graphics.setFill(colors == null ? 'rgb(150,150,150)' : colors[i % nColors]);
       if(graphics.fCircleM(x, y, radii[i], radii[i] + 1)) iOver = i;
