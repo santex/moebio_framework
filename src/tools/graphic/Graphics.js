@@ -372,22 +372,25 @@ Graphics.prototype._stopCycle = function(callback) {
  *
  * Can be called multiple times to delay the stop time to being time milliseconds
  * after the last call to this function.
- * @param  {Number} time time in milliseconds to run the cycle function before stopping ot.
+ * @param  {Number} time time in milliseconds to run the cycle function before stopping ot. if 0 it starts and endless cycle, if 1 it executes the cycle once
  */
 Graphics.prototype.cycleFor = function(time) {
-  if(this._setIntervalId) {
-    // If there was already a running cycle then just delay the
-    // stop function to stop after time. This effectively debounces
-    // the _startCycle call.
-    clearTimeout(this._setTimeOutId);
-    this._stopAfter(time);
+  if(time===0){
+    if(this._setIntervalId) clearTimeout(this._setTimeOutId);
+    this._startCycle();
+  } else if(time==1){
+    if(this._setIntervalId) clearTimeout(this._setTimeOutId);
+    this._onCycle();
   } else {
-    if(time==1){
-      this._onCycle();
+    if(this._setIntervalId) {
+      // If there was already a running cycle then just delay the
+      // stop function to stop after time. This effectively debounces
+      // the _startCycle call.
+      clearTimeout(this._setTimeOutId);
     } else {
       this._startCycle();
-      this._stopAfter(time);
     }
+    this._stopAfter(time);
   }
 };
 
@@ -549,15 +552,17 @@ Graphics.prototype.cycleOnMouseMovement = function(time) {
     this.canvas.removeEventListener('mousemove', this.cycleOnMouseMovementListener, false);
   }
 
-  this.cycleOnMouseMovementListener = function(){
+  if(time>1){
+    this.cycleOnMouseMovementListener = function(){
+      self.cycleFor(time);
+    };
+
+    this.canvas.addEventListener('mousemove', this.cycleOnMouseMovementListener, false);
+    this.canvas.addEventListener('mousewheel', this.cycleOnMouseMovementListener, false);
+    this.canvas.addEventListener('mousemove', this.cycleOnMouseMovementListener, false);
+
     self.cycleFor(time);
-  };
-
-  this.canvas.addEventListener('mousemove', this.cycleOnMouseMovementListener, false);
-  this.canvas.addEventListener('mousewheel', this.cycleOnMouseMovementListener, false);
-  this.canvas.addEventListener('mousemove', this.cycleOnMouseMovementListener, false);
-
-  self.cycleFor(time);
+  }
 };
 
 /**
