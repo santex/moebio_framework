@@ -2200,48 +2200,6 @@
   };
 
   /**
-   * Filters a list by its elements, and a type of comparison (equal by default).
-   *
-   * @param  {String} propertyName property to check.
-   * @param  {Object} propertyValue object (for equal or different comparison) or number or date
-   * (for equal, different, greater, lesser).
-   * @param  {String} comparison equal (default), different, greater, lesser.
-   * @return {List} Filtered list
-   * tags:filter
-   */
-  List.prototype.getFilteredByValue = function(propertyName, propertyValue, comparison) {
-    comparison = comparison == null ? "equal" : comparison;
-
-    var newList = new List();
-    newList.name = "filtered_" + this.name;
-    var i;
-    switch(comparison) {
-      case "equal":
-        for(i = 0; this[i] != null; i++) {
-        if(this[i][propertyName] == propertyValue) newList.push(this[i]);
-      }
-      break;
-      case "different":
-        for(i = 0; this[i] != null; i++) {
-        if(this[i][propertyName] != propertyValue) newList.push(this[i]);
-      }
-      break;
-      case "greater":
-        for(i = 0; this[i] != null; i++) {
-        if(this[i][propertyName] > propertyValue) newList.push(this[i]);
-      }
-      break;
-      case "lower":
-        for(i = 0; this[i] != null; i++) {
-        if(this[i][propertyName] > propertyValue) newList.push(this[i]);
-      }
-      break;
-    }
-
-    return newList.getImproved();
-  };
-
-  /**
    * Filters a list by the values of a property on its elements, and a type of comparison (equal by default).
    *
    * @param  {String} propertyName name of property
@@ -2275,7 +2233,7 @@
       break;
       case "lower":
         for(i = 0; i<l; i++) {
-        if(this[i][propertyName] > propertyValue) newList.push(this[i]);
+        if(this[i][propertyName] < propertyValue) newList.push(this[i]);
       }
       break;
     }
@@ -7903,9 +7861,17 @@
     var entropy = 0;
 
     var norm = Math.log(freqTable[0].length);
-    freqTable[1].forEach(function(val) {
+    var l = freqTable[1].length;
+    var i;
+    var val;
+    for(i=0; i<l; i++){
+      val = freqTable[1][i];
       entropy -= (val / N) * Math.log(val / N) / norm;
-    });
+    }
+
+    // freqTable[1].forEach(function(val) {
+    //   entropy -= (val / N) * Math.log(val / N) / norm;
+    // });
 
     if(valueFollowing != null) {
       var index = freqTable[0].indexOf(valueFollowing);
@@ -13049,6 +13015,16 @@
     return(y - this.arrivalFrame.y) / this.pH + this.departureFrame.y;
   };
 
+  Axis2D.prototype.move = function(dx, dy){
+    this.arrivalFrame.x+=dx;
+    this.arrivalFrame.y+=dy;
+    this._update();
+  };
+
+  Axis2D.prototype.scale = function(dS, x, y){
+    this.arrivalFrame = this.arrivalFrame.expand(dS, new _Point(x, y));
+    this._update();
+  };
 
   /**
   * @ignore
@@ -16156,6 +16132,175 @@
       result.push(newColumn.getImproved());
     }
     return result.getImproved();
+  };
+
+  /**
+   * filter the rows of a table
+   * @param  {Table} table Table.
+   * @param  {String} operator "=c"(default, exact match for numbers, contains for strings), "==", "<", "<=", ">", ">=", "!=", "contains", "between"
+   * @param  {Object} value to compare against, can be String or Number
+   * @param  {Number} nList null(default) means check every column, otherwise column index to test
+   * @param  {Object} value2 only used for "between" operator
+   * @param  {Boolean} bIgnoreCase for string compares, defaults to true
+   * @return {Table}
+   * tags:filter
+   */
+  TableOperators.getFilteredByValue = function(table, operator, value, nList, value2, bIgnoreCase){
+    // input validation and defaults
+    if(table==null || table.length === 0 || value == null) return;
+    if(operator==null) operator='=c';
+    if(operator == '=') operator = '==';
+    var nLKeep = new NumberList();
+    var nRows = table.getListLength();
+    var r,c,val,bKeep;
+    var cStart=0;
+    var cEnd=table.length;
+    var type = typeOf(value);
+    if(type == 'string' && !isNaN(value) && value.trim() !== ''){
+      type='number';
+      value=Number(value);
+    }
+    if(operator == '=c'){
+      if(type == 'string')
+        operator = 'contains';
+      else
+        operator = '==';
+    }
+    if(type == 'number' && operator == 'between'){
+      if(isNaN(value2))
+        operator='noop';
+      else {
+        value2 = Number(value2);
+      }
+    }
+    if(operator == 'between' && value2 == null)
+      operator='noop';
+    if(nList != null){
+      cStart=nList;
+      cEnd=nList+1;
+    }
+    if(bIgnoreCase == null || (bIgnoreCase !== true && bIgnoreCase !== false) )
+      bIgnoreCase = true;
+    if(type == 'string' && bIgnoreCase){
+      value = value.toLowerCase();
+      value2 = value2 ? String(value2).toLowerCase() : value2;
+    }
+    if(operator == '==' && bIgnoreCase)
+      operator = '==i';
+    if(operator == '!=' && bIgnoreCase)
+      operator = '!=i';
+    // row matching, not using RegExp because value can contain control characters
+    switch(operator){
+      case "==":
+        for(r=0; r<nRows; r++){
+          for(c=cStart; c<cEnd; c++){
+            if(table[c][r] == value){
+              nLKeep.push(r);
+              break;
+            }
+          }
+        }
+        break;
+      case "==i":
+        for(r=0; r<nRows; r++){
+          for(c=cStart; c<cEnd; c++){
+            val = String(table[c][r]).toLowerCase();
+            if(val == value){
+              nLKeep.push(r);
+              break;
+            }
+          }
+        }
+        break;
+      case "!=":
+        for(r=0; r<nRows; r++){
+          bKeep=true;
+          for(c=cStart; c<cEnd; c++){
+            if(table[c][r] == value){
+              bKeep=false;
+              break;
+            }
+          }
+          if(bKeep)
+            nLKeep.push(r);
+        }
+        break;
+      case "!=i":
+        for(r=0; r<nRows; r++){
+          bKeep=true;
+          for(c=cStart; c<cEnd; c++){
+            val = String(table[c][r]).toLowerCase();
+            if(val == value){
+              bKeep=false;
+              break;
+            }
+          }
+          if(bKeep)
+            nLKeep.push(r);
+        }
+        break;
+      case "contains":
+        for(r=0; r<nRows; r++){
+          for(c=cStart; c<cEnd; c++){
+            val = bIgnoreCase ? String(table[c][r]).toLowerCase() : String(table[c][r]);
+            if(val.indexOf(value) > -1){
+              nLKeep.push(r);
+              break;
+            }
+          }
+        }
+        break;
+      case "<":
+      case "<=":
+        for(r=0; r<nRows; r++){
+          for(c=cStart; c<cEnd; c++){
+            if(type != typeOf(table[c][r])) continue;
+            val = bIgnoreCase ? String(table[c][r]).toLowerCase() : String(table[c][r]);
+            if(val < value){
+              nLKeep.push(r);
+              break;
+            }
+            else if(val == value && operator == '<='){
+              nLKeep.push(r);
+              break;
+            }
+          }
+        }
+        break;
+      case ">":
+      case ">=":
+        for(r=0; r<nRows; r++){
+          for(c=cStart; c<cEnd; c++){
+            if(type != typeOf(table[c][r])) continue;
+            val = bIgnoreCase ? String(table[c][r]).toLowerCase() : String(table[c][r]);
+            if(val > value){
+              nLKeep.push(r);
+              break;
+            }
+            else if(val == value && operator == '>='){
+              nLKeep.push(r);
+              break;
+            }
+          }
+        }
+        break;
+      case "between":
+        for(r=0; r<nRows; r++){
+          for(c=cStart; c<cEnd; c++){
+            if(type != typeOf(table[c][r])) continue;
+            val = bIgnoreCase ? String(table[c][r]).toLowerCase() : String(table[c][r]);
+            if(type == 'number')
+              val = Number(val);
+            if(value <= val && val <= value2){
+              nLKeep.push(r);
+              break;
+            }
+          }
+        }
+        break;
+    }
+    var newTable = table.getSubListsByIndexes(nLKeep);
+    return newTable;
   };
 
   /**
@@ -23448,22 +23593,25 @@
    *
    * Can be called multiple times to delay the stop time to being time milliseconds
    * after the last call to this function.
-   * @param  {Number} time time in milliseconds to run the cycle function before stopping ot.
+   * @param  {Number} time time in milliseconds to run the cycle function before stopping ot. if 0 it starts and endless cycle, if 1 it executes the cycle once
    */
   Graphics.prototype.cycleFor = function(time) {
-    if(this._setIntervalId) {
-      // If there was already a running cycle then just delay the
-      // stop function to stop after time. This effectively debounces
-      // the _startCycle call.
-      clearTimeout(this._setTimeOutId);
-      this._stopAfter(time);
+    if(time===0){
+      if(this._setIntervalId) clearTimeout(this._setTimeOutId);
+      this._startCycle();
+    } else if(time==1){
+      if(this._setIntervalId) clearTimeout(this._setTimeOutId);
+      this._onCycle();
     } else {
-      if(time==1){
-        this._onCycle();
+      if(this._setIntervalId) {
+        // If there was already a running cycle then just delay the
+        // stop function to stop after time. This effectively debounces
+        // the _startCycle call.
+        clearTimeout(this._setTimeOutId);
       } else {
         this._startCycle();
-        this._stopAfter(time);
       }
+      this._stopAfter(time);
     }
   };
 
@@ -23625,15 +23773,17 @@
       this.canvas.removeEventListener('mousemove', this.cycleOnMouseMovementListener, false);
     }
 
-    this.cycleOnMouseMovementListener = function(){
+    if(time>1){
+      this.cycleOnMouseMovementListener = function(){
+        self.cycleFor(time);
+      };
+
+      this.canvas.addEventListener('mousemove', this.cycleOnMouseMovementListener, false);
+      this.canvas.addEventListener('mousewheel', this.cycleOnMouseMovementListener, false);
+      this.canvas.addEventListener('mousemove', this.cycleOnMouseMovementListener, false);
+
       self.cycleFor(time);
-    };
-
-    this.canvas.addEventListener('mousemove', this.cycleOnMouseMovementListener, false);
-    this.canvas.addEventListener('mousewheel', this.cycleOnMouseMovementListener, false);
-    this.canvas.addEventListener('mousemove', this.cycleOnMouseMovementListener, false);
-
-    self.cycleFor(time);
+    }
   };
 
   /**
