@@ -910,9 +910,17 @@ ListOperators.getListEntropy = function(list, valueFollowing, freqTable) {
   var entropy = 0;
 
   var norm = Math.log(freqTable[0].length);
-  freqTable[1].forEach(function(val) {
+  var l = freqTable[1].length;
+  var i;
+  var val;
+  for(i=0; i<l; i++){
+    val = freqTable[1][i];
     entropy -= (val / N) * Math.log(val / N) / norm;
-  });
+  }
+
+  // freqTable[1].forEach(function(val) {
+  //   entropy -= (val / N) * Math.log(val / N) / norm;
+  // });
 
   if(valueFollowing != null) {
     var index = freqTable[0].indexOf(valueFollowing);
