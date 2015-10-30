@@ -115,6 +115,16 @@ Axis2D.prototype.inverseProjectY = function(y) {
   return(y - this.arrivalFrame.y) / this.pH + this.departureFrame.y;
 };
 
+Axis2D.prototype.move = function(dx, dy){
+  this.arrivalFrame.x+=dx;
+  this.arrivalFrame.y+=dy;
+  this._update();
+};
+
+Axis2D.prototype.scale = function(dS, x, y){
+  this.arrivalFrame = this.arrivalFrame.expand(dS, new Point(x, y));
+  this._update();
+};
 
 /**
 * @ignore
