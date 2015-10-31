@@ -176,3 +176,137 @@ NumberOperators._Mash = function() {
   mash.version = 'Mash 0.9';
   return mash;
 };
+
+// create default random function (uses date as seed so non-repeat)
+NumberOperators.random = new NumberOperators._Alea();
+
+NumberOperators.randomSeed = function(seed){
+  NumberOperators.random = new NumberOperators._Alea("my", seed, "seeds");
+  NumberOperators.lastNormal = NaN;
+};
+
+// many of these below are from based on 
+// https://github.com/mvarshney/simjs-source/blob/master/src/random.js
+
+NumberOperators.powerLaw = function(x0,x1,n){
+  var y = NumberOperators.random();
+  var x = Math.pow( (Math.pow(x1,n+1)-Math.pow(x0,n+1))*y + Math.pow(x0,n+1), 1/(n+1) );
+  return x;
+};
+
+NumberOperators.exponential = function(lambda,bClamp){
+  var v = -Math.log(NumberOperators.random()) / lambda;
+  while(v > 1 && bClamp){
+    v = -Math.log(NumberOperators.random()) / lambda;
+  } 
+  return v; 
+};
+
+NumberOperators.pareto = function(alpha){
+  var u = NumberOperators.random();
+  return 1.0 / Math.pow((1 - u), 1.0 / alpha);
+};
+
+NumberOperators.normal = function(mu, sigma) {
+  var z = NumberOperators.lastNormal;
+  NumberOperators.lastNormal = NaN;
+  if (!z) {
+    var a = NumberOperators.random() * 2 * Math.PI;
+    var b = Math.sqrt(-2.0 * Math.log(1.0 - NumberOperators.random()));
+    z = Math.cos(a) * b;
+    NumberOperators.lastNormal = Math.sin(a) * b;
+  } 
+  return mu + z * sigma;
+};
+
+NumberOperators.weibull = function(alpha, beta, bClamp) {
+  var u = 1.0 - NumberOperators.random();
+  var v = alpha * Math.pow(-Math.log(u), 1.0 / beta);
+  while(v > 1 && bClamp){
+    u = 1.0 - NumberOperators.random();
+    v = alpha * Math.pow(-Math.log(u), 1.0 / beta);
+  } 
+  return v; 
+};
+
+// from https://www.riskamp.com/beta-pert
+NumberOperators.betaPERT = function(min,max,mode,lambda){
+  var range = max-min;
+  if(range==0) return min;
+  var mu = (min+max+lambda*mode) / (lambda+2);
+  var v;
+  if(mu == mode)
+    v = (lambda/2) + 1;
+  else
+    v = ( (mu-min)*(2*mode-min-max)) / ((mode-mu)*(max-min));
+  var w = (v * (max-mu)) / (mu-min);
+  return NumberOperators.rbeta(v,w)*range + min;
+};
+
+// from http://stackoverflow.com/questions/9590225/is-there-a-library-to-generate-random-numbers-according-to-a-beta-distribution-f
+NumberOperators.rbeta = function(alpha, beta){
+  var alpha_gamma = NumberOperators.rgamma(alpha, 1);
+  return alpha_gamma / (alpha_gamma + NumberOperators.rgamma(beta, 1));
+};
+
+NumberOperators.SG_MAGICCONST = 1 + Math.log(4.5);
+NumberOperators.LOG4 = Math.log(4.0);
+
+NumberOperators.rgamma = function(alpha, beta){
+  var v,x;
+  // does not check that alpha > 0 && beta > 0
+  if (alpha > 1) {
+    // Uses R.C.H. Cheng, "The generation of Gamma variables with non-integral
+    // shape parameters", Applied Statistics, (1977), 26, No. 1, p71-74
+    var ainv = Math.sqrt(2.0 * alpha - 1.0);
+    var bbb = alpha - NumberOperators.LOG4;
+    var ccc = alpha + ainv;
+
+    while (true) {
+      var u1 = NumberOperators.random();
+      if (!((1e-7 < u1) && (u1 < 0.9999999))) {
+        continue;
+      }
+      var u2 = 1.0 - NumberOperators.random();
+      v = Math.log(u1/(1.0-u1))/ainv;
+      x = alpha*Math.exp(v);
+      var z = u1*u1*u2;
+      var r = bbb+ccc*v-x;
+      if (r + NumberOperators.SG_MAGICCONST - 4.5*z >= 0.0 || r >= Math.log(z)) {
+        return x * beta;
+      }
+    }
+  }
+  else if (alpha == 1.0) {
+    var u = NumberOperators.random();
+    while (u <= 1e-7) {
+      u = NumberOperators.random();
+    }
+    return -Math.log(u) * beta;
+  }
+  else { // 0 < alpha < 1
+    // Uses ALGORITHM GS of Statistical Computing - Kennedy & Gentle
+    while (true) {
+      var u3 = NumberOperators.random();
+      var b = (Math.E + alpha)/Math.E;
+      var p = b*u3;
+      if (p <= 1.0) {
+        x = Math.pow(p, (1.0/alpha));
+      }
+      else {
+        x = -Math.log((b-p)/alpha);
+      }
+      var u4 = NumberOperators.random();
+      if (p > 1.0) {
+        if (u4 <= Math.pow(x, (alpha - 1.0))) {
+          break;
+        }
+      }
+      else if (u4 <= Math.exp(-x)) {
+        break;
+      }
+    }
+    return x * beta;
+  }
+};
+
