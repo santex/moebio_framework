@@ -112,6 +112,42 @@ NumberListGenerators.createRandomBetaPERTDistribution = function(nValues,min,max
 };
 
 /**
+ * generates a numberList with random numbers in a bimodal distribution
+ * @param  {Number} nValues size of generated numberList
+ * @param  {Number} min value of generated numbers
+ * @param  {Number} max value of generated numbers
+ * @param  {Number} mode1 value of one peak
+ * @param  {Number} mode2 value of second peak
+ * @param  {Number} lambda shape parameter. Larger values have flatter tails in the distribution
+ * @param  {Number} balance number in range [0,1], fraction of samples surrounding peak2
+ * @param  {Number} seed optional seed for random numbers
+ * @return {NumberList}
+ * tags:random,generator,statistics
+ */
+NumberListGenerators.createRandomBimodalDistribution = function(nValues,min,max,mode1,mode2,lambda,balance,randomSeed) {
+  min = (min == null) ? 0 : min;
+  max = (max == null) ? 1 : max;
+  mode1 = (mode1 == null) ? .25 : mode1;
+  mode2 = (mode2 == null) ? .75 : mode2;
+  lambda = (lambda == null) ? 1 : lambda;
+  balance = (balance == null) ? .5 : balance;
+  if(randomSeed)
+    NumberOperators.randomSeed(randomSeed);
+  var nL = new mo.NumberList();
+  var i;
+  
+  for(i=0; i<nValues; i++){
+    if(NumberOperators.random() > balance)
+      nL.push(NumberOperators.betaPERT(min,max,mode1,lambda));
+    else
+      nL.push(NumberOperators.betaPERT(min,max,mode2,lambda));
+  }
+  if(randomSeed)
+    NumberOperators.randomSeedPop();
+  return nL;
+};
+
+/**
  * creates a list with random numbers
  *
  * @param  {Number} nValues
