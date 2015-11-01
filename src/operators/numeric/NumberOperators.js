@@ -179,11 +179,24 @@ NumberOperators._Mash = function() {
 
 // create default random function (uses date as seed so non-repeat)
 NumberOperators.random = new NumberOperators._Alea();
+NumberOperators.stackRandom = [];
 
 NumberOperators.randomSeed = function(seed){
+  NumberOperators.stackRandom.push(NumberOperators.random);
+  if(NumberOperators.stackRandom.length > 100){
+    // only keep 100 random generators on stack, in case they are lazy and never pop
+    NumberOperators.stackRandom.shift(); // drop the oldest
+  }
   NumberOperators.random = new NumberOperators._Alea("my", seed, "seeds");
   NumberOperators.lastNormal = NaN;
 };
+
+NumberOperators.randomSeedPop = function(){
+  if(NumberOperators.stackRandom.length > 0){
+    NumberOperators.random = NumberOperators.stackRandom.pop();
+  }
+  // if none in stack then just leave current one active
+}
 
 // many of these below are from based on 
 // https://github.com/mvarshney/simjs-source/blob/master/src/random.js
@@ -235,7 +248,7 @@ NumberOperators.betaPERT = function(min,max,mode,lambda){
   if(range==0) return min;
   var mu = (min+max+lambda*mode) / (lambda+2);
   var v;
-  if(mu == mode)
+  if(Math.abs(mu - mode) < .0001)
     v = (lambda/2) + 1;
   else
     v = ( (mu-min)*(2*mode-min-max)) / ((mode-mu)*(max-min));
