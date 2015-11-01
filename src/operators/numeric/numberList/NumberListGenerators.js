@@ -83,6 +83,35 @@ NumberListGenerators.createRandomNormalDistribution = function(nValues, mean, st
 };
 
 /**
+ * generates a numberList with random numbers in a beta PERT distribution
+ * @param  {Number} nValues size of generated numberList
+ * @param  {Number} min value of generated numbers
+ * @param  {Number} max value of generated numbers
+ * @param  {Number} mode most common value of generated numbers
+ * @param  {Number} lambda shape parameter. Larger values have flatter tails in the distribution
+ * @param  {Number} seed optional seed for random numbers
+ * @return {NumberList}
+ * tags:random,generator,statistics
+ */
+NumberListGenerators.createRandomBetaPERTDistribution = function(nValues,min,max,mode,lambda,randomSeed) {
+  min = (min == null) ? 0 : min;
+  max = (max == null) ? 1 : max;
+  mode = (mode == null) ? .5 : mode;
+  lambda = (lambda == null) ? 1 : lambda;
+  if(randomSeed)
+    NumberOperators.randomSeed(randomSeed);
+  var nL = new mo.NumberList();
+  var i;
+  
+  for(i=0; i<nValues; i++){
+    nL.push(NumberOperators.betaPERT(min,max,mode,lambda));
+  }
+  if(randomSeed)
+    NumberOperators.randomSeedPop();
+  return nL;
+};
+
+/**
  * creates a list with random numbers
  *
  * @param  {Number} nValues
