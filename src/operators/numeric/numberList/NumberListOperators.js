@@ -212,6 +212,30 @@ NumberListOperators.normalized = function(numberlist, factor) {
 };
 
 /**
+ * Returns a NumberList normalized to z-scores (mean of 0, stdev of 1).
+ *
+ * @param  {NumberList} numberlist NumberList to Normalize.
+ * @return {NumberList}
+ * tags:
+ */
+NumberListOperators.normalizedByZScore = function(numberlist) {
+  if(numberlist==null) return;
+  if(numberlist.length === 0) return null;
+
+  var i;
+  var mean = numberlist.getAverage();
+  var stddev = numberlist.getStandardDeviation();
+  if(stddev==0) stddev=1; // all returned values will be zero
+
+  var newNumberList = new NumberList();
+  for(i = 0; i < numberlist.length; i++) {
+    newNumberList.push((numberlist[i] - mean) / stddev);
+  }
+  newNumberList.name = numberlist.name;
+  return newNumberList;
+};
+
+/**
  * Returns a NumberList normalized to Max.
  *
  * @param  {NumberList} numberlist NumberList to Normalize.
