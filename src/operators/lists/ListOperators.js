@@ -918,6 +918,14 @@ ListOperators.getListEntropy = function(list, valueFollowing, freqTable) {
     entropy -= (val / N) * Math.log(val / N) / norm;
   }
 
+  //set: {*,*,*,°,°,°,X,X,X}
+  //N=9
+  //norm=3
+  // -(3/9)*log(3/9)/3 -(3/9)*log(3/9)/3 -(3/9)*log(3/9)/3 
+  // -(3/9)*log(3/9)
+  // -(1/3)*log(1/3)
+  // 0.366… (is something wrong?) @todo: check this entropy algebra
+
   // freqTable[1].forEach(function(val) {
   //   entropy -= (val / N) * Math.log(val / N) / norm;
   // });
