@@ -666,7 +666,7 @@ List.prototype.getFrequenciesTable = function(sortListsByOccurrences, addWeights
   if(sortListsByOccurrences){
     table[0] = elementList.getSortedByList(numberList, false);
     table[1] = numberList.getSorted(false);
-
+    table._indexesDictionary = null;
   }
 
   if(addWeightsNormalizedToSum) table[2] = NumberListOperators.normalizedToSum(table[1]);
