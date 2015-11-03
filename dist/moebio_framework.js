@@ -1758,7 +1758,7 @@
     if(sortListsByOccurrences){
       table[0] = elementList.getSortedByList(numberList, false);
       table[1] = numberList.getSorted(false);
-
+      table._indexesDictionary = null;
     }
 
     if(addWeightsNormalizedToSum) table[2] = NumberListOperators.normalizedToSum(table[1]);
@@ -3392,7 +3392,7 @@
    * @return {Number} Mean of all values in the List.
    * tags:statistics
    */
-  NumberList.prototype.getAverage = function() {
+  NumberList.prototype.getAverage = function() {//@todo: change name to getMean
     return this.getSum()/this.length;
   };
 
@@ -6270,6 +6270,38 @@
     return s/l;
   };
 
+
+  /**
+   * @todo finish docs, maybe change name
+   */
+  NumberListOperators.standardDeviationBetweenTwoNumberLists = function(numberList0, numberList1) {
+    if(numberList0==null || numberList1==null) return;
+    var s = 0;
+    var l = Math.min(numberList0.length, numberList1.length);
+    var i;
+
+    for(i = 0; i < l; i++) {
+      s += Math.pow(numberList0[i] - numberList1[i], 2);
+    }
+
+    return s/l;
+  };
+
+  /**
+   * returns Pearson Product Moment Correlation, the most common correlation coefficient ( covariance/(standard_deviation0*standard_deviation1) )
+   * @param  {NumberList} numberList0
+   * @param  {NumberList} numberList1
+   * @return {Number}
+   * tags:statistics
+   */
+  NumberListOperators.pearsonProductMomentCorrelation = function(numberList0, numberList1) { //TODO:make more efficient
+    if(numberList0==null || numberList1==null) return;
+    
+    var stndDeviations = numberList0.getStandardDeviation() * numberList1.getStandardDeviation();
+    if(stndDeviations===0) return 0;
+    return NumberListOperators.covariance(numberList0, numberList1) / stndDeviations;
+  };
+
   /**
    * Returns a NumberList normalized to the sum.
    *
@@ -6491,33 +6523,6 @@
     return clusters;
   };
 
-  /**
-   * @todo finish docs
-   */
-  NumberListOperators.standardDeviationBetweenTwoNumberLists = function(numberList0, numberList1) {
-    if(numberList0==null || numberList1==null) return;
-    var s = 0;
-    var l = Math.min(numberList0.length, numberList1.length);
-
-    for(var i = 0; i < l; i++) {
-      s += Math.pow(numberList0[i] - numberList1[i], 2);
-    }
-
-    return s/l;
-  };
-
-  /**
-   * returns Pearson Product Moment Correlation, the most common correlation coefficient ( covariance/(standard_deviation0*standard_deviation1) )
-   * @param  {NumberList} numberList0
-   * @param  {NumberList} numberList1
-   * @return {Number}
-   * tags:statistics
-   */
-  NumberListOperators.pearsonProductMomentCorrelation = function(numberList0, numberList1) { //TODO:make more efficient
-    if(numberList0==null || numberList1==null) return;
-    return NumberListOperators.covariance(numberList0, numberList1) / (numberList0.getStandardDeviation() * numberList1.getStandardDeviation());
-  };
-
 
   /**
    * smooth a numberList by calculating averages with neighbors
@@ -6672,79 +6677,6 @@
 
     return newNumberList;
   };
-
-  /**
-   * creates a NumberList that contains the union of two NumberList (removing repetitions)
-   *
-   * @param  {NumberList} x list A
-   * @param  {NumberList} y list B
-   *
-   * @return {NumberList} the union of both NumberLists
-   */
-  // NumberListOperators.union = function(x, y) {//TODO: should be refactored, and placed in ListOperators
-  //   // Borrowed from here: http://stackoverflow.com/questions/3629817/getting-a-union-of-two-arrays-in-javascript
-  //   var i;
-  //   var obj = {};
-  //   for(i = x.length - 1; i >= 0; --i)
-  //     obj[x[i]] = x[i];
-  //   for(i = y.length - 1; i >= 0; --i)
-  //     obj[y[i]] = y[i];
-  //   var res = new NumberList();
-  //   for(var k in obj) {
-  //     if(obj.hasOwnProperty(k)) // <-- optional
-  //       res.push(obj[k]);
-  //   }
-  //   return res;
-  // };
-
-  /**
-   * creates a NumberList that contains the intersection of two NumberList (elements present in BOTH lists)
-   * @param  {NumberList} list A
-   * @param  {NumberList} list B
-   *
-   * @return {NumberList} the intersection of both NumberLists
-   */
-  // NumberListOperators.intersection = function(a, b) {//TODO: refactor method that should be at ListOperators
-  //   // Borrowed from here: http://stackoverflow.com/questions/1885557/simplest-code-for-array-intersection-in-javascript
-  //   //console.log( "arguments: ", arguments );
-  //   var i;
-  //   if(arguments.length > 2) {
-  //     var sets = [];
-  //     for(i = 0; i < arguments.length; i++) {
-  //       sets.push(arguments[i]);
-  //     }
-  //     sets.sort(function(a, b) {
-  //       return a.length - b.length;
-  //     });
-  //     console.log("sets: ", sets);
-  //     var resultsTrail = sets[0];
-  //     for(i = 1; i < sets.length; i++) {
-  //       var newSet = sets[i];
-  //       resultsTrail = NumberListOperators.intersection(resultsTrail, newSet);
-  //     }
-  //     return resultsTrail;
-  //   }
-
-  //   var result = new NumberList();
-  //   a = a.slice();
-  //   b = b.slice();
-  //   while(a.length > 0 && b.length > 0)
-  //   {
-  //     if(a[0] < b[0]) {
-  //       a.shift();
-  //     }
-  //     else if(a[0] > b[0]) {
-  //       b.shift();
-  //     }
-  //     else /* they're equal */
-  //     {
-  //       result.push(a.shift());
-  //       b.shift();
-  //     }
-  //   }
-
-  //   return result;
-  // };
 
 
   /**
@@ -7868,6 +7800,14 @@
       val = freqTable[1][i];
       entropy -= (val / N) * Math.log(val / N) / norm;
     }
+
+    //set: {*,*,*,°,°,°,X,X,X}
+    //N=9
+    //norm=3
+    // -(3/9)*log(3/9)/3 -(3/9)*log(3/9)/3 -(3/9)*log(3/9)/3 
+    // -(3/9)*log(3/9)
+    // -(1/3)*log(1/3)
+    // 0.366… (is something wrong?) @todo: check this entropy algebra
 
     // freqTable[1].forEach(function(val) {
     //   entropy -= (val / N) * Math.log(val / N) / norm;
