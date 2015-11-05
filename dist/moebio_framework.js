@@ -2021,24 +2021,33 @@
   };
 
   /**
-   * Sorts the List by another List.
+   * Sorts the list by another list
+   * @param {List} list List used to sort (numberList, stringList, dateList…)
    *
-   * @param  {List} list List used to sort (numberList, stringList, dateList…)
-   *
-   * @param  {Boolean} ascending (true by default)
+   * @param {Boolean} ascending (true by default)
+   * @param {Boolean} smallPerturbation (false by default) adds a very small random number to list (providing is a numberList) to randomly sort equal elements
    * @return {List} sorted list (of the same type)
    * tags:sort
    */
-  List.prototype.getSortedByList = function(list, ascending) {
+  List.prototype.getSortedByList = function(list, ascending, smallPerturbation) {
+    if(list==null) return null;
+
     ascending = ascending == null ? true : ascending;
 
     var pairsArray = [];
     var i;
     var l = this.length;
 
-    for(i = 0; i<l; i++) {
-      pairsArray[i] = [this[i], list[i],i];
+    if(smallPerturbation && list.type=="NumberList"){
+      for(i = 0; i<l; i++) {
+        pairsArray[i] = [this[i], list[i]+Math.random()*0.00000000001,i];
+      }
+    } else {
+      for(i = 0; i<l; i++) {
+        pairsArray[i] = [this[i], list[i],i];
+      }
     }
+    
 
     var comparator;
     if(ascending) {
@@ -7309,14 +7318,15 @@
    * @param  {List} list
    *
    * @param  {Boolean} ascendant if true (default) rankings ara lower for lower values
+   * @param {Boolean} randomSortingForEqualElements random sorting for equal elements, so ranikings among them will be random
    * @return {NumberList} positions (or ranks) of elements
    * tags:
    */
-  ListOperators.getRankings = function(list, ascendant){
+  ListOperators.getRankings = function(list, ascendant, randomSortingForEqualElements){
     ascendant = ascendant==null?true:ascendant;
 
     var indexes = NumberListGenerators.createSortedNumberList(list.length);
-    indexes = indexes.getSortedByList(list, ascendant);
+    indexes = indexes.getSortedByList(list, ascendant, randomSortingForEqualElements);
     var rankings = new NumberList();
     var l = list.length;
     var i;
