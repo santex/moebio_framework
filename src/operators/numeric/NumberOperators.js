@@ -220,7 +220,7 @@ NumberOperators.pareto = function(alpha){
   return 1.0 / Math.pow((1 - u), 1.0 / alpha);
 };
 
-NumberOperators.normal = function(mu, sigma) {
+NumberOperators.normal = function(mean,standardDeviation) {
   var z = NumberOperators.lastNormal;
   NumberOperators.lastNormal = NaN;
   if (!z) {
@@ -229,7 +229,7 @@ NumberOperators.normal = function(mu, sigma) {
     z = Math.cos(a) * b;
     NumberOperators.lastNormal = Math.sin(a) * b;
   } 
-  return mu + z * sigma;
+  return mean + z * standardDeviation;
 };
 
 NumberOperators.weibull = function(alpha, beta, bClamp) {

@@ -5885,7 +5885,7 @@
     return 1.0 / Math.pow((1 - u), 1.0 / alpha);
   };
 
-  NumberOperators.normal = function(mu, sigma) {
+  NumberOperators.normal = function(mean,standardDeviation) {
     var z = NumberOperators.lastNormal;
     NumberOperators.lastNormal = NaN;
     if (!z) {
@@ -5894,7 +5894,7 @@
       z = Math.cos(a) * b;
       NumberOperators.lastNormal = Math.sin(a) * b;
     } 
-    return mu + z * sigma;
+    return mean + z * standardDeviation;
   };
 
   NumberOperators.weibull = function(alpha, beta, bClamp) {
@@ -6058,9 +6058,7 @@
     var i;
     
     for(i=0; i<nValues; i++){
-      nL.push(
-   ( (Math.random()+Math.random()+Math.random()+Math.random()+Math.random()+Math.random()-3)/3 )*standardDeviation + mean
-      );
+      nL.push(NumberOperators.normal(mean,standardDeviation));
     }
     
     return nL;

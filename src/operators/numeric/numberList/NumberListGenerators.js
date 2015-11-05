@@ -74,9 +74,7 @@ NumberListGenerators.createRandomNormalDistribution = function(nValues, mean, st
   var i;
   
   for(i=0; i<nValues; i++){
-    nL.push(
- ( (Math.random()+Math.random()+Math.random()+Math.random()+Math.random()+Math.random()-3)/3 )*standardDeviation + mean
-    );
+    nL.push(NumberOperators.normal(mean,standardDeviation));
   }
   
   return nL;
