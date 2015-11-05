@@ -323,7 +323,7 @@ NumberList.prototype.toPolygon = function() {
  * @return {Number} Mean of all values in the List.
  * tags:statistics
  */
-NumberList.prototype.getAverage = function() {
+NumberList.prototype.getAverage = function() {//@todo: change name to getMean
   return this.getSum()/this.length;
 };
 
