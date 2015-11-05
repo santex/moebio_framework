@@ -5842,6 +5842,152 @@
     return mash;
   };
 
+  // create default random function (uses date as seed so non-repeat)
+  NumberOperators.random = new NumberOperators._Alea();
+  NumberOperators.stackRandom = [];
+
+  NumberOperators.randomSeed = function(seed){
+    NumberOperators.stackRandom.push(NumberOperators.random);
+    if(NumberOperators.stackRandom.length > 100){
+      // only keep 100 random generators on stack, in case they are lazy and never pop
+      NumberOperators.stackRandom.shift(); // drop the oldest
+    }
+    NumberOperators.random = new NumberOperators._Alea("my", seed, "seeds");
+    NumberOperators.lastNormal = NaN;
+  };
+
+  NumberOperators.randomSeedPop = function(){
+    if(NumberOperators.stackRandom.length > 0){
+      NumberOperators.random = NumberOperators.stackRandom.pop();
+    }
+    // if none in stack then just leave current one active
+  }
+
+  // many of these below are from based on 
+  // https://github.com/mvarshney/simjs-source/blob/master/src/random.js
+
+  NumberOperators.powerLaw = function(x0,x1,n){
+    var y = NumberOperators.random();
+    var x = Math.pow( (Math.pow(x1,n+1)-Math.pow(x0,n+1))*y + Math.pow(x0,n+1), 1/(n+1) );
+    return x;
+  };
+
+  NumberOperators.exponential = function(lambda,bClamp){
+    var v = -Math.log(NumberOperators.random()) / lambda;
+    while(v > 1 && bClamp){
+      v = -Math.log(NumberOperators.random()) / lambda;
+    } 
+    return v; 
+  };
+
+  NumberOperators.pareto = function(alpha){
+    var u = NumberOperators.random();
+    return 1.0 / Math.pow((1 - u), 1.0 / alpha);
+  };
+
+  NumberOperators.normal = function(mean,standardDeviation) {
+    var z = NumberOperators.lastNormal;
+    NumberOperators.lastNormal = NaN;
+    if (!z) {
+      var a = NumberOperators.random() * 2 * Math.PI;
+      var b = Math.sqrt(-2.0 * Math.log(1.0 - NumberOperators.random()));
+      z = Math.cos(a) * b;
+      NumberOperators.lastNormal = Math.sin(a) * b;
+    } 
+    return mean + z * standardDeviation;
+  };
+
+  NumberOperators.weibull = function(alpha, beta, bClamp) {
+    var u = 1.0 - NumberOperators.random();
+    var v = alpha * Math.pow(-Math.log(u), 1.0 / beta);
+    while(v > 1 && bClamp){
+      u = 1.0 - NumberOperators.random();
+      v = alpha * Math.pow(-Math.log(u), 1.0 / beta);
+    } 
+    return v; 
+  };
+
+  // from https://www.riskamp.com/beta-pert
+  NumberOperators.betaPERT = function(min,max,mode,lambda){
+    var range = max-min;
+    if(range==0) return min;
+    var mu = (min+max+lambda*mode) / (lambda+2);
+    var v;
+    if(Math.abs(mu - mode) < .0001)
+      v = (lambda/2) + 1;
+    else
+      v = ( (mu-min)*(2*mode-min-max)) / ((mode-mu)*(max-min));
+    var w = (v * (max-mu)) / (mu-min);
+    return NumberOperators.rbeta(v,w)*range + min;
+  };
+
+  // from http://stackoverflow.com/questions/9590225/is-there-a-library-to-generate-random-numbers-according-to-a-beta-distribution-f
+  NumberOperators.rbeta = function(alpha, beta){
+    var alpha_gamma = NumberOperators.rgamma(alpha, 1);
+    return alpha_gamma / (alpha_gamma + NumberOperators.rgamma(beta, 1));
+  };
+
+  NumberOperators.SG_MAGICCONST = 1 + Math.log(4.5);
+  NumberOperators.LOG4 = Math.log(4.0);
+
+  NumberOperators.rgamma = function(alpha, beta){
+    var v,x;
+    // does not check that alpha > 0 && beta > 0
+    if (alpha > 1) {
+      // Uses R.C.H. Cheng, "The generation of Gamma variables with non-integral
+      // shape parameters", Applied Statistics, (1977), 26, No. 1, p71-74
+      var ainv = Math.sqrt(2.0 * alpha - 1.0);
+      var bbb = alpha - NumberOperators.LOG4;
+      var ccc = alpha + ainv;
+
+      while (true) {
+        var u1 = NumberOperators.random();
+        if (!((1e-7 < u1) && (u1 < 0.9999999))) {
+          continue;
+        }
+        var u2 = 1.0 - NumberOperators.random();
+        v = Math.log(u1/(1.0-u1))/ainv;
+        x = alpha*Math.exp(v);
+        var z = u1*u1*u2;
+        var r = bbb+ccc*v-x;
+        if (r + NumberOperators.SG_MAGICCONST - 4.5*z >= 0.0 || r >= Math.log(z)) {
+          return x * beta;
+        }
+      }
+    }
+    else if (alpha == 1.0) {
+      var u = NumberOperators.random();
+      while (u <= 1e-7) {
+        u = NumberOperators.random();
+      }
+      return -Math.log(u) * beta;
+    }
+    else { // 0 < alpha < 1
+      // Uses ALGORITHM GS of Statistical Computing - Kennedy & Gentle
+      while (true) {
+        var u3 = NumberOperators.random();
+        var b = (Math.E + alpha)/Math.E;
+        var p = b*u3;
+        if (p <= 1.0) {
+          x = Math.pow(p, (1.0/alpha));
+        }
+        else {
+          x = -Math.log((b-p)/alpha);
+        }
+        var u4 = NumberOperators.random();
+        if (p > 1.0) {
+          if (u4 <= Math.pow(x, (alpha - 1.0))) {
+            break;
+          }
+        }
+        else if (u4 <= Math.exp(-x)) {
+          break;
+        }
+      }
+      return x * beta;
+    }
+  };
+
   /**
    * @classdesc NumberList Generators
    *
@@ -5912,11 +6058,74 @@
     var i;
     
     for(i=0; i<nValues; i++){
-      nL.push(
-   ( (Math.random()+Math.random()+Math.random()+Math.random()+Math.random()+Math.random()-3)/3 )*standardDeviation + mean
-      );
+      nL.push(NumberOperators.normal(mean,standardDeviation));
     }
     
+    return nL;
+  };
+
+  /**
+   * generates a numberList with random numbers in a beta PERT distribution
+   * @param  {Number} nValues size of generated numberList
+   * @param  {Number} min value of generated numbers
+   * @param  {Number} max value of generated numbers
+   * @param  {Number} mode most common value of generated numbers
+   * @param  {Number} lambda shape parameter. Larger values have flatter tails in the distribution
+   * @param  {Number} seed optional seed for random numbers
+   * @return {NumberList}
+   * tags:random,generator,statistics
+   */
+  NumberListGenerators.createRandomBetaPERTDistribution = function(nValues,min,max,mode,lambda,randomSeed) {
+    min = (min == null) ? 0 : min;
+    max = (max == null) ? 1 : max;
+    mode = (mode == null) ? .5 : mode;
+    lambda = (lambda == null) ? 1 : lambda;
+    if(randomSeed)
+      NumberOperators.randomSeed(randomSeed);
+    var nL = new mo.NumberList();
+    var i;
+    
+    for(i=0; i<nValues; i++){
+      nL.push(NumberOperators.betaPERT(min,max,mode,lambda));
+    }
+    if(randomSeed)
+      NumberOperators.randomSeedPop();
+    return nL;
+  };
+
+  /**
+   * generates a numberList with random numbers in a bimodal distribution
+   * @param  {Number} nValues size of generated numberList
+   * @param  {Number} min value of generated numbers
+   * @param  {Number} max value of generated numbers
+   * @param  {Number} mode1 value of one peak
+   * @param  {Number} mode2 value of second peak
+   * @param  {Number} lambda shape parameter. Larger values have flatter tails in the distribution
+   * @param  {Number} balance number in range [0,1], fraction of samples surrounding peak2
+   * @param  {Number} seed optional seed for random numbers
+   * @return {NumberList}
+   * tags:random,generator,statistics
+   */
+  NumberListGenerators.createRandomBimodalDistribution = function(nValues,min,max,mode1,mode2,lambda,balance,randomSeed) {
+    min = (min == null) ? 0 : min;
+    max = (max == null) ? 1 : max;
+    mode1 = (mode1 == null) ? .25 : mode1;
+    mode2 = (mode2 == null) ? .75 : mode2;
+    lambda = (lambda == null) ? 1 : lambda;
+    balance = (balance == null) ? .5 : balance;
+    if(randomSeed)
+      NumberOperators.randomSeed(randomSeed);
+    var nL = new mo.NumberList();
+    var i;
+    
+    for(i=0; i<nValues; i++){
+      if(NumberOperators.random() > balance)
+        nL.push(NumberOperators.betaPERT(min,max,mode1,lambda));
+      else
+        nL.push(NumberOperators.betaPERT(min,max,mode2,lambda));
+    }
+    if(randomSeed)
+      NumberOperators.randomSeedPop();
     return nL;
   };
 
@@ -6726,6 +6935,28 @@
   };
 
   /**
+   * builds a NumberList that gives histogram counts
+   * @param  {NumberList} numberList
+   * @param  {Number} nBins number of bins to use (default 100)
+   * @param  {Interval} interval range of values (default use actual range of input numberList)
+   * @return {NumberList}
+   * tags:statistics
+   */
+  NumberListOperators.rangeCounts = function(numberList, nBins, interval){
+    if(numberList==null) return;
+    nBins = nBins == null ? 100 : nBins;
+    interval = interval==null ? numberList.getInterval() : interval;
+    var nLCounts = ListGenerators.createListWithSameElement(nBins,0);
+    var f,bin,len=numberList.length;
+    for(var i=0;i<len;i++){
+      f = interval.getInverseInterpolatedValue(numberList[i]);
+      bin = Math.min(Math.floor(f*nBins),nBins-1);
+      nLCounts[bin]++;
+    }
+    return nLCounts;
+  };
+
+  /**
    * @classdesc Default color scales.
    *
    * @namespace
@@ -7323,6 +7554,8 @@
    * tags:
    */
   ListOperators.getRankings = function(list, ascendant, randomSortingForEqualElements){
+    if(list==null) return null;
+    
     ascendant = ascendant==null?true:ascendant;
 
     var indexes = NumberListGenerators.createSortedNumberList(list.length);

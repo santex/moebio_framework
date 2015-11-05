@@ -571,3 +571,26 @@ NumberListOperators.frameFromTwoNumberLists = function(numberListX, numberListY)
   var intY = numberListY.getInterval();
   return new Rectangle(intX.x, intY.x, intX.getAmplitude(), intY.getAmplitude());
 };
+
+/**
+ * builds a NumberList that gives histogram counts
+ * @param  {NumberList} numberList
+ * @param  {Number} nBins number of bins to use (default 100)
+ * @param  {Interval} interval range of values (default use actual range of input numberList)
+ * @return {NumberList}
+ * tags:statistics
+ */
+NumberListOperators.rangeCounts = function(numberList, nBins, interval){
+  if(numberList==null) return;
+  nBins = nBins == null ? 100 : nBins;
+  interval = interval==null ? numberList.getInterval() : interval;
+  var nLCounts = ListGenerators.createListWithSameElement(nBins,0);
+  var f,bin,len=numberList.length;
+  for(var i=0;i<len;i++){
+    f = interval.getInverseInterpolatedValue(numberList[i]);
+    bin = Math.min(Math.floor(f*nBins),nBins-1);
+    nLCounts[bin]++;
+  }
+  return nLCounts;
+};
+
