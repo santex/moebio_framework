@@ -7556,6 +7556,8 @@
    * tags:
    */
   ListOperators.getRankings = function(list, ascendant, randomSortingForEqualElements){
+    if(list==null) return null;
+    
     ascendant = ascendant==null?true:ascendant;
 
     var indexes = NumberListGenerators.createSortedNumberList(list.length);
