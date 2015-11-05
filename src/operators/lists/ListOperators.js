@@ -402,14 +402,17 @@ ListOperators.sortListByNumberList = function(list, numberList, descending) {
  * @param  {List} list
  *
  * @param  {Boolean} ascendant if true (default) rankings ara lower for lower values
+ * @param {Boolean} randomSortingForEqualElements random sorting for equal elements, so ranikings among them will be random
  * @return {NumberList} positions (or ranks) of elements
  * tags:
  */
-ListOperators.getRankings = function(list, ascendant){
+ListOperators.getRankings = function(list, ascendant, randomSortingForEqualElements){
+  if(list==null) return null;
+  
   ascendant = ascendant==null?true:ascendant;
 
   var indexes = NumberListGenerators.createSortedNumberList(list.length);
-  indexes = indexes.getSortedByList(list, ascendant);
+  indexes = indexes.getSortedByList(list, ascendant, randomSortingForEqualElements);
   var rankings = new NumberList();
   var l = list.length;
   var i;
