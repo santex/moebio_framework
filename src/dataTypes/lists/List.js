@@ -227,10 +227,14 @@ List.prototype.getImproved = function() {
  * tags:
  */
 List.prototype.toArray = function() {//@todo: make this efficient
-  var array = this.slice(0);
-  console.log('List.prototype.toArray | this.name:', this.name);
-  console.log('List.prototype.toArray | array.name, array.type:', array.name, array.type);
+  if(this.type!="NumberList") return this.slice(0);
+
+  //console.log('List.prototype.toArray | this.name:', this.name);
+  //console.log('List.prototype.toArray | array.name, array.type:', array.name, array.type);
+
+  //crazy that .slice seems to work everywhere except on NumberList
   var propName;
+  var array = this.slice(0);
   for(propName in array){
     if(typeof array[propName] == 'function'){
       delete array[propName];
@@ -238,16 +242,6 @@ List.prototype.toArray = function() {//@todo: make this efficient
   }
   array.name = this.name;
   return array;
-
-
-  //return this.slice(0); //why this didn't work?
-  // var i;
-  // var l = this.length;
-  // var array = [];
-  // for(i=0; i<l; i++){
-  //   array.push(this[i]);
-  // }
-  // return array;
 };
 
 /**
