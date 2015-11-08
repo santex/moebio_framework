@@ -30,6 +30,10 @@ var typeDict = {
   ColorList: ColorList
 };
 
+Date.prototype.getType = function() {
+  return 'date';
+};
+
 
 /*
  * All these function are globally available since they are included in the Global class
@@ -194,10 +198,6 @@ export function isArray(obj) {
   else
     return true;
 }
-
-Date.prototype.getType = function() {
-  return 'date';
-};
 
 
 
