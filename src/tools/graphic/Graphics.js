@@ -550,6 +550,8 @@ Graphics.prototype.cycleOnMouseMovement = function(time) {
     this.canvas.removeEventListener('mousemove', this.cycleOnMouseMovementListener, false);
     this.canvas.removeEventListener('mousewheel', this.cycleOnMouseMovementListener, false);
     this.canvas.removeEventListener('mousemove', this.cycleOnMouseMovementListener, false);
+
+    this.canvas.removeEventListener('mousedown', this.cycleOnMouseMovementListener, false);
   }
 
   if(time>1){
@@ -560,6 +562,8 @@ Graphics.prototype.cycleOnMouseMovement = function(time) {
     this.canvas.addEventListener('mousemove', this.cycleOnMouseMovementListener, false);
     this.canvas.addEventListener('mousewheel', this.cycleOnMouseMovementListener, false);
     this.canvas.addEventListener('mousemove', this.cycleOnMouseMovementListener, false);
+
+    this.canvas.addEventListener('mousedown', this.cycleOnMouseMovementListener, false);
 
     self.cycleFor(time);
   }
@@ -1699,13 +1703,38 @@ Graphics.prototype.fTextW = function(text, x, y) {
  * @param {Number} angle The angle in radians to rotate the text
  * @example
  * setText('black', 30, 'Arial');
- * fTextRotated("hello", 40, 40, (20 * Math.PI / 180));
+ * fTextRotated("hello", 40, 40, 0.33*Math.PI);
  *
  */
 Graphics.prototype.fTextRotated = function(text, x, y, angle) {
   this.context.save();
   this.context.translate(x, y);
   this.context.rotate(angle);
+  this.context.fillText(text, 0, 0);
+  this.context.restore();
+};
+
+/**
+ * Draws filled in and stroked text, rotated by some angle.
+ * Fill color is expected to be set using {@link setFill}.
+ * Alternatively, setText can be used to set a number of
+ * text rendering properties.
+ *
+ * @param {String} text Text to draw.
+ * @param {Number} x X position to start the text.
+ * @param {Number} y Y position to start the text.
+ * @param {Number} angle The angle in radians to rotate the text
+ * @example
+ * setStroke('white', 2)
+ * setText('black', 30, 'Arial');
+ * fsTextRotated("hello", 40, 40, 0.33*Math.PI);
+ *
+ */
+Graphics.prototype.fsTextRotated = function(text, x, y, angle) {
+  this.context.save();
+  this.context.translate(x, y);
+  this.context.rotate(angle);
+  this.context.strokeText(text, 0, 0);
   this.context.fillText(text, 0, 0);
   this.context.restore();
 };
