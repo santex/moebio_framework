@@ -1319,10 +1319,14 @@
    * tags:
    */
   List.prototype.toArray = function() {//@todo: make this efficient
-    var array = this.slice(0);
-    console.log('List.prototype.toArray | this.name:', this.name);
-    console.log('List.prototype.toArray | array.name, array.type:', array.name, array.type);
+    if(this.type!="NumberList") return this.slice(0);
+
+    //console.log('List.prototype.toArray | this.name:', this.name);
+    //console.log('List.prototype.toArray | array.name, array.type:', array.name, array.type);
+
+    //crazy that .slice seems to work everywhere except on NumberList
     var propName;
+    var array = this.slice(0);
     for(propName in array){
       if(typeof array[propName] == 'function'){
         delete array[propName];
@@ -1330,16 +1334,6 @@
     }
     array.name = this.name;
     return array;
-
-
-    //return this.slice(0); //why this didn't work?
-    // var i;
-    // var l = this.length;
-    // var array = [];
-    // for(i=0; i<l; i++){
-    //   array.push(this[i]);
-    // }
-    // return array;
   };
 
   /**
@@ -17327,7 +17321,7 @@
   NumberListOperators.cosineSimilarityDataTables = function(table0, table1) {
     if(table0==null || table1==null || table0.length<2 || table1.length<2) return null;
 
-    if(table0[0].length==0 || table1[0].length==0) return 0;
+    if(table0[0].length===0 || table1[0].length===0) return 0;
 
     var norms = table0[1].getNorm()*table1[1].getNorm();
     if(norms === 0) return 0;
@@ -17486,6 +17480,35 @@
 
     if(!nodesAreRows){
       //@todo deploy
+      
+      if(table.type=="NumberTable"){//correlations network, for the time being
+        
+
+        for(i=0; i<l; i++){
+          node = new Node("list_"+i, (table[i].name==null || table[i].name=="")?"list_"+i:table[i].name);
+          network.addNode(node);
+          node.i = i;
+          node.numbers = table[i];
+        }
+
+        for(i=0; i<l; i++){
+          node = network.nodeList[i];
+          for(j=i+1; j<l; j++){
+            node1 = network.nodeList[j];
+            pearson = NumberListOperators.pearsonProductMomentCorrelation(node.numbers, node1.numbers);
+            weight = pearson;
+            if( (negativeCorrelation && Math.abs(weight)>correlationThreshold) || (!negativeCorrelation && weight>correlationThreshold) ){
+              id = i+"_"+j;
+              name = node.name+"_"+node1.name;
+              relation = new Relation(id, name, node, node1, Math.abs(weight)-correlationThreshold*0.9);
+              relation.color = weight>0?'blue':'red';
+              relation.pearson = pearson;
+              network.addRelation(relation);
+            }
+          }
+        }
+      }
+
     } else {
       for(i=0; i<nRows; i++){
         id = "_"+i;
@@ -19331,6 +19354,50 @@
    */
   ObjectOperators.identity = function(object) {
     return object;
+  };
+
+  /**
+   * clones the object removing functions, so it could be passed on postMessage (sending data to external modules) or received by webWorkers (optionally used in JSBox)
+   * @param  {Object} object
+   * @return {Object}
+   */
+  ObjectOperators.serliazeObject = function(object){
+    if(object==null) return null;
+    // console.log('                     ObjectOperators.serliazeObject | object:',object);
+    // console.log('                     ObjectOperators.serliazeObject | object[isTable]:',object["isTable"]);
+    // console.log('                     ObjectOperators.serliazeObject | object[isList]:',object["isList"]);
+
+    var newObject;
+    var l;
+    var i;
+
+    if(object["isTable"]) {
+      // console.log('\n-------------------------------serializaing table:', object);
+      newObject = object.toArray();
+      l = object.length;
+      for(i=0; i<l; i++){
+        newObject[i] = ObjectOperators.serliazeObject(object[i]);
+        // console.log('     ------newObject[i]', newObject[i]);
+      }
+      // console.log('------ serialized table:', newObject);
+      return newObject;
+    }
+
+    if(object["isList"]) return object.toArray();
+
+    return object;
+  };
+
+  ObjectOperators.serliazeObjectsInArray = function(array){
+    if(array==null) return null;
+
+    var newArray = [];
+    var l = array.length;
+    var i;
+    for(i=0; i<l; i++){
+      newArray[i] = ObjectOperators.serliazeObject(array[i]);
+    }
+    return newArray;
   };
 
 
