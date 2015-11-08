@@ -33,6 +33,50 @@ ObjectOperators.identity = function(object) {
   return object;
 };
 
+/**
+ * clones the object removing functions, so it could be passed on postMessage (sending data to external modules) or received by webWorkers (optionally used in JSBox)
+ * @param  {Object} object
+ * @return {Object}
+ */
+ObjectOperators.serliazeObject = function(object){
+  if(object==null) return null;
+  // console.log('                     ObjectOperators.serliazeObject | object:',object);
+  // console.log('                     ObjectOperators.serliazeObject | object[isTable]:',object["isTable"]);
+  // console.log('                     ObjectOperators.serliazeObject | object[isList]:',object["isList"]);
+
+  var newObject;
+  var l;
+  var i;
+
+  if(object["isTable"]) {
+    // console.log('\n-------------------------------serializaing table:', object);
+    newObject = object.toArray();
+    l = object.length;
+    for(i=0; i<l; i++){
+      newObject[i] = ObjectOperators.serliazeObject(object[i]);
+      // console.log('     ------newObject[i]', newObject[i]);
+    }
+    // console.log('------ serialized table:', newObject);
+    return newObject;
+  }
+
+  if(object["isList"]) return object.toArray();
+
+  return object;
+};
+
+ObjectOperators.serliazeObjectsInArray = function(array){
+  if(array==null) return null;
+
+  var newArray = [];
+  var l = array.length;
+  var i;
+  for(i=0; i<l; i++){
+    newArray[i] = ObjectOperators.serliazeObject(array[i]);
+  }
+  return newArray;
+};
+
 
 /**
  * builds a string report of the object, with detailed information about its structure and contents
