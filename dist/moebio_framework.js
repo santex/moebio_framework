@@ -3572,16 +3572,23 @@
    * Returns a new NumberList with the values of
    * the original list multiplied by the input value
    *
-   * @param {Number} value The value to multiply each
-   * value in the list by.
+   * @param {Number|NumberList} value number or NumberList, the value(s) to multiply each value in the list by.
    * @return {NumberList} New NumberList with values multiplied.
+   * tags:
    */
   NumberList.prototype.factor = function(value) {
     var i;
     var newNumberList = new NumberList();
     var l = this.length;
-    for(i = 0; i < l; i++) {
-      newNumberList.push(this[i] * value);
+
+    if(isArray(value)){
+      for(i = 0; i < l; i++) {
+        newNumberList.push(this[i] * value[i%this.length]);
+      }
+    } else {
+      for(i = 0; i < l; i++) {
+        newNumberList.push(this[i] * value);
+      }
     }
     newNumberList.name = this.name;
     return newNumberList;
@@ -3600,6 +3607,7 @@
    *
    * @param {Number|NumberList} object Input value to add to the list.
    * @return {NumberList}
+   * tags:
    */
   NumberList.prototype.add = function(object) {
     var i;
@@ -3637,6 +3645,7 @@
    *
    * @param {Number|NumberList} object Input value to subract from the list.
    * @return {NumberList}
+   * tags:
    */
   NumberList.prototype.subtract = function(object) {
     var i;
@@ -3674,6 +3683,7 @@
    *
    * @param {Number|NumberList} object Input value to divide by the list.
    * @return {NumberList}
+   * tags:
    */
   NumberList.prototype.divide = function(object) {
     var i;
@@ -6532,6 +6542,8 @@
    * tags:
    */
   NumberListOperators.normalizedToSum = function(numberlist, factor, sum) {
+    if(numberlist==null) return;
+    
     factor = factor == null ? 1 : factor;
     var newNumberList = new NumberList();
     newNumberList.name = numberlist.name;
@@ -8924,10 +8936,12 @@
    * @param  {String} text where to replaces strings
    * @param  {StringList} strings to be replaced (could be Regular Expressions)
    * @param  {String} replacement string to be placed instead
+   * 
+   * @param {Boolean} asWords searches for words instead of string occurrences (using new RegExp("\\b" + string + "\\b"))
    * @return {String}
    * tags:
    */
-  StringOperators.replaceStringsInText = function(text, strings, replacement) {
+  StringOperators.replaceStringsInText = function(text, strings, replacement, asWords) {
     if(text==null || strings==null || replacement==null) return null;
 
     var newText = text;
@@ -8937,7 +8951,14 @@
 
     for(j=0; j<nStrings; j++){
       string = strings[j];
-      if(!(string instanceof RegExp)) string = new RegExp(string, "g");
+      if(!(string instanceof RegExp)){
+        if(asWords) {
+          string = new RegExp("\\b" + string + "\\b", "g");
+        } else {
+          string = new RegExp(string, "g");
+        }
+      }
+        
       newText = newText.replace(string, replacement);
     }
 
@@ -9392,7 +9413,7 @@
     if(toLowerCase) string = string.toLowerCase();
 
     if(stopWords!=null){
-      string = StringOperators.replaceStringsInText(string, stopWords, "");
+      string = StringOperators.replaceStringsInText(string, stopWords, "", true);
     }
 
     if(removeDoubleSpaces) string = StringOperators.removeDoubleSpaces(string);
@@ -12268,7 +12289,6 @@
     ColorList: ColorList
   };
 
-
   /*
    * All these function are globally available since they are included in the Global class
    */
@@ -12432,6 +12452,8 @@
     else
       return true;
   }
+
+
 
   function evalJavaScriptFunction(functionText, args, scope){
   	if(functionText==null || functionText=="") return;
@@ -17305,6 +17327,8 @@
   NumberListOperators.cosineSimilarityDataTables = function(table0, table1) {
     if(table0==null || table1==null || table0.length<2 || table1.length<2) return null;
 
+    if(table0[0].length==0 || table1[0].length==0) return 0;
+
     var norms = table0[1].getNorm()*table1[1].getNorm();
     if(norms === 0) return 0;
     return NumberListOperators.dotProductDataTables(table0, table1)/norms;
@@ -18034,7 +18058,25 @@
       return {
         array: result
       };
-    };
+  };
+
+  /**
+   * converts and array of arrays into a Table
+   * @param {Array} arrayOfArrays array containing arrays
+   */
+  TableConversions.ArrayOfArraysToTable = function(arrayOfArrays) {
+    if(arrayOfArrays===null || !isArray(arrayOfArrays)) return;
+
+    var l = arrayOfArrays.length;
+    var i;
+    var table = new Table();
+
+    for(i=0; i<l; i++){
+      if(isArray(arrayOfArrays[i])) table.push(List.fromArray(arrayOfArrays[i]).getImproved());
+    }
+
+    return table.getImproved();
+  };
 
   /**
    * @classdesc NumberTable Operators
@@ -23999,6 +24041,8 @@
       this.canvas.removeEventListener('mousemove', this.cycleOnMouseMovementListener, false);
       this.canvas.removeEventListener('mousewheel', this.cycleOnMouseMovementListener, false);
       this.canvas.removeEventListener('mousemove', this.cycleOnMouseMovementListener, false);
+
+      this.canvas.removeEventListener('mousedown', this.cycleOnMouseMovementListener, false);
     }
 
     if(time>1){
@@ -24009,6 +24053,8 @@
       this.canvas.addEventListener('mousemove', this.cycleOnMouseMovementListener, false);
       this.canvas.addEventListener('mousewheel', this.cycleOnMouseMovementListener, false);
       this.canvas.addEventListener('mousemove', this.cycleOnMouseMovementListener, false);
+
+      this.canvas.addEventListener('mousedown', this.cycleOnMouseMovementListener, false);
 
       self.cycleFor(time);
     }
@@ -25148,13 +25194,38 @@
    * @param {Number} angle The angle in radians to rotate the text
    * @example
    * setText('black', 30, 'Arial');
-   * fTextRotated("hello", 40, 40, (20 * Math.PI / 180));
+   * fTextRotated("hello", 40, 40, 0.33*Math.PI);
    *
    */
   Graphics.prototype.fTextRotated = function(text, x, y, angle) {
     this.context.save();
     this.context.translate(x, y);
     this.context.rotate(angle);
+    this.context.fillText(text, 0, 0);
+    this.context.restore();
+  };
+
+  /**
+   * Draws filled in and stroked text, rotated by some angle.
+   * Fill color is expected to be set using {@link setFill}.
+   * Alternatively, setText can be used to set a number of
+   * text rendering properties.
+   *
+   * @param {String} text Text to draw.
+   * @param {Number} x X position to start the text.
+   * @param {Number} y Y position to start the text.
+   * @param {Number} angle The angle in radians to rotate the text
+   * @example
+   * setStroke('white', 2)
+   * setText('black', 30, 'Arial');
+   * fsTextRotated("hello", 40, 40, 0.33*Math.PI);
+   *
+   */
+  Graphics.prototype.fsTextRotated = function(text, x, y, angle) {
+    this.context.save();
+    this.context.translate(x, y);
+    this.context.rotate(angle);
+    this.context.strokeText(text, 0, 0);
     this.context.fillText(text, 0, 0);
     this.context.restore();
   };
