@@ -1203,6 +1203,35 @@ TableOperators.buildCorrelationsNetwork = function(table, nodesAreRows, names, m
 
   if(!nodesAreRows){
     //@todo deploy
+    
+    if(table.type=="NumberTable"){//correlations network, for the time being
+      
+
+      for(i=0; i<l; i++){
+        node = new Node("list_"+i, (table[i].name==null || table[i].name=="")?"list_"+i:table[i].name);
+        network.addNode(node);
+        node.i = i;
+        node.numbers = table[i];
+      }
+
+      for(i=0; i<l; i++){
+        node = network.nodeList[i];
+        for(j=i+1; j<l; j++){
+          node1 = network.nodeList[j];
+          pearson = NumberListOperators.pearsonProductMomentCorrelation(node.numbers, node1.numbers);
+          weight = pearson;
+          if( (negativeCorrelation && Math.abs(weight)>correlationThreshold) || (!negativeCorrelation && weight>correlationThreshold) ){
+            id = i+"_"+j;
+            name = node.name+"_"+node1.name;
+            relation = new Relation(id, name, node, node1, Math.abs(weight)-correlationThreshold*0.9);
+            relation.color = weight>0?'blue':'red';
+            relation.pearson = pearson;
+            network.addRelation(relation);
+          }
+        }
+      }
+    }
+
   } else {
     for(i=0; i<nRows; i++){
       id = "_"+i;
