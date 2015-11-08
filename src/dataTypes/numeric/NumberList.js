@@ -1,6 +1,6 @@
 import List from "src/dataTypes/lists/List";
 import Interval from "src/dataTypes/numeric/Interval";
-import { typeOf } from "src/tools/utils/code/ClassUtils";
+import { typeOf, isArray } from "src/tools/utils/code/ClassUtils";
 
 NumberList.prototype = new List();
 NumberList.prototype.constructor = NumberList;
@@ -494,16 +494,23 @@ NumberList.prototype.getSortIndexes = function(descending) {
  * Returns a new NumberList with the values of
  * the original list multiplied by the input value
  *
- * @param {Number} value The value to multiply each
- * value in the list by.
+ * @param {Number|NumberList} value number or NumberList, the value(s) to multiply each value in the list by.
  * @return {NumberList} New NumberList with values multiplied.
+ * tags:
  */
 NumberList.prototype.factor = function(value) {
   var i;
   var newNumberList = new NumberList();
   var l = this.length;
-  for(i = 0; i < l; i++) {
-    newNumberList.push(this[i] * value);
+
+  if(isArray(value)){
+    for(i = 0; i < l; i++) {
+      newNumberList.push(this[i] * value[i%this.length]);
+    }
+  } else {
+    for(i = 0; i < l; i++) {
+      newNumberList.push(this[i] * value);
+    }
   }
   newNumberList.name = this.name;
   return newNumberList;
@@ -522,6 +529,7 @@ NumberList.prototype.factor = function(value) {
  *
  * @param {Number|NumberList} object Input value to add to the list.
  * @return {NumberList}
+ * tags:
  */
 NumberList.prototype.add = function(object) {
   var i;
@@ -559,6 +567,7 @@ NumberList.prototype.add = function(object) {
  *
  * @param {Number|NumberList} object Input value to subract from the list.
  * @return {NumberList}
+ * tags:
  */
 NumberList.prototype.subtract = function(object) {
   var i;
@@ -596,6 +605,7 @@ NumberList.prototype.subtract = function(object) {
  *
  * @param {Number|NumberList} object Input value to divide by the list.
  * @return {NumberList}
+ * tags:
  */
 NumberList.prototype.divide = function(object) {
   var i;

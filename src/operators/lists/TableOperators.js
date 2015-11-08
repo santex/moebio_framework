@@ -1044,6 +1044,8 @@ NumberListOperators.dotProductDataTables = function(table0, table1) {
 NumberListOperators.cosineSimilarityDataTables = function(table0, table1) {
   if(table0==null || table1==null || table0.length<2 || table1.length<2) return null;
 
+  if(table0[0].length===0 || table1[0].length===0) return 0;
+
   var norms = table0[1].getNorm()*table1[1].getNorm();
   if(norms === 0) return 0;
   return NumberListOperators.dotProductDataTables(table0, table1)/norms;

@@ -122,10 +122,12 @@ StringOperators.replaceStringInText = function(text, string, replacement) {
  * @param  {String} text where to replaces strings
  * @param  {StringList} strings to be replaced (could be Regular Expressions)
  * @param  {String} replacement string to be placed instead
+ * 
+ * @param {Boolean} asWords searches for words instead of string occurrences (using new RegExp("\\b" + string + "\\b"))
  * @return {String}
  * tags:
  */
-StringOperators.replaceStringsInText = function(text, strings, replacement) {
+StringOperators.replaceStringsInText = function(text, strings, replacement, asWords) {
   if(text==null || strings==null || replacement==null) return null;
 
   var newText = text;
@@ -135,7 +137,14 @@ StringOperators.replaceStringsInText = function(text, strings, replacement) {
 
   for(j=0; j<nStrings; j++){
     string = strings[j];
-    if(!(string instanceof RegExp)) string = new RegExp(string, "g");
+    if(!(string instanceof RegExp)){
+      if(asWords) {
+        string = new RegExp("\\b" + string + "\\b", "g");
+      } else {
+        string = new RegExp(string, "g");
+      }
+    }
+      
     newText = newText.replace(string, replacement);
   }
 
@@ -590,7 +599,7 @@ StringOperators.cleanText = function(string, removeEnters, removeTabs, replaceTa
   if(toLowerCase) string = string.toLowerCase();
 
   if(stopWords!=null){
-    string = StringOperators.replaceStringsInText(string, stopWords, "");
+    string = StringOperators.replaceStringsInText(string, stopWords, "", true);
   }
 
   if(removeDoubleSpaces) string = StringOperators.removeDoubleSpaces(string);

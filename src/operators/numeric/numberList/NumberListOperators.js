@@ -170,6 +170,8 @@ NumberListOperators.pearsonProductMomentCorrelation = function(numberList0, numb
  * tags:
  */
 NumberListOperators.normalizedToSum = function(numberlist, factor, sum) {
+  if(numberlist==null) return;
+  
   factor = factor == null ? 1 : factor;
   var newNumberList = new NumberList();
   newNumberList.name = numberlist.name;

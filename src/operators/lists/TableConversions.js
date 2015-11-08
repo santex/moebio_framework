@@ -1,4 +1,8 @@
 
+import List from "src/dataTypes/lists/List";
+import Table from "src/dataTypes/lists/Table";
+import { isArray } from "src/tools/utils/code/ClassUtils";
+
 /**
  * @classdesc Tools to convert Tables to other data types
  *
@@ -37,4 +41,22 @@ TableConversions.TableToObject = function(table, fields) { // To-Do: should retu
     return {
       array: result
     };
-  };
+};
+
+/**
+ * converts and array of arrays into a Table
+ * @param {Array} arrayOfArrays array containing arrays
+ */
+TableConversions.ArrayOfArraysToTable = function(arrayOfArrays) {
+  if(arrayOfArrays===null || !isArray(arrayOfArrays)) return;
+
+  var l = arrayOfArrays.length;
+  var i;
+  var table = new Table();
+
+  for(i=0; i<l; i++){
+    if(isArray(arrayOfArrays[i])) table.push(List.fromArray(arrayOfArrays[i]).getImproved());
+  }
+
+  return table.getImproved();
+};
