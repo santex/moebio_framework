@@ -27,7 +27,6 @@ export default Network;
 /**
  * Get Nodes of the Network as a NodeList
  * @return {NodeList}
- * tags:
  */
 Network.prototype.getNodes = function() {
   return this.nodeList;
@@ -69,21 +68,19 @@ Network.prototype.addNode = function(node) {
 /**
  * Retrieve a node from the nodeList of the Network with the given name (label).
  * @param {String} name The name of the node to retrieve from the Network.
- * @return {Node} The node with the given name. Null if no node with that name
- * can be found in the Network.
+ * @return {Node} The node with the given name. Null if no node with that name can be found in the Network.
  */
-Network.prototype.getNodeWithName = function(name) {
-  return this.nodeList.getNodeWithName(name);
+Network.prototype.getNodeByName = function(name) {
+  return this.nodeList.getNodeByName(name);
 };
 
 /**
  * Retrieve node from Network with the given id.
  * @param {String} id ID of the node to retrieve
- * @return {Node} The node with the given id. Null if a node with this id is not
- * in the Network.
+ * @return {Node} The node with the given id. Null if a node with this id is not in the Network.
  */
-Network.prototype.getNodeWithId = function(id) {
-  return this.nodeList.getNodeWithId(id);
+Network.prototype.getNodeById = function(id) {
+  return this.nodeList.getNodeById(id);
 };
 
 /**
