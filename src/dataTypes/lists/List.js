@@ -900,12 +900,18 @@ List.prototype.getSortedByProperty = function(propertyName, ascending) {
 
   var comparator;
   if(ascending) {
+    // comparator = function(a, b) {
+    //   return a[propertyName] > b[propertyName] ? 1 : -1;
+    // };
     comparator = function(a, b) {
-      return a[propertyName] > b[propertyName] ? 1 : -1;
+       return a[propertyName] - b[propertyName];
     };
   } else {
+    // comparator = function(a, b) {
+    //   return b[propertyName] > a[propertyName] ? 1 : -1;
+    // };
     comparator = function(a, b) {
-      return b[propertyName] > a[propertyName] ? 1 : -1;
+      return b[propertyName] - a[propertyName];
     };
   }
   return this.clone().sort(comparator);
@@ -942,7 +948,7 @@ List.prototype.getSortedByList = function(list, ascending, smallPerturbation) {
 
   if(smallPerturbation && list.type=="NumberList"){
     for(i = 0; i<l; i++) {
-      pairsArray[i] = [this[i], list[i]+Math.random()*0.00000000001,i];
+      pairsArray[i] = [this[i], list[i]+Math.random()*10000*Number.MIN_VALUE, i];
     }
   } else {
     for(i = 0; i<l; i++) {
@@ -954,11 +960,13 @@ List.prototype.getSortedByList = function(list, ascending, smallPerturbation) {
   var comparator;
   if(ascending) {
     comparator = function(a, b) {
-      return a[1] < b[1] ? -1 : a[1] > b[1] ?  1 : a[2] - b[2];
+      //return a[1] < b[1] ? -1 : a[1] > b[1] ?  1 : a[2] - b[2];
+      return a[1] - b[1];
     };
   } else {
     comparator = function(a, b) {
-      return a[1] < b[1] ?  1 : a[1] > b[1] ? -1 : a[2] - b[2];
+      //return a[1] < b[1] ?  1 : a[1] > b[1] ? -1 : a[2] - b[2];
+      return b[1] - a[1];
     };
   }
 
@@ -985,7 +993,8 @@ List.prototype.getSortedRandom = function() {
   var newList = this.clone();
   newList.name = this.name;
   newList.sort(function() {
-    return Math.random() < 0.5 ? 1 : -1;
+    //return Math.random() < 0.5 ? 1 : -1;
+    return Math.random() - 0.5;
   });
   return newList;
 };
