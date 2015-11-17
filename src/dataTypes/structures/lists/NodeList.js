@@ -149,26 +149,27 @@ NodeList.prototype.removeNodeAtIndex = function(index) {
 };
 
 /**
- * Normalizes all weights associated with Nodes in NodeList
+ * Normalizes all weights associated with Nodes in NodeList [!] trsnaforms nodes
  * to a value between 0 and 1. Works under the assumption that weights are >= 0.
  */
 NodeList.prototype.normalizeWeights = function() {
   var i;
   var max = -9999999;
-  for(i = 0; this[i] != null; i++) {
+  var l = this.length;
+  for(i = 0; i<l; i++) {
     max = Math.max(this[i].weight, max);
   }
-  for(i = 0; this[i] != null; i++) {
+  for(i = 0; i<l; i++) {
     this[i].weight /= max;
   }
 };
 
 
 /**
- * Returns Node with given name if present in the NodeList.
- * Very inefficient method. Use {@link .getNodeById} when possible
- *
+ * Returns the first Node with given name if present in the NodeList. Very inefficient method. Use {@link .getNodeById} when possible
+ * @param  {String} name of node to return
  * @return {Node} Node with name matching input name. Null if no such Node.
+ * tags:
  */
 NodeList.prototype.getNodeByName = function(name) {
   var i;
@@ -183,10 +184,9 @@ NodeList.prototype.getNodeByName = function(name) {
 
 /**
  * Returns Node in NodeList with given Id.
- *
  * @param  {String} id Id of Node to return.
  * @return {Node}
- * tags:search
+ * tags:
  */
 NodeList.prototype.getNodeById = function(id) {
   return this.ids[id];
