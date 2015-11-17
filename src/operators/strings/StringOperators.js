@@ -30,35 +30,6 @@ StringOperators.STOP_WORDS = StringList.fromArray("t,s,mt,rt,re,m,http,amp,a,abl
 
 
 
-/**
- * creates an html string that depicts a proprtions bar with colors for categories
- * @param  {NumberList} normalizedWeights normalized weights
- *
- * @param  {Number} nChars width in characters
- * @param  {ColorList} colors list of categorical colors
- * @param  {String} character character or characters to be used as primitive
- * @return {String} html depciting colored segments forming a bar in a single line
- */
-StringOperators.createsCategoricalColorsBlocksHtml = function(normalizedWeights, nChars, colors, character){
-  if(normalizedWeights==null) return "";
-
-  var bars="";
-
-  nChars = nChars==null?20:nChars;
-  colors = colors==null?ColorListGenerators.createDefaultCategoricalColorList(normalizedWeights.length):colors;
-  character = character==null?"█":character;
-
-  normalizedWeights.forEach(function(w, j){
-    w = Math.floor(w*nChars) +  ( (w*nChars - Math.floor(w*nChars))>Math.random()?1:0 );
-    bars += "<font color=\""+ColorOperators.colorStringToHEX(colors[j])+"\">";
-    for(var i=0; i<w; i++){
-      bars += character;
-    }
-    bars += "</f>";
-  });
-
-  return bars;
-};
 
 /**
  * splits a String by a character (entre by default)
@@ -867,4 +838,35 @@ StringOperators.validateEmail = function(text) {
  */
 StringOperators.validateUrl = function(text) {
   return StringOperators.LINK_REGEX.test(text);
+};
+
+
+/**
+ * creates an html string that depicts a proprtions bar with colors for categories
+ * @param  {NumberList} normalizedWeights normalized weights
+ *
+ * @param  {Number} nChars width in characters
+ * @param  {ColorList} colors list of categorical colors
+ * @param  {String} character character or characters to be used as primitive
+ * @return {String} html depciting colored segments forming a bar in a single line
+ */
+StringOperators.createsCategoricalColorsBlocksHtml = function(normalizedWeights, nChars, colors, character){
+  if(normalizedWeights==null) return "";
+
+  var bars="";
+
+  nChars = nChars==null?20:nChars;
+  colors = colors==null?ColorListGenerators.createDefaultCategoricalColorList(normalizedWeights.length):colors;
+  character = character==null?"█":character;
+
+  normalizedWeights.forEach(function(w, j){
+    w = Math.floor(w*nChars) +  ( (w*nChars - Math.floor(w*nChars))>Math.random()?1:0 );
+    bars += "<font color=\""+ColorOperators.colorStringToHEX(colors[j])+"\">";
+    for(var i=0; i<w; i++){
+      bars += character;
+    }
+    bars += "</f>";
+  });
+
+  return bars;
 };
