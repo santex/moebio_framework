@@ -1380,10 +1380,10 @@
    * @return {String} Type of element stored in the List.
    */
   List.prototype.getTypeOfElements = function() {
-    var typeOfElements = typeOf(this[0]);
+    var typeOfElements = _typeOf(this[0]);
     var l = this.length;
     for(var i = 1; i<l; i++) {
-      if(typeOf(this[i]) != typeOfElements) return "";
+      if(_typeOf(this[i]) != typeOfElements) return "";
     }
     return typeOfElements;
   };
@@ -1398,7 +1398,7 @@
     var types = new StringList();
     var l = this.length;
     for(var i = 0; i<l; i++) {
-      types[i] = typeOf(this[i]);
+      types[i] = _typeOf(this[i]);
     }
     return types;
   };
@@ -1462,8 +1462,8 @@
       return this.getSubListByIndexes(arguments[0]);
     } else if(arguments.length > 2) {
       return this.getSubListByIndexes(arguments);
-    } else if(typeOf(arguments[0]) == 'number') {
-      if(typeOf(arguments[1]) != null && typeOf(arguments[1]) == 'number') {
+    } else if(_typeOf(arguments[0]) == 'number') {
+      if(_typeOf(arguments[1]) != null && _typeOf(arguments[1]) == 'number') {
         interval = new Interval(arguments[0], arguments[1]);
       } else {
         interval = new Interval(arguments[0], this.length - 1);
@@ -1520,7 +1520,7 @@
     var newList = new List();
     newList.name = this.name;
     this.forEach(function(element) {
-      if(typeOf(element) == type) newList.push(element);
+      if(_typeOf(element) == type) newList.push(element);
     });
     return newList.getImproved();
   };
@@ -1534,7 +1534,7 @@
   List.prototype.getSubListByIndexes = function() { //TODO: merge with getSubList
     if(this.length < 1) return this;
     var indexes;
-    if(typeOf(arguments[0]) == 'number') {
+    if(_typeOf(arguments[0]) == 'number') {
       indexes = arguments;
     } else {
       indexes = arguments[0];
@@ -1549,7 +1549,7 @@
     if(type == 'List') {
       newList = new List();
     } else {
-      newList = instantiate(typeOf(this));
+      newList = instantiate(_typeOf(this));
     }
 
     if(indexes.length === 0) {
@@ -1992,12 +1992,18 @@
 
     var comparator;
     if(ascending) {
+      // comparator = function(a, b) {
+      //   return a[propertyName] > b[propertyName] ? 1 : -1;
+      // };
       comparator = function(a, b) {
-        return a[propertyName] > b[propertyName] ? 1 : -1;
+         return a[propertyName] - b[propertyName];
       };
     } else {
+      // comparator = function(a, b) {
+      //   return b[propertyName] > a[propertyName] ? 1 : -1;
+      // };
       comparator = function(a, b) {
-        return b[propertyName] > a[propertyName] ? 1 : -1;
+        return b[propertyName] - a[propertyName];
       };
     }
     return this.clone().sort(comparator);
@@ -2034,7 +2040,7 @@
 
     if(smallPerturbation && list.type=="NumberList"){
       for(i = 0; i<l; i++) {
-        pairsArray[i] = [this[i], list[i]+Math.random()*0.00000000001,i];
+        pairsArray[i] = [this[i], list[i]+Math.random()*10000*Number.MIN_VALUE, i];
       }
     } else {
       for(i = 0; i<l; i++) {
@@ -2046,11 +2052,13 @@
     var comparator;
     if(ascending) {
       comparator = function(a, b) {
-        return a[1] < b[1] ? -1 : a[1] > b[1] ?  1 : a[2] - b[2];
+        //return a[1] < b[1] ? -1 : a[1] > b[1] ?  1 : a[2] - b[2];
+        return a[1] - b[1];
       };
     } else {
       comparator = function(a, b) {
-        return a[1] < b[1] ?  1 : a[1] > b[1] ? -1 : a[2] - b[2];
+        //return a[1] < b[1] ?  1 : a[1] > b[1] ? -1 : a[2] - b[2];
+        return b[1] - a[1];
       };
     }
 
@@ -2077,7 +2085,8 @@
     var newList = this.clone();
     newList.name = this.name;
     newList.sort(function() {
-      return Math.random() < 0.5 ? 1 : -1;
+      //return Math.random() < 0.5 ? 1 : -1;
+      return Math.random() - 0.5;
     });
     return newList;
   };
@@ -2266,7 +2275,7 @@
     if(this.type == 'List') {
       newList = new List();
     } else {
-      newList = instantiate(typeOf(this));
+      newList = instantiate(_typeOf(this));
     }
     for(i = 0; i < l; i++) {
       if(indexes.indexOf(i) == -1) {
@@ -3606,7 +3615,7 @@
   NumberList.prototype.add = function(object) {
     var i;
     var newNumberList = new NumberList();
-    var type = typeOf(object);
+    var type = _typeOf(object);
     var l = this.length;
 
     switch(type) {
@@ -3644,7 +3653,7 @@
   NumberList.prototype.subtract = function(object) {
     var i;
     var newNumberList = new NumberList();
-    var type = typeOf(object);
+    var type = _typeOf(object);
     var l = this.length;
 
     switch(type) {
@@ -3682,7 +3691,7 @@
   NumberList.prototype.divide = function(object) {
     var i;
     var newNumberList = new NumberList();
-    var type = typeOf(object);
+    var type = _typeOf(object);
     var l = this.length;
 
     switch(type) {
@@ -4284,7 +4293,7 @@
   * @todo write docs
   */
   _Polygon.prototype.add = function(object) {
-    var type = typeOf(object);
+    var type = _typeOf(object);
     var i;
     switch(type) {
       case 'Point':
@@ -4682,7 +4691,7 @@
     var l = tableToTranspose.length;
     var nElements;
 
-    var table = instantiate(typeOf(tableToTranspose));
+    var table = instantiate(_typeOf(tableToTranspose));
     if(tableToTranspose.length === 0) return table;
     var i;
     var j;
@@ -4980,7 +4989,7 @@
     var numberList;
     var l = this.length;
 
-    switch(typeOf(value)) {
+    switch(_typeOf(value)) {
       case 'number':
         for(i = 0; i<l; i++) {
           numberList = this[i];
@@ -5096,7 +5105,7 @@
     after = after == null ? true : after;
     var newStringList = new StringList();
     newStringList.name = this.name;
-    var sufixIsStringList = typeOf(sufix) == "StringList";
+    var sufixIsStringList = _typeOf(sufix) == "StringList";
     var i;
     if(after) {
       for(i = 0; this[i] != null; i++) {
@@ -6328,7 +6337,7 @@
    */
   ListGenerators.createListWithSameElement = function(nValues, element) {
     var list;
-    switch(typeOf(element)) {
+    switch(_typeOf(element)) {
       case 'number':
         list = new NumberList();
         break;
@@ -7524,7 +7533,7 @@
     if(numberList.length === 0) return list;
 
     var pairs = [];
-    var newList = instantiate(typeOf(list));
+    var newList = instantiate(_typeOf(list));
     var i;
 
     for(i = 0; list[i] != null; i++) {
@@ -7582,7 +7591,7 @@
    * @todo write docs
    */
   ListOperators.sortListByIndexes = function(list, indexedArray) {
-    var newList = instantiate(typeOf(list));
+    var newList = instantiate(_typeOf(list));
     newList.name = list.name;
     var nElements = list.length;
     var i;
@@ -8838,35 +8847,6 @@
 
 
 
-  /**
-   * creates an html string that depicts a proprtions bar with colors for categories
-   * @param  {NumberList} normalizedWeights normalized weights
-   *
-   * @param  {Number} nChars width in characters
-   * @param  {ColorList} colors list of categorical colors
-   * @param  {String} character character or characters to be used as primitive
-   * @return {String} html depciting colored segments forming a bar in a single line
-   */
-  StringOperators.createsCategoricalColorsBlocksHtml = function(normalizedWeights, nChars, colors, character){
-    if(normalizedWeights==null) return "";
-
-    var bars="";
-
-    nChars = nChars==null?20:nChars;
-    colors = colors==null?ColorListGenerators.createDefaultCategoricalColorList(normalizedWeights.length):colors;
-    character = character==null?"█":character;
-
-    normalizedWeights.forEach(function(w, j){
-      w = Math.floor(w*nChars) +  ( (w*nChars - Math.floor(w*nChars))>Math.random()?1:0 );
-      bars += "<font color=\""+ColorOperators.colorStringToHEX(colors[j])+"\">";
-      for(var i=0; i<w; i++){
-        bars += character;
-      }
-      bars += "</f>";
-    });
-
-    return bars;
-  };
 
   /**
    * splits a String by a character (entre by default)
@@ -9677,6 +9657,37 @@
     return StringOperators.LINK_REGEX.test(text);
   };
 
+
+  /**
+   * creates an html string that depicts a proprtions bar with colors for categories
+   * @param  {NumberList} normalizedWeights normalized weights
+   *
+   * @param  {Number} nChars width in characters
+   * @param  {ColorList} colors list of categorical colors
+   * @param  {String} character character or characters to be used as primitive
+   * @return {String} html depciting colored segments forming a bar in a single line
+   */
+  StringOperators.createsCategoricalColorsBlocksHtml = function(normalizedWeights, nChars, colors, character){
+    if(normalizedWeights==null) return "";
+
+    var bars="";
+
+    nChars = nChars==null?20:nChars;
+    colors = colors==null?ColorListGenerators.createDefaultCategoricalColorList(normalizedWeights.length):colors;
+    character = character==null?"█":character;
+
+    normalizedWeights.forEach(function(w, j){
+      w = Math.floor(w*nChars) +  ( (w*nChars - Math.floor(w*nChars))>Math.random()?1:0 );
+      bars += "<font color=\""+ColorOperators.colorStringToHEX(colors[j])+"\">";
+      for(var i=0; i<w; i++){
+        bars += character;
+      }
+      bars += "</f>";
+    });
+
+    return bars;
+  };
+
   Network.prototype = new DataModel();
   Network.prototype.constructor = Network;
 
@@ -9698,7 +9709,6 @@
   /**
    * Get Nodes of the Network as a NodeList
    * @return {NodeList}
-   * tags:
    */
   Network.prototype.getNodes = function() {
     return this.nodeList;
@@ -9740,21 +9750,19 @@
   /**
    * Retrieve a node from the nodeList of the Network with the given name (label).
    * @param {String} name The name of the node to retrieve from the Network.
-   * @return {Node} The node with the given name. Null if no node with that name
-   * can be found in the Network.
+   * @return {Node} The node with the given name. Null if no node with that name can be found in the Network.
    */
-  Network.prototype.getNodeWithName = function(name) {
-    return this.nodeList.getNodeWithName(name);
+  Network.prototype.getNodeByName = function(name) {
+    return this.nodeList.getNodeByName(name);
   };
 
   /**
    * Retrieve node from Network with the given id.
    * @param {String} id ID of the node to retrieve
-   * @return {Node} The node with the given id. Null if a node with this id is not
-   * in the Network.
+   * @return {Node} The node with the given id. Null if a node with this id is not in the Network.
    */
-  Network.prototype.getNodeWithId = function(id) {
-    return this.nodeList.getNodeWithId(id);
+  Network.prototype.getNodeById = function(id) {
+    return this.nodeList.getNodeById(id);
   };
 
   /**
@@ -11647,7 +11655,7 @@
    * @param {String} comments extra comments to store along with the object.
    */
   function setStructureLocalStorage(object, id, comments){
-    var type = typeOf(object);
+    var type = _typeOf(object);
     var code;
 
     switch(type){
@@ -11779,7 +11787,7 @@
       var lengthResult = result.length;
 
       for(var i = 0; i < lengthResult; i++) {
-        result[i] = typeOf(result[i]) == "Node" ? result[i] : (new Node(String(result[i]), String(result[i])));
+        result[i] = _typeOf(result[i]) == "Node" ? result[i] : (new Node(String(result[i]), String(result[i])));
       }
     }
     
@@ -11875,26 +11883,27 @@
   };
 
   /**
-   * Normalizes all weights associated with Nodes in NodeList
+   * Normalizes all weights associated with Nodes in NodeList [!] trsnaforms nodes
    * to a value between 0 and 1. Works under the assumption that weights are >= 0.
    */
   NodeList.prototype.normalizeWeights = function() {
     var i;
     var max = -9999999;
-    for(i = 0; this[i] != null; i++) {
+    var l = this.length;
+    for(i = 0; i<l; i++) {
       max = Math.max(this[i].weight, max);
     }
-    for(i = 0; this[i] != null; i++) {
+    for(i = 0; i<l; i++) {
       this[i].weight /= max;
     }
   };
 
 
   /**
-   * Returns Node with given name if present in the NodeList.
-   * Very inefficient method. Use {@link .getNodeById} when possible
-   *
+   * Returns the first Node with given name if present in the NodeList. Very inefficient method. Use {@link .getNodeById} when possible
+   * @param  {String} name of node to return
    * @return {Node} Node with name matching input name. Null if no such Node.
+   * tags:
    */
   NodeList.prototype.getNodeByName = function(name) {
     var i;
@@ -11909,10 +11918,9 @@
 
   /**
    * Returns Node in NodeList with given Id.
-   *
    * @param  {String} id Id of Node to return.
    * @return {Node}
-   * tags:search
+   * tags:
    */
   NodeList.prototype.getNodeById = function(id) {
     return this.ids[id];
@@ -12297,7 +12305,7 @@
    * and all data models classes names
    */
 
-  function typeOf(object) {
+  function _typeOf(object) {
     if(object==null) return null;
 
     var type = typeof object;
@@ -12410,7 +12418,7 @@
         var subtext;
         text = "[";
         for(i = 0; (value[i] != null && i < 6); i++) {
-          subtext = getTextFromObject(value[i], typeOf(value[i]));
+          subtext = getTextFromObject(value[i], _typeOf(value[i]));
           if(subtext.length > 40) subtext = subtext.substr(0, 40) + (value[i].isList ? "…]" : "…");
           text += (i !== 0 ? ", " : "") + subtext;
         }
@@ -12435,7 +12443,7 @@
   }
 
   function instantiateWithSameType(object, args) {
-    return instantiate(typeOf(object), args);
+    return instantiate(_typeOf(object), args);
   }
 
   function isArray(obj) {
@@ -12608,7 +12616,7 @@
    * @todo write docs
    */
   PolygonList.prototype.add = function(object) {
-    var type = typeOf(object);
+    var type = _typeOf(object);
     var i;
     switch(type) {
       case 'Point':
@@ -16378,7 +16386,7 @@
     var r,c,val,bKeep;
     var cStart=0;
     var cEnd=table.length;
-    var type = typeOf(value);
+    var type = _typeOf(value);
     if(type == 'string' && !isNaN(value) && value.trim() !== ''){
       type='number';
       value=Number(value);
@@ -16477,7 +16485,7 @@
       case "<=":
         for(r=0; r<nRows; r++){
           for(c=cStart; c<cEnd; c++){
-            if(type != typeOf(table[c][r])) continue;
+            if(type != _typeOf(table[c][r])) continue;
             val = bIgnoreCase ? String(table[c][r]).toLowerCase() : String(table[c][r]);
             if(val < value){
               nLKeep.push(r);
@@ -16494,7 +16502,7 @@
       case ">=":
         for(r=0; r<nRows; r++){
           for(c=cStart; c<cEnd; c++){
-            if(type != typeOf(table[c][r])) continue;
+            if(type != _typeOf(table[c][r])) continue;
             val = bIgnoreCase ? String(table[c][r]).toLowerCase() : String(table[c][r]);
             if(val > value){
               nLKeep.push(r);
@@ -16510,7 +16518,7 @@
       case "between":
         for(r=0; r<nRows; r++){
           for(c=cStart; c<cEnd; c++){
-            if(type != typeOf(table[c][r])) continue;
+            if(type != _typeOf(table[c][r])) continue;
             val = bIgnoreCase ? String(table[c][r]).toLowerCase() : String(table[c][r]);
             if(type == 'number')
               val = Number(val);
@@ -16764,7 +16772,7 @@
   TableOperators.sortListsByNumberList = function(table, numberList, descending) {
     if(descending == null) descending = true;
 
-    var newTable = instantiate(typeOf(table));
+    var newTable = instantiate(_typeOf(table));
     newTable.name = table.name;
     var nElements = table.length;
     var i;
@@ -17456,7 +17464,7 @@
 
     if(colorsByList!=null){
 
-      if(typeOf(colorsByList)=="number"){
+      if(_typeOf(colorsByList)=="number"){
         if(colorsByList<=l){
           colorsList = table[colorsByList];
         }
@@ -17474,12 +17482,11 @@
     }
     
 
-    if(names!=null && typeOf(names)=="number" && names<l) names = table[names];
+    if(names!=null && _typeOf(names)=="number" && names<l) names = table[names];
 
     
 
     if(!nodesAreRows){
-      //@todo deploy
       
       if(table.type=="NumberTable"){//correlations network, for the time being
         
@@ -17507,6 +17514,8 @@
             }
           }
         }
+      } else {
+        //any table
       }
 
     } else {
@@ -17534,9 +17543,11 @@
           node1 = network.nodeList[j];
           
           pearson = NumberListOperators.pearsonProductMomentCorrelation(node.numbers, node1.numbers);
-          jaccard = ListOperators.jaccardIndex(node.categories, node1.categories);
 
-          weight = (pearson + (negativeCorrelation?(Math.sqrt(jaccard)*2-1):jaccard) )*0.5;
+          //jaccard is normalized to -1, 1 so it can be negative 
+          jaccard = Math.pow( ListOperators.jaccardIndex(node.categories, node1.categories), 0.2 )*2 - 1;
+
+          weight = (pearson + jaccard)*0.5;
 
           //if(Math.abs(pearson)>0.1){
           if( (negativeCorrelation && Math.abs(weight)>correlationThreshold) || (!negativeCorrelation && weight>correlationThreshold) ){
@@ -17578,7 +17589,7 @@
 
     if(colorScale==null) colorScale = ColorScales.blueWhiteRed;
 
-    if(typeOf(supervised)=='number'){
+    if(_typeOf(supervised)=='number'){
       var newTable = variablesTable.getWithoutElementAtIndex(supervised);
       supervised = variablesTable[supervised];
       variablesTable = newTable;
@@ -19005,10 +19016,10 @@
 
     //trace("nElements", nElements);
 
-    if(numberList == null && table.length > 2 && typeOf(table[2]) == "NumberList" && table[2].length >= nElements) numberList = table[2];
+    if(numberList == null && table.length > 2 && _typeOf(table[2]) == "NumberList" && table[2].length >= nElements) numberList = table[2];
 
 
-    if(typeOf(table[0]) == NodeList && typeOf(table[1]) == NodeList) {
+    if(_typeOf(table[0]) == NodeList && _typeOf(table[1]) == NodeList) {
       //....    different methodology here
     }
 
@@ -19264,7 +19275,7 @@
     if(object==null || toType==null) return;
 
     var i;
-    var type = typeOf(object);
+    var type = _typeOf(object);
     var pairType = type + "_" + toType;
     var newList;
 
@@ -19412,7 +19423,7 @@
 
     if(object.getReport) return object.getReport();
 
-    var type = typeOf(object);
+    var type = _typeOf(object);
 
     switch(type){
       case 'Table':
@@ -19463,7 +19474,7 @@
 
     if(object.getReportHtml) return object.getReportHtml();
 
-    var type = typeOf(object);
+    var type = _typeOf(object);
 
     switch(type){
       case 'Table':
@@ -19584,9 +19595,9 @@
    * tags:
    */
   ObjectOperators.interpolateObjects = function(object0, object1, value, minDistance) {
-    var type = typeOf(object0);
+    var type = _typeOf(object0);
     var i;
-    if(type != typeOf(object1)) return object0;
+    if(type != _typeOf(object1)) return object0;
 
     value = value == null ? 0.5 : value;
     var antivalue = 1 - value;
@@ -19686,16 +19697,16 @@
 
       var a0 = arguments[0];
       var a1 = arguments[1];
-      var a0Type = typeOf(a0);
-      var a1Type = typeOf(a1);
+      var a0Type = _typeOf(a0);
+      var a1Type = _typeOf(a1);
       //console.log('ObjectOperators.addition, a0Type, a1Type:['+a0Type, a1Type+']');
       var reversed = false;
 
       if(a1Type < a0Type && a1Type != "string" && a0Type != "string") {
         a0 = arguments[1];
         a1 = arguments[0];
-        a0Type = typeOf(a0);
-        a1Type = typeOf(a1);
+        a0Type = _typeOf(a0);
+        a1Type = _typeOf(a1);
         reversed = true;
       }
 
@@ -19796,8 +19807,8 @@
 
     var a0 = arguments[0];
     var a1 = arguments[1];
-    var a0Type = typeOf(a0);
-    var a1Type = typeOf(a1);
+    var a0Type = _typeOf(a0);
+    var a1Type = _typeOf(a1);
     var pairType = a0Type + "_" + a1Type;
 
     //c.log('pairType:['+pairType+']');
@@ -19819,8 +19830,8 @@
       if(a1Type < a0Type){
         a0 = arguments[1];
         a1 = arguments[0];
-        a0Type = typeOf(a0);
-        a1Type = typeOf(a1);
+        a0Type = _typeOf(a0);
+        a1Type = _typeOf(a1);
       }
 
       pairType = a0Type + "_" + a1Type;
@@ -19920,14 +19931,14 @@
 
       var a0 = arguments[0];
       var a1 = arguments[1];
-      var a0Type = typeOf(a0);
-      var a1Type = typeOf(a1);
+      var a0Type = _typeOf(a0);
+      var a1Type = _typeOf(a1);
 
       if(a1Type < a0Type) {
         a0 = arguments[1];
         a1 = arguments[0];
-        a0Type = typeOf(a0);
-        a1Type = typeOf(a1);
+        a0Type = _typeOf(a0);
+        a1Type = _typeOf(a1);
       }
 
       var pairType = a0Type + "_" + a1Type;
@@ -21478,6 +21489,21 @@
     }
     return degrees;
   };
+
+  /**
+   * get the nodes of a network, a node or a relation
+   * @param  {Network|Node|Relation} object that contains nodes
+   * @return {NodeList}
+   * tags:
+   */
+  NetworkOperators.getNodes = function(object){
+    if(object==null) return null;
+    
+    if(object["nodeList"]!=null) return object["nodeList"];
+    if(typeOf(object)=="Relation") return new NodeList(object.node0, object.node1);
+
+    return null;
+  }
 
   /**
    * Builds a dendrogram from a Network.
@@ -29585,6 +29611,267 @@
    * @classdesc Operators that contain visualization method algoritms and return a Table with parameters for StringListPrimitive
    *
    * @namespace
+   * @category strings
+   */
+  function StringListVisOperators() {}
+  /**
+   * @todo write docs
+   */
+  StringListVisOperators.simpleTagCloud = function(stringList, weights, frame, font, interLineFactor, graphics) {
+    font = font == null ? 'Arial' : font;
+    interLineFactor = interLineFactor == null ? 1.2 : interLineFactor;
+
+    var i;
+    var j;
+    var xx;
+    var yy;
+    var tag;
+    var wT;
+
+    var sT;
+    var maxST;
+
+    var K = 20;
+    var i0Line;
+
+    var normWeigths = NumberListOperators.normalizedToMax(weights);
+
+    var sizes;
+    var positions;
+
+    var notFinished = true;
+
+    var trys = 0;
+
+    while(notFinished) {
+      var interLine = K * interLineFactor;
+      xx = 0;
+      yy = 0; //interLine;
+      maxST = 0;
+      i0Line = 0;
+
+      sizes = new NumberList();
+      positions = new _Polygon();
+
+      for(i = 0; stringList[i] != null; i++) {
+        tag = stringList[i];
+        sT = Math.floor(Math.sqrt(normWeigths[i]) * K);
+
+        sizes.push(sT);
+
+        graphics.context.font = String(sT) + 'px ' + font;
+        wT = graphics.context.measureText(tag).width;
+
+        if(xx + wT > frame.width) {
+          xx = 0;
+          yy += (maxST * interLineFactor + 1);
+          maxST = 0;
+          for(j = i0Line; j < i; j++) {
+            positions[j].y = yy;
+          }
+          i0Line = i;
+        }
+
+        maxST = Math.max(maxST, sT);
+        positions.push(new _Point(xx, yy));
+        xx += wT + sT * 0.2;
+      }
+
+      yy += (maxST * interLineFactor + 1);
+      for(j = i0Line; stringList[j] != null; j++) {
+        positions[j].y = yy;
+      }
+
+
+      notFinished = false;
+      if(yy < frame.height * 0.97) {
+        K = 0.5 * K + 0.5 * K * frame.height / (yy + interLine);
+        notFinished = true;
+      }
+      if(yy >= frame.height * 0.995) {
+        K = 0.5 * K + 0.5 * K * frame.height / (yy + interLine);
+        notFinished = true;
+      }
+      trys++;
+      if(trys > 10) notFinished = false;
+    }
+
+    var table = new Table();
+    table[0] = stringList;
+    table[1] = positions;
+    table[2] = sizes;
+
+    return table;
+  };
+
+
+
+  /**
+   * @todo write docs
+   */
+  StringListVisOperators.tagCloudRectangles = function(frame, stringList, weights, mode, margin, graphics) {
+    if(frame==null || stringList==null || weights==null) return;
+
+    mode = mode == null ? 0 : mode;
+    margin = margin == null ? 0 : margin;
+
+    if(graphics==null) graphics=frame.graphics;
+
+    var normWeights = NumberListOperators.normalizedToMax(weights.sqrt());
+
+    var roundSizes = mode === 0;
+
+    var rectangles = new List();
+    var textSizes = new NumberList();
+
+    var rectanglesPlaced = new List();
+
+    var dL = 6;
+
+    var a = 0;
+    var r = 0;
+
+    var px;
+    var py;
+    var center;
+    var rMax = 0;
+
+    switch(mode) {
+      case 0: //open triangle
+        px = frame.x;
+        py = frame.y;
+        break;
+      case 2: //rectangle
+        var jump = 5;
+        var nStep = 0;
+        var nSteps = 1;
+        var pc = new _Point();
+        break;
+      case 1: //circle
+        px = 0;
+        py = 0;
+        center = frame.getCenter();
+        break;
+    }
+
+    var w;
+    var h;
+    var prop = frame.width / frame.height;
+
+    for(var i = 0; stringList[i] != null; i++) {
+      textSizes[i] = roundSizes ? Math.round(normWeights[i] * 12) * dL : normWeights[i] * 12 * dL;
+
+      //DrawTexts.setContextTextProperties('black', textSizes[i], graphics.getFontFamily(), null, null, 'bold');
+      //console.log(i, ' ----> word, size', stringList[i], textSizes[i]);
+
+      graphics.context.fillStyle = 'black';
+      graphics.context.font = textSizes[i] + 'px ' + graphics.getFontFamily();
+      graphics.context.textAlign = 'left';
+      graphics.context.textBaseline = 'top';
+
+      w = Math.ceil((2 + graphics.context.measureText(stringList[i]).width) / dL) * dL;
+      h = textSizes[i];
+
+      switch(mode) {
+        case 0: //open triangle
+          while(StringListVisOperators._pointInRectangles(rectanglesPlaced, px, py, w, h, margin)) {
+            px += dL;
+            py -= dL;
+            if(py < frame.y) {
+              py = p.x;
+              px = frame.x;
+            }
+          }
+          break;
+        case 1: //circle
+          if(i === 0) {
+            px = center.x - w * 0.5;
+            py = center.y - h * 0.5;
+          } else {
+            a = i * 0.1;
+            r = 0;
+            while(StringListVisOperators._pointInRectangles(rectanglesPlaced, px, py, w, h, margin)) {
+              r += 1;
+              a += r * 0.005;
+
+              px = center.x + prop * r * Math.cos(a) - w * 0.5;
+              py = center.y + r * Math.sin(a) - h * 0.5;
+            }
+            rMax = Math.max(rMax, prop * r + w * 0.5);
+          }
+          break;
+        case 2: //rectangle
+          if(i === 0) {
+            pc = center.clone();
+            px = pc.x - w * 0.5;
+            py = pc.y - h * 0.5;
+          } else {
+            nStep = 0;
+            nSteps = 1;
+            a = 0;
+            pc = center.clone();
+            while(StringListVisOperators._pointInRectangles(rectanglesPlaced, px, py, w, h, margin)) {
+              nStep++;
+
+              pc.x += prop * jump * Math.cos(a);
+              pc.y += jump * Math.sin(a);
+
+              px = pc.x - w * 0.5;
+              py = pc.y - h * 0.5;
+
+              if(nStep >= nSteps) {
+                a += Math.PI * 0.5;
+                nSteps += 0.5;
+                nStep = 0;
+              }
+            }
+            rMax = Math.max(Math.abs(pc.x - center.x) + w * 0.5, rMax);
+          }
+          break;
+
+      }
+
+      rectangles[i] = new Rectangle(px, py, w, h);
+      rectanglesPlaced.push(rectangles[i]);
+    }
+
+    if(mode == 1 || mode == 2) {
+      var rectangle;
+      prop = 0.5 * frame.width / rMax;
+      for(i = 0; rectangles[i] != null; i++) {
+        rectangle = rectangles[i];
+        rectangle.x = center.x + (rectangle.x - center.x) * prop;
+        rectangle.y = center.y + (rectangle.y - center.y) * prop;
+        rectangle.width *= prop;
+        rectangle.height *= prop;
+        textSizes[i] *= prop;
+      }
+    }
+
+    var table = new Table();
+    table[0] = stringList;
+    table[1] = rectangles;
+    table[2] = textSizes;
+
+    return table;
+  };
+
+  /**
+   * @ignore
+   */
+  StringListVisOperators._pointInRectangles = function(rectangles, px, py, width, height, margin) {
+    var rect;
+    for(var i = 0; rectangles[i] != null; i++) {
+      rect = rectangles[i];
+      if(px + width > (rect.x - margin) && px < (rect.x + rect.width + margin) && (py + height) > (rect.y - margin) && py < (rect.y + rect.height + margin)) return true;
+    }
+    return false;
+  };
+
+  /**
+   * @classdesc Operators that contain visualization method algoritms and return a Table with parameters for StringListPrimitive
+   *
+   * @namespace
    * @category drawing
    */
   function StringListDraw() {}
@@ -31131,7 +31418,7 @@
   exports.MD5 = MD5;
   exports.StringUtils = StringUtils;
   exports.Navigator = Navigator;
-  exports.typeOf = typeOf;
+  exports.typeOf = _typeOf;
   exports.instantiate = instantiate;
   exports.getShortNameFromDataModelType = getShortNameFromDataModelType;
   exports.getColorFromDataModelType = getColorFromDataModelType;
@@ -31153,6 +31440,7 @@
   exports.ObjectDraw = ObjectDraw;
   exports.StringDraw = StringDraw;
   exports.StringListDraw = StringListDraw;
+  exports.StringListVisOperators = StringListVisOperators;
   exports.NetworkDraw = NetworkDraw;
   exports.TreeDraw = TreeDraw;
   exports.setStructureLocalStorage = setStructureLocalStorage;
