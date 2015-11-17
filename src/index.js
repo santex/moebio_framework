@@ -226,7 +226,8 @@ export { ObjectDraw, StringDraw};
 
 // visualization/strings
 import StringListDraw from "src/visualization/strings/StringListDraw";
-export { StringListDraw};
+import StringListVisOperators from "src/visualization/strings/StringListVisOperators";
+export { StringListDraw, StringListVisOperators };
 
 // visualization/structures
 import NetworkDraw from "src/visualization/structures/NetworkDraw";
