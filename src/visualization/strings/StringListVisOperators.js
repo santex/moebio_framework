@@ -16,6 +16,7 @@ import NumberListOperators from "src/operators/numeric/numberList/NumberListOper
 function StringListVisOperators() {}
 export default StringListVisOperators;
 
+
 /**
  * @todo write docs
  */
@@ -111,9 +112,13 @@ StringListVisOperators.simpleTagCloud = function(stringList, weights, frame, fon
 /**
  * @todo write docs
  */
-StringListVisOperators.tagCloudRectangles = function(stringList, weights, frame, mode, margin, graphics) {
+StringListVisOperators.tagCloudRectangles = function(frame, stringList, weights, mode, margin, graphics) {
+  if(frame==null || stringList==null || weights==null) return;
+
   mode = mode == null ? 0 : mode;
   margin = margin == null ? 0 : margin;
+
+  if(graphics==null) graphics=frame.graphics;
 
   var normWeights = NumberListOperators.normalizedToMax(weights.sqrt());
 
@@ -159,7 +164,14 @@ StringListVisOperators.tagCloudRectangles = function(stringList, weights, frame,
   for(var i = 0; stringList[i] != null; i++) {
     textSizes[i] = roundSizes ? Math.round(normWeights[i] * 12) * dL : normWeights[i] * 12 * dL;
 
-    DrawTexts.setContextTextProperties('black', textSizes[i], graphics.getFontFamily(), null, null, 'bold');
+    //DrawTexts.setContextTextProperties('black', textSizes[i], graphics.getFontFamily(), null, null, 'bold');
+    //console.log(i, ' ----> word, size', stringList[i], textSizes[i]);
+
+    graphics.context.fillStyle = 'black';
+    graphics.context.font = textSizes[i] + 'px ' + graphics.getFontFamily();
+    graphics.context.textAlign = 'left';
+    graphics.context.textBaseline = 'top';
+
     w = Math.ceil((2 + graphics.context.measureText(stringList[i]).width) / dL) * dL;
     h = textSizes[i];
 
