@@ -770,6 +770,21 @@ NetworkOperators.degreesFromNodeToNodes = function(network, node, nodeList) {
 };
 
 /**
+ * get the nodes of a network, a node or a relation
+ * @param  {Network|Node|Relation} object that contains nodes
+ * @return {NodeList}
+ * tags:
+ */
+NetworkOperators.getNodes = function(object){
+  if(object==null) return null;
+  
+  if(object["nodeList"]!=null) return object["nodeList"];
+  if(typeOf(object)=="Relation") return new NodeList(object.node0, object.node1);
+
+  return null;
+}
+
+/**
  * Builds a dendrogram from a Network.
  *
  * @param  {Network} network
