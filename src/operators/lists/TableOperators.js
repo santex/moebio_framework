@@ -1202,7 +1202,6 @@ TableOperators.buildCorrelationsNetwork = function(table, nodesAreRows, names, m
   
 
   if(!nodesAreRows){
-    //@todo deploy
     
     if(table.type=="NumberTable"){//correlations network, for the time being
       
@@ -1230,6 +1229,8 @@ TableOperators.buildCorrelationsNetwork = function(table, nodesAreRows, names, m
           }
         }
       }
+    } else {
+      //any table
     }
 
   } else {
@@ -1257,9 +1258,11 @@ TableOperators.buildCorrelationsNetwork = function(table, nodesAreRows, names, m
         node1 = network.nodeList[j];
         
         pearson = NumberListOperators.pearsonProductMomentCorrelation(node.numbers, node1.numbers);
-        jaccard = ListOperators.jaccardIndex(node.categories, node1.categories);
 
-        weight = (pearson + (negativeCorrelation?(Math.sqrt(jaccard)*2-1):jaccard) )*0.5;
+        //jaccard is normalized to -1, 1 so it can be negative 
+        jaccard = Math.pow( ListOperators.jaccardIndex(node.categories, node1.categories), 0.2 )*2 - 1;
+
+        weight = (pearson + jaccard)*0.5;
 
         //if(Math.abs(pearson)>0.1){
         if( (negativeCorrelation && Math.abs(weight)>correlationThreshold) || (!negativeCorrelation && weight>correlationThreshold) ){
