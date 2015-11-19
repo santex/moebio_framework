@@ -556,12 +556,13 @@ StringOperators.insertString = function(string, stringToInsert, index) {
  * @param {Boolean} toLowerCase
  * @param {StringList} stopWords removes strings from text
  * @param {Boolean} removeDoubleSpaces
+ * @param {Boolean} removeAccentsAndDiacritics removes accents and diacritics from characters
  * @return {String}
  * tags:filter
  */
-StringOperators.cleanText = function(string, removeEnters, removeTabs, replaceTabsAndEntersBy, removePunctuation, toLowerCase, stopWords, removeDoubleSpaces){
+StringOperators.cleanText = function(string, removeEnters, removeTabs, replaceTabsAndEntersBy, removePunctuation, toLowerCase, stopWords, removeDoubleSpaces, removeAccentsAndDiacritics){
   if(string==null) return null;
-
+  
   //console.log("string["+string+"]");
 
   if(removeEnters) string = StringOperators.removeEnters(string, replaceTabsAndEntersBy);
@@ -574,6 +575,8 @@ StringOperators.cleanText = function(string, removeEnters, removeTabs, replaceTa
   }
 
   if(removeDoubleSpaces) string = StringOperators.removeDoubleSpaces(string);
+
+  if(removeAccentsAndDiacritics) string = StringOperators.removeAccentsAndDiacritics(string);
 
   return string;
 };
