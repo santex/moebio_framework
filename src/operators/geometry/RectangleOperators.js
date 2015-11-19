@@ -1,6 +1,7 @@
 import Interval from "src/dataTypes/numeric/Interval";
 import Rectangle from "src/dataTypes/geometry/Rectangle";
 import List from "src/dataTypes/lists/List";
+import NumberList from "src/dataTypes/numeric/NumberList";
 import ListOperators from "src/operators/lists/ListOperators";
 import RectangleList from "src/dataTypes/geometry/RectangleList";
 import ListGenerators from "src/operators/lists/ListGenerators";
@@ -236,7 +237,7 @@ RectangleOperators.squarify = function(frame, weights, isNormalizedWeights, isSo
         rectangleList.push(new Rectangle(freeSubRectangle.x, freeSubRectangle.y, 0, 0));
       } else {
         for(j = 1; j < nWeights; j++) {
-          subWeightList = newWeightList.slice(i, i + j); //NumberList.fromArray(newWeightList.slice(i, i+j));//
+          subWeightList = NumberList.fromArray(newWeightList.slice(i, i + j)); //NumberList.fromArray(newWeightList.slice(i, i+j));//
           prevSubRectangleList = subRectangleList.slice(); //.clone();
           sum = subWeightList.getSum();
           subArea = sum * area;
@@ -298,7 +299,7 @@ RectangleOperators.squarify = function(frame, weights, isNormalizedWeights, isSo
       }
     }
   } else if(nWeights == 2) {
-    subWeightList = newWeightList.slice(); //.clone();
+    subWeightList = newWeightList.clone(); //.clone();
     freeSubRectangle = frame.clone();
     rectangleList = RectangleOperators.partitionRectangle(freeSubRectangle, subWeightList, subWeightList.getSum());
   } else {
