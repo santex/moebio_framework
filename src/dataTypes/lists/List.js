@@ -227,7 +227,9 @@ List.prototype.getImproved = function() {
  * tags:
  */
 List.prototype.toArray = function() {//@todo: make this efficient
-  if(this.type!="NumberList") return this.slice(0);
+  return this.slice(0);
+
+  //if(this.type!="NumberList") return this.slice(0);
 
   //console.log('List.prototype.toArray | this.name:', this.name);
   //console.log('List.prototype.toArray | array.name, array.type:', array.name, array.type);

@@ -94,8 +94,8 @@ NumberList.fromArray = function(array, forceToNumber) {
 
   //override
   result.clone = NumberList.prototype.clone;
-  result._slice = Array.prototype.slice;
-  result.slice = NumberList.prototype.slice;
+  //result._slice = Array.prototype.slice;
+  //result.slice = NumberList.prototype.slice;
 
   return result;
 };
@@ -762,7 +762,7 @@ NumberList.prototype.approach = function(destinty, speed) {
  * @todo write docs
  */
 NumberList.prototype.clone = function() {
-  var newList = NumberList.fromArray(this._slice(), false);
+  var newList = NumberList.fromArray(this.slice(), false);
   newList.name = this.name;
   return newList;
 };
@@ -770,6 +770,6 @@ NumberList.prototype.clone = function() {
 /**
  * @todo write docs
  */
-NumberList.prototype.slice = function() {
-  return NumberList.fromArray(this._slice.apply(this, arguments), false);
-};
+// NumberList.prototype.slice = function() {
+//   return NumberList.fromArray(this._slice.apply(this, arguments), false);
+// };
