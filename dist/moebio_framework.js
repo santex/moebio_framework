@@ -86,7 +86,7 @@
    * @para, {Object} optional parameter that will be stored in the LoadEvent instance
    */
   Loader.loadData = function(url, onLoadData, callee, param, send_object_json, withCredentials) {
-    if(Loader.REPORT_LOADING) console.log('load data:', url);
+    if(Loader.REPORT_LOADING) console.log('[L] load data:', url);
     Loader.n_loading++;
 
     if(Loader.LOCAL_STORAGE_ENABLED) {
@@ -112,7 +112,7 @@
 
     var target = callee ? callee : arguments.callee;
     var onLoadComplete = function() {
-      if(Loader.REPORT_LOADING) console.log('Loader.loadData | onLoadComplete'); //, req.responseText:', req.responseText);
+      if(Loader.REPORT_LOADING) console.log('[L] Loader.loadData | onLoadComplete, req.readyState, req.status:', req.readyState, req.status); //, req.responseText:', req.responseText);
       if(req.readyState == 4) {
         Loader.n_loading--;
 
@@ -122,9 +122,10 @@
         //if (req.status == 200) { //MIG
         if(req.status == 200 || (req.status === 0 && req.responseText !== null)) {
           e.result = req.responseText;
+          if(Loader.REPORT_LOADING) console.log("[L] ---> onLoadData.call(target, e)");
           onLoadData.call(target, e);
         } else {
-          if(Loader.REPORT_LOADING) console.log("[!] There was a problem retrieving the data [" + req.status + "]:\n" + req.statusText);
+          if(Loader.REPORT_LOADING) console.log("[L] [!] There was a problem retrieving the data [" + req.status + "]:\n" + req.statusText);
           e.errorType = req.status;
           e.errorMessage = "[!] There was a problem retrieving the data [" + req.status + "]:" + req.statusText;
           onLoadData.call(target, e);
@@ -293,7 +294,7 @@
     var req = new XMLHttpRequest();
     var onLoadComplete = onLoadData;
 
-    if(Loader.REPORT_LOADING) console.log('loadXML, url:', url);
+    if(Loader.REPORT_LOADING) console.log('[L] loadXML, url:', url);
 
     // branch for native XMLHttpRequest object
     if(window.XMLHttpRequest && !(window.ActiveXObject)) {
@@ -329,7 +330,7 @@
           onLoadComplete(req.responseXML);
 
         } else {
-          console.log("There was a problem retrieving the XML data:\n" +
+          console.log("[L] There was a problem retrieving the XML data:\n" +
             req.statusText);
         }
       }
@@ -362,7 +363,7 @@
     var target = callee ? callee : arguments.callee;
 
     var onLoadComplete = function() {
-      if(Loader.REPORT_LOADING) console.log('Loader.loadData | onLoadComplete, req.responseText:', req.responseText);
+      if(Loader.REPORT_LOADING) console.log('[L] Loader.loadData | onLoadComplete, req.responseText:', req.responseText);
       if(req.readyState == 4) {
         Loader.n_loading--;
 
@@ -374,7 +375,7 @@
           e.result = req.responseText;
           onLoadData.call(target, e);
         } else {
-          if(Loader.REPORT_LOADING) console.log("[!] There was a problem retrieving the data [" + req.status + "]:\n" + req.statusText);
+          if(Loader.REPORT_LOADING) console.log("[L] [!] There was a problem retrieving the data [" + req.status + "]:\n" + req.statusText);
           e.errorType = req.status;
           e.errorMessage = "[!] There was a problem retrieving the data [" + req.status + "]:" + req.statusText;
           onLoadData.call(target, e);
@@ -1319,7 +1320,9 @@
    * tags:
    */
   List.prototype.toArray = function() {//@todo: make this efficient
-    if(this.type!="NumberList") return this.slice(0);
+    return this.slice(0);
+
+    //if(this.type!="NumberList") return this.slice(0);
 
     //console.log('List.prototype.toArray | this.name:', this.name);
     //console.log('List.prototype.toArray | array.name, array.type:', array.name, array.type);
@@ -3175,8 +3178,8 @@
 
     //override
     result.clone = NumberList.prototype.clone;
-    result._slice = Array.prototype.slice;
-    result.slice = NumberList.prototype.slice;
+    //result._slice = Array.prototype.slice;
+    //result.slice = NumberList.prototype.slice;
 
     return result;
   };
@@ -3843,7 +3846,7 @@
    * @todo write docs
    */
   NumberList.prototype.clone = function() {
-    var newList = NumberList.fromArray(this._slice(), false);
+    var newList = NumberList.fromArray(this.slice(), false);
     newList.name = this.name;
     return newList;
   };
@@ -3851,9 +3854,9 @@
   /**
    * @todo write docs
    */
-  NumberList.prototype.slice = function() {
-    return NumberList.fromArray(this._slice.apply(this, arguments), false);
-  };
+  // NumberList.prototype.slice = function() {
+  //   return NumberList.fromArray(this._slice.apply(this, arguments), false);
+  // };
 
   DateList.prototype = new List();
   DateList.prototype.constructor = DateList;
@@ -9373,12 +9376,13 @@
    * @param {Boolean} toLowerCase
    * @param {StringList} stopWords removes strings from text
    * @param {Boolean} removeDoubleSpaces
+   * @param {Boolean} removeAccentsAndDiacritics removes accents and diacritics from characters
    * @return {String}
    * tags:filter
    */
-  StringOperators.cleanText = function(string, removeEnters, removeTabs, replaceTabsAndEntersBy, removePunctuation, toLowerCase, stopWords, removeDoubleSpaces){
+  StringOperators.cleanText = function(string, removeEnters, removeTabs, replaceTabsAndEntersBy, removePunctuation, toLowerCase, stopWords, removeDoubleSpaces, removeAccentsAndDiacritics){
     if(string==null) return null;
-
+    
     //console.log("string["+string+"]");
 
     if(removeEnters) string = StringOperators.removeEnters(string, replaceTabsAndEntersBy);
@@ -9391,6 +9395,8 @@
     }
 
     if(removeDoubleSpaces) string = StringOperators.removeDoubleSpaces(string);
+
+    if(removeAccentsAndDiacritics) string = StringOperators.removeAccentsAndDiacritics(string);
 
     return string;
   };
@@ -15786,7 +15792,7 @@
           rectangleList.push(new Rectangle(freeSubRectangle.x, freeSubRectangle.y, 0, 0));
         } else {
           for(j = 1; j < nWeights; j++) {
-            subWeightList = newWeightList.slice(i, i + j); //NumberList.fromArray(newWeightList.slice(i, i+j));//
+            subWeightList = NumberList.fromArray(newWeightList.slice(i, i + j)); //NumberList.fromArray(newWeightList.slice(i, i+j));//
             prevSubRectangleList = subRectangleList.slice(); //.clone();
             sum = subWeightList.getSum();
             subArea = sum * area;
@@ -15848,7 +15854,7 @@
         }
       }
     } else if(nWeights == 2) {
-      subWeightList = newWeightList.slice(); //.clone();
+      subWeightList = newWeightList.clone(); //.clone();
       freeSubRectangle = frame.clone();
       rectangleList = RectangleOperators.partitionRectangle(freeSubRectangle, subWeightList, subWeightList.getSum());
     } else {
