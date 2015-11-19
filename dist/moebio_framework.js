@@ -26603,7 +26603,7 @@
     }
 
     // TODO What is this supposed to do?
-    this.DOMtext.addEventListener("mousemove", this.graphics._onMouse, false);
+    //this.DOMtext.addEventListener("mousemove", this.graphics._onMouse, false);
     // TODO find out what this was for onMoveCycle doesn't exist anymore
     //if(this.graphics._cycleOnMouseMovement) this.DOMtext.addEventListener('mousemove', onMoveCycle, false);
   }
