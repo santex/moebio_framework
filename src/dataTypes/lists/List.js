@@ -222,12 +222,15 @@ List.prototype.getImproved = function() {
 };
 
 /**
- * Creates a simple Array from the list
+ * Creates a simple Array from the list, preserves name and type properties
  * @return {Array}
  * tags:
  */
 List.prototype.toArray = function() {//@todo: make this efficient
-  return this.slice(0);
+  var array = this.slice(0);
+  array.name = this.name;
+  array.type = this.type;
+  return array;
 
   //if(this.type!="NumberList") return this.slice(0);
 
@@ -235,15 +238,19 @@ List.prototype.toArray = function() {//@todo: make this efficient
   //console.log('List.prototype.toArray | array.name, array.type:', array.name, array.type);
 
   //crazy that .slice seems to work everywhere except on NumberList
-  var propName;
-  var array = this.slice(0);
-  for(propName in array){
-    if(typeof array[propName] == 'function'){
-      delete array[propName];
-    }
-  }
-  array.name = this.name;
-  return array;
+  // var propName;
+  // var array = this.slice(0);
+
+  // for(propName in array){
+  //   if(typeof array[propName] == 'function'){
+  //     delete array[propName];
+  //   }
+  // }
+
+  // array.name = this.name;
+  // array.type = this.type;
+
+  //return array;
 };
 
 /**
@@ -877,7 +884,8 @@ List.prototype.sortIndexed = function() {
     var array_a = a.value;
     var array_b = b.value;
 
-    return array_a < array_b ? -1 : array_a > array_b ? 1 : 0;
+    //return array_a < array_b ? -1 : array_a > array_b ? 1 : 0;
+    return array_a - array_b;// ? -1 : array_a > array_b ? 1 : 0;
   };
   index = index.sort(comparator);
   var result = new NumberList();
