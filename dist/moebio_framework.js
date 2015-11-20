@@ -1315,12 +1315,15 @@
   };
 
   /**
-   * Creates a simple Array from the list
+   * Creates a simple Array from the list, preserves name and type properties
    * @return {Array}
    * tags:
    */
   List.prototype.toArray = function() {//@todo: make this efficient
-    return this.slice(0);
+    var array = this.slice(0);
+    array.name = this.name;
+    array.type = this.type;
+    return array;
 
     //if(this.type!="NumberList") return this.slice(0);
 
@@ -1328,15 +1331,19 @@
     //console.log('List.prototype.toArray | array.name, array.type:', array.name, array.type);
 
     //crazy that .slice seems to work everywhere except on NumberList
-    var propName;
-    var array = this.slice(0);
-    for(propName in array){
-      if(typeof array[propName] == 'function'){
-        delete array[propName];
-      }
-    }
-    array.name = this.name;
-    return array;
+    // var propName;
+    // var array = this.slice(0);
+
+    // for(propName in array){
+    //   if(typeof array[propName] == 'function'){
+    //     delete array[propName];
+    //   }
+    // }
+
+    // array.name = this.name;
+    // array.type = this.type;
+
+    //return array;
   };
 
   /**
@@ -1970,7 +1977,8 @@
       var array_a = a.value;
       var array_b = b.value;
 
-      return array_a < array_b ? -1 : array_a > array_b ? 1 : 0;
+      //return array_a < array_b ? -1 : array_a > array_b ? 1 : 0;
+      return array_a - array_b;// ? -1 : array_a > array_b ? 1 : 0;
     };
     index = index.sort(comparator);
     var result = new NumberList();
@@ -6335,10 +6343,12 @@
    * Generates a List made of several copies of same element (returned List is improved)
    * @param {Object} nValues length of the List
    * @param {Object} element object to be placed in all positions
+   *
+   * @param {String} name optional name for the list
    * @return {List} generated List
    * tags:generator
    */
-  ListGenerators.createListWithSameElement = function(nValues, element) {
+  ListGenerators.createListWithSameElement = function(nValues, element, name) {
     var list;
     switch(_typeOf(element)) {
       case 'number':
@@ -6363,9 +6373,13 @@
         list = new List();
     }
 
-    for(var i = 0; i < nValues; i++) {
+    var i;
+
+    for(i = 0; i < nValues; i++) {
       list[i] = element;
     }
+
+    list.name = name;
     return list;
   };
 
@@ -6375,6 +6389,7 @@
    * @param {Object} firstElement first element
    * @param {Object} dynamicFunction sequence generator function, elementN+1 =  dynamicFunction(elementN)
    * @return {List} generated List
+   * tags:generator
    */
   ListGenerators.createIterationSequence = function(nValues, firstElement, dynamicFunction) {
     var list = ListGenerators.createListWithSameElement(1, firstElement);
@@ -7540,17 +7555,18 @@
     var i;
 
     for(i = 0; list[i] != null; i++) {
-      pairs.push([list[i], numberList[i],i]);
+      pairs.push([list[i], numberList[i], i]);
     }
 
 
     if(descending) {
       pairs.sort(function(a, b) {
-        return a[1] < b[1] ?  1 : a[1] > b[1] ? -1 : a[2] - b[2];
+        //return a[1] < b[1] ?  1 : a[1] > b[1] ? -1 : a[2] - b[2];
+        return b[1] - a[1];// < b[1] ?  1 : a[1] > b[1] ? -1 : a[2] - b[2];
       });
     } else {
       pairs.sort(function(a, b) {
-        return a[1] < b[1] ? -1 : a[1] > b[1] ?  1 : a[2] - b[2];
+        return a[1] - b[1];// ? -1 : a[1] > b[1] ?  1 : a[2] - b[2];
       });
     }
 
