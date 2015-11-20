@@ -20,10 +20,12 @@ export default ListGenerators;
  * Generates a List made of several copies of same element (returned List is improved)
  * @param {Object} nValues length of the List
  * @param {Object} element object to be placed in all positions
+ *
+ * @param {String} name optional name for the list
  * @return {List} generated List
  * tags:generator
  */
-ListGenerators.createListWithSameElement = function(nValues, element) {
+ListGenerators.createListWithSameElement = function(nValues, element, name) {
   var list;
   switch(typeOf(element)) {
     case 'number':
@@ -48,9 +50,13 @@ ListGenerators.createListWithSameElement = function(nValues, element) {
       list = new List();
   }
 
-  for(var i = 0; i < nValues; i++) {
+  var i;
+
+  for(i = 0; i < nValues; i++) {
     list[i] = element;
   }
+
+  list.name = name;
   return list;
 };
 
@@ -60,6 +66,7 @@ ListGenerators.createListWithSameElement = function(nValues, element) {
  * @param {Object} firstElement first element
  * @param {Object} dynamicFunction sequence generator function, elementN+1 =  dynamicFunction(elementN)
  * @return {List} generated List
+ * tags:generator
  */
 ListGenerators.createIterationSequence = function(nValues, firstElement, dynamicFunction) {
   var list = ListGenerators.createListWithSameElement(1, firstElement);
