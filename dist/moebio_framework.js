@@ -1246,12 +1246,13 @@
    * tags:
    */
   List.prototype.getImproved = function() {
-    //TODO: still doesn't solve tha case of a list with several list of different types
     if(this.length === 0) {
       return this;
     }
 
     var typeOfElements = this.getTypeOfElements();
+
+    //console.log('getImproved | typeOfElements: ['+typeOfElements+']');
 
     var newList;
     switch(typeOfElements) {
@@ -1291,19 +1292,15 @@
     }
 
     var l = this.length;
-    if(newList === null ||  newList === "") {
-      //c.l('getImproved | all elelemnts no same type')
-
+    if(newList == null ||  newList == "") {//do not change newList == null
       var allLists = true;
       var i;
       for(i = 0; i<l; i++) {
-        //c.l('isList?', i, this[i].isList);
         if(!(this[i].isList)) {
           allLists = false;
           break;
         }
       }
-      //c.l('--> allLists');
       if(allLists) newList = Table.fromArray(this, false);
     }
 
@@ -1324,26 +1321,6 @@
     array.name = this.name;
     array.type = this.type;
     return array;
-
-    //if(this.type!="NumberList") return this.slice(0);
-
-    //console.log('List.prototype.toArray | this.name:', this.name);
-    //console.log('List.prototype.toArray | array.name, array.type:', array.name, array.type);
-
-    //crazy that .slice seems to work everywhere except on NumberList
-    // var propName;
-    // var array = this.slice(0);
-
-    // for(propName in array){
-    //   if(typeof array[propName] == 'function'){
-    //     delete array[propName];
-    //   }
-    // }
-
-    // array.name = this.name;
-    // array.type = this.type;
-
-    //return array;
   };
 
   /**
@@ -7395,9 +7372,11 @@
     if(list==null) return;
 
     var dictionary = {};
-    list.forEach(function(element){
-      dictionary[element] = true;
-    });
+    var l = list.length;
+    var i;
+    for(i=0;i<l;i++){
+      dictionary[list[i]] = true;
+    }
 
     return dictionary;
   };
@@ -7435,11 +7414,14 @@
    */
   ListOperators.getIndexesDictionary = function(list){
     var indexesDictionary = {};
+    var i;
+    var l = list.length;
 
-    list.forEach(function(element, i){
-      if(indexesDictionary[element]==null) indexesDictionary[element]=new NumberList();
-      indexesDictionary[element].push(i);
-    });
+    //list.forEach(function(element, i){
+    for(i=0; i<l; i++){
+      if(indexesDictionary[list[i]]==null) indexesDictionary[list[i]]=new NumberList();
+      indexesDictionary[list[i]].push(i);
+    }
 
     return indexesDictionary;
   };
@@ -7809,26 +7791,25 @@
 
 
   /**
-   * returns the list of common elements between two lists (deprecated, use union instead)
+   * returns the list of common elements between two lists (deprecated, use intersection instead)
    * @param  {List} list0
    * @param  {List} list1
    * @return {List}
-   * tags:deprecated
    */
-  ListOperators.getCommonElements = function(list0, list1) {
-    var nums = list0.type == 'NumberList' && list1.type == 'NumberList';
-    var strs = list0.type == 'StringList' && list1.type == 'StringList';
-    var newList = nums ? new NumberList() : (strs ? new StringList() : new List());
+  // ListOperators.getCommonElements = function(list0, list1) {
+  //   var nums = list0.type == 'NumberList' && list1.type == 'NumberList';
+  //   var strs = list0.type == 'StringList' && list1.type == 'StringList';
+  //   var newList = nums ? new NumberList() : (strs ? new StringList() : new List());
 
-    var list = list0.length < list1.length ? list0 : list1;
-    var otherList = list0 == list ? list1 : list0;
+  //   var list = list0.length < list1.length ? list0 : list1;
+  //   var otherList = list0 == list ? list1 : list0;
 
-    for(var i = 0; list[i] != null; i++) {
-      if(otherList.indexOf(list[i]) != -1) newList.push(list[i]);
-    }
-    if(nums || strs) return newList;
-    return newList.getImproved();
-  };
+  //   for(var i = 0; list[i] != null; i++) {
+  //     if(otherList.indexOf(list[i]) != -1) newList.push(list[i]);
+  //   }
+  //   if(nums || strs) return newList;
+  //   return newList.getImproved();
+  // };
 
 
   /**
@@ -20840,6 +20821,7 @@
   /**
    * Returns a NodeList with the Nodes in the Network that are part of the
    * first shortest path found between the two input nodes. Aka geodesic path between two nodes
+   * (the algorithm performs a Bread-first search)
    *
    * @param {Network} network Network to work on.
    * @param {Node} node0 Source Node.
@@ -20857,18 +20839,12 @@
 
     if(node == null) return null;
 
-    // console.log('---'); return;
-    //
-
-
     while(node.parent.id != node0.id) {
       path.addNode(node.parent.node);
       node = node.parent;
       if(node == null) return null;
-      //console.log('    >', node0.id, node1.id, node.id,  node.parent==null?'no parent!':node.parent.id);
     }
 
-    // console.log('shortestPath, path', path);
     if(includeExtremes) path.addNode(node0);
     return path.getReversed();
   };
@@ -20891,74 +20867,35 @@
     var i;
     var allPaths = new Table();
 
-
     if(node0.nodeList.getNodeById(node1.id)!=null){
       allPaths.push(new NodeList(node0, node1));
       return allPaths;
     }
 
-    //c.clear();
-
     if(spanningTree==null) spanningTree = NetworkOperators.spanningTree(network, node0, node1);
 
-    //console.log('[•--•] node0.id, node1.id', node0.id, node1.id);
-    // console.log('[•--•] shortestPaths | spanningTree.nodeList.length, spanningTree.nLevels', spanningTree.nodeList.length, spanningTree.nLevels);
-
-    // for(var i=0; i<spanningTree.nLevels; i++){
-    //   // console.log('  [•--•] level:'+i, spanningTree.getNodesByLevel(i).getIds().join(','));
-    // }
-
-    //first we seek for the nodes in paths
-
     var n = spanningTree.nLevels;
-    //console.log('[•--•] spanningTree.nLevels:', n);
-
-    // console.log('[•--•] spanningTree.getNodesByLevel(spanningTree.nLevels-1).getNodeById(node1.id)', spanningTree.getNodesByLevel(spanningTree.nLevels-1).getNodeById(node1.id) );
-
+    
     var level1 = new NodeList(node1);
     var extended_from_1 = NetworkOperators.adjacentNodeList(network, level1, false);
     var level0 = ListOperators.intersection(extended_from_1, spanningTree.getNodesByLevel(n-2));//spanningTree.getNodesByLevel(n-2);
-
-    // console.log('[•--•] node1.nodeList', node1.nodeList.getIds().join(','));
-    // console.log('[•--•] level1', level1.getIds().join(','));
-    // console.log('[•--•] level on tree:', spanningTree.getNodesByLevel(n-2).getIds().join(','));
-    // console.log('[•--•] extended_from_1', extended_from_1.getIds().join(','));
-    // console.log('[•--•] ----> level0', level0.getIds().join(','));
 
     var relationsTable = new Table();
     var relationsBetween;
 
     relationsTable.push(NetworkOperators.getRelationsBetweenNodeLists(network, level0, level1, false));
 
-    // console.log('  [•--•] relationsTable[last]', relationsTable[relationsTable.length-1].getIds().join(','));
-
     while(n>2){
       n--;
       level1 = level0;
 
-      //interection of level1 xpanded and level n-2 in tree
-
       level0 = ListOperators.intersection(NetworkOperators.adjacentNodeList(network, level1, false), spanningTree.getNodesByLevel(n-2));
-      // console.log('\n  [•--•] n:', n);
-      // console.log('  [•--•] level1', level1.getIds().join(','));
-      // console.log('  [•--•] level0', level0.getIds().join(','));
-
       relationsBetween = NetworkOperators.getRelationsBetweenNodeLists(network, level0, level1, false);
-      //console.log('  [•--•] relationsBetween.length', relationsBetween.length);
-
+      
       relationsTable.push(relationsBetween);
-      // console.log('  [•--•] relationsTable[last]', relationsTable[relationsTable.length-1].getIds().join(','));
     }
 
     relationsTable = relationsTable.getReversed();
-
-    //console.log('\n  [•--•] relationsTable', relationsTable );
-
-    // console.log('[•--•] relationsTable.getLengths()', relationsTable.getLengths() );
-
-    //console.log('[•--•] STOP for now'); return;
-
-    //console.log('\n\n[•--•] /////////--- build paths ----///////');
 
     for(i=0; relationsTable[0][i]!=null; i++){
       allPaths.push( new NodeList(node0, relationsTable[0][i].getOther(node0)) );
@@ -20970,15 +20907,10 @@
       var newPaths = new Table();
       var finalNode = path[path.length-1];
       var newPath;
-
-      // console.log('   finalNode.id:',finalNode.id);
-
       relations.forEach(function(relation){
-        // console.log('         test relation:', relation.id);
         if(finalNode.relationList.getNodeById(relation.id)){
           newPath = path.clone();
           newPath.addNode(relation.getOther(finalNode));
-          // console.log('                newPath:',newPath.getIds().join(','));
           newPaths.push(newPath);
         }
       });
@@ -20990,61 +20922,20 @@
     var nPaths;
     var path;
 
-    // console.log('[•--•] allPaths', allPaths);
-    // console.log('[•--•] allPaths[0]', allPaths[0]);
-
     while(allPaths[0].length<spanningTree.nLevels){
-      //console.log('\nallPaths[0].length', allPaths[0].length);
-
+      
       newPaths = new Table();
       nPaths = allPaths.length;
-      //allPaths.forEach(function(path){
+
       for(i=0; i<nPaths; i++){
         path = allPaths[i];
-        // console.log('        path:',path.getIds().join(','));
         toAdd = _findNewPaths(path, relationsTable[path.length-1]);
-        // console.log('          added '+toAdd.length+' paths');
         newPaths = newPaths.concat(toAdd);
       }
       allPaths = newPaths;
-      // console.log('  [•--•] allPaths[0].length', allPaths[0].length);
     }
 
-
-    //console.log('allPaths.length:',allPaths.length);
-    // console.log('allPaths!!!!:',allPaths);
-
-    // allPaths.forEach(function(path, i){
-    //   console.log('[•--•] path '+i+': '+path.getIds().join(','));
-    // });
-
     return allPaths;
-
-
-
-
-    // if(shortPath == null) shortPath = NetworkOperators.shortestPath(network, node0, node1, true);
-
-    // var lengthShortestPaths = shortPath.length;
-
-
-    // var firstPath = new NodeList();
-    // var i;
-
-    // firstPath.addNode(node0);
-    // allPaths.push(firstPath);
-
-
-    // var all = NetworkOperators._extendPaths(allPaths, node1, lengthShortestPaths);
-
-    // for(i = 0; all[i] != null; i++) {
-    //   if(all[i][all[i].length - 1] != node1) {
-    //     all.splice(i, 1);
-    //     i--;
-    //   }
-    // }
-
-    // return all;
   };
 
   /**
@@ -21066,7 +20957,6 @@
     var relation;
     var i;
 
-    //network.relationList.forEach(function(relation){
     for(i=0; i<nRelations; i++){
       relation = network.relationList[i];
       if(
@@ -21251,10 +21141,8 @@
 
     for(i = 0; nodesToCheck[i] != null; i++) {
       prevNode = nodesToCheck[i];
-      //if(node==prevNode || path.indexOf(prevNode)!=-1 || (prevPath!=null && prevPath.indexOf(prevNode)!=-1)) continue;
       if(node == prevNode || path.getNodeById(prevNode.id) != null || (prevPath != null && prevPath.getNodeById(prevNode.id) != null)) continue;
 
-      //if(prevNode.toNodeList.indexOf(node)!=-1){
 
       if(prevNode.toNodeList.getNodeById(node.id) != null) {
         if(first) {
@@ -21295,11 +21183,9 @@
       }
     }
     newNodeList = newNodeList.getWithoutRepetitions();
-    for(i = 0; newNodeList[i] != null; i++) {
+    for(i = 0; i<newNodeList.length; i++) {
       if(newNodeList[i].onColumn) {
         newNodeList.removeNodeAtIndex(i);
-        //newNodeList.ids[newNodeList[i].id] = null;
-        //newNodeList.splice(i, 1);
         i--;
       }
     }
@@ -21336,23 +21222,20 @@
     var nodeInPrevNodes;
     var i;
     var id;
+    var l = nodes.length;
 
     var limitReached = false;
 
-    for(i = 0; nodes[i] != null; i++) {
+    for(i = 0; i<l; i++) {
       newNode = new Node(nodes[i].id, nodes[i].name);
       if(newNode.id == parent.id) continue;
       newNode.node = nodes[i];
       tree.addNodeToTree(newNode, parent);
-      //console.log('  spanningTree | add:', newNode.id)
-      //console.log('                               spanningTree add node: newNode.id, nodeLimit.id', newNode.id, nodeLimit.id);
       if(nodeLimit != null && newNode.id == nodeLimit.id){
         limitReached = true;
-        //console.log('       spanningTree | limitReached!');
       }
     }
-    //console.log('spanningTree |  limitReached A',  limitReached);
-
+    
     if(limitReached) return tree;
 
     var accumulated = nodes.clone();
@@ -21374,7 +21257,7 @@
       //console.log('newNodes.length (if 0 return tree)', newNodes.length)
       if(newNodes.length === 0) return tree;
 
-      for(i = 0; newNodes[i] != null; i++) {
+      for(i = 0; i<newNodes.length; i++) {
         newNode = new Node(newNodes[i].id, newNodes[i].name);
         // console.log('                   ++'+newNodes[i].id);
         newNode.node = newNodes[i];
@@ -21428,8 +21311,8 @@
     var node0, node1;
 
     if(directional){
-      for(i=0; nodeList[i]!=null; i++){
-        for(j=0; nodeList[i].toNodeList[j]!=null; j++){
+      for(i=0; i<nodeList.length; i++){
+        for(j=0; j<nodeList[i].toNodeList.length; j++){
           node1 = nodeList[i].toNodeList[j].id;
           if(nodeList.getNodeById(node1)==null && newNodeList.getNodeById(node1)==null) newNodeList.addNode(node1);
         }
@@ -21438,7 +21321,7 @@
       return newNodeList;
     }
 
-    for(i=0; nodeList[i]!=null; i++){
+    for(i=0; i<nodeList.length; i++){
       for(j=0; nodeList[i].relationList[j]!=null; j++){
         node0 = nodeList[i].relationList[j].node0;
         node1 = nodeList[i].relationList[j].node1;
@@ -21472,7 +21355,7 @@
       externalLayer = new NodeList();
       for(i = 0; nextLevel[i] != null; i++) {
         nextNodes = nextLevel[i].nodeList;
-        for(j = 0; nextNodes[j] != null; j++) {
+        for(j = 0; j<nextNodes.length; j++) {
           if(listAccumulated.indexOf(nextNodes[j]) == -1) { //fix this
             externalLayer.push(nextNodes[j]);
             listAccumulated.push(nextNodes[j]);
@@ -21495,11 +21378,11 @@
     var degrees = new NumberList();
     degrees.max = 0;
     var j;
-    for(var i = 0; nodeList[i] != null; i++) {
+    for(var i = 0; i<nodeList.length; i++) {
       if(nodeList[i] == node) {
         degrees[i] = 0;
       } else {
-        for(j = 1; table[j] != null; j++) {
+        for(j = 1; j<table.length; j++) {
           if(table[j].indexOf(nodeList[i]) != -1) { //use getNodeById
             degrees[i] = j;
             degrees.max = Math.max(degrees.max, j);
@@ -21550,7 +21433,7 @@
 
     var pRelationPair = 2 * network.relationList.length / (nNodes * (nNodes - 1));
 
-    for(i = 0; network.nodeList[i] != null; i++) {
+    for(i = 0; i<nNodes; i++) {
       newNode = new Node("[" + network.nodeList[i].id + "]", "[" + network.nodeList[i].id + "]");
       newNode.nodes = new NodeList(network.nodeList[i]);
       tree.addNode(newNode);
@@ -21576,11 +21459,11 @@
       newNode.node = new Node(id, id);
       newNode.nodes = node0.nodes.concat(node1.nodes);
 
-      for(i = 0; node0.nodeList[i] != null; i++) {
+      for(i = 0; i<node0.nodeList.length; i++) {
         newNode.node.nodeList.addNode(node0.nodeList[i]);
         newNode.node.relationList.addRelation(node0.relationList[i]);
       }
-      for(i = 0; node1.nodeList[i] != null; i++) {
+      for(i = 0; i<node1.nodeList.length; i++) {
         newNode.node.nodeList.addNode(node1.nodeList[i]);
         newNode.node.relationList.addRelation(node1.relationList[i]);
       }
@@ -21592,7 +21475,7 @@
 
 
     //recalculate levels for nodes here
-    for(i = 0; tree.nodeList[i] != null; i++) {
+    for(i = 0; i<tree.nodeList.length; i++) {
       node0 = tree.nodeList[i];
       if(node0.nodes.length > 1) {
         node0.level = Math.max(node0.nodeList[0].level, node0.nodeList[1].level) + 1;
@@ -21630,9 +21513,9 @@
     var strength;
     var maxStrength = -1;
 
-    for(i = 0; nodeList[i + 1] != null; i++) {
+    for(i = 0; i<nodeList.length-1; i++) {
       nodeList0 = nodeList[i].nodes;
-      for(j = i + 1; nodeList[j] != null; j++) {
+      for(j = i + 1; j<nodeList.length; j++) {
         strength = NetworkOperators._strengthBetweenSets(nodeList0, nodeList[j].nodes, pRelationPair);
         //console.logog('        i,j,strength, nodeList0.length, nodeList[j].nodes.length', i, j, strength, nodeList0.length, nodeList[j].nodes.length);
         if(strength > maxStrength) {
@@ -21657,9 +21540,9 @@
     var i, j;
     var node0;
 
-    for(i = 0; nodeList0[i] != null; i++) {
+    for(i = 0; i<nodeList0.length; i++) {
       node0 = nodeList0[i];
-      for(j = 0; node0.nodeList[j] != null; j++) {
+      for(j = 0; j<node0.nodeList.length; j++) {
         if(nodeList1.indexOf(node0.nodeList[j]) != -1) {
         //if(nodeList1.getNodeById(node0.nodeList[j].id) != null) { // <----- seemed to be slower!
           strength += node0.relationList[j].weight;
