@@ -153,12 +153,13 @@ List.fromArray = function(array) {
  * tags:
  */
 List.prototype.getImproved = function() {
-  //TODO: still doesn't solve tha case of a list with several list of different types
   if(this.length === 0) {
     return this;
   }
 
   var typeOfElements = this.getTypeOfElements();
+
+  //console.log('getImproved | typeOfElements: ['+typeOfElements+']');
 
   var newList;
   switch(typeOfElements) {
@@ -198,19 +199,15 @@ List.prototype.getImproved = function() {
   }
 
   var l = this.length;
-  if(newList === null ||  newList === "") {
-    //c.l('getImproved | all elelemnts no same type')
-
+  if(newList == null ||  newList == "") {//do not change newList == null
     var allLists = true;
     var i;
     for(i = 0; i<l; i++) {
-      //c.l('isList?', i, this[i].isList);
       if(!(this[i].isList)) {
         allLists = false;
         break;
       }
     }
-    //c.l('--> allLists');
     if(allLists) newList = Table.fromArray(this, false);
   }
 
@@ -231,26 +228,6 @@ List.prototype.toArray = function() {//@todo: make this efficient
   array.name = this.name;
   array.type = this.type;
   return array;
-
-  //if(this.type!="NumberList") return this.slice(0);
-
-  //console.log('List.prototype.toArray | this.name:', this.name);
-  //console.log('List.prototype.toArray | array.name, array.type:', array.name, array.type);
-
-  //crazy that .slice seems to work everywhere except on NumberList
-  // var propName;
-  // var array = this.slice(0);
-
-  // for(propName in array){
-  //   if(typeof array[propName] == 'function'){
-  //     delete array[propName];
-  //   }
-  // }
-
-  // array.name = this.name;
-  // array.type = this.type;
-
-  //return array;
 };
 
 /**
