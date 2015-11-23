@@ -193,7 +193,6 @@ ListOperators.concat = function() {
  * tags:
  */
 ListOperators.assemble = function() {
-  console.log('ListOperators.assemble');
   return List.fromArray(Array.prototype.slice.call(arguments, 0)).getImproved();
 };
 
@@ -639,7 +638,6 @@ ListOperators.intersection = function(list0, list1) {//TODO:expand for more list
  * @param  {List} list0
  * @param  {List} list1
  * @return {List}
- * tags:deprecated
  */
 // ListOperators.getCommonElements = function(list0, list1) {
 //   var nums = list0.type == 'NumberList' && list1.type == 'NumberList';
