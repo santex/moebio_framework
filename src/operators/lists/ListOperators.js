@@ -193,6 +193,7 @@ ListOperators.concat = function() {
  * tags:
  */
 ListOperators.assemble = function() {
+  console.log('ListOperators.assemble');
   return List.fromArray(Array.prototype.slice.call(arguments, 0)).getImproved();
 };
 
@@ -215,9 +216,11 @@ ListOperators.getBooleanDictionaryForList = function(list){
   if(list==null) return;
 
   var dictionary = {};
-  list.forEach(function(element){
-    dictionary[element] = true;
-  });
+  var l = list.length;
+  var i;
+  for(i=0;i<l;i++){
+    dictionary[list[i]] = true;
+  }
 
   return dictionary;
 };
@@ -255,11 +258,14 @@ ListOperators.getSingleIndexDictionaryForList = function(list){
  */
 ListOperators.getIndexesDictionary = function(list){
   var indexesDictionary = {};
+  var i;
+  var l = list.length;
 
-  list.forEach(function(element, i){
-    if(indexesDictionary[element]==null) indexesDictionary[element]=new NumberList();
-    indexesDictionary[element].push(i);
-  });
+  //list.forEach(function(element, i){
+  for(i=0; i<l; i++){
+    if(indexesDictionary[list[i]]==null) indexesDictionary[list[i]]=new NumberList();
+    indexesDictionary[list[i]].push(i);
+  }
 
   return indexesDictionary;
 };
@@ -629,26 +635,26 @@ ListOperators.intersection = function(list0, list1) {//TODO:expand for more list
 
 
 /**
- * returns the list of common elements between two lists (deprecated, use union instead)
+ * returns the list of common elements between two lists (deprecated, use intersection instead)
  * @param  {List} list0
  * @param  {List} list1
  * @return {List}
  * tags:deprecated
  */
-ListOperators.getCommonElements = function(list0, list1) {
-  var nums = list0.type == 'NumberList' && list1.type == 'NumberList';
-  var strs = list0.type == 'StringList' && list1.type == 'StringList';
-  var newList = nums ? new NumberList() : (strs ? new StringList() : new List());
+// ListOperators.getCommonElements = function(list0, list1) {
+//   var nums = list0.type == 'NumberList' && list1.type == 'NumberList';
+//   var strs = list0.type == 'StringList' && list1.type == 'StringList';
+//   var newList = nums ? new NumberList() : (strs ? new StringList() : new List());
 
-  var list = list0.length < list1.length ? list0 : list1;
-  var otherList = list0 == list ? list1 : list0;
+//   var list = list0.length < list1.length ? list0 : list1;
+//   var otherList = list0 == list ? list1 : list0;
 
-  for(var i = 0; list[i] != null; i++) {
-    if(otherList.indexOf(list[i]) != -1) newList.push(list[i]);
-  }
-  if(nums || strs) return newList;
-  return newList.getImproved();
-};
+//   for(var i = 0; list[i] != null; i++) {
+//     if(otherList.indexOf(list[i]) != -1) newList.push(list[i]);
+//   }
+//   if(nums || strs) return newList;
+//   return newList.getImproved();
+// };
 
 
 /**
