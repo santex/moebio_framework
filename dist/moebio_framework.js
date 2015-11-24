@@ -2388,8 +2388,6 @@
   List.prototype.concat = function() {
     if(arguments[0] == null) return this;
 
-    // c.l('concat | arguments[0].type, this.type', arguments[0].type, this.type);
-
     if(arguments[0].type == this.type) {//var type = … / switch/case
       if(this.type == "NumberList") {
         return NumberList.fromArray(this._concat.apply(this, arguments), false);
@@ -2407,7 +2405,6 @@
         var i;
         var l = args.length;
         for(i=0; i<l; i++){
-          // c.l('   +_+_+_+args[i]',args[i]);
           newList.addNode(args[i]);
         }
         return newList;
@@ -3000,7 +2997,7 @@
   * @return {NumberList} NumberList of interpolated values.
   */
   Interval.prototype.getInterpolatedValues = function(numberList) {
-    var newNumberList = [];
+    var newNumberList = new NumberList();
     var nElements = numberList.length;
     for(var i = 0; i < nElements; i++) {
       newNumberList.push(this.getInterpolatedValue(numberList[i]));
@@ -3016,7 +3013,7 @@
   * @return {NumberList} NumberList of inverse interpolated values.
   */
   Interval.prototype.getInverseInterpolatedValues = function(numberList) {
-    var newNumberList = [];
+    var newNumberList = new NumberList();
     var nElements = numberList.length;
     for(var i = 0; i < nElements; i++) {
       newNumberList.push(this.getInverseInterpolatedValue(numberList[i]));
@@ -3029,6 +3026,13 @@
   */
   Interval.prototype.intersect = function(interval) {
     return new Interval(Math.max(this.x, interval.x), Math.min(this.y, interval.y));
+  };
+
+  /**
+  * @todo write docs
+  */
+  Interval.prototype.unite = function(interval) {
+    return new Interval(Math.min(this.x, interval.x), Math.max(this.y, interval.y));
   };
 
   /**
@@ -4922,7 +4926,8 @@
    */
   NumberTable.prototype.getSums = function() {
     var numberList = new NumberList();
-    for(var i = 0; this[i] != null; i++) {
+    var l = this.length;
+    for(var i = 0; i<l; i++) {
       numberList[i] = this[i].getSum();
     }
     return numberList;
@@ -6988,22 +6993,28 @@
   /**
    * builds a NumberList that gives histogram counts
    * @param  {NumberList} numberList
+   * 
    * @param  {Number} nBins number of bins to use (default 100)
    * @param  {Interval} interval range of values (default use actual range of input numberList)
+   * @param {Number} mode return mode<br>0:(default) return the number of numbers on each bin<br>1:return the bin index for each value
    * @return {NumberList}
    * tags:statistics
    */
-  NumberListOperators.rangeCounts = function(numberList, nBins, interval){
+  NumberListOperators.rangeCounts = function(numberList, nBins, interval, mode){
     if(numberList==null) return;
     nBins = nBins == null ? 100 : nBins;
     interval = interval==null ? numberList.getInterval() : interval;
+    mode = mode || 0;
     var nLCounts = ListGenerators.createListWithSameElement(nBins,0);
     var f,bin,len=numberList.length;
+    var binIndexes = new NumberList();
     for(var i=0;i<len;i++){
       f = interval.getInverseInterpolatedValue(numberList[i]);
       bin = Math.min(Math.floor(f*nBins),nBins-1);
+      binIndexes[i] = bin;
       nLCounts[bin]++;
     }
+    if(mode==1) return binIndexes;
     return nLCounts;
   };
 
@@ -7011,6 +7022,7 @@
    * builds a NumberTable that gives 2D histogram counts for a pair of NumberLists
    * @param  {NumberList} nL1
    * @param  {NumberList} nL2
+   * 
    * @param  {Number} nBins1 number of bins to use for nL1 (default 25)
    * @param  {Number} nBins2 number of bins to use for nL2 (default 25)
    * @param  {Interval} int1 range of values (default use actual range of input nL1)
@@ -7402,10 +7414,10 @@
 
     var i;
     var list = arguments[0].concat(arguments[1]);
-    for(i = 2; arguments[i]; i++) {
+    for(i = 2; i<arguments.length; i++) {
       list = list.concat(arguments[i]);
     }
-    return list.getImproved();
+    return list;
   };
 
   /**
@@ -20380,7 +20392,10 @@
    * tags:count
    */
   StringListOperators.getWordsOccurrencesMatrix = function(strings, stopWords, includeLinks, wordsLimitPerString, totalWordsLimit, normalize, stressUniqueness, sortByTotalWeight, minSizeWords) {
+    if(strings == null) return;
+
     var i;
+    var matrix;
 
     wordsLimitPerString = wordsLimitPerString || 500;
     totalWordsLimit = totalWordsLimit || 1000;
@@ -20389,12 +20404,28 @@
     sortByTotalWeight = (sortByTotalWeight || true);
     minSizeWords = minSizeWords == null ? 3 : minSizeWords;
 
-    var matrix = StringOperators.getWordsOccurrencesTable(strings[0], stopWords, includeLinks, wordsLimitPerString, minSizeWords);
+    if(strings[0]==""){
+      matrix = new Table();
+      matrix.push(new StringList(""));
+      matrix.push(new NumberList(0));
+      console.log('-.-');
+    } else {
+      matrix = StringOperators.getWordsOccurrencesTable(strings[0], stopWords, includeLinks, wordsLimitPerString, minSizeWords);
+    }
+
 
     var table;
-    for(i = 1; strings[i] != null; i++) {
-      table = StringOperators.getWordsOccurrencesTable(strings[i], stopWords, includeLinks, wordsLimitPerString, minSizeWords);
-      matrix = TableOperators.mergeDataTables(matrix, table);
+    var nStrings = strings.length;
+    for(i = 1; i<nStrings; i++) {
+      console.log('strings[i]:['+strings[i]+']');
+
+      if(strings[i]==""){
+        matrix.push(ListGenerators.createListWithSameElement(matrix[0].length, 0));
+        console.log('-.-');
+      } else {
+        table = StringOperators.getWordsOccurrencesTable(strings[i], stopWords, includeLinks, wordsLimitPerString, minSizeWords);
+        matrix = TableOperators.mergeDataTables(matrix, table);
+      }
     }
 
 
