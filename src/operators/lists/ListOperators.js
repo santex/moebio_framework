@@ -175,10 +175,10 @@ ListOperators.concat = function() {
 
   var i;
   var list = arguments[0].concat(arguments[1]);
-  for(i = 2; arguments[i]; i++) {
+  for(i = 2; i<arguments.length; i++) {
     list = list.concat(arguments[i]);
   }
-  return list.getImproved();
+  return list;
 };
 
 /**
@@ -684,8 +684,8 @@ ListOperators.jaccardDistance = function(list0, list1) {
  *
  * @param  {List} aggregatorList aggregator list that typically contains several repeated elements
  * @param  {List} toAggregateList list of elements that will be aggregated
- * @param  {Number} mode aggregation modes:<br>0:first element<br>1:count (default)<br>2:sum<br>3:average<br>4:min<br>5:max<br>6:standard deviation<br>7:enlist (creates a list of elements)<br>8:last element<br>9:most common element<br>10:random element<br>11:indexes<br>12:count non repeated elements<br>13:enlist non repeated elements<br>14:concat elements (string)<br>15:concat non-repeated elements
- * @param  {Table} indexesTable optional already calculated table of indexes of elements on the aggregator list (if didn't provided, the method calculates it)
+ * @param  {Number} mode aggregation modes:<br>0:first element<br>1:count (default)<br>2:sum<br>3:average<br>4:min<br>5:max<br>6:standard deviation<br>7:enlist (creates a list of elements)<br>8:last element<br>9:most common element<br>10:random element<br>11:indexes<br>12:count non repeated elements<br>13:enlist non repeated elements<br>14:concat elements (for strings, uses ', ' as separator)<br>15:concat non-repeated elements
+ * @param  {Table} indexesTable optional already calculated table of indexes of elements on the aggregator list (if not provided, the method calculates it)
  * @return {Table} contains a list with non repeated elements on the first list, and the aggregated elements on a second list
  * tags:
  */
@@ -708,99 +708,133 @@ ListOperators.aggregateList = function(aggregatorList, toAggregateList, mode, in
 
   var list;
   var elementsTable;
+  var nIndexes = indexesTable[1].length;
+  var indexes;
+  var index;
+  var elements;
+  var i, j;
 
   switch(mode){
     case 0://first element
       table[1] = new List();
-      indexesTable[1].forEach(function(indexes){
+      //indexesTable[1].forEach(function(indexes){
+      for(i=0; i<nIndexes; i++){
+        indexes = indexesTable[1][i];
         table[1].push(toAggregateList[indexes[0]]);
-      });
+      }
       table[1] = table[1].getImproved();
       return table;
     case 1://count
       table[1] = new NumberList();
-      indexesTable[1].forEach(function(indexes){
+      //indexesTable[1].forEach(function(indexes){
+      for(i=0; i<nIndexes; i++){
+        indexes = indexesTable[1][i];
         table[1].push(indexes.length);
-      });
+      }
       return table;
     case 2://sum
     case 3://average
       var sum;
       table[1] = new NumberList();
-      indexesTable[1].forEach(function(indexes){
+      //indexesTable[1].forEach(function(indexes){
+      for(i=0; i<nIndexes; i++){
+        indexes = indexesTable[1][i];
         sum = 0;
-        indexes.forEach(function(index){
+        //indexes.forEach(function(index){
+        for(j=0; j<indexes.length; j++){
+          index = indexes[j];
           sum+=toAggregateList[index];
-        });
+        }
         if(mode==3) sum/=indexes.length;
         table[1].push(sum);
-      });
+      }
       return table;
     case 4://min
       var min;
       table[1] = new NumberList();
-      indexesTable[1].forEach(function(indexes){
+      //indexesTable[1].forEach(function(indexes){
+      for(i=0; i<nIndexes; i++){
+        indexes = indexesTable[1][i];
         min = 99999999999;
-        indexes.forEach(function(index){
+        //indexes.forEach(function(index){
+        for(j=0; j<indexes.length; j++){
+          index = indexes[j];
           min=Math.min(min, toAggregateList[index]);
-        });
+        }
         table[1].push(min);
-      });
+      }
       return table;
     case 5://max
       var max;
       table[1] = new NumberList();
-      indexesTable[1].forEach(function(indexes){
+      //indexesTable[1].forEach(function(indexes){
+      for(i=0; i<nIndexes; i++){
+        indexes = indexesTable[1][i];
         max = -99999999999;
-        indexes.forEach(function(index){
+        //indexes.forEach(function(index){
+        for(j=0; j<indexes.length; j++){
+          index = indexes[j];
           max=Math.max(max, toAggregateList[index]);
-        });
+        }
         table[1].push(max);
-      });
+      }
       return table;
     case 6://standard deviation
       var average;
       table = ListOperators.aggregateList(aggregatorList, toAggregateList, 3, indexesTable);
-      indexesTable[1].forEach(function(indexes, i){
+      //indexesTable[1].forEach(function(indexes){
+      for(i=0; i<nIndexes; i++){
+        indexes = indexesTable[1][i];
         sum = 0;
         average = table[1][i];
-        indexes.forEach(function(index){
+        //indexes.forEach(function(index){
+        for(j=0; j<indexes.length; j++){
+          index = indexes[j];
           sum += Math.pow(toAggregateList[index] - average, 2);
-        });
+        }
         table[1][i] = Math.sqrt(sum/indexes.length);
-      });
+      }
       return table;
     case 7://enlist
       table[1] = new Table();
-      indexesTable[1].forEach(function(indexes){
+      //indexesTable[1].forEach(function(indexes){
+      for(i=0; i<nIndexes; i++){
+        indexes = indexesTable[1][i];
         list = new List();
         table[1].push(list);
-        indexes.forEach(function(index){
+        //indexes.forEach(function(index){
+        for(j=0; j<indexes.length; j++){
+          index = indexes[j];
           list.push(toAggregateList[index]);
-        });
+        }
         list = list.getImproved();
-      });
+      }
       return table.getImproved();
     case 8://last element
       table[1] = new List();
-      indexesTable[1].forEach(function(indexes){
+      //indexesTable[1].forEach(function(indexes){
+      for(i=0; i<nIndexes; i++){
+        indexes = indexesTable[1][i];
         table[1].push(toAggregateList[indexes[indexes.length-1]]);
-      });
+      }
       table[1] = table[1].getImproved();
       return table;
     case 9://most common
       table[1] = new List();
       elementsTable = ListOperators.aggregateList(aggregatorList, toAggregateList, 7, indexesTable);
-      elementsTable[1].forEach(function(elements){
+      //elementsTable[1].forEach(function(elements){
+      for(i=0;i<elementsTable[1].length;i++){
         table[1].push(elements.getMostRepeatedElement());
-      });
+      }
       table[1] = table[1].getImproved();
       return table;
     case 10://random
       table[1] = new List();
-      indexesTable[1].forEach(function(indexes){
+      //indexesTable[1].forEach(function(indexes){
+      for(i=0; i<nIndexes; i++){
+        indexes = indexesTable[1][i];
         table[1].push( toAggregateList[indexes[ Math.floor(Math.random()*indexes.length) ]] );
-      });
+      }
       table[1] = table[1].getImproved();
       return table;
     case 11://indexes (returned previosuly)
@@ -808,31 +842,39 @@ ListOperators.aggregateList = function(aggregatorList, toAggregateList, mode, in
     case 12://count non repeated
       table[1] = new NumberList();
       elementsTable = ListOperators.aggregateList(aggregatorList, toAggregateList, 7, indexesTable);
-      elementsTable[1].forEach(function(elements){
+      //elementsTable[1].forEach(function(elements){
+      for(i=0;i<elementsTable[1].length;i++){
+        elements = elementsTable[1][i];
         table[1].push(elements.getWithoutRepetitions().length);
-      });
+      }
       return table;
     case 13://enlist non repeated
       table[1] = new List();
       elementsTable = ListOperators.aggregateList(aggregatorList, toAggregateList, 7, indexesTable);
-      elementsTable[1].forEach(function(elements){
+      //elementsTable[1].forEach(function(elements){
+      for(i=0;i<elementsTable[1].length;i++){
+        elements = elementsTable[1][i];
         table[1].push(elements.getWithoutRepetitions());
-      });
+      }
       table[1] = table[1].getImproved();
       return table;
     case 14://concat string
       table[1] = new StringList();
       elementsTable = ListOperators.aggregateList(aggregatorList, toAggregateList, 7, indexesTable);
-      elementsTable[1].forEach(function(elements){
+      //elementsTable[1].forEach(function(elements){
+      for(i=0;i<elementsTable[1].length;i++){
+        elements = elementsTable[1][i];
         table[1].push( elements.join(', ') );
-      });
+      }
       return table;
     case 15://concat string non repeated
       table[1] = new StringList();
       elementsTable = ListOperators.aggregateList(aggregatorList, toAggregateList, 7, indexesTable);
-      elementsTable[1].forEach(function(elements){
+      //elementsTable[1].forEach(function(elements){
+      for(i=0;i<elementsTable[1].length;i++){
+        elements = elementsTable[1][i];
         table[1].push( elements.getWithoutRepetitions().join(', ') );
-      });
+      }
       return table;
   }
 

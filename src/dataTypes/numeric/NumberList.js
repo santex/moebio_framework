@@ -402,17 +402,23 @@ NumberList.prototype.getMedian = function() {
  * Builds a partition of n quantiles from the numberList.
  *
  * @param {Number} nQuantiles number of quantiles (the size of the resulting list is nQuantiles-1)
+ *
+ * @param {Number} Number return mode<br>0:quantile values <br>1:list of number of quantile
  * @return {NumberList} A number list of the quantiles.
  * tags:statistics
  */
-NumberList.prototype.getQuantiles = function(nQuantiles) {//TODO: defines different options for return
+NumberList.prototype.getQuantiles = function(nQuantiles, mode) {//TODO: defines different options for return
+  mode = mode || 0;
+
+  var l = this.length;
   var sorted = this.getSorted(true);
-  var prop = this.length / nQuantiles;
+  var prop = l/nQuantiles;
   var entProp = Math.floor(prop);
   var onIndex = prop == entProp;
   var quantiles = new NumberList();
+  var i;
 
-  for(var i = 0; i < nQuantiles - 1; i++) {
+  for(i = 0; i < nQuantiles - 1; i++) {
     quantiles[i] = onIndex ? sorted[(i + 1) * prop] : (0.5 * sorted[(i + 1) * entProp] + 0.5 * sorted[(i + 1) * entProp + 1]);
   }
 
@@ -420,7 +426,24 @@ NumberList.prototype.getQuantiles = function(nQuantiles) {//TODO: defines differ
   quantiles._min = sorted[0];
   quantiles._max = sorted[sorted.length-1];
 
-  return quantiles;
+  if(mode===0) return quantiles;
+
+  var numberQuantil = new NumberList();
+  var j;
+
+  for(i=0; i<l; i++){
+    for(j=0; j<quantiles.length; j++){
+      if(this[i]<quantiles[j]){
+        numberQuantil[i] = j;
+        break;
+      }
+    }
+    if(numberQuantil[i]==null) numberQuantil[i] = quantiles.length;
+  }
+
+  numberQuantil._quantiles = quantiles;
+  return numberQuantil;
+
 };
 
 /////////sorting

@@ -353,15 +353,19 @@ NumberTableDraw.drawDensityMatrix = function(frame, coordinates, colorScale, mar
  * @param {StringList} horizontalLabels to be placed in the bottom
  * @param {Boolean} showValues show values in the stream
  * @param {Number} logFactor if >0 heights will be transformed logaritmically log(logFactor*val + 1)
+ * @param {String} backgroundColor
+ * @param {String} textColor
  * @return {NumberList} list of positions of elements on clicked coordinates
  * tags:draw
  */
-NumberTableDraw.drawStreamgraph = function(frame, numberTable, normalized, sorted, intervalsFactor, bezier, colorList, horizontalLabels, showValues, logFactor, graphics) {
+NumberTableDraw.drawStreamgraph = function(frame, numberTable, normalized, sorted, intervalsFactor, bezier, colorList, horizontalLabels, showValues, logFactor, backgroundColor, textColor, graphics) {
   if(numberTable == null ||  numberTable.length < 2 || numberTable.type != "NumberTable") return;
 
   if(graphics==null) graphics = frame.graphics; //momentary fix
 
   bezier = bezier == null ? true : bezier;
+
+  textColor = textColor == null ? 'white' : textColor;
 
   //var self = NumberTableDraw.drawStreamgraph;
 
@@ -399,6 +403,11 @@ NumberTableDraw.drawStreamgraph = function(frame, numberTable, normalized, sorte
   var flowFrame = new Rectangle(0, 0, frame.width, horizontalLabels == null ? frame.height : (frame.height - 14));
   flowFrame.graphics = graphics;
 
+  if(backgroundColor!=null){
+    graphics.setFill(backgroundColor);
+    graphics.fRect(frame.x, frame.y, frame.width, frame.height);
+  }
+
   if(frame.memory.image == null) {
     //frame.memory.image = new Image(10,10);
     // TODO refactor to not reassign context
@@ -433,7 +442,7 @@ NumberTableDraw.drawStreamgraph = function(frame, numberTable, normalized, sorte
       graphics.drawImage(frame.memory.image, 0, 0, cut, flowFrame.height, 0, 0, x0, flowFrame.height);
       graphics.drawImage(frame.memory.image, cut, 0, (frame.width - cut), flowFrame.height, x1, 0, (frame.width - cut) * frame.memory.fOpen, flowFrame.height);
 
-      NumberTableDraw._drawPartialFlow(flowFrame, frame.memory.flowIntervals, frame.memory.names, frame.memory.actualColorList, cut, x0, x1, 0.3, sorted, showValues ? numberTable : null);
+      NumberTableDraw._drawPartialFlow(flowFrame, frame.memory.flowIntervals, frame.memory.names, frame.memory.actualColorList, cut, x0, x1, 0.3, sorted, showValues ? numberTable : null, textColor);
 
       graphics.context.restore();
     } else {
@@ -475,7 +484,7 @@ NumberTableDraw._drawHorizontalLabels = function(frame, y, numberTable, horizont
   });
 };
 
-NumberTableDraw._drawPartialFlow = function(frame, flowIntervals, labels, colors, x, x0, x1, OFF_X, sorted, numberTable, graphics) {
+NumberTableDraw._drawPartialFlow = function(frame, flowIntervals, labels, colors, x, x0, x1, OFF_X, sorted, numberTable, textColor, graphics) {
   if(graphics==null) graphics = frame.graphics; //momentary fix
 
   var w = x1 - x0;
@@ -533,7 +542,7 @@ NumberTableDraw._drawPartialFlow = function(frame, flowIntervals, labels, colors
     if(graphics.fRectM(x0, y, w, h)) iOver = i;
 
     if(h >= 5 && w > 40) {
-      graphics.setText('white', h, null, null, 'middle');
+      graphics.setText(textColor, h, null, null, 'middle');
 
       text = labels[i];
 
@@ -541,7 +550,7 @@ NumberTableDraw._drawPartialFlow = function(frame, flowIntervals, labels, colors
       pt = wt / wForText;
 
       if(pt > 1) {
-        graphics.setText('white', h / pt, null, null, 'middle');
+        graphics.setText(textColor, h / pt, null, null, 'middle');
       }
 
       graphics.context.fillText(text, x0, y + h * 0.5);
@@ -552,7 +561,7 @@ NumberTableDraw._drawPartialFlow = function(frame, flowIntervals, labels, colors
         ts0 = Math.min(h, h / pt);
         ts1 = Math.max(ts0 * 0.6, 8);
 
-        graphics.setText('white', ts1, null, null, 'middle');
+        graphics.setText(textColor, ts1, null, null, 'middle');
         graphics.fText(Math.round(numberTable[i][i0]), x0 + wt + w * 0.03, y + (h + (ts0 - ts1) * 0.5) * 0.5);
       }
 

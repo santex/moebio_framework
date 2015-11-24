@@ -2,6 +2,7 @@ import StringList from "src/dataTypes/strings/StringList";
 import NumberList from "src/dataTypes/numeric/NumberList";
 import NumberTable from "src/dataTypes/numeric/NumberTable";
 import StringOperators from "src/operators/strings/StringOperators";
+import ListGenerators from "src/operators/lists/ListGenerators";
 import TableOperators from "src/operators/lists/TableOperators";
 import Network from "src/dataTypes/structures/networks/Network";
 import Relation from "src/dataTypes/structures/elements/Relation";
@@ -237,7 +238,10 @@ StringListOperators.countStringsOccurrencesOnTexts = function(strings, texts, as
  * tags:count
  */
 StringListOperators.getWordsOccurrencesMatrix = function(strings, stopWords, includeLinks, wordsLimitPerString, totalWordsLimit, normalize, stressUniqueness, sortByTotalWeight, minSizeWords) {
+  if(strings == null) return;
+
   var i;
+  var matrix;
 
   wordsLimitPerString = wordsLimitPerString || 500;
   totalWordsLimit = totalWordsLimit || 1000;
@@ -246,12 +250,28 @@ StringListOperators.getWordsOccurrencesMatrix = function(strings, stopWords, inc
   sortByTotalWeight = (sortByTotalWeight || true);
   minSizeWords = minSizeWords == null ? 3 : minSizeWords;
 
-  var matrix = StringOperators.getWordsOccurrencesTable(strings[0], stopWords, includeLinks, wordsLimitPerString, minSizeWords);
+  if(strings[0]==""){
+    matrix = new Table();
+    matrix.push(new StringList(""));
+    matrix.push(new NumberList(0));
+    console.log('-.-');
+  } else {
+    matrix = StringOperators.getWordsOccurrencesTable(strings[0], stopWords, includeLinks, wordsLimitPerString, minSizeWords);
+  }
+
 
   var table;
-  for(i = 1; strings[i] != null; i++) {
-    table = StringOperators.getWordsOccurrencesTable(strings[i], stopWords, includeLinks, wordsLimitPerString, minSizeWords);
-    matrix = TableOperators.mergeDataTables(matrix, table);
+  var nStrings = strings.length;
+  for(i = 1; i<nStrings; i++) {
+    console.log('strings[i]:['+strings[i]+']');
+
+    if(strings[i]==""){
+      matrix.push(ListGenerators.createListWithSameElement(matrix[0].length, 0));
+      console.log('-.-');
+    } else {
+      table = StringOperators.getWordsOccurrencesTable(strings[i], stopWords, includeLinks, wordsLimitPerString, minSizeWords);
+      matrix = TableOperators.mergeDataTables(matrix, table);
+    }
   }
 
 
