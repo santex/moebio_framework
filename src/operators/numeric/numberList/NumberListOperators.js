@@ -578,22 +578,28 @@ NumberListOperators.frameFromTwoNumberLists = function(numberListX, numberListY)
 /**
  * builds a NumberList that gives histogram counts
  * @param  {NumberList} numberList
+ * 
  * @param  {Number} nBins number of bins to use (default 100)
  * @param  {Interval} interval range of values (default use actual range of input numberList)
+ * @param {Number} mode return mode<br>0:(default) return the number of numbers on each bin<br>1:return the bin index for each value
  * @return {NumberList}
  * tags:statistics
  */
-NumberListOperators.rangeCounts = function(numberList, nBins, interval){
+NumberListOperators.rangeCounts = function(numberList, nBins, interval, mode){
   if(numberList==null) return;
   nBins = nBins == null ? 100 : nBins;
   interval = interval==null ? numberList.getInterval() : interval;
+  mode = mode || 0;
   var nLCounts = ListGenerators.createListWithSameElement(nBins,0);
   var f,bin,len=numberList.length;
+  var binIndexes = new NumberList();
   for(var i=0;i<len;i++){
     f = interval.getInverseInterpolatedValue(numberList[i]);
     bin = Math.min(Math.floor(f*nBins),nBins-1);
+    binIndexes[i] = bin;
     nLCounts[bin]++;
   }
+  if(mode==1) return binIndexes;
   return nLCounts;
 };
 
@@ -601,6 +607,7 @@ NumberListOperators.rangeCounts = function(numberList, nBins, interval){
  * builds a NumberTable that gives 2D histogram counts for a pair of NumberLists
  * @param  {NumberList} nL1
  * @param  {NumberList} nL2
+ * 
  * @param  {Number} nBins1 number of bins to use for nL1 (default 25)
  * @param  {Number} nBins2 number of bins to use for nL2 (default 25)
  * @param  {Interval} int1 range of values (default use actual range of input nL1)
