@@ -3471,17 +3471,23 @@
    * Builds a partition of n quantiles from the numberList.
    *
    * @param {Number} nQuantiles number of quantiles (the size of the resulting list is nQuantiles-1)
+   *
+   * @param {Number} Number return mode<br>0:quantile values <br>1:list of number of quantile
    * @return {NumberList} A number list of the quantiles.
    * tags:statistics
    */
-  NumberList.prototype.getQuantiles = function(nQuantiles) {//TODO: defines different options for return
+  NumberList.prototype.getQuantiles = function(nQuantiles, mode) {//TODO: defines different options for return
+    mode = mode || 0;
+
+    var l = this.length;
     var sorted = this.getSorted(true);
-    var prop = this.length / nQuantiles;
+    var prop = l/nQuantiles;
     var entProp = Math.floor(prop);
     var onIndex = prop == entProp;
     var quantiles = new NumberList();
+    var i;
 
-    for(var i = 0; i < nQuantiles - 1; i++) {
+    for(i = 0; i < nQuantiles - 1; i++) {
       quantiles[i] = onIndex ? sorted[(i + 1) * prop] : (0.5 * sorted[(i + 1) * entProp] + 0.5 * sorted[(i + 1) * entProp + 1]);
     }
 
@@ -3489,7 +3495,24 @@
     quantiles._min = sorted[0];
     quantiles._max = sorted[sorted.length-1];
 
-    return quantiles;
+    if(mode===0) return quantiles;
+
+    var numberQuantil = new NumberList();
+    var j;
+
+    for(i=0; i<l; i++){
+      for(j=0; j<quantiles.length; j++){
+        if(this[i]<quantiles[j]){
+          numberQuantil[i] = j;
+          break;
+        }
+      }
+      if(numberQuantil[i]==null) numberQuantil[i] = quantiles.length;
+    }
+
+    numberQuantil._quantiles = quantiles;
+    return numberQuantil;
+
   };
 
   /////////sorting
@@ -7841,8 +7864,8 @@
    *
    * @param  {List} aggregatorList aggregator list that typically contains several repeated elements
    * @param  {List} toAggregateList list of elements that will be aggregated
-   * @param  {Number} mode aggregation modes:<br>0:first element<br>1:count (default)<br>2:sum<br>3:average<br>4:min<br>5:max<br>6:standard deviation<br>7:enlist (creates a list of elements)<br>8:last element<br>9:most common element<br>10:random element<br>11:indexes<br>12:count non repeated elements<br>13:enlist non repeated elements<br>14:concat elements (string)<br>15:concat non-repeated elements
-   * @param  {Table} indexesTable optional already calculated table of indexes of elements on the aggregator list (if didn't provided, the method calculates it)
+   * @param  {Number} mode aggregation modes:<br>0:first element<br>1:count (default)<br>2:sum<br>3:average<br>4:min<br>5:max<br>6:standard deviation<br>7:enlist (creates a list of elements)<br>8:last element<br>9:most common element<br>10:random element<br>11:indexes<br>12:count non repeated elements<br>13:enlist non repeated elements<br>14:concat elements (for strings, uses ', ' as separator)<br>15:concat non-repeated elements
+   * @param  {Table} indexesTable optional already calculated table of indexes of elements on the aggregator list (if not provided, the method calculates it)
    * @return {Table} contains a list with non repeated elements on the first list, and the aggregated elements on a second list
    * tags:
    */
@@ -7865,99 +7888,133 @@
 
     var list;
     var elementsTable;
+    var nIndexes = indexesTable[1].length;
+    var indexes;
+    var index;
+    var elements;
+    var i, j;
 
     switch(mode){
       case 0://first element
         table[1] = new List();
-        indexesTable[1].forEach(function(indexes){
+        //indexesTable[1].forEach(function(indexes){
+        for(i=0; i<nIndexes; i++){
+          indexes = indexesTable[1][i];
           table[1].push(toAggregateList[indexes[0]]);
-        });
+        }
         table[1] = table[1].getImproved();
         return table;
       case 1://count
         table[1] = new NumberList();
-        indexesTable[1].forEach(function(indexes){
+        //indexesTable[1].forEach(function(indexes){
+        for(i=0; i<nIndexes; i++){
+          indexes = indexesTable[1][i];
           table[1].push(indexes.length);
-        });
+        }
         return table;
       case 2://sum
       case 3://average
         var sum;
         table[1] = new NumberList();
-        indexesTable[1].forEach(function(indexes){
+        //indexesTable[1].forEach(function(indexes){
+        for(i=0; i<nIndexes; i++){
+          indexes = indexesTable[1][i];
           sum = 0;
-          indexes.forEach(function(index){
+          //indexes.forEach(function(index){
+          for(j=0; j<indexes.length; j++){
+            index = indexes[j];
             sum+=toAggregateList[index];
-          });
+          }
           if(mode==3) sum/=indexes.length;
           table[1].push(sum);
-        });
+        }
         return table;
       case 4://min
         var min;
         table[1] = new NumberList();
-        indexesTable[1].forEach(function(indexes){
+        //indexesTable[1].forEach(function(indexes){
+        for(i=0; i<nIndexes; i++){
+          indexes = indexesTable[1][i];
           min = 99999999999;
-          indexes.forEach(function(index){
+          //indexes.forEach(function(index){
+          for(j=0; j<indexes.length; j++){
+            index = indexes[j];
             min=Math.min(min, toAggregateList[index]);
-          });
+          }
           table[1].push(min);
-        });
+        }
         return table;
       case 5://max
         var max;
         table[1] = new NumberList();
-        indexesTable[1].forEach(function(indexes){
+        //indexesTable[1].forEach(function(indexes){
+        for(i=0; i<nIndexes; i++){
+          indexes = indexesTable[1][i];
           max = -99999999999;
-          indexes.forEach(function(index){
+          //indexes.forEach(function(index){
+          for(j=0; j<indexes.length; j++){
+            index = indexes[j];
             max=Math.max(max, toAggregateList[index]);
-          });
+          }
           table[1].push(max);
-        });
+        }
         return table;
       case 6://standard deviation
         var average;
         table = ListOperators.aggregateList(aggregatorList, toAggregateList, 3, indexesTable);
-        indexesTable[1].forEach(function(indexes, i){
+        //indexesTable[1].forEach(function(indexes){
+        for(i=0; i<nIndexes; i++){
+          indexes = indexesTable[1][i];
           sum = 0;
           average = table[1][i];
-          indexes.forEach(function(index){
+          //indexes.forEach(function(index){
+          for(j=0; j<indexes.length; j++){
+            index = indexes[j];
             sum += Math.pow(toAggregateList[index] - average, 2);
-          });
+          }
           table[1][i] = Math.sqrt(sum/indexes.length);
-        });
+        }
         return table;
       case 7://enlist
         table[1] = new Table();
-        indexesTable[1].forEach(function(indexes){
+        //indexesTable[1].forEach(function(indexes){
+        for(i=0; i<nIndexes; i++){
+          indexes = indexesTable[1][i];
           list = new List();
           table[1].push(list);
-          indexes.forEach(function(index){
+          //indexes.forEach(function(index){
+          for(j=0; j<indexes.length; j++){
+            index = indexes[j];
             list.push(toAggregateList[index]);
-          });
+          }
           list = list.getImproved();
-        });
+        }
         return table.getImproved();
       case 8://last element
         table[1] = new List();
-        indexesTable[1].forEach(function(indexes){
+        //indexesTable[1].forEach(function(indexes){
+        for(i=0; i<nIndexes; i++){
+          indexes = indexesTable[1][i];
           table[1].push(toAggregateList[indexes[indexes.length-1]]);
-        });
+        }
         table[1] = table[1].getImproved();
         return table;
       case 9://most common
         table[1] = new List();
         elementsTable = ListOperators.aggregateList(aggregatorList, toAggregateList, 7, indexesTable);
-        elementsTable[1].forEach(function(elements){
+        //elementsTable[1].forEach(function(elements){
+        for(i=0;i<elementsTable[1].length;i++){
           table[1].push(elements.getMostRepeatedElement());
-        });
+        }
         table[1] = table[1].getImproved();
         return table;
       case 10://random
         table[1] = new List();
-        indexesTable[1].forEach(function(indexes){
+        //indexesTable[1].forEach(function(indexes){
+        for(i=0; i<nIndexes; i++){
+          indexes = indexesTable[1][i];
           table[1].push( toAggregateList[indexes[ Math.floor(Math.random()*indexes.length) ]] );
-        });
+        }
         table[1] = table[1].getImproved();
         return table;
       case 11://indexes (returned previosuly)
@@ -7965,31 +8022,39 @@
       case 12://count non repeated
         table[1] = new NumberList();
         elementsTable = ListOperators.aggregateList(aggregatorList, toAggregateList, 7, indexesTable);
-        elementsTable[1].forEach(function(elements){
+        //elementsTable[1].forEach(function(elements){
+        for(i=0;i<elementsTable[1].length;i++){
+          elements = elementsTable[1][i];
           table[1].push(elements.getWithoutRepetitions().length);
-        });
+        }
         return table;
       case 13://enlist non repeated
         table[1] = new List();
         elementsTable = ListOperators.aggregateList(aggregatorList, toAggregateList, 7, indexesTable);
-        elementsTable[1].forEach(function(elements){
+        //elementsTable[1].forEach(function(elements){
+        for(i=0;i<elementsTable[1].length;i++){
+          elements = elementsTable[1][i];
           table[1].push(elements.getWithoutRepetitions());
-        });
+        }
         table[1] = table[1].getImproved();
         return table;
       case 14://concat string
         table[1] = new StringList();
         elementsTable = ListOperators.aggregateList(aggregatorList, toAggregateList, 7, indexesTable);
-        elementsTable[1].forEach(function(elements){
+        //elementsTable[1].forEach(function(elements){
+        for(i=0;i<elementsTable[1].length;i++){
+          elements = elementsTable[1][i];
           table[1].push( elements.join(', ') );
-        });
+        }
         return table;
       case 15://concat string non repeated
         table[1] = new StringList();
         elementsTable = ListOperators.aggregateList(aggregatorList, toAggregateList, 7, indexesTable);
-        elementsTable[1].forEach(function(elements){
+        //elementsTable[1].forEach(function(elements){
+        for(i=0;i<elementsTable[1].length;i++){
+          elements = elementsTable[1][i];
           table[1].push( elements.getWithoutRepetitions().join(', ') );
-        });
+        }
         return table;
     }
 
@@ -29052,15 +29117,19 @@
    * @param {StringList} horizontalLabels to be placed in the bottom
    * @param {Boolean} showValues show values in the stream
    * @param {Number} logFactor if >0 heights will be transformed logaritmically log(logFactor*val + 1)
+   * @param {String} backgroundColor
+   * @param {String} textColor
    * @return {NumberList} list of positions of elements on clicked coordinates
    * tags:draw
    */
-  NumberTableDraw.drawStreamgraph = function(frame, numberTable, normalized, sorted, intervalsFactor, bezier, colorList, horizontalLabels, showValues, logFactor, graphics) {
+  NumberTableDraw.drawStreamgraph = function(frame, numberTable, normalized, sorted, intervalsFactor, bezier, colorList, horizontalLabels, showValues, logFactor, backgroundColor, textColor, graphics) {
     if(numberTable == null ||  numberTable.length < 2 || numberTable.type != "NumberTable") return;
 
     if(graphics==null) graphics = frame.graphics; //momentary fix
 
     bezier = bezier == null ? true : bezier;
+
+    textColor = textColor == null ? 'white' : textColor;
 
     //var self = NumberTableDraw.drawStreamgraph;
 
@@ -29098,6 +29167,11 @@
     var flowFrame = new Rectangle(0, 0, frame.width, horizontalLabels == null ? frame.height : (frame.height - 14));
     flowFrame.graphics = graphics;
 
+    if(backgroundColor!=null){
+      graphics.setFill(backgroundColor);
+      graphics.fRect(frame.x, frame.y, frame.width, frame.height);
+    }
+
     if(frame.memory.image == null) {
       //frame.memory.image = new Image(10,10);
       // TODO refactor to not reassign context
@@ -29132,7 +29206,7 @@
         graphics.drawImage(frame.memory.image, 0, 0, cut, flowFrame.height, 0, 0, x0, flowFrame.height);
         graphics.drawImage(frame.memory.image, cut, 0, (frame.width - cut), flowFrame.height, x1, 0, (frame.width - cut) * frame.memory.fOpen, flowFrame.height);
 
-        NumberTableDraw._drawPartialFlow(flowFrame, frame.memory.flowIntervals, frame.memory.names, frame.memory.actualColorList, cut, x0, x1, 0.3, sorted, showValues ? numberTable : null);
+        NumberTableDraw._drawPartialFlow(flowFrame, frame.memory.flowIntervals, frame.memory.names, frame.memory.actualColorList, cut, x0, x1, 0.3, sorted, showValues ? numberTable : null, textColor);
 
         graphics.context.restore();
       } else {
@@ -29174,7 +29248,7 @@
     });
   };
 
-  NumberTableDraw._drawPartialFlow = function(frame, flowIntervals, labels, colors, x, x0, x1, OFF_X, sorted, numberTable, graphics) {
+  NumberTableDraw._drawPartialFlow = function(frame, flowIntervals, labels, colors, x, x0, x1, OFF_X, sorted, numberTable, textColor, graphics) {
     if(graphics==null) graphics = frame.graphics; //momentary fix
 
     var w = x1 - x0;
@@ -29232,7 +29306,7 @@
       if(graphics.fRectM(x0, y, w, h)) iOver = i;
 
       if(h >= 5 && w > 40) {
-        graphics.setText('white', h, null, null, 'middle');
+        graphics.setText(textColor, h, null, null, 'middle');
 
         text = labels[i];
 
@@ -29240,7 +29314,7 @@
         pt = wt / wForText;
 
         if(pt > 1) {
-          graphics.setText('white', h / pt, null, null, 'middle');
+          graphics.setText(textColor, h / pt, null, null, 'middle');
         }
 
         graphics.context.fillText(text, x0, y + h * 0.5);
@@ -29251,7 +29325,7 @@
           ts0 = Math.min(h, h / pt);
           ts1 = Math.max(ts0 * 0.6, 8);
 
-          graphics.setText('white', ts1, null, null, 'middle');
+          graphics.setText(textColor, ts1, null, null, 'middle');
           graphics.fText(Math.round(numberTable[i][i0]), x0 + wt + w * 0.03, y + (h + (ts0 - ts1) * 0.5) * 0.5);
         }
 
