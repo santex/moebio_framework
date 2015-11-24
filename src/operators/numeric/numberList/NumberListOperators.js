@@ -3,6 +3,7 @@ import Point from "src/dataTypes/geometry/Point";
 import NumberList from "src/dataTypes/numeric/NumberList";
 import NumberTable from "src/dataTypes/numeric/NumberTable";
 import ListGenerators from "src/operators/lists/ListGenerators";
+import TableGenerators from "src/operators/lists/TableGenerators";
 
 /**
  * @classdesc NumberList Operators
@@ -594,5 +595,34 @@ NumberListOperators.rangeCounts = function(numberList, nBins, interval){
     nLCounts[bin]++;
   }
   return nLCounts;
+};
+
+/**
+ * builds a NumberTable that gives 2D histogram counts for a pair of NumberLists
+ * @param  {NumberList} nL1
+ * @param  {NumberList} nL2
+ * @param  {Number} nBins1 number of bins to use for nL1 (default 25)
+ * @param  {Number} nBins2 number of bins to use for nL2 (default 25)
+ * @param  {Interval} int1 range of values (default use actual range of input nL1)
+ * @param  {Interval} int2 range of values (default use actual range of input nL2)
+ * @return {NumberTable}
+ * tags:statistics
+ */
+NumberListOperators.rangeCounts2D = function(nL1,nL2,nBins1,nBins2,int1,int2){
+  if(nL1==null || nL2==null || nL1.length != nL2.length) return;
+  nBins1 = nBins1 == null ? 25 : nBins1;
+  nBins2 = nBins2 == null ? 25 : nBins2;
+  int1 = int1==null ? nL1.getInterval() : int1;
+  int2 = int2==null ? nL2.getInterval() : int2;
+  var nT = TableGenerators.createTableWithSameElement(nBins1,nBins2,0);
+  var f1,f2,bin1,bin2,len=nL1.length;
+  for(var i=0;i<len;i++){
+    f1 = int1.getInverseInterpolatedValue(nL1[i]);
+    bin1 = Math.max(0,Math.min(Math.floor(f1*nBins1),nBins1-1));
+    f2 = int2.getInverseInterpolatedValue(nL2[i]);
+    bin2 = Math.max(0,Math.min(Math.floor(f2*nBins2),nBins2-1));
+    nT[bin1][bin2]++;
+  }
+  return nT;
 };
 
