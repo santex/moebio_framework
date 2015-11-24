@@ -1,5 +1,6 @@
 import DataModel from "src/dataTypes/DataModel";
 import Point from "src/dataTypes/geometry/Point";
+import NumberList from "src/dataTypes/numeric/NumberList";
 
 Interval.prototype = new Point();
 Interval.prototype.constructor = Interval;
@@ -165,7 +166,7 @@ Interval.prototype.getInverseInterpolatedValue = function(value) {
 * @return {NumberList} NumberList of interpolated values.
 */
 Interval.prototype.getInterpolatedValues = function(numberList) {
-  var newNumberList = [];
+  var newNumberList = new NumberList();
   var nElements = numberList.length;
   for(var i = 0; i < nElements; i++) {
     newNumberList.push(this.getInterpolatedValue(numberList[i]));
@@ -181,7 +182,7 @@ Interval.prototype.getInterpolatedValues = function(numberList) {
 * @return {NumberList} NumberList of inverse interpolated values.
 */
 Interval.prototype.getInverseInterpolatedValues = function(numberList) {
-  var newNumberList = [];
+  var newNumberList = new NumberList();
   var nElements = numberList.length;
   for(var i = 0; i < nElements; i++) {
     newNumberList.push(this.getInverseInterpolatedValue(numberList[i]));
@@ -194,6 +195,13 @@ Interval.prototype.getInverseInterpolatedValues = function(numberList) {
 */
 Interval.prototype.intersect = function(interval) {
   return new Interval(Math.max(this.x, interval.x), Math.min(this.y, interval.y));
+};
+
+/**
+* @todo write docs
+*/
+Interval.prototype.unite = function(interval) {
+  return new Interval(Math.min(this.x, interval.x), Math.max(this.y, interval.y));
 };
 
 /**
