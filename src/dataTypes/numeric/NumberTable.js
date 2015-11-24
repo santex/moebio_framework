@@ -119,7 +119,8 @@ NumberTable.prototype.getMinMaxInterval = function() {
  */
 NumberTable.prototype.getSums = function() {
   var numberList = new NumberList();
-  for(var i = 0; this[i] != null; i++) {
+  var l = this.length;
+  for(var i = 0; i<l; i++) {
     numberList[i] = this[i].getSum();
   }
   return numberList;
