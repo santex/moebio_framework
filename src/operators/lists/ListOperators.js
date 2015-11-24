@@ -175,10 +175,10 @@ ListOperators.concat = function() {
 
   var i;
   var list = arguments[0].concat(arguments[1]);
-  for(i = 2; arguments[i]; i++) {
+  for(i = 2; i<arguments.length; i++) {
     list = list.concat(arguments[i]);
   }
-  return list.getImproved();
+  return list;
 };
 
 /**
