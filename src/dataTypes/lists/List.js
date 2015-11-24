@@ -1295,8 +1295,6 @@ List.prototype.getFilteredByFunction = function(func) {
 List.prototype.concat = function() {
   if(arguments[0] == null) return this;
 
-  // c.l('concat | arguments[0].type, this.type', arguments[0].type, this.type);
-
   if(arguments[0].type == this.type) {//var type = … / switch/case
     if(this.type == "NumberList") {
       return NumberList.fromArray(this._concat.apply(this, arguments), false);
@@ -1314,7 +1312,6 @@ List.prototype.concat = function() {
       var i;
       var l = args.length;
       for(i=0; i<l; i++){
-        // c.l('   +_+_+_+args[i]',args[i]);
         newList.addNode(args[i]);
       }
       return newList;
