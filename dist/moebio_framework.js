@@ -4716,15 +4716,16 @@
       list = tableToTranspose[i];
       nElements = list.length;
       for(j = 0; j<nElements; j++) {
-        if(i === 0) table[j] = new List();
+        if(i === 0) table[j] = this.type == "NumberTable" ? new NumberList() : new List();
         table[j][i] = tableToTranspose[i][j];
       }
     }
 
     nElements = tableToTranspose[0].length;
-    for(j = 0; j<nElements; j++) {
-      table[j] = table[j].getImproved();
-    }
+    if(this.type != "NumberTable")
+      for(j = 0; j<nElements; j++) {
+        table[j] = table[j].getImproved();
+      }
 
     if(firstListAsHeaders) {
       nElements = this[0].length;
