@@ -203,7 +203,7 @@ List.prototype.getImproved = function() {
     var allLists = true;
     var i;
     for(i = 0; i<l; i++) {
-      if(!(this[i].isList)) {
+      if(this[i]==null || !(this[i].isList)) {
         allLists = false;
         break;
       }
