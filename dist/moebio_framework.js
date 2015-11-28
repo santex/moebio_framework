@@ -6143,7 +6143,7 @@
     mode2 = (mode2 == null) ? .75 : mode2;
     lambda = (lambda == null) ? 1 : lambda;
     balance = (balance == null) ? .5 : balance;
-    if(randomSeed)
+    if(randomSeed!=null)
       NumberOperators.randomSeed(randomSeed);
     var nL = new mo.NumberList();
     var i;
