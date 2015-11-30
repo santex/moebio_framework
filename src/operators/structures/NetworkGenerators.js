@@ -21,9 +21,9 @@ export default NetworkGenerators;
 /**
  * Build a random network based on the provided options
  * @param {Number} nNodes number of nodes
- * @param {Number} pRelation probability of a relation being created between 2 nodes
+ * @param {Number} pRelationOrNumberOfRelations if value<1 it's G(n,p) aka Poisson random graph, the probability of a relation being created between 2 nodes, otherwise it's G(n,m) the number of relations
  *
- * @param {Number} mode 0:simple random 1:clusterized
+ * @param {Number} mode <br>0:simple random G(n,p) or G(n,m)<br>1:clusterized
  * @param {Boolean} randomRelationsWeights adds a random weigth to relations
  * @param {Number} seed random seed for stable random generation
  * @return {Network}
@@ -32,8 +32,8 @@ export default NetworkGenerators;
  * network = NetworkGenerators.createRandomNetwork(2000, 0.0006, 1);
  * tags:generator
  */
-NetworkGenerators.createRandomNetwork = function(nNodes, pRelation, mode, randomRelationsWeights, seed) {
-  if(nNodes == null || pRelation == null) return null;
+NetworkGenerators.createRandomNetwork = function(nNodes, pRelationOrNumberOfRelations, mode, randomRelationsWeights, seed) {
+  if(nNodes == null || pRelationOrNumberOfRelations == null) return null;
 
   var funcRandom;
 
@@ -58,12 +58,24 @@ NetworkGenerators.createRandomNetwork = function(nNodes, pRelation, mode, random
 
   switch(mode) {
     case 0:
-      for(i = 0; i < nNodes - 1; i++) {
-        node = network.nodeList[i];
-        for(j = i + 1; j < nNodes; j++) {
-          if(funcRandom() < pRelation) network.addRelation(new Relation(i + "_" + j, i + "_" + j, node, network.nodeList[j], randomRelationsWeights ? funcRandom() : 1));
+      if(pRelationOrNumberOfRelations<1){
+        for(i = 0; i < nNodes - 1; i++) {
+          node = network.nodeList[i];
+          for(j = i + 1; j < nNodes; j++) {
+            if(funcRandom() < pRelationOrNumberOfRelations) network.addRelation(new Relation(i + "_" + j, i + "_" + j, node, network.nodeList[j], randomRelationsWeights ? funcRandom() : 1));
+          }
+        }
+      } else {
+        pRelationOrNumberOfRelations = Math.min(pRelationOrNumberOfRelations, nNodes*(nNodes-1)*0.5);
+        while(network.relationList.length<pRelationOrNumberOfRelations){
+          i = Math.floor(Math.random()*nNodes);
+          j = Math.floor(Math.random()*nNodes);
+          if(i!=j && network.relationList.getNodeById(i + "_" + j)==null){
+            network.addRelation(new Relation(i + "_" + j, i + "_" + j, network.nodeList[i], network.nodeList[j], randomRelationsWeights ? funcRandom() : 1));
+          }
         }
       }
+      
       return network;
     case 1:
       var nPairs = nNodes * (nNodes - 1) * 0.5;
@@ -72,7 +84,7 @@ NetworkGenerators.createRandomNetwork = function(nNodes, pRelation, mode, random
       var otherNode;
       var id;
       for(i = 0; i < nPairs; i++) {
-        if(funcRandom() < pRelation) {
+        if(funcRandom() < pRelationOrNumberOfRelations) {
           pending = true;
           while(pending) {
             node = network.nodeList[Math.floor(network.nodeList.length * funcRandom())];
