@@ -29,6 +29,8 @@ NumberOperators.numberToString = function(value, nDecimals ) {
  * @param {Object} seed
  */
 NumberOperators.getRandomWithSeed = function(seed) {
+  seed = seed==null?1:seed;
+
   seed = (seed * 9301 + 49297) % 233280;
   return seed / (233280.0);
 };
