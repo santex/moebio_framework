@@ -1041,7 +1041,7 @@ NumberListOperators.dotProductDataTables = function(table0, table1) {
  * @return {Number}
  * tags:statistics
  */
-NumberListOperators.cosineSimilarityDataTables = function(table0, table1) {
+TableOperators.cosineSimilarityDataTables = function(table0, table1) {
   if(table0==null || table1==null || table0.length<2 || table1.length<2) return null;
 
   if(table0[0].length===0 || table1[0].length===0) return 0;
