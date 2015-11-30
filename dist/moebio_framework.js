@@ -5724,6 +5724,8 @@
    * @param {Object} seed
    */
   NumberOperators.getRandomWithSeed = function(seed) {
+    seed = seed==null?1:seed;
+
     seed = (seed * 9301 + 49297) % 233280;
     return seed / (233280.0);
   };
@@ -17454,7 +17456,7 @@
    * @return {Number}
    * tags:statistics
    */
-  NumberListOperators.cosineSimilarityDataTables = function(table0, table1) {
+  TableOperators.cosineSimilarityDataTables = function(table0, table1) {
     if(table0==null || table1==null || table0.length<2 || table1.length<2) return null;
 
     if(table0[0].length===0 || table1[0].length===0) return 0;
@@ -21537,7 +21539,7 @@
   }
 
   /**
-   * Builds a dendrogram from a Network.
+   * Builds a hierarchical clustering resulting in a dendrogram from a Network; the distance between groups is defined by the average of strength of relations divided by the number os possible relations
    *
    * @param  {Network} network
    * @return {Tree}
@@ -21670,6 +21672,7 @@
       node0 = nodeList0[i];
       for(j = 0; j<node0.nodeList.length; j++) {
         if(nodeList1.indexOf(node0.nodeList[j]) != -1) {
+
         //if(nodeList1.getNodeById(node0.nodeList[j].id) != null) { // <----- seemed to be slower!
           strength += node0.relationList[j].weight;
         }
@@ -21684,7 +21687,7 @@
    * Builds a Table of clusters, based on an dendrogram Tree (if not provided it will be calculated), and a weight bias
    * @param {Network} network
    *
-   * @param {Number} mode cluster mode, 0: Louvain (default), 1: Moebio algorithm
+   * @param {Number} mode cluster mode<br>0: Louvain (default) https://en.wikipedia.org/wiki/Louvain_Modularity<br>1: based on agglomerative hierarchical clustering (NetworkOperators.buildDendrogram)
    * @param {Tree} dendrogramTree Dendrogram Tree, if precalculated, changes in weight bias will perform faster (not required for Louvain)
    * @param {Number} minWeight Weight bias, criteria to group clusters (0.5 default, the higher the value, the higer the number of clusters, not required for Louvain)
    * @param {Boolean} addColorToNodes if true, adds a color associated to cluster, [!] modifies nodes color property
@@ -21802,7 +21805,7 @@
    * @param {Boolean} useRelationsWeigh=false Optional, default:false, set to true if relations weight will affect the metric balance, particularly interesting if some weights are negative
    * tags:analytics,transformative
    */
-  NetworkOperators.addPageRankToNodes = function(network, from, useRelationsWeight) {
+  NetworkOperators.addPageRankToNodes = function(network, from, useRelationsWeight){
     //TODO:deploy useRelationsWeight
     from = from == null ? true : from;
 
@@ -22357,9 +22360,9 @@
   /**
    * Build a random network based on the provided options
    * @param {Number} nNodes number of nodes
-   * @param {Number} pRelation probability of a relation being created between 2 nodes
+   * @param {Number} pRelationOrNumberOfRelations if value<1 it's G(n,p) aka Poisson random graph, the probability of a relation being created between 2 nodes, otherwise it's G(n,m) the number of relations
    *
-   * @param {Number} mode 0:simple random 1:clusterized
+   * @param {Number} mode <br>0:simple random G(n,p) or G(n,m)<br>1:clusterized
    * @param {Boolean} randomRelationsWeights adds a random weigth to relations
    * @param {Number} seed random seed for stable random generation
    * @return {Network}
@@ -22368,8 +22371,8 @@
    * network = NetworkGenerators.createRandomNetwork(2000, 0.0006, 1);
    * tags:generator
    */
-  NetworkGenerators.createRandomNetwork = function(nNodes, pRelation, mode, randomRelationsWeights, seed) {
-    if(nNodes == null || pRelation == null) return null;
+  NetworkGenerators.createRandomNetwork = function(nNodes, pRelationOrNumberOfRelations, mode, randomRelationsWeights, seed) {
+    if(nNodes == null || pRelationOrNumberOfRelations == null) return null;
 
     var funcRandom;
 
@@ -22394,12 +22397,24 @@
 
     switch(mode) {
       case 0:
-        for(i = 0; i < nNodes - 1; i++) {
-          node = network.nodeList[i];
-          for(j = i + 1; j < nNodes; j++) {
-            if(funcRandom() < pRelation) network.addRelation(new Relation(i + "_" + j, i + "_" + j, node, network.nodeList[j], randomRelationsWeights ? funcRandom() : 1));
+        if(pRelationOrNumberOfRelations<1){
+          for(i = 0; i < nNodes - 1; i++) {
+            node = network.nodeList[i];
+            for(j = i + 1; j < nNodes; j++) {
+              if(funcRandom() < pRelationOrNumberOfRelations) network.addRelation(new Relation(i + "_" + j, i + "_" + j, node, network.nodeList[j], randomRelationsWeights ? funcRandom() : 1));
+            }
+          }
+        } else {
+          pRelationOrNumberOfRelations = Math.min(pRelationOrNumberOfRelations, nNodes*(nNodes-1)*0.5);
+          while(network.relationList.length<pRelationOrNumberOfRelations){
+            i = Math.floor(Math.random()*nNodes);
+            j = Math.floor(Math.random()*nNodes);
+            if(i!=j && network.relationList.getNodeById(i + "_" + j)==null){
+              network.addRelation(new Relation(i + "_" + j, i + "_" + j, network.nodeList[i], network.nodeList[j], randomRelationsWeights ? funcRandom() : 1));
+            }
           }
         }
+        
         return network;
       case 1:
         var nPairs = nNodes * (nNodes - 1) * 0.5;
@@ -22408,7 +22423,7 @@
         var otherNode;
         var id;
         for(i = 0; i < nPairs; i++) {
-          if(funcRandom() < pRelation) {
+          if(funcRandom() < pRelationOrNumberOfRelations) {
             pending = true;
             while(pending) {
               node = network.nodeList[Math.floor(network.nodeList.length * funcRandom())];
@@ -23711,6 +23726,8 @@
     this.PREV_mY=0; // cursor y position previous frame
     this.DX_MOUSE=0; //horizontal movement of cursor in last frame
     this.DY_MOUSE=0; //vertical movement of cursor in last frame
+    this.DX_MOUSE_PRESSED=0; //horizontal movement of cursor in last frame
+    this.DY_MOUSE_PRESSED=0; //vertical movement of cursor in last frame
     this.MOUSE_MOVED = false; //boolean that indicates wether the mouse moved in the last frame / STATE
     this.T_MOUSE_PRESSED = 0; //time in milliseconds of mouse being pressed, useful for sutained pressure detection
 
@@ -24063,6 +24080,11 @@
 
     if(this.MOUSE_PRESSED) {
       this.T_MOUSE_PRESSED = new Date().getTime() - this._tLastMouseDown;
+      this.DX_MOUSE_PRESSED = this.DX_MOUSE;
+      this.DY_MOUSE_PRESSED = this.DY_MOUSE;
+    } else {
+      this.DX_MOUSE_PRESSED = 0;
+      this.DY_MOUSE_PRESSED = 0;
     }
 
     // Call the user provided cycle function.
@@ -27784,10 +27806,10 @@
   /**
   * @todo write docs
   */
-  Engine3D.prototype.projectPoint3DNode = function(node) {
-    var prescale = this.lens / (this.lens + (this._basis[0].z * node.x + this._basis[1].z * node.y + this._basis[2].z * node.z));
-    return new Point3D((this._basis[0].x * node.x + this._basis[1].x * node.y + this._basis[2].x * node.z) * prescale, (this._basis[0].y * node.x + this._basis[1].y * node.y + this._basis[2].y * node.z) * prescale, prescale);
-  };
+  // Engine3D.prototype.projectPoint3DNode = function(node) {
+  //   var prescale = this.lens / (this.lens + (this._basis[0].z * node.x + this._basis[1].z * node.y + this._basis[2].z * node.z));
+  //   return new Point3D((this._basis[0].x * node.x + this._basis[1].x * node.y + this._basis[2].x * node.z) * prescale, (this._basis[0].y * node.x + this._basis[1].y * node.y + this._basis[2].y * node.z) * prescale, prescale);
+  // };
 
   /**
   * @todo write docs
@@ -27898,26 +27920,20 @@
   };
 
 
-
-
-  Engine3D.prototype.line3D = function(point0, point1) {
+  Engine3D.prototype.line3DCoordinates = function(x0, y0, z0, x1, y1, z1) {
     var polygon = new _Polygon();
 
-    var p0 = point0; //while there's no Transformation3D'
-    var prescale0 = this.lens / (this.lens + (this._basis[0].z * p0.x + this._basis[1].z * p0.y + this._basis[2].z * p0.z));
-
-    //
-    var p1 = point1;
-    var prescale1 = this.lens / (this.lens + (this._basis[0].z * p1.x + this._basis[1].z * p1.y + this._basis[2].z * p1.z));
+    var prescale0 = this.lens / (this.lens + (this._basis[0].z * x0 + this._basis[1].z * y0 + this._basis[2].z * z0));
+    var prescale1 = this.lens / (this.lens + (this._basis[0].z * x1 + this._basis[1].z * y1 + this._basis[2].z * z1));
 
     if(prescale0 > 0 || prescale1 > 0) {
       if(prescale0 > 0 && prescale1 > 0) {
-        polygon.push(new _Point((this._basis[0].x * p0.x + this._basis[1].x * p0.y + this._basis[2].x * p0.z) * prescale0, (this._basis[0].y * p0.x + this._basis[1].y * p0.y + this._basis[2].y * p0.z) * prescale0));
-        polygon.push(new _Point((this._basis[0].x * p1.x + this._basis[1].x * p1.y + this._basis[2].x * p1.z) * prescale1, (this._basis[0].y * p1.x + this._basis[1].y * p1.y + this._basis[2].y * p1.z) * prescale1));
+        polygon.push(new _Point((this._basis[0].x * x0 + this._basis[1].x * y0 + this._basis[2].x * z0) * prescale0, (this._basis[0].y * x0 + this._basis[1].y * y0 + this._basis[2].y * z0) * prescale0));
+        polygon.push(new _Point((this._basis[0].x * x1 + this._basis[1].x * y1 + this._basis[2].x * z1) * prescale1, (this._basis[0].y * x1 + this._basis[1].y * y1 + this._basis[2].y * z1) * prescale1));
         return polygon;
       } else {
-        var p0B = new Point3D(this._basis[0].x * p0.x + this._basis[1].x * p0.y + this._basis[2].x * p0.z, this._basis[0].y * p0.x + this._basis[1].y * p0.y + this._basis[2].y * p0.z, this._basis[0].z * p0.x + this._basis[1].z * p0.y + this._basis[2].z * p0.z);
-        var p1B = new Point3D(this._basis[0].x * p1.x + this._basis[1].x * p1.y + this._basis[2].x * p1.z, this._basis[0].y * p1.x + this._basis[1].y * p1.y + this._basis[2].y * p1.z, this._basis[0].z * p1.x + this._basis[1].z * p1.y + this._basis[2].z * p1.z);
+        var p0B = new Point3D(this._basis[0].x * x0 + this._basis[1].x * y0 + this._basis[2].x * z0, this._basis[0].y * x0 + this._basis[1].y * y0 + this._basis[2].y * z0, this._basis[0].z * x0 + this._basis[1].z * y0 + this._basis[2].z * z0);
+        var p1B = new Point3D(this._basis[0].x * x1 + this._basis[1].x * y1 + this._basis[2].x * z1, this._basis[0].y * x1 + this._basis[1].y * y1 + this._basis[2].y * z1, this._basis[0].z * x1 + this._basis[1].z * y1 + this._basis[2].z * z1);
         var t = (-this.lens + this._cuttingPlane - p0B.z) / (p1B.z - p0B.z);
         var pM = new Point3D(p0B.x + t * (p1B.x - p0B.x), p0B.y + t * (p1B.y - p0B.y), -this.lens + this._cuttingPlane);
         var prescaleM = this.lens / (this.lens + pM.z);
@@ -27932,6 +27948,11 @@
       }
     }
     return null;
+  };
+
+
+  Engine3D.prototype.line3D = function(point0, point1) {
+    return this.line3DCoordinates(point0.x, point0.y, point0.z, point1.x, point1.y, point1.z);
   };
 
   Engine3D.prototype.quadrilater = function(p0, p1, p2, p3) {
