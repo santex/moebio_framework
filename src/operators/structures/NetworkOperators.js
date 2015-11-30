@@ -687,7 +687,7 @@ NetworkOperators.getNodes = function(object){
 }
 
 /**
- * Builds a dendrogram from a Network.
+ * Builds a hierarchical clustering resulting in a dendrogram from a Network; the distance between groups is defined by the average of strength of relations divided by the number os possible relations
  *
  * @param  {Network} network
  * @return {Tree}
@@ -820,6 +820,7 @@ NetworkOperators._strengthBetweenSets = function(nodeList0, nodeList1, pRelation
     node0 = nodeList0[i];
     for(j = 0; j<node0.nodeList.length; j++) {
       if(nodeList1.indexOf(node0.nodeList[j]) != -1) {
+
       //if(nodeList1.getNodeById(node0.nodeList[j].id) != null) { // <----- seemed to be slower!
         strength += node0.relationList[j].weight;
       }
@@ -834,7 +835,7 @@ NetworkOperators._strengthBetweenSets = function(nodeList0, nodeList1, pRelation
  * Builds a Table of clusters, based on an dendrogram Tree (if not provided it will be calculated), and a weight bias
  * @param {Network} network
  *
- * @param {Number} mode cluster mode, 0: Louvain (default), 1: Moebio algorithm
+ * @param {Number} mode cluster mode<br>0: Louvain (default) https://en.wikipedia.org/wiki/Louvain_Modularity<br>1: based on agglomerative hierarchical clustering (NetworkOperators.buildDendrogram)
  * @param {Tree} dendrogramTree Dendrogram Tree, if precalculated, changes in weight bias will perform faster (not required for Louvain)
  * @param {Number} minWeight Weight bias, criteria to group clusters (0.5 default, the higher the value, the higer the number of clusters, not required for Louvain)
  * @param {Boolean} addColorToNodes if true, adds a color associated to cluster, [!] modifies nodes color property
@@ -952,7 +953,7 @@ NetworkOperators._buildNetworkClustersLouvain = function(network) {
  * @param {Boolean} useRelationsWeigh=false Optional, default:false, set to true if relations weight will affect the metric balance, particularly interesting if some weights are negative
  * tags:analytics,transformative
  */
-NetworkOperators.addPageRankToNodes = function(network, from, useRelationsWeight) {
+NetworkOperators.addPageRankToNodes = function(network, from, useRelationsWeight){
   //TODO:deploy useRelationsWeight
   from = from == null ? true : from;
 
