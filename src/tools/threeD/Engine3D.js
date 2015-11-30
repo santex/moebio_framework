@@ -98,10 +98,10 @@ Engine3D.prototype.projectCoordinates = function(x, y, z) {
 /**
 * @todo write docs
 */
-Engine3D.prototype.projectPoint3DNode = function(node) {
-  var prescale = this.lens / (this.lens + (this._basis[0].z * node.x + this._basis[1].z * node.y + this._basis[2].z * node.z));
-  return new Point3D((this._basis[0].x * node.x + this._basis[1].x * node.y + this._basis[2].x * node.z) * prescale, (this._basis[0].y * node.x + this._basis[1].y * node.y + this._basis[2].y * node.z) * prescale, prescale);
-};
+// Engine3D.prototype.projectPoint3DNode = function(node) {
+//   var prescale = this.lens / (this.lens + (this._basis[0].z * node.x + this._basis[1].z * node.y + this._basis[2].z * node.z));
+//   return new Point3D((this._basis[0].x * node.x + this._basis[1].x * node.y + this._basis[2].x * node.z) * prescale, (this._basis[0].y * node.x + this._basis[1].y * node.y + this._basis[2].y * node.z) * prescale, prescale);
+// };
 
 /**
 * @todo write docs
@@ -212,26 +212,20 @@ Engine3D.prototype.point3DRotation = function(point, angles) {
 };
 
 
-
-
-Engine3D.prototype.line3D = function(point0, point1) {
+Engine3D.prototype.line3DCoordinates = function(x0, y0, z0, x1, y1, z1) {
   var polygon = new Polygon();
 
-  var p0 = point0; //while there's no Transformation3D'
-  var prescale0 = this.lens / (this.lens + (this._basis[0].z * p0.x + this._basis[1].z * p0.y + this._basis[2].z * p0.z));
-
-  //
-  var p1 = point1;
-  var prescale1 = this.lens / (this.lens + (this._basis[0].z * p1.x + this._basis[1].z * p1.y + this._basis[2].z * p1.z));
+  var prescale0 = this.lens / (this.lens + (this._basis[0].z * x0 + this._basis[1].z * y0 + this._basis[2].z * z0));
+  var prescale1 = this.lens / (this.lens + (this._basis[0].z * x1 + this._basis[1].z * y1 + this._basis[2].z * z1));
 
   if(prescale0 > 0 || prescale1 > 0) {
     if(prescale0 > 0 && prescale1 > 0) {
-      polygon.push(new Point((this._basis[0].x * p0.x + this._basis[1].x * p0.y + this._basis[2].x * p0.z) * prescale0, (this._basis[0].y * p0.x + this._basis[1].y * p0.y + this._basis[2].y * p0.z) * prescale0));
-      polygon.push(new Point((this._basis[0].x * p1.x + this._basis[1].x * p1.y + this._basis[2].x * p1.z) * prescale1, (this._basis[0].y * p1.x + this._basis[1].y * p1.y + this._basis[2].y * p1.z) * prescale1));
+      polygon.push(new Point((this._basis[0].x * x0 + this._basis[1].x * y0 + this._basis[2].x * z0) * prescale0, (this._basis[0].y * x0 + this._basis[1].y * y0 + this._basis[2].y * z0) * prescale0));
+      polygon.push(new Point((this._basis[0].x * x1 + this._basis[1].x * y1 + this._basis[2].x * z1) * prescale1, (this._basis[0].y * x1 + this._basis[1].y * y1 + this._basis[2].y * z1) * prescale1));
       return polygon;
     } else {
-      var p0B = new Point3D(this._basis[0].x * p0.x + this._basis[1].x * p0.y + this._basis[2].x * p0.z, this._basis[0].y * p0.x + this._basis[1].y * p0.y + this._basis[2].y * p0.z, this._basis[0].z * p0.x + this._basis[1].z * p0.y + this._basis[2].z * p0.z);
-      var p1B = new Point3D(this._basis[0].x * p1.x + this._basis[1].x * p1.y + this._basis[2].x * p1.z, this._basis[0].y * p1.x + this._basis[1].y * p1.y + this._basis[2].y * p1.z, this._basis[0].z * p1.x + this._basis[1].z * p1.y + this._basis[2].z * p1.z);
+      var p0B = new Point3D(this._basis[0].x * x0 + this._basis[1].x * y0 + this._basis[2].x * z0, this._basis[0].y * x0 + this._basis[1].y * y0 + this._basis[2].y * z0, this._basis[0].z * x0 + this._basis[1].z * y0 + this._basis[2].z * z0);
+      var p1B = new Point3D(this._basis[0].x * x1 + this._basis[1].x * y1 + this._basis[2].x * z1, this._basis[0].y * x1 + this._basis[1].y * y1 + this._basis[2].y * z1, this._basis[0].z * x1 + this._basis[1].z * y1 + this._basis[2].z * z1);
       var t = (-this.lens + this._cuttingPlane - p0B.z) / (p1B.z - p0B.z);
       var pM = new Point3D(p0B.x + t * (p1B.x - p0B.x), p0B.y + t * (p1B.y - p0B.y), -this.lens + this._cuttingPlane);
       var prescaleM = this.lens / (this.lens + pM.z);
@@ -246,6 +240,11 @@ Engine3D.prototype.line3D = function(point0, point1) {
     }
   }
   return null;
+};
+
+
+Engine3D.prototype.line3D = function(point0, point1) {
+  return this.line3DCoordinates(point0.x, point0.y, point0.z, point1.x, point1.y, point1.z);
 };
 
 Engine3D.prototype.quadrilater = function(p0, p1, p2, p3) {
