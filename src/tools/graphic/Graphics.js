@@ -96,6 +96,8 @@ Graphics.prototype._initialize = function(autoStart) {
   this.PREV_mY=0; // cursor y position previous frame
   this.DX_MOUSE=0; //horizontal movement of cursor in last frame
   this.DY_MOUSE=0; //vertical movement of cursor in last frame
+  this.DX_MOUSE_PRESSED=0; //horizontal movement of cursor in last frame
+  this.DY_MOUSE_PRESSED=0; //vertical movement of cursor in last frame
   this.MOUSE_MOVED = false; //boolean that indicates wether the mouse moved in the last frame / STATE
   this.T_MOUSE_PRESSED = 0; //time in milliseconds of mouse being pressed, useful for sutained pressure detection
 
@@ -448,6 +450,11 @@ Graphics.prototype._onCycle = function() {
 
   if(this.MOUSE_PRESSED) {
     this.T_MOUSE_PRESSED = new Date().getTime() - this._tLastMouseDown;
+    this.DX_MOUSE_PRESSED = this.DX_MOUSE;
+    this.DY_MOUSE_PRESSED = this.DY_MOUSE;
+  } else {
+    this.DX_MOUSE_PRESSED = 0;
+    this.DY_MOUSE_PRESSED = 0;
   }
 
   // Call the user provided cycle function.
