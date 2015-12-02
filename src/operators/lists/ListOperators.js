@@ -408,7 +408,7 @@ ListOperators.sortListByNumberList = function(list, numberList, descending) {
  * @param  {List} list
  *
  * @param  {Boolean} ascendant if true (default) rankings ara lower for lower values
- * @param {Boolean} randomSortingForEqualElements random sorting for equal elements, so ranikings among them will be random
+ * @param {Boolean} randomSortingForEqualElements random sorting for equal elements, so rankings among them will be random
  * @return {NumberList} positions (or ranks) of elements
  * tags:
  */
