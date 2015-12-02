@@ -194,9 +194,9 @@ NumberListOperators.normalizedToSum = function(numberlist, factor, sum) {
  * @param {Number} factor Optional multiplier to modify the normalized values by.
  * Defaults to 1.
  * @return {NumberList}
- * tags:
+ * tags:deprecated
  */
-NumberListOperators.normalized = function(numberlist, factor) {
+NumberListOperators.normalized = function(numberlist, factor) {//@todo: remove
   if(numberlist==null) return;
 
   factor = factor == null ? 1 : factor;
