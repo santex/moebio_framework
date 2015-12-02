@@ -3151,6 +3151,9 @@
     result.getSorted = NumberList.prototype.getSorted;
     result.getSortIndexes = NumberList.prototype.getSortIndexes;
 
+    //
+    result.getNormalized = NumberList.prototype.getNormalized;
+
     //math
     result.factor = NumberList.prototype.factor;
     result.add = NumberList.prototype.add;
@@ -3585,6 +3588,35 @@
     newList.name = this.name;
     return newList;
   };
+
+
+
+  /**
+   * Returns a NumberList normalized to min-max interval.
+   *
+   * @param {Number} factor Optional multiplier to modify the normalized values by. Defaults to 1.
+   * @return {NumberList}
+   * tags:
+   */
+  NumberList.prototype.getNormalized = function(factor) {
+    if(this==null) return;
+
+    factor = factor == null ? 1 : factor;
+
+    if(this.length === 0) return null;
+    
+    var i;
+    var interval = this.getMinMaxInterval();
+    var a = interval.getAmplitude();
+    var newNumberList = new NumberList();
+    for(i = 0; i < this.length; i++) {
+      newNumberList[i] = factor * ((this[i] - interval.x) / a);
+    }
+    newNumberList.name = this.name;
+    return newNumberList;
+  };
+
+
 
   /**
    * Returns a new NumberList with the values of
@@ -6612,9 +6644,9 @@
    * @param {Number} factor Optional multiplier to modify the normalized values by.
    * Defaults to 1.
    * @return {NumberList}
-   * tags:
+   * tags:deprecated
    */
-  NumberListOperators.normalized = function(numberlist, factor) {
+  NumberListOperators.normalized = function(numberlist, factor) {//@todo: remove
     if(numberlist==null) return;
 
     factor = factor == null ? 1 : factor;
@@ -7650,7 +7682,7 @@
    * @param  {List} list
    *
    * @param  {Boolean} ascendant if true (default) rankings ara lower for lower values
-   * @param {Boolean} randomSortingForEqualElements random sorting for equal elements, so ranikings among them will be random
+   * @param {Boolean} randomSortingForEqualElements random sorting for equal elements, so rankings among them will be random
    * @return {NumberList} positions (or ranks) of elements
    * tags:
    */
