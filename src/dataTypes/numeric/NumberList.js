@@ -78,6 +78,9 @@ NumberList.fromArray = function(array, forceToNumber) {
   result.getSorted = NumberList.prototype.getSorted;
   result.getSortIndexes = NumberList.prototype.getSortIndexes;
 
+  //
+  result.getNormalized = NumberList.prototype.getNormalized;
+
   //math
   result.factor = NumberList.prototype.factor;
   result.add = NumberList.prototype.add;
@@ -512,6 +515,35 @@ NumberList.prototype.getSortIndexes = function(descending) {
   newList.name = this.name;
   return newList;
 };
+
+
+
+/**
+ * Returns a NumberList normalized to min-max interval.
+ *
+ * @param {Number} factor Optional multiplier to modify the normalized values by. Defaults to 1.
+ * @return {NumberList}
+ * tags:
+ */
+NumberList.prototype.getNormalized = function(factor) {
+  if(this==null) return;
+
+  factor = factor == null ? 1 : factor;
+
+  if(this.length === 0) return null;
+  
+  var i;
+  var interval = this.getMinMaxInterval();
+  var a = interval.getAmplitude();
+  var newNumberList = new NumberList();
+  for(i = 0; i < this.length; i++) {
+    newNumberList[i] = factor * ((this[i] - interval.x) / a);
+  }
+  newNumberList.name = this.name;
+  return newNumberList;
+};
+
+
 
 /**
  * Returns a new NumberList with the values of
