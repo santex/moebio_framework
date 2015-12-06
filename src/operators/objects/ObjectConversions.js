@@ -238,6 +238,7 @@ ObjectConversions.conversor = function(object, toType) {
 /**
  * converts an array into an improved List
  * @param {Array} array
+ * @return {List}
  * tags:conversion
  */
 ObjectConversions.ArrayToList = function(array){
