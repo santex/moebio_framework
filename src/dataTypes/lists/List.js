@@ -921,13 +921,15 @@ List.prototype.getSorted = function(ascending) {
  *
  * @param {Boolean} ascending (true by default)
  * @param {Boolean} smallPerturbation (false by default) adds a very small random number to list (providing is a numberList) to randomly sort equal elements
+ * @param {Boolean} stable sort, equal values retain order (false by default)
  * @return {List} sorted list (of the same type)
  * tags:sort
  */
-List.prototype.getSortedByList = function(list, ascending, smallPerturbation) {
+List.prototype.getSortedByList = function(list, ascending, smallPerturbation, stable) {
   if(list==null) return null;
 
   ascending = ascending == null ? true : ascending;
+  stable = stable == null ? false : stable;
 
   var pairsArray = [];
   var i;
@@ -937,24 +939,52 @@ List.prototype.getSortedByList = function(list, ascending, smallPerturbation) {
     for(i = 0; i<l; i++) {
       pairsArray[i] = [this[i], list[i]+Math.random()*10000*Number.MIN_VALUE, i];
     }
-  } else {
+  }
+  else if(list.type=="DateList"){
+    for(i = 0; i<l; i++) {
+      pairsArray[i] = [this[i], list[i].getTime(),i];
+    }
+  }
+  else{
     for(i = 0; i<l; i++) {
       pairsArray[i] = [this[i], list[i],i];
     }
   }
-  
+  var bSimpleComparator = (list.type=="NumberList" || list.type=="DateList") && !stable;
 
   var comparator;
   if(ascending) {
-    comparator = function(a, b) {
-      //return a[1] < b[1] ? -1 : a[1] > b[1] ?  1 : a[2] - b[2];
-      return a[1] - b[1];
-    };
+    if(bSimpleComparator){
+      comparator = function(a, b) {
+        return a[1] - b[1];
+      };
+    }
+    else{
+      if(stable)
+        comparator = function(a, b) {
+          return a[1] < b[1] ? -1 : a[1] > b[1] ?  1 : a[2] - b[2];
+        };
+      else
+        comparator = function(a, b) {
+          return a[1] < b[1] ? -1 : a[1] > b[1] ?  1 : 0;
+        };
+    }
   } else {
-    comparator = function(a, b) {
-      //return a[1] < b[1] ?  1 : a[1] > b[1] ? -1 : a[2] - b[2];
-      return b[1] - a[1];
-    };
+    if(bSimpleComparator){
+      comparator = function(a, b) {
+        return b[1] - a[1];
+      };
+    }
+    else{
+      if(stable)
+        comparator = function(a, b) {
+          return a[1] < b[1] ? 1 : a[1] > b[1] ? -1 : a[2] - b[2];
+        };
+      else
+        comparator = function(a, b) {
+          return a[1] < b[1] ? 1 : a[1] > b[1] ?  -1 : 0;
+        };
+    }
   }
 
   pairsArray = pairsArray.sort(comparator);
