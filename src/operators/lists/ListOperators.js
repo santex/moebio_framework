@@ -373,33 +373,9 @@ ListOperators.translateWithDictionaryObject = function(list, dictionaryObject, n
  */
 ListOperators.sortListByNumberList = function(list, numberList, descending) {
   if(descending == null) descending = true;
-  if(numberList.length === 0) return list;
+  if(numberList == null || numberList.length === 0) return list;
 
-  var pairs = [];
-  var newList = instantiate(typeOf(list));
-  var i;
-
-  for(i = 0; list[i] != null; i++) {
-    pairs.push([list[i], numberList[i], i]);
-  }
-
-
-  if(descending) {
-    pairs.sort(function(a, b) {
-      //return a[1] < b[1] ?  1 : a[1] > b[1] ? -1 : a[2] - b[2];
-      return b[1] - a[1];// < b[1] ?  1 : a[1] > b[1] ? -1 : a[2] - b[2];
-    });
-  } else {
-    pairs.sort(function(a, b) {
-      return a[1] - b[1];// ? -1 : a[1] > b[1] ?  1 : a[2] - b[2];
-    });
-  }
-
-  for(i = 0; pairs[i] != null; i++) {
-    newList.push(pairs[i][0]);
-  }
-  newList.name = list.name;
-  return newList;
+  return list.getSortedByList(numberList,!descending,false,true);
 };
 
 
