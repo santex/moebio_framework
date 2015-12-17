@@ -23881,6 +23881,7 @@
    * @ignore
    */
   Graphics.prototype._onMouseOrKeyBoard = function(e) {
+    console.log('[G] _onMouseOrKeyBoard, e.type:',e.type, this.nF);
     switch(e.type){
       case "mousemove":
         var pos = this._getRelativeMousePos(e);
@@ -24014,12 +24015,14 @@
    * @ignore
    */
   Graphics.prototype._startCycle = function() {
+    console.log('[G] _startCycle, this.nF:', this.nF);
     this.cycleActive = true;
     if(this._cycleInterval === 0) {
       // Call the cycle only once function
       setTimeout(this._onCycle.bind(this), 10);
     } else {
       clearInterval(this._setIntervalId);
+      console.log('[G] -----------------------> setInterval');
       this._setIntervalId = setInterval(this._onCycle.bind(this), this._cycleInterval);
     }
   };
@@ -24029,6 +24032,7 @@
    * @ignore
    */
   Graphics.prototype._stopCycle = function(callback) {
+    console.log('[G] _stopCycle, this.nF:', this.nF);
     clearInterval(this._setIntervalId);
     this.cycleActive = false;
     this._setIntervalId = undefined;
@@ -24046,14 +24050,15 @@
    * @param  {Number} time time in milliseconds to run the cycle function before stopping ot. if 0 it starts and endless cycle, if 1 it executes the cycle once
    */
   Graphics.prototype.cycleFor = function(time) {
+    console.log('[G] cycleFor, this.nF, time:', this.nF, time);
     if(time===0){
-      if(this._setIntervalId) clearTimeout(this._setTimeOutId);
+      if(this.cycleActive) clearTimeout(this._setTimeOutId);
       this._startCycle();
     } else if(time==1){
-      if(this._setIntervalId) clearTimeout(this._setTimeOutId);
+      if(this.cycleActive) clearTimeout(this._setTimeOutId);
       this._onCycle();
     } else {
-      if(this._setIntervalId) {
+      if(this.cycleActive) {
         // If there was already a running cycle then just delay the
         // stop function to stop after time. This effectively debounces
         // the _startCycle call.
@@ -24061,11 +24066,12 @@
       } else {
         this._startCycle();
       }
-      this._stopAfter(time);
+      //this._stopAfter(time);
     }
   };
 
   Graphics.prototype._stopAfter = function(time, callback) {
+    console.log('[G] _stopAfter, this.nF, time:', this.nF, time);
     var self = this;
     this._setTimeOutId = setTimeout(function(){
       self._stopCycle();
@@ -24083,6 +24089,7 @@
    *
    */
   Graphics.prototype._onCycle = function() {
+    console.log('[G] _onCycle, nF',this.nF);
     // YY i don't think this interacts well with my expectations
     // of setting the background color. it basically needs to be greater than 0
     // if the bg color is not white and that isn't super obvious.
@@ -24128,7 +24135,7 @@
 
     // Call the user provided cycle function.
     this.cycle();
-
+    //console.log('[G] ====');
     this.WHEEL_CHANGE = 0;
     this.PREV_mX = this.mX;
     this.PREV_mY = this.mY;
@@ -24150,11 +24157,12 @@
           e = window.event;
         }
         if (e.wheelDelta) {
-          this.WHEEL_CHANGE = e.wheelDelta/120;
+          this.WHEEL_CHANGE += e.wheelDelta/120;
         } else if (e.detail) { /** Mozilla case. */
-          this.WHEEL_CHANGE = -e.detail/3;
+          this.WHEEL_CHANGE += -e.detail/3;
         }
         e.value = this.WHEEL_CHANGE;
+        //console.log('[G] e.wheelDelta, this.WHEEL_CHANGE:',e.wheelDelta, this.WHEEL_CHANGE, this.nF);
       break;
     }
 
@@ -24198,6 +24206,7 @@
    * creation of a graphics object.
    */
   Graphics.prototype.start = function() {
+    console.log('[G] start (calls _startCycle)');
     return this._startCycle();
   };
 
@@ -24205,6 +24214,7 @@
    * Stops the draw loop for this graphics object.
    */
   Graphics.prototype.stop = function() {
+    console.log('[G] stop (calls _stopCycle)');
     return this._stopCycle();
   };
 
@@ -24222,6 +24232,9 @@
   Graphics.prototype.cycleOnMouseMovement = function(time) {
     var self = this;
 
+
+    console.log('[G] cycleOnMouseMovement, time:', time);
+
     if(this.cycleOnMouseMovementListener){
       this.canvas.removeEventListener('mousemove', this.cycleOnMouseMovementListener, false);
       this.canvas.removeEventListener('mousewheel', this.cycleOnMouseMovementListener, false);
@@ -24237,7 +24250,7 @@
 
       this.canvas.addEventListener('mousemove', this.cycleOnMouseMovementListener, false);
       this.canvas.addEventListener('mousewheel', this.cycleOnMouseMovementListener, false);
-      this.canvas.addEventListener('mousemove', this.cycleOnMouseMovementListener, false);
+      //this.canvas.addEventListener('mousemove', this.cycleOnMouseMovementListener, false);
 
       this.canvas.addEventListener('mousedown', this.cycleOnMouseMovementListener, false);
 
