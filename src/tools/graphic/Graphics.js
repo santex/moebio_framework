@@ -215,8 +215,6 @@ Graphics.prototype._onMouseOrKeyBoard = function(e) {
   switch(e.type){
     case "mousemove":
       var pos = this._getRelativeMousePos(e);
-      this.PREV_mX = this.mX;
-      this.PREV_mY= this.mY;
 
       this.mX = pos.x;
       this.mY = pos.y;
@@ -252,6 +250,10 @@ Graphics.prototype._onMouseOrKeyBoard = function(e) {
   }
 
   this._emit(e.type, e);
+
+  if(this.cycleActive && new Date().getTime()>this._LAST_TIME+33){
+    this._onCycle();
+  }
 };
 
 
@@ -464,7 +466,15 @@ Graphics.prototype._onCycle = function() {
   this.PREV_mX = this.mX;
   this.PREV_mY = this.mY;
   this.nF++;
+
+  this._LAST_TIME = new Date().getTime();
+
+  //if(this.cycleActive) window.requestAnimationFrame(this._onCycle);
+  //if(this.cycleActive) window.requestAnimationFrame(function(){ instance._onCycle(instance) });
 };
+
+this._LAST_TIME;//hack
+
 
 /*
  * Emit events to registered listeners.
