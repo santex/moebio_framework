@@ -1149,7 +1149,7 @@ TableOperators.splitTableByCategoricList = function(table, list) {
  * builds a network from columns or rows, taking into account similarity in numbers (correlation) and other elements (Jaccard)
  * @param  {Table} table
  *
- * @param  {Boolean} nodesAreRows if true (default value) each node corresponds to a row in the table, and rows are compared, if false ([!] not yet deployed!) lists are compared
+ * @param  {Boolean} nodesAreRows if true (default value) each node corresponds to a row in the table, and rows are compared, if false lists are compared ([!] working only for NumberTable, using pearson correlation)
  * @param  {Object} names (StringList|Number) optionally add names to nodes with a list that could be part of the table or not; receives a StringList for names, index for list in the providade table
  * @param  {Number} mode 0:(default) takes into account numbers, uses Pearson Correlation
  * @param {Object} colorsByList (List|Number) optionally add color to nodes from a NumberList (for scale) or any List (for categorical colors) that could be part of the table or not; receives a List or an index if the list is in the providade table
