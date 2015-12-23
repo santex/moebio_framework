@@ -75,7 +75,7 @@ Axis2D.prototype.project = function(point) {
  * @return {Number} new X value.
  */
 Axis2D.prototype.projectX = function(x) {
-  return(x - this.departureFrame.x) * this.pW + this.arrivalFrame.x;
+  return (x - this.departureFrame.x) * this.pW + this.arrivalFrame.x;
 };
 
 /**
@@ -84,7 +84,25 @@ Axis2D.prototype.projectX = function(x) {
  * @return {Number} new Y value.
  */
 Axis2D.prototype.projectY = function(y) {
-  return(y - this.departureFrame.y) * this.pH + this.arrivalFrame.y;
+  return (y - this.departureFrame.y) * this.pH + this.arrivalFrame.y;
+};
+
+/**
+ * calculates projected width, equivalent to projectX(width) - projectX(0)
+ * @param  {Number} width
+ * @return {Number} projected width
+ */
+Axis2D.prototype.projectWidth = function(width) {
+  return  width*this.pW;
+};
+
+/**
+ * calculates projected height, equivalent to projectY(height) - projectY(0)
+ * @param  {Number} height
+ * @return {Number} projected height
+ */
+Axis2D.prototype.projectHeight = function(height) {
+  return  height*this.pH;
 };
 
 /**
