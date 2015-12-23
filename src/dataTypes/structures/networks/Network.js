@@ -221,9 +221,8 @@ Network.prototype.lightClone = function(){
 /**
  * Clones the network
  *
- * @param  {StringList} nodePropertiesNames list of preoperties names to be copied from old nodes into new nodes
+ * @param  {StringList} nodePropertiesNames list of properties names to be copied from old nodes into new nodes
  * @param  {StringList} relationPropertiesNames
- *
  * @param  {String} idsSubfix optional sufix to be added to ids
  * @param  {String} namesSubfix optional sufix to be added to names
  * @return {Networked} network with exact structure than original
@@ -232,6 +231,9 @@ Network.prototype.lightClone = function(){
 Network.prototype.clone = function(nodePropertiesNames, relationPropertiesNames, idsSubfix, namesSubfix) {
   var newNetwork = new Network();
   var newNode, newRelation;
+
+  if(nodePropertiesNames==null) nodePropertiesNames=[];
+  if(relationPropertiesNames==null) relationPropertiesNames=[];
 
   idsSubfix = idsSubfix == null ? '' : String(idsSubfix);
   namesSubfix = namesSubfix == null ? '' : String(namesSubfix);
