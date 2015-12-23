@@ -639,7 +639,9 @@ ListOperators.intersection = function(list0, list1) {//TODO:expand for more list
  * tags:
  */
 ListOperators.jaccardIndex = function(list0, list1) {//TODO: see if this can be more efficient, maybe one idctionar for doing union and interstection at the same time
-  return ListOperators.intersection(list0, list1).length/ListOperators.union(list0, list1).length;
+  var union  = ListOperators.union(list0, list1).length;
+  if(union==0) return 0;
+  return ListOperators.intersection(list0, list1).length/union;
 };
 
 /**
