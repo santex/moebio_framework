@@ -1477,6 +1477,10 @@ TableOperators._decisionTreeGenerateColorsMixture = function(ctxt, width, height
  * @return {String} Description String.
  */
 TableOperators.getReport = function(table, level) {
+  if(table==null) return null;
+
+  var n = table.length;
+  var i;
   var ident = "\n" + (level > 0 ? StringOperators.repeatString("  ", level) : "");
   var lengths = table.getLengths();
   var minLength = lengths.getMin();
@@ -1510,9 +1514,11 @@ TableOperators.getReport = function(table, level) {
   var types = table.getTypes();
 
   text += ident + "--";
-  names.forEach(function(name, i){
-    text += ident + i + ": " + name + " ["+TYPES_SHORT_NAMES_DICTIONARY[types[i]]+"]";
-  });
+  //names.forEach(function(name, i){
+  for(i=0; i<n; i++){
+    text += ident + i + ": " + names[i] + " ["+TYPES_SHORT_NAMES_DICTIONARY[types[i]]+"]";
+  }
+
   text += ident + "--";
 
   var sameTypes = types.allElementsEqual();
@@ -1526,8 +1532,7 @@ TableOperators.getReport = function(table, level) {
   if(table.length < 101) {
     text += ident + ident + "--------lists reports---------";
 
-    var i;
-    for(i = 0; table[i] != null; i++) {
+    for(i = 0; i<n; i++) {
       text += "\n" + ident + ("(" + (i) + "/0-" + (table.length - 1) + ")");
       try{
          text += ListOperators.getReport(table[i], 1);
