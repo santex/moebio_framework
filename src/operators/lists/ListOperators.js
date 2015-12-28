@@ -189,6 +189,11 @@ ListOperators.concat = function() {
  * @param  {Object} argument2
  * @param  {Object} argument3
  * @param  {Object} argument4
+ * @param  {Object} argument5
+ * @param  {Object} argument6
+ * @param  {Object} argument7
+ * @param  {Object} argument8
+ * @param  {Object} argument9
  * @return {List}
  * tags:
  */
@@ -1128,13 +1133,93 @@ ListOperators._groupElements_Base = function(list, propertyName, sortedByValue, 
 };
 
 /**
- * returns a string representing list
+ * builds an object with statistical information about the list
+ * @param  {List} list
+ * @return {Object}
+ */
+ListOperators.buildInformationObject = function(list){
+  if(list==null) return;
+
+  var n = list.length;
+  var i, val;
+
+  var infoObject = {
+    type:list.type,
+    name:list.name,
+    length:n
+  };
+
+  switch(list.type) {
+    case "NumberList":
+      var min = 999999999999;
+      var max = -999999999999;
+      var average = 0;
+      var shorten = new NumberList();
+      var index = 0;
+      var accumsum = 0;
+      var maxAccumsum = -999999999999;
+      var sizeAccum = Math.max(Math.floor(list.length/50), 1);
+
+      for(i=0; i<n; i++){
+        val = list[i];
+        min = Math.min(min, val);
+        max = Math.max(max, val);
+        average += val;
+        accumsum += val;
+        index++;
+        if(index==sizeAccum){
+          accumsum /= index;
+          maxAccumsum = Math.max(maxAccumsum, accumsum);
+          shorten.push(accumsum);
+          accumsum=0;
+          index=0;
+        }
+      }
+      if(index !== 0){
+          accumsum /=index;
+          maxAccumsum = Math.max(maxAccumsum, accumsum);
+          shorten.push(accumsum);
+      }
+
+      shorten = shorten.factor(1/maxAccumsum);
+
+      average /= list.length;
+
+      infoObject.min = min;
+      infoObject.max = max;
+      infoObject.average = average;
+      infoObject.shorten = shorten;
+
+      break;
+    case "StringList":
+    case "List":
+    case "ColorList":
+      //var freqTable = list.getFrequenciesTable(true);
+      infoObject.frequenciesTable = list.getFrequenciesTable(true, true, true);
+      infoObject.numberDifferentElements = infoObject.frequenciesTable[0].length;
+      //list._freqTable = freqTable;
+      infoObject.categoriclaColors = infoObject.frequenciesTable[3];
+      infoObject.entropy = ListOperators.getListEntropy(list, null, infoObject.frequenciesTable);
+
+      break;
+  }
+
+  return infoObject;
+
+};
+
+/**
+ * returns a string providing ifnormation about the list
  *
  * @param  {List} list
  * @param  {Number} level
- *
+ * @return {String}
  */
-ListOperators.getReport = function(list, level) { //TODO:complete
+ListOperators.getReport = function(list, level, infoObject) { //TODO:complete
+  if(list==null) return;
+
+  infoObject = infoObject==null?ListOperators.buildInformationObject(list):infoObject;;
+
   var ident = "\n" + (level > 0 ? StringOperators.repeatString("  ", level) : "");
   var text = level > 0 ? (ident + "////report of instance of List////") : "///////////report of instance of List//////////";
 
@@ -1154,15 +1239,9 @@ ListOperators.getReport = function(list, level) { //TODO:complete
 
   switch(list.type) {
     case "NumberList":
-      var min = list.getMin();
-      var max = list.getMax();
-      list.min = min;
-      list.max = max;
-      var average = list.getAverage();//(min + max) * 0.5;
-      list.average = average;
-      text += ident + "min: " + min;
-      text += ident + "max: " + max;
-      text += ident + "average: " + average;
+      text += ident + "min: " + infoObject.min;
+      text += ident + "max: " + infoObject.max;
+      text += ident + "average: " + infoObject.average;
       if(length < 101) {
         text += ident + "numbers: " + list.join(", ");
       }
@@ -1170,9 +1249,9 @@ ListOperators.getReport = function(list, level) { //TODO:complete
     case "StringList":
     case "List":
     case "ColorList":
-      var freqTable = list.getFrequenciesTable(true);
+      var freqTable = infoObject.frequenciesTable;//list.getFrequenciesTable(true);
       list._freqTable = freqTable;
-      text += ident + "number of different elements: " + freqTable[0].length;
+      text += ident + "number of different elements: " + infoObject.numberDifferentElements;// freqTable[0].length;
       if(freqTable[0].length < 10) {
         text += ident + "elements frequency:";
       } else {
@@ -1195,19 +1274,28 @@ ListOperators.getReport = function(list, level) { //TODO:complete
 
   }
 
-  ///add ideas to: analyze, visualize
-
+  list._infoObject = infoObject;
 
   return text;
 };
 
 
-ListOperators.getReportHtml = function(list, level) { //TODO:complete
+/**
+ * returns an html string providing information about the list
+ *
+ * @param  {List} list
+ * @param  {Number} level
+ * @return {String}
+ */
+ListOperators.getReportHtml = function(list, level, infoObject) { //TODO:complete
+  if(list==null) return;
+
+  infoObject = infoObject==null?ListOperators.buildInformationObject(list):infoObject;
   var ident = "<br>" + (level > 0 ? StringOperators.repeatString("&nbsp", level) : "");
   var text =  level > 0 ? "" : "<b><font style=\"font-size:18px\">list report</f></b>";
 
   var length = list.length;
-  var i;
+  var i, n;
 
   if(list.name){
     text += ident + "name: <b>" + list.name + "</b>";
@@ -1226,61 +1314,25 @@ ListOperators.getReportHtml = function(list, level) { //TODO:complete
 
   switch(list.type) {
     case "NumberList":
-      var min = 9999999;
-      var max = -9999999;
-      var average = 0;
-      var shorten = new NumberList();
-      var index = 0;
-      var accumsum = 0;
-      var maxAccumsum = -99999;
-      var sizeAccum = Math.max(Math.floor(list.length/50), 1);
-
-      list.forEach(function(val){
-        min = Math.min(min, val);
-        max = Math.max(max, val);
-        average += val;
-        accumsum += val;
-        index++;
-        if(index==sizeAccum){
-          accumsum /= index;
-          maxAccumsum = Math.max(maxAccumsum, accumsum);
-          shorten.push(accumsum);
-          accumsum=0;
-          index=0;
-        }
-      });
-      if(index !== 0){
-          accumsum /=index;
-          maxAccumsum = Math.max(maxAccumsum, accumsum);
-          shorten.push(accumsum);
-      }
-
-      shorten = shorten.factor(1/maxAccumsum);
-
-      average /= list.length;
-
-      list.min = min;
-      list.max = max;
-      list.average = average;
-      text += ident + "min: <b>" + min + "</b>";
-      text += ident + "max: <b>" + max + "</b>";
-      text += ident + "average: <b>" + average + "</b>";
+      text += ident + "min: <b>" + infoObject.min + "</b>";
+      text += ident + "max: <b>" + infoObject.max + "</b>";
+      text += ident + "average: <b>" + infoObject.average + "</b>";
       if(length < 101) {
         text += ident + "numbers: <b>" + list.join("</b>, <b>") + "</b>";
       }
       text += ident;
-      for(i=0; shorten[i]!=null; i++){
-        text += "<font style=\"font-size:7px\"><font color=\""+ColorOperators.colorStringToHEX(ColorScales.grayToOrange(shorten[i]))+"\">█</f></f>";
+      n = infoObject.shorten.length;
+      for(i=0; i<n; i++){
+        text += "<font style=\"font-size:7px\"><font color=\""+ColorOperators.colorStringToHEX(ColorScales.grayToOrange(infoObject.shorten[i]))+"\">█</f></f>";
       }
       break;
     case "StringList":
     case "List":
     case "ColorList":
-      var freqTable = list.getFrequenciesTable(true);
-      list._freqTable = freqTable;
-      var catColors = ColorListGenerators.createCategoricalColors(2, freqTable[0].length);
+      var freqTable = infoObject.frequenciesTable;
+      var catColors = infoObject.categoriclaColors;
 
-      text += ident + "entropy: <b>" + NumberOperators.numberToString(ListOperators.getListEntropy(list, null, freqTable), 4) + "</b>";
+      text += ident + "entropy: <b>" + NumberOperators.numberToString(infoObject.entropy, 4) + "</b>";
 
       text += ident + "number of different elements: <b>" + freqTable[0].length + "</b>";
       if(freqTable[0].length < 10) {
@@ -1288,6 +1340,7 @@ ListOperators.getReportHtml = function(list, level) { //TODO:complete
       } else {
         text += ident + "some elements frequency:";
       }
+
 
       for(i = 0; freqTable[0][i] != null && i < 10; i++) {
         text += ident + "  [<b>" + String(freqTable[0][i]) + "</b>]: <font style=\"font-size:10px\"><b><font color=\""+ColorOperators.colorStringToHEX(catColors[i])+"\">" + freqTable[1][i] + "</f></b></f>";
@@ -1302,7 +1355,7 @@ ListOperators.getReportHtml = function(list, level) { //TODO:complete
 
       if(joined.length < 2000) text += ident + "contents: [" + joined + "]";
 
-      var weights = NumberListOperators.normalizedToSum(freqTable[1]);
+      var weights = freqTable[2];
 
       var bars = StringOperators.createsCategoricalColorsBlocksHtml(weights, 55, catColors);
       text += ident;
@@ -1311,8 +1364,8 @@ ListOperators.getReportHtml = function(list, level) { //TODO:complete
       break;
   }
 
+  list._infoObject = infoObject;
 
-  ///add ideas to: analyze, visualize
   return text;
 };
 
