@@ -199,7 +199,7 @@ NumberListOperators.normalizedToSum = function(numberlist, factor, sum) {
 NumberListOperators.normalized = function(numberlist, factor) {//@todo: remove
   if(numberlist==null) return;
 
-  factor = factor == null ? 1 : factor;
+  
 
   if(numberlist.length === 0) return null;
 
@@ -207,8 +207,10 @@ NumberListOperators.normalized = function(numberlist, factor) {//@todo: remove
   var interval = numberlist.getMinMaxInterval();
   var a = interval.getAmplitude();
   var newNumberList = new NumberList();
+  factor = factor == null ? 1 : factor;
+  factor/=a;
   for(i = 0; i < numberlist.length; i++) {
-    newNumberList.push(factor * ((numberlist[i] - interval.x) / a));
+    newNumberList.push( factor*(numberlist[i] - interval.x) );
   }
   newNumberList.name = numberlist.name;
   return newNumberList;
@@ -219,7 +221,7 @@ NumberListOperators.normalized = function(numberlist, factor) {//@todo: remove
  *
  * @param  {NumberList} numberlist NumberList to Normalize.
  * @return {NumberList}
- * tags:
+ * tags:statistics
  */
 NumberListOperators.normalizedByZScore = function(numberlist) {
   if(numberlist==null) return;
@@ -228,7 +230,7 @@ NumberListOperators.normalizedByZScore = function(numberlist) {
   var i;
   var mean = numberlist.getAverage();
   var stddev = numberlist.getStandardDeviation();
-  if(stddev==0) stddev=1; // all returned values will be zero
+  if(stddev===0) stddev=1; // all returned values will be zero
 
   var newNumberList = new NumberList();
   for(i = 0; i < numberlist.length; i++) {
@@ -261,6 +263,33 @@ NumberListOperators.normalizedToMax = function(numberlist, factor) {
   var newNumberList = new NumberList();
   for(var i = 0; numberlist[i] != null; i++) {
     newNumberList.push(factor * (numberlist[i] / max));
+  }
+  newNumberList.name = numberlist.name;
+  return newNumberList;
+};
+
+
+/**
+ * Returns a NumberList normalized to Max.
+ *
+ * @param  {NumberList} numberlist NumberList to Normalize.
+ * @param {Number} factor Optional multiplier to modify the normalized values by. Defaults to 1.
+ * @return {NumberList}
+ * tags:
+ */
+NumberListOperators.normalizeToInterval = function(numberlist, interval) {
+  if(numberlist==null || interval==null) return;
+
+  if(numberlist.length === 0) return null;
+
+  var i;
+  var numberListInterval = numberlist.getMinMaxInterval();
+  var nLAmplitude = numberListInterval.getAmplitude();
+  var amplitude = interval.getAmplitude();
+  var factor = amplitude/nLAmplitude;
+  var newNumberList = new NumberList();
+  for(i = 0; i < numberlist.length; i++) {
+    newNumberList.push( interval.x + factor*(numberlist[i] - numberListInterval.x) );
   }
   newNumberList.name = numberlist.name;
   return newNumberList;
