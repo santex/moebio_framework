@@ -1489,7 +1489,37 @@ NetworkOperators._jLouvain = function() {
   return core;
 };
 
-
+// derived from Graph.js inside http://www.clips.ua.ac.be/pages/pattern
+NetworkOperators.getAdjacencyMap = function(network,bDirected,bReversed,bStochastic){
+  if(network==null) return null;
+  bDirected = bDirected == null ? false : bDirected;
+  bReversed = bReversed == null ? false : bReversed;
+  bStochastic = bStochastic == null ? false : bStochastic;
+  var map = {};
+  for(var i=0; i < network.nodeList.length; i++) {
+      map[network.nodeList[i].id] = {};
+  }
+  for(i=0; i < network.relationList.length; i++) {
+      var e = network.relationList[i];
+      var id1 = e[(bReversed)?"node1":"node0"].id;
+      var id2 = e[(bReversed)?"node0":"node1"].id;
+      map[id1][id2] = 1.0 - e.weight*0.5;
+      if (!bDirected) { 
+          map[id2][id1] = map[id1][id2];
+      }
+  }
+  if(bStochastic) {
+      for (var id1 in map) {
+          // var n = sum(values(map[id1]));
+          var nListVals = List.fromArray(map[id1]).getImproved();
+          var n = nListVals.getSum();
+          for (var id2 in map[id1]) {
+              map[id1][id2] /= n;
+          }
+      }
+  }
+  return map;
+}
 
 /**
  * @todo write docs
