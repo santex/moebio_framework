@@ -10,6 +10,7 @@ import Relation from "src/dataTypes/structures/elements/Relation";
 import ColorListGenerators from "src/operators/graphic/ColorListGenerators";
 import NetworkEncodings from "src/operators/structures/NetworkEncodings";
 import Network from "src/dataTypes/structures/networks/Network";
+import NumberOperators from "src/operators/numeric/NumberOperators";
 
 /**
  * @classdesc Provides a set of tools that work with Networks.
@@ -1489,8 +1490,8 @@ NetworkOperators._jLouvain = function() {
   return core;
 };
 
-// derived from Graph.js inside http://www.clips.ua.ac.be/pages/pattern
 NetworkOperators.getAdjacencyMap = function(network,bDirected,bReversed,bStochastic){
+// derived from Graph.js inside http://www.clips.ua.ac.be/pages/pattern
   if(network==null) return null;
   bDirected = bDirected == null ? false : bDirected;
   bReversed = bReversed == null ? false : bReversed;
@@ -1520,6 +1521,67 @@ NetworkOperators.getAdjacencyMap = function(network,bDirected,bReversed,bStochas
   }
   return map;
 }
+
+NetworkOperators.addEigenvectorCentralityToNodes = function(network, bNormalized, bReversed, nIterations, fTolerance) {
+  // derived from Graph.js inside http://www.clips.ua.ac.be/pages/pattern
+  /* Eigenvector centrality for nodes in the graph (cfr. Google's PageRank).
+   * Eigenvector centrality is a measure of the importance of a node in a directed network. 
+   * It rewards nodes with a high potential of (indirectly) connecting to high-scoring nodes.
+   * Nodes with no incoming connections have a score of zero.
+   * If you want to measure outgoing connections, reversed should be False.        
+   */
+  // Based on: NetworkX, Aric Hagberg (hagberg@lanl.gov)
+  // http://python-networkx.sourcearchive.com/documentation/1.0.1/centrality_8py-source.html
+  // Note: much faster than betweenness centrality (which grows exponentially).
+  if(network == null) return;
+  if(bNormalized === undefined) bNormalized = true;
+  if(bReversed   === undefined) bReversed   = true;
+  if(nIterations === undefined) nIterations = 100;
+  if(fTolerance  === undefined) fTolerance  = 0.0001;
+  var rating = {};
+  function normalize(vector) {
+    var v = []; for(var k in vector) v.push(vector[k]);
+    var total = 0; for (var i=0; i < v.length; i++) total += v[i];
+    var w = 1.0 / (total || 1);
+    for (var node in vector) {
+      vector[node] *= w;
+    }
+  }
+  var G = NetworkOperators.getAdjacencyMap(network,null,bReversed);
+  NumberOperators.randomSeed(1); // use consistent random function so we get consistent results
+  var v = {}; for(var i=0;i<network.nodeList.length;i++) v[network.nodeList[i].id] = NumberOperators.random(); normalize(v);
+  NumberOperators.randomSeedPop();
+  // Eigenvector calculation using the power iteration method: y = Ax.
+  // It has no guarantee of convergence.
+  for(var i=0; i < nIterations; i++) {
+    var v0 = v;
+    var v={}; for (var k in v0) v[k]=0;
+    for (var n1 in v) {
+      for (var n2 in G[n1]) {
+        v[n1] += 0.01 + v0[n2] * G[n1][n2] * (rating[n]? rating[n] : 1);
+      }
+    }
+    normalize(v);
+    var e=0; for (var n in v) e += Math.abs(v[n]-v0[n]); // Check for convergence.
+    if(e < network.nodeList.length * fTolerance) {
+      if(bNormalized){
+        var vals = []; for(var k in v) vals.push(v[k]);
+        var m=Math.max.apply(Math, vals) || 1;
+        for(var id in v) v[id] /= m;
+      }
+      // set property on nodes
+      for(var id in v){
+        var node = network.nodeList.getNodeById(id);
+        node.eigenvectorCentrality = v[id];
+      }
+      return;
+    }
+  }
+  // node weight is 0 because eigenvectorCentrality() did not converge
+  for(var i=0;i<network.nodeList.length;i++){
+    network.nodeList[i].eigenvectorCentrality=0;
+  }
+};
 
 /**
  * @todo write docs
