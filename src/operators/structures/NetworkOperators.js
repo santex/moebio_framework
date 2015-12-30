@@ -1510,14 +1510,13 @@ NetworkOperators.getAdjacencyMap = function(network,bDirected,bReversed,bStochas
       }
   }
   if(bStochastic) {
-      for (var id1 in map) {
-          // var n = sum(values(map[id1]));
-          var nListVals = List.fromArray(map[id1]).getImproved();
-          var n = nListVals.getSum();
-          for (var id2 in map[id1]) {
-              map[id1][id2] /= n;
-          }
+    for (var id1 in map) {
+      var v = []; for(var k in map[id1]) v.push(map[id1][k]);
+      var n = 0; for(var i=0; i < v.length; i++) n += v[i];
+      for(var id2 in map[id1]) {
+        map[id1][id2] /= n;
       }
+    }
   }
   return map;
 }
