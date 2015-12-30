@@ -42,6 +42,7 @@ ColorList.fromArray = function(array) {
   result.type = "ColorList";
   result.getRgbArrays = ColorList.prototype.getRgbArrays;
   result.getInterpolated = ColorList.prototype.getInterpolated;
+  result.getMix = ColorList.prototype.getMix;
   result.getInverted = ColorList.prototype.getInverted;
   result.addAlpha = ColorList.prototype.addAlpha;
   return result;
@@ -81,6 +82,20 @@ ColorList.prototype.getInterpolated = function(color, value) {
 
   newColorList.name = this.name;
   return newColorList;
+};
+
+ColorList.prototype.getMix = function() {
+  var result = [0,0,0];
+  var rgb;
+  var n = this.length;
+  var i;
+  for(i=0; i<n; i++){
+    rgb = ColorOperators.colorStringToRGB(this[i]);
+    result[0]+=rgb[0];
+    result[1]+=rgb[1];
+    result[2]+=rgb[2];
+  }
+  return 'rgb('+Math.floor(result[0]/n)+','+Math.floor(result[1]/n)+','+Math.floor(result[2]/n)+')';
 };
 
 /**
