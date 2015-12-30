@@ -169,7 +169,7 @@ Interval.prototype.getInterpolatedValues = function(numberList) {
   var newNumberList = new NumberList();
   var nElements = numberList.length;
   for(var i = 0; i < nElements; i++) {
-    newNumberList.push(this.getInterpolatedValue(numberList[i]));
+    newNumberList[i] = this.getInterpolatedValue(numberList[i]);
   }
   return newNumberList;
 };
