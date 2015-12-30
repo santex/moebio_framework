@@ -14,25 +14,65 @@ function NetworkConversions() {}
 export default NetworkConversions;
 
 /**
- * Builds a Network based on a two columns Table, creating relations on co-occurrences.
- * @param {Table} table table with at least two columns (commonly strings)
+ * Builds a Network based on a two columns Table, creating relations on co-occurrences, or a square NumberTable read as an adjacentMatrix.
+ * @param {Table} table table with at least two columns (categories that will generate the nodes)
  *
  * @param {NumberList} numberList Weights of relations.
  * @param {Number} threshold Minimum weight or number of co-occurrences to create a relation.
  * @param {Boolean} allowMultipleRelations (false by default)
  * @param {Number} minRelationsInNode Remove nodes with number of relations below threshold.
- * @param {StringList} stringList Contents of relations.
+ * @param {StringList} stringList Contents of relations, or names of nodes in case of table being an adjacent matrix (square NumberTable)
  * @return {Network}
  * tags:conversion
  */
 NetworkConversions.TableToNetwork = function(table, numberList, threshold, allowMultipleRelations, minRelationsInNode, stringList) {
   if(table == null || !table.isTable || table[0] == null || table[1] == null) return;
 
+  var nElements;
+  var node0;
+  var node1;
+  var name0;
+  var name1;
+  var relation;
+  var i, j;
+  var list;
+  var network = new Network();
+
+  threshold = threshold==null?0:threshold;
+
+  console.log(table.type);
+  console.log(table.type == "NumberTable", table.length > 2, table.length==table[0].length);
+
+  if(table.type == "NumberTable" && table.length > 2  && table.length==table[0].length){
+    nElements = table.length;
+
+    for(i=0; i<nElements; i++){
+      name0 = stringList==null?( (table[i].name==null || table[i].name=="")?"node_"+i:table[i].name ):stringList[i];
+      node0 = new Node(name0, name0);
+      network.addNode(node0);
+    }
+
+    for(i=0; i<nElements; i++){
+      list = table[i];
+      node0 = network.nodeList[i];
+      for(j=0; j<nElements; j++){
+        node1 = network.nodeList[j];
+        if(list[j]>threshold){
+          relation = new Relation(i+"_"+j,i+"_"+j,node0, node1, list[j]);
+          network.addRelation(relation);
+        }
+      }
+    }
+
+    return network;
+  }
+
+
   //trace("••••••• createNetworkFromPairsTable", table);
   if(allowMultipleRelations == null) allowMultipleRelations = false;
   if(table.length < 2) return null;
-  var network = new Network();
-  var nElements;
+  
+  
 
   if(numberList == null) {
     nElements = Math.min(table[0].length, table[1].length);
@@ -49,12 +89,7 @@ NetworkConversions.TableToNetwork = function(table, numberList, threshold, allow
     //....    different methodology here
   }
 
-  var node0;
-  var node1;
-  var name0;
-  var name1;
-  var relation;
-  var i;
+  
   for(i = 0; i < nElements; i++) {
     name0 = "" + table[0][i];
     name1 = "" + table[1][i];
