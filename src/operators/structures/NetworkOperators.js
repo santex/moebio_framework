@@ -1529,6 +1529,7 @@ NetworkOperators.getAdjacencyMap = function(network,bDirected,bReversed,bStochas
  * @param {Network} network
  * @param {Boolean} bNormalized=true (default), scale so maximum eigenvectorCentrality is 1
  * @param {Boolean} bReversed=true (default), use outgoing relations
+ * @return {Network}
  * tags:analytics,transformative
  */
 NetworkOperators.addEigenvectorCentralityToNodes = function(network, bNormalized, bReversed) {
@@ -1542,7 +1543,7 @@ NetworkOperators.addEigenvectorCentralityToNodes = function(network, bNormalized
   // Based on: NetworkX, Aric Hagberg (hagberg@lanl.gov)
   // http://python-networkx.sourcearchive.com/documentation/1.0.1/centrality_8py-source.html
   // Note: much faster than betweenness centrality (which grows exponentially).
-  if(network == null) return;
+  if(network == null) return network;
   if(bNormalized === undefined) bNormalized = true;
   if(bReversed   === undefined) bReversed   = true;
   var nIterations = 100;
@@ -1583,13 +1584,14 @@ NetworkOperators.addEigenvectorCentralityToNodes = function(network, bNormalized
         var node = network.nodeList.getNodeById(id);
         node.eigenvectorCentrality = v[id];
       }
-      return;
+      return network;
     }
   }
   // node weight is 0 because eigenvectorCentrality() did not converge
   for(var i=0;i<network.nodeList.length;i++){
     network.nodeList[i].eigenvectorCentrality=0;
   }
+  return network;
 };
 
 /**
@@ -1599,6 +1601,7 @@ NetworkOperators.addEigenvectorCentralityToNodes = function(network, bNormalized
  * @param {Network} network
  * @param {Boolean} bNormalized=true (default), scale so maximum betweennessCentrality is 1
  * @param {Boolean} bDirected=false (default), count relations in both directions
+ * @return {Network}
  * tags:analytics,transformative
  */
 NetworkOperators.addBetweennessCentralityToNodes = function(network, bNormalized, bDirected) {
@@ -1613,31 +1616,32 @@ NetworkOperators.addBetweennessCentralityToNodes = function(network, bNormalized
   // Based on: Dijkstra's algorithm for shortest paths modified from Eppstein.
   // Based on: NetworkX 1.0.1: Aric Hagberg, Dan Schult and Pieter Swart.
   // http://python-networkx.sourcearchive.com/documentation/1.0.1/centrality_8py-source.html
-  if(network == null) return;
+  if(network == null) return network;
   if(bNormalized === undefined) bNormalized = true;
   if(bDirected === undefined) bDirected = false;
 
-  var Heap = Class.extend({
-      init: function() {
-          /* Items in the heap are ordered by weight (i.e. priority).
-           * Heap.pop() returns the item with the lowest weight.
-           */
-          this.k = [];
-          this.w = [];
-          this.length = 0;
-      },
-      push: function (key, weight) {
-          var i = 0; while (i <= this.w.length && weight < (this.w[i]||Infinity)) i++;
-          this.k.splice(i, 0, key);
-          this.w.splice(i, 0, weight);
-          this.length += 1;
-          return true;            
-      },
-      pop: function () {
-          this.length -= 1;
-          this.w.pop(); return this.k.pop();
-      }
-  });
+  var Heap = function(){
+      this.init = function() {
+        /* Items in the heap are ordered by weight (i.e. priority).
+         * Heap.pop() returns the item with the lowest weight.
+         */
+        this.k = [];
+        this.w = [];
+        this.length = 0;
+      };
+      this.init();
+      this.push = function(key, weight) {
+        var i = 0; while (i <= this.w.length && weight < (this.w[i]||Infinity)) i++;
+        this.k.splice(i, 0, key);
+        this.w.splice(i, 0, weight);
+        this.length += 1;
+        return true;            
+      };
+      this.pop = function () {
+        this.length -= 1;
+        this.w.pop(); return this.k.pop();
+      };
+  };
 
   var W = NetworkOperators.getAdjacencyMap(network,null,true);
   var b = {}; for(var i=0;i<network.nodeList.length;i++) b[network.nodeList[i].id] = 0.0;
@@ -1696,6 +1700,7 @@ NetworkOperators.addBetweennessCentralityToNodes = function(network, bNormalized
     var node = network.nodeList.getNodeById(id);
     node.betweennessCentrality = b[id];
   }
+  return network;
 };
 
 /**
