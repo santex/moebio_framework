@@ -19,8 +19,8 @@ export default ColorOperators;
  *
  */
 ColorOperators.interpolateColors = function(color0, color1, value) {
-  var resultArray = ColorOperators.interpolateColorsRGB(ColorOperators.colorStringToRGB(color0), ColorOperators.colorStringToRGB(color1), value);
-  return ColorOperators.RGBtoHEX(resultArray[0], resultArray[1], resultArray[2]);
+  var result = ColorOperators.interpolateColorsRGB(ColorOperators.colorStringToRGB(color0), ColorOperators.colorStringToRGB(color1), value);
+  return 'rgb('+Math.floor(result[0])+','+Math.floor(result[1])+','+Math.floor(result[2])+')';
 };
 
 
@@ -58,7 +58,7 @@ ColorOperators.HEXtoRGB = function(hexColor) {
  * @return {String} hexadecimal representation of the colors.
  */
 ColorOperators.RGBtoHEX = function(red, green, blue) {
-  return "#" + ColorOperators.toHex(red) + ColorOperators.toHex(green) + ColorOperators.toHex(blue);
+  return "#" + ColorOperators.toHex(Math.floor(red)) + ColorOperators.toHex(Math.floor(green)) + ColorOperators.toHex(Math.floor(blue));
 };
 
 /**
