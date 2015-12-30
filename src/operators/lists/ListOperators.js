@@ -1197,7 +1197,7 @@ ListOperators.buildInformationObject = function(list){
   if(list.type != "NumberList" || infoObject.allIntegers) {
     infoObject.frequenciesTable = list.getFrequenciesTable(true, true, true);
     infoObject.numberDifferentElements = infoObject.frequenciesTable[0].length;
-    infoObject.categoriclaColors = infoObject.frequenciesTable[3];
+    infoObject.categoricalColors = infoObject.frequenciesTable[3];
     
     if(list.type=="StringList" && infoObject.numberDifferentElements/list.length>0.8){
       infoObject.kind = "texts";
@@ -1314,7 +1314,7 @@ ListOperators.getReportHtml = function(list, level, infoObject) { //TODO:complet
     }
 
     for(i = 0; infoObject.frequenciesTable[0][i] != null && i < 10; i++) {
-      text += ident + "  [<b>" + String(infoObject.frequenciesTable[0][i]) + "</b>]: <font style=\"font-size:10px\"><b><font color=\""+ColorOperators.colorStringToHEX(infoObject.categoriclaColors[i])+"\">" + infoObject.frequenciesTable[1][i] + "</f></b></f>";
+      text += ident + "  [<b>" + String(infoObject.frequenciesTable[0][i]) + "</b>]: <font style=\"font-size:10px\"><b><font color=\""+ColorOperators.colorStringToHEX(infoObject.categoricalColors[i])+"\">" + infoObject.frequenciesTable[1][i] + "</f></b></f>";
     }
 
     var joined;
@@ -1367,7 +1367,7 @@ ListOperators.getReportHtml = function(list, level, infoObject) { //TODO:complet
     case "List":
     case "ColorList":
       var freqTable = infoObject.frequenciesTable;
-      var catColors = infoObject.categoriclaColors;
+      var catColors = infoObject.categoricalColors;
 
       text += categoriesText(list, ident, infoObject);
 
