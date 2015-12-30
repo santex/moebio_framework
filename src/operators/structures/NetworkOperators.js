@@ -472,7 +472,7 @@ NetworkOperators._loopsColumns = function(nodeList, iColumn, columns) {
 
 
 /**
- * Builds a spanning tree of a Node in a Network (not very efficient)
+ * Builds a spanning tree of a Node in a Network, aka breadth-first search https://en.wikipedia.org/wiki/Breadth-first_search
  * @param  {Network} network
  *
  * @param  {Node} node0 Parent of the tree (first node on network.nodeList by default)
