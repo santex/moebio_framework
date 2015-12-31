@@ -44,7 +44,7 @@ export var dataModelsInfo = [
   {
     type:"Number",
     short:"#",
-    category:"number",
+    category:"numeric",
     level:"0",
     write:"true",
     inherits:null,
@@ -54,7 +54,7 @@ export var dataModelsInfo = [
   {
     type:"Interval",
     short:"##",
-    category:"number",
+    category:"numeric",
     level:"0.5",
     write:"true",
     inherits:null,
@@ -75,7 +75,7 @@ export var dataModelsInfo = [
   {
     type:"List",
     short:"L",
-    category:"object",
+    category:"lists",
     level:"1",
     inherits:"Array",
     contains:"Object",
@@ -85,7 +85,7 @@ export var dataModelsInfo = [
   {
     type:"Table",
     short:"T",
-    category:"object",
+    category:"lists",
     level:"2",
     inherits:"List",
     contains:"List",
@@ -105,7 +105,7 @@ export var dataModelsInfo = [
   {
     type:"NumberList",
     short:"#L",
-    category:"number",
+    category:"numeric",
     level:"1",
     write:"true",
     inherits:"List",
@@ -116,7 +116,7 @@ export var dataModelsInfo = [
   {
     type:"NumberTable",
     short:"#T",
-    category:"number",
+    category:"numeric",
     level:"2",
     write:"true",
     inherits:"Table",
@@ -127,7 +127,7 @@ export var dataModelsInfo = [
   {
     type:"String",
     short:"s",
-    category:"string",
+    category:"strings",
     level:"0",
     write:"true",
     inherits:null,
@@ -136,7 +136,7 @@ export var dataModelsInfo = [
   {
     type:"StringList",
     short:"sL",
-    category:"string",
+    category:"strings",
     level:"1",
     write:"true",
     inherits:"List",
@@ -146,7 +146,7 @@ export var dataModelsInfo = [
   {
     type:"StringTable",
     short:"sT",
-    category:"string",
+    category:"strings",
     level:"2",
     inherits:"Table",
     contains:"StringList",
@@ -155,7 +155,7 @@ export var dataModelsInfo = [
   {
     type:"Date",
     short:"d",
-    category:"date",
+    category:"dates",
     level:"0.5",
     write:"true",
     inherits:null,
@@ -165,7 +165,7 @@ export var dataModelsInfo = [
   {
     type:"DateInterval",
     short:"dd",
-    category:"date",
+    category:"dates",
     level:"0.75",
     inherits:null,
     to:"Interval",
@@ -175,7 +175,7 @@ export var dataModelsInfo = [
   {
     type:"DateList",
     short:"dL",
-    category:"date",
+    category:"dates",
     level:"1.5",
     inherits:"List",
     to:"NumberList,StringList",
@@ -267,7 +267,7 @@ export var dataModelsInfo = [
   {
     type:"Color",
     short:"c",
-    category:"color",
+    category:"graphic",
     level:"0",
     inherits:null,
     to:"String",
@@ -277,7 +277,7 @@ export var dataModelsInfo = [
   {
     type:"ColorScale",
     short:"cS",
-    category:"color",
+    category:"graphic",
     level:"0",
     write:"true",
     inherits:"Function",
@@ -286,7 +286,7 @@ export var dataModelsInfo = [
   {
     type:"ColorList",
     short:"cL",
-    category:"color",
+    category:"graphic",
     level:"1",
     write:"true",
     inherits:"List",
@@ -314,7 +314,7 @@ export var dataModelsInfo = [
   {
     type:"Node",
     short:"n",
-    category:"structure",
+    category:"structures",
     level:"0",
     inherits:null,
     color:"#FAA542"
@@ -322,7 +322,7 @@ export var dataModelsInfo = [
   {
     type:"Relation",
     short:"r",
-    category:"structure",
+    category:"structures",
     level:"0.5",
     inherits:"Node",
     contains:"Node",
@@ -331,7 +331,7 @@ export var dataModelsInfo = [
   {
     type:"NodeList",
     short:"nL",
-    category:"structure",
+    category:"structures",
     level:"1",
     inherits:"List",
     contains:"Node",
@@ -340,7 +340,7 @@ export var dataModelsInfo = [
   {
     type:"RelationList",
     short:"rL",
-    category:"structure",
+    category:"structures",
     level:"1.5",
     inherits:"NodeList",
     contains:"Relation",
@@ -349,7 +349,7 @@ export var dataModelsInfo = [
   {
     type:"Network",
     short:"Nt",
-    category:"structure",
+    category:"structures",
     level:"2",
     inherits:null,
     to:"Table",
@@ -359,7 +359,7 @@ export var dataModelsInfo = [
   {
     type:"Tree",
     short:"Tr",
-    category:"structure",
+    category:"structures",
     level:"2",
     inherits:"Network",
     to:"Table",
@@ -367,6 +367,8 @@ export var dataModelsInfo = [
     color:"#805522"
   }
 ];
+
+
 
 //global constants
 export var TwoPi = 2*Math.PI;
