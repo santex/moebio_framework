@@ -10,6 +10,7 @@ import Relation from "src/dataTypes/structures/elements/Relation";
 import ColorListGenerators from "src/operators/graphic/ColorListGenerators";
 import NetworkEncodings from "src/operators/structures/NetworkEncodings";
 import Network from "src/dataTypes/structures/networks/Network";
+import NumberOperators from "src/operators/numeric/NumberOperators";
 
 /**
  * @classdesc Provides a set of tools that work with Networks.
@@ -1489,7 +1490,217 @@ NetworkOperators._jLouvain = function() {
   return core;
 };
 
+NetworkOperators._getAdjacencyMap = function(network,bDirected,bReversed,bStochastic){
+// derived from Graph.js inside http://www.clips.ua.ac.be/pages/pattern
+  if(network==null) return null;
+  bDirected = bDirected == null ? false : bDirected;
+  bReversed = bReversed == null ? false : bReversed;
+  bStochastic = bStochastic == null ? false : bStochastic;
+  var map = {};
+  for(var i=0; i < network.nodeList.length; i++) {
+      map[network.nodeList[i].id] = {};
+  }
+  for(i=0; i < network.relationList.length; i++) {
+      var e = network.relationList[i];
+      var id1 = e[(bReversed)?"node1":"node0"].id;
+      var id2 = e[(bReversed)?"node0":"node1"].id;
+      map[id1][id2] = 1.0 - e.weight*0.5;
+      if (!bDirected) { 
+          map[id2][id1] = map[id1][id2];
+      }
+  }
+  if(bStochastic) {
+    for (var id1 in map) {
+      var v = []; for(var k in map[id1]) v.push(map[id1][k]);
+      var n = 0; for(var i=0; i < v.length; i++) n += v[i];
+      for(var id2 in map[id1]) {
+        map[id1][id2] /= n;
+      }
+    }
+  }
+  return map;
+}
 
+/**
+ * Adds eigenvectorCentrality as a property to the network nodes.
+ * Nodes with no incoming connections have a score of zero.
+ *
+ * @param {Network} network
+ * @param {Boolean} bNormalized=true (default), scale so maximum eigenvectorCentrality is 1
+ * @param {Boolean} bReversed=true (default), use outgoing relations
+ * @return {Network}
+ * tags:analytics,transformative
+ */
+NetworkOperators.addEigenvectorCentralityToNodes = function(network, bNormalized, bReversed) {
+  // derived from Graph.js inside http://www.clips.ua.ac.be/pages/pattern
+  /* Eigenvector centrality for nodes in the graph (cfr. Google's PageRank).
+   * Eigenvector centrality is a measure of the importance of a node in a directed network. 
+   * It rewards nodes with a high potential of (indirectly) connecting to high-scoring nodes.
+   * Nodes with no incoming connections have a score of zero.
+   * If you want to measure outgoing connections, reversed should be False.        
+   */
+  // Based on: NetworkX, Aric Hagberg (hagberg@lanl.gov)
+  // http://python-networkx.sourcearchive.com/documentation/1.0.1/centrality_8py-source.html
+  // Note: much faster than betweenness centrality (which grows exponentially).
+  if(network == null) return network;
+  if(bNormalized === undefined) bNormalized = true;
+  if(bReversed   === undefined) bReversed   = true;
+  var nIterations = 100;
+  var fTolerance  = 0.0001;
+  var rating = {};
+  function normalize(vector) {
+    var v = []; for(var k in vector) v.push(vector[k]);
+    var total = 0; for (var i=0; i < v.length; i++) total += v[i];
+    var w = 1.0 / (total || 1);
+    for (var node in vector) {
+      vector[node] *= w;
+    }
+  }
+  var G = NetworkOperators._getAdjacencyMap(network,null,bReversed);
+  NumberOperators.randomSeed(1); // use consistent random function so we get consistent results
+  var v = {}; for(var i=0;i<network.nodeList.length;i++) v[network.nodeList[i].id] = NumberOperators.random(); normalize(v);
+  NumberOperators.randomSeedPop();
+  // Eigenvector calculation using the power iteration method: y = Ax.
+  // It has no guarantee of convergence.
+  for(var i=0; i < nIterations; i++) {
+    var v0 = v;
+    var v={}; for (var k in v0) v[k]=0;
+    for (var n1 in v) {
+      for (var n2 in G[n1]) {
+        v[n1] += 0.01 + v0[n2] * G[n1][n2] * (rating[n]? rating[n] : 1);
+      }
+    }
+    normalize(v);
+    var e=0; for (var n in v) e += Math.abs(v[n]-v0[n]); // Check for convergence.
+    if(e < network.nodeList.length * fTolerance) {
+      if(bNormalized){
+        var vals = []; for(var k in v) vals.push(v[k]);
+        var m=Math.max.apply(Math, vals) || 1;
+        for(var id in v) v[id] /= m;
+      }
+      // set property on nodes
+      for(var id in v){
+        var node = network.nodeList.getNodeById(id);
+        node.eigenvectorCentrality = v[id];
+      }
+      return network;
+    }
+  }
+  // node weight is 0 because eigenvectorCentrality() did not converge
+  for(var i=0;i<network.nodeList.length;i++){
+    network.nodeList[i].eigenvectorCentrality=0;
+  }
+  return network;
+};
+
+/**
+ * Adds betweennessCentrality as a property to the network nodes.
+ * Nodes in high-density areas will get a good score.
+ *
+ * @param {Network} network
+ * @param {Boolean} bNormalized=true (default), scale so maximum betweennessCentrality is 1
+ * @param {Boolean} bDirected=false (default), count relations in both directions
+ * @return {Network}
+ * tags:analytics,transformative
+ */
+NetworkOperators.addBetweennessCentralityToNodes = function(network, bNormalized, bDirected) {
+  // derived from Graph.js inside http://www.clips.ua.ac.be/pages/pattern
+  /* Betweenness centrality for nodes in the graph.
+   * Betweenness centrality is a measure of the number of shortests paths that pass through a node.
+   * Nodes in high-density areas will get a good score.
+   */
+  // Ulrik Brandes, A Faster Algorithm for Betweenness Centrality,
+  // Journal of Mathematical Sociology 25(2):163-177, 2001,
+  // http://www.inf.uni-konstanz.de/algo/publications/b-fabc-01.pdf
+  // Based on: Dijkstra's algorithm for shortest paths modified from Eppstein.
+  // Based on: NetworkX 1.0.1: Aric Hagberg, Dan Schult and Pieter Swart.
+  // http://python-networkx.sourcearchive.com/documentation/1.0.1/centrality_8py-source.html
+  if(network == null) return network;
+  if(bNormalized === undefined) bNormalized = true;
+  if(bDirected === undefined) bDirected = false;
+
+  var Heap = function(){
+      this.init = function() {
+        /* Items in the heap are ordered by weight (i.e. priority).
+         * Heap.pop() returns the item with the lowest weight.
+         */
+        this.k = [];
+        this.w = [];
+        this.length = 0;
+      };
+      this.init();
+      this.push = function(key, weight) {
+        var i = 0; while (i <= this.w.length && weight < (this.w[i]||Infinity)) i++;
+        this.k.splice(i, 0, key);
+        this.w.splice(i, 0, weight);
+        this.length += 1;
+        return true;            
+      };
+      this.pop = function () {
+        this.length -= 1;
+        this.w.pop(); return this.k.pop();
+      };
+  };
+
+  var W = NetworkOperators._getAdjacencyMap(network,null,true);
+  var b = {}; for(var i=0;i<network.nodeList.length;i++) b[network.nodeList[i].id] = 0.0;
+  var dist,pred,v;
+  for(i=0;i<network.nodeList.length;i++) {
+    var id = network.nodeList[i].id;
+    var Q = new Heap(); // Use Q as a heap with [distance, node id] lists.
+    var D = {}; // Dictionary of final distances.
+    var P = {}; // # Dictionary of paths.
+    for(var j=0;j<network.nodeList.length;j++) P[network.nodeList[j].id]=[];
+    var seen = {id: 0};
+    Q.push([0, id, id], 0);
+    var S = [];
+    var E = {};
+    for(var j=0;j<network.nodeList.length;j++) E[network.nodeList[j].id]=0; // sigma
+    E[id] = 1.0;
+    while(Q.length) {
+      var q = Q.pop(); dist=q[0]; pred=q[1]; v=q[2];
+      if(v in D) continue;
+      D[v] = dist;
+      S.push(v);
+      E[v] += E[pred];
+      for (var w in W[v]) {
+        var vw_dist = D[v] + W[v][w];
+        if(!(w in D) && (!(w in seen) || vw_dist < seen[w])) {
+          seen[w] = vw_dist;
+          Q.push([vw_dist, v, w], vw_dist);
+          P[w] = [v];
+          E[w] = 0.0;
+        } else if (vw_dist == seen[w]) { // Handle equal paths.
+          P[w].push(v);
+          E[w] = E[w] + E[v];
+        }
+      }
+    }
+    var d = {}; for(var j=0;j<network.nodeList.length;j++) d[network.nodeList[j].id]=0;
+    while (S.length) {
+      var w = S.pop();
+      for (var j=0; j < P[w].length; j++) {
+        v = P[w][j];
+        d[v] += (1 + d[w]) * E[v] / E[w];
+      }
+      if (w != id) {
+        b[w] += d[w];
+      }
+    }
+  }
+  // Normalize between 0 and 1.
+  if(bNormalized){
+    var vals = []; for(var k in b) vals.push(b[k]);
+    var m=Math.max.apply(Math, vals) || 1;
+    for(var id in b) b[id] /= m;
+  }
+  // set property on nodes
+  for(var id in b){
+    var node = network.nodeList.getNodeById(id);
+    node.betweennessCentrality = b[id];
+  }
+  return network;
+};
 
 /**
  * @todo write docs
