@@ -11594,7 +11594,7 @@
     {
       type:"Number",
       short:"#",
-      category:"number",
+      category:"numeric",
       level:"0",
       write:"true",
       inherits:null,
@@ -11604,7 +11604,7 @@
     {
       type:"Interval",
       short:"##",
-      category:"number",
+      category:"numeric",
       level:"0.5",
       write:"true",
       inherits:null,
@@ -11625,7 +11625,7 @@
     {
       type:"List",
       short:"L",
-      category:"object",
+      category:"lists",
       level:"1",
       inherits:"Array",
       contains:"Object",
@@ -11635,7 +11635,7 @@
     {
       type:"Table",
       short:"T",
-      category:"object",
+      category:"lists",
       level:"2",
       inherits:"List",
       contains:"List",
@@ -11655,7 +11655,7 @@
     {
       type:"NumberList",
       short:"#L",
-      category:"number",
+      category:"numeric",
       level:"1",
       write:"true",
       inherits:"List",
@@ -11666,7 +11666,7 @@
     {
       type:"NumberTable",
       short:"#T",
-      category:"number",
+      category:"numeric",
       level:"2",
       write:"true",
       inherits:"Table",
@@ -11677,7 +11677,7 @@
     {
       type:"String",
       short:"s",
-      category:"string",
+      category:"strings",
       level:"0",
       write:"true",
       inherits:null,
@@ -11686,7 +11686,7 @@
     {
       type:"StringList",
       short:"sL",
-      category:"string",
+      category:"strings",
       level:"1",
       write:"true",
       inherits:"List",
@@ -11696,7 +11696,7 @@
     {
       type:"StringTable",
       short:"sT",
-      category:"string",
+      category:"strings",
       level:"2",
       inherits:"Table",
       contains:"StringList",
@@ -11705,7 +11705,7 @@
     {
       type:"Date",
       short:"d",
-      category:"date",
+      category:"dates",
       level:"0.5",
       write:"true",
       inherits:null,
@@ -11715,7 +11715,7 @@
     {
       type:"DateInterval",
       short:"dd",
-      category:"date",
+      category:"dates",
       level:"0.75",
       inherits:null,
       to:"Interval",
@@ -11725,7 +11725,7 @@
     {
       type:"DateList",
       short:"dL",
-      category:"date",
+      category:"dates",
       level:"1.5",
       inherits:"List",
       to:"NumberList,StringList",
@@ -11817,7 +11817,7 @@
     {
       type:"Color",
       short:"c",
-      category:"color",
+      category:"graphic",
       level:"0",
       inherits:null,
       to:"String",
@@ -11827,7 +11827,7 @@
     {
       type:"ColorScale",
       short:"cS",
-      category:"color",
+      category:"graphic",
       level:"0",
       write:"true",
       inherits:"Function",
@@ -11836,7 +11836,7 @@
     {
       type:"ColorList",
       short:"cL",
-      category:"color",
+      category:"graphic",
       level:"1",
       write:"true",
       inherits:"List",
@@ -11864,7 +11864,7 @@
     {
       type:"Node",
       short:"n",
-      category:"structure",
+      category:"structures",
       level:"0",
       inherits:null,
       color:"#FAA542"
@@ -11872,7 +11872,7 @@
     {
       type:"Relation",
       short:"r",
-      category:"structure",
+      category:"structures",
       level:"0.5",
       inherits:"Node",
       contains:"Node",
@@ -11881,7 +11881,7 @@
     {
       type:"NodeList",
       short:"nL",
-      category:"structure",
+      category:"structures",
       level:"1",
       inherits:"List",
       contains:"Node",
@@ -11890,7 +11890,7 @@
     {
       type:"RelationList",
       short:"rL",
-      category:"structure",
+      category:"structures",
       level:"1.5",
       inherits:"NodeList",
       contains:"Relation",
@@ -11899,7 +11899,7 @@
     {
       type:"Network",
       short:"Nt",
-      category:"structure",
+      category:"structures",
       level:"2",
       inherits:null,
       to:"Table",
@@ -11909,7 +11909,7 @@
     {
       type:"Tree",
       short:"Tr",
-      category:"structure",
+      category:"structures",
       level:"2",
       inherits:"Network",
       to:"Table",
@@ -11917,6 +11917,8 @@
       color:"#805522"
     }
   ];
+
+
 
   //global constants
   var TwoPi = 2*Math.PI;
