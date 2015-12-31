@@ -26,7 +26,7 @@ NumberListDraw.drawSimpleGraph = function(frame, numberList, margin, xValues, gr
   if(frame.memory == null || numberList != frame.memory.numberList) {
     frame.memory = {
       numberList: numberList,
-      minmax: numberList.getMinMaxInterval(),
+      minmax: numberList.getInterval(),
       zero: null
     };
     if(frame.memory.minmax.x > 0 && frame.memory.minmax.y > 0) {

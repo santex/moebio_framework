@@ -204,7 +204,7 @@ NumberListOperators.normalized = function(numberlist, factor) {//@todo: remove
   if(numberlist.length === 0) return null;
 
   var i;
-  var interval = numberlist.getMinMaxInterval();
+  var interval = numberlist.getInterval();
   var a = interval.getAmplitude();
   var newNumberList = new NumberList();
   factor = factor == null ? 1 : factor;
@@ -283,7 +283,7 @@ NumberListOperators.normalizeToInterval = function(numberlist, interval) {
   if(numberlist.length === 0) return null;
 
   var i;
-  var numberListInterval = numberlist.getMinMaxInterval();
+  var numberListInterval = numberlist.getInterval();
   var nLAmplitude = numberListInterval.getAmplitude();
   var amplitude = interval.getAmplitude();
   var factor = amplitude/nLAmplitude;

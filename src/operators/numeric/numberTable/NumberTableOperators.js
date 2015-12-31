@@ -417,10 +417,10 @@ NumberTableOperators.kNN = function(numberTable, propertyList, vectorList, k, ca
 
       var p;
       var matx = new NumberTable();
-      var ix = numberTable[0].getMinMaxInterval();
+      var ix = numberTable[0].getInterval();
       var minx = ix.x;
       var kx = ix.getAmplitude() / matrixN;
-      var iy = numberTable[1].getMinMaxInterval();
+      var iy = numberTable[1].getInterval();
       var miny = iy.x;
       var ky = iy.getAmplitude() / matrixN;
 

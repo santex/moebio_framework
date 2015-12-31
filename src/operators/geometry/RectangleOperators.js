@@ -73,7 +73,7 @@ RectangleOperators.packingRectangles = function(weights, packingMode, rectangle,
     case 0:
       return RectangleOperators.squarify(rectangle, weights);
     case 1:
-      var minMax = weights.getMinMaxInterval();
+      var minMax = weights.getInterval();
       if(minMax.min < 0) {
         weights = weights.add(-minMax.min);
         minMax = new Interval(0, minMax.max - minMax.min);
@@ -93,7 +93,7 @@ RectangleOperators.packingRectangles = function(weights, packingMode, rectangle,
       }
       return rectangleList;
     case 2:
-      minMax = weights.getMinMaxInterval();
+      minMax = weights.getInterval();
       if(minMax.min < 0) {
         weights = weights.add(-minMax.min);
         minMax = new Interval(0, minMax.max - minMax.min);

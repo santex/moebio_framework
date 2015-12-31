@@ -60,7 +60,7 @@ NumberList.fromArray = function(array, forceToNumber) {
   result.getMin = NumberList.prototype.getMin;
   result.getMax = NumberList.prototype.getMax;
   result.getAmplitude = NumberList.prototype.getAmplitude;
-  result.getMinMaxInterval = NumberList.prototype.getMinMaxInterval;
+  //result.getMinMaxInterval = NumberList.prototype.getMinMaxInterval;
   result.getSum = NumberList.prototype.getSum;
   result.getProduct = NumberList.prototype.getProduct;
   result.getInterval = NumberList.prototype.getInterval;
@@ -161,9 +161,9 @@ NumberList.prototype.getAmplitude = function() {
  *
  * @return {Interval} Interval containing the min and max values of the List.
  */
-NumberList.prototype.getMinMaxInterval = function() { //deprecated?
-  return new Interval(this.getMin(), this.getMax());
-};
+// NumberList.prototype.getMinMaxInterval = function() { //deprecated?
+//   return new Interval(this.getMin(), this.getMax());
+// };
 
 /**
  * Returns the total sum of values in the NumberList.
@@ -204,14 +204,14 @@ NumberList.prototype.getProduct = function() {
  *
  * @return {Interval} with starting value as the min of the NumberList
  * and ending value as the max.
- * tags:
  */
 NumberList.prototype.getInterval = function() {
   if(this.length === 0) return null;
   var max = this[0];
   var min = this[0];
   var l = this.length;
-  for(var i = 1; i<l; i++) {
+  var i;
+  for(i = 1; i<l; i++) {
     max = Math.max(max, this[i]);
     min = Math.min(min, this[i]);
   }
@@ -533,7 +533,7 @@ NumberList.prototype.getNormalized = function(factor) {
   if(this.length === 0) return null;
   
   var i;
-  var interval = this.getMinMaxInterval();
+  var interval = this.getInterval();
   var a = interval.getAmplitude();
   var newNumberList = new NumberList();
   for(i = 0; i < this.length; i++) {

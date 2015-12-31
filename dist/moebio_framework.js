@@ -3178,7 +3178,7 @@
     result.getMin = NumberList.prototype.getMin;
     result.getMax = NumberList.prototype.getMax;
     result.getAmplitude = NumberList.prototype.getAmplitude;
-    result.getMinMaxInterval = NumberList.prototype.getMinMaxInterval;
+    //result.getMinMaxInterval = NumberList.prototype.getMinMaxInterval;
     result.getSum = NumberList.prototype.getSum;
     result.getProduct = NumberList.prototype.getProduct;
     result.getInterval = NumberList.prototype.getInterval;
@@ -3279,9 +3279,9 @@
    *
    * @return {Interval} Interval containing the min and max values of the List.
    */
-  NumberList.prototype.getMinMaxInterval = function() { //deprecated?
-    return new Interval(this.getMin(), this.getMax());
-  };
+  // NumberList.prototype.getMinMaxInterval = function() { //deprecated?
+  //   return new Interval(this.getMin(), this.getMax());
+  // };
 
   /**
    * Returns the total sum of values in the NumberList.
@@ -3322,14 +3322,14 @@
    *
    * @return {Interval} with starting value as the min of the NumberList
    * and ending value as the max.
-   * tags:
    */
   NumberList.prototype.getInterval = function() {
     if(this.length === 0) return null;
     var max = this[0];
     var min = this[0];
     var l = this.length;
-    for(var i = 1; i<l; i++) {
+    var i;
+    for(i = 1; i<l; i++) {
       max = Math.max(max, this[i]);
       min = Math.min(min, this[i]);
     }
@@ -3651,7 +3651,7 @@
     if(this.length === 0) return null;
     
     var i;
-    var interval = this.getMinMaxInterval();
+    var interval = this.getInterval();
     var a = interval.getAmplitude();
     var newNumberList = new NumberList();
     for(i = 0; i < this.length; i++) {
@@ -4947,7 +4947,7 @@
     result.add = NumberTable.prototype.add;
     result.getMax = NumberTable.prototype.getMax;
     result.getMin = NumberTable.prototype.getMin;
-    result.getMinMaxInterval = NumberTable.prototype.getMinMaxInterval;
+    result.getInterval = NumberTable.prototype.getInterval;
     result.getCovarianceMatrix = NumberTable.prototype.getCovarianceMatrix;
 
     return result;
@@ -4986,11 +4986,12 @@
   /**
    * @todo write docs
    */
-  NumberTable.prototype.getMinMaxInterval = function() {
+  NumberTable.prototype.getInterval = function() {
     if(this.length === 0) return null;
-    var rangeInterval = (this[0]).getMinMaxInterval();
-    for(var i = 1; this[i] != null; i++) {
-      var newRange = (this[i]).getMinMaxInterval();
+    var rangeInterval = (this[0]).getInterval();
+    var n = this.length;
+    for(var i = 1; i<n; i++) {
+      var newRange = (this[i]).getInterval();
       rangeInterval.x = Math.min(rangeInterval.x, newRange.x);
       rangeInterval.y = Math.max(rangeInterval.y, newRange.y);
     }
@@ -7152,13 +7153,14 @@
    * calculates Jaccard index |list0 ∩ list1|/|list0 ∪ list1| see: https://en.wikipedia.org/wiki/Jaccard_index
    * @param  {List} list0
    * @param  {List} list1
+   * @param  {Number} sigma value added to the intersection, so two lists are more distant whenever the interestion is small or 0 and the union gets bigger ( [A,B] closer to [P,Q] than [A,B,C,D,D] to [P,Q,R,S,T,U,V] the later pair holding more differences)
    * @return {Number}
    * tags:
    */
-  ListOperators.jaccardIndex = function(list0, list1) {//TODO: see if this can be more efficient, maybe one idctionar for doing union and interstection at the same time
+  ListOperators.jaccardIndex = function(list0, list1, sigma) {//TODO: see if this can be more efficient, maybe one idctionar for doing union and interstection at the same time
     var union  = ListOperators.union(list0, list1).length;
     if(union==0) return 0;
-    return ListOperators.intersection(list0, list1).length/union;
+    return (ListOperators.intersection(list0, list1).length+sigma)/union;
   };
 
   /**
@@ -8275,7 +8277,7 @@
     if(numberlist.length === 0) return null;
 
     var i;
-    var interval = numberlist.getMinMaxInterval();
+    var interval = numberlist.getInterval();
     var a = interval.getAmplitude();
     var newNumberList = new NumberList();
     factor = factor == null ? 1 : factor;
@@ -8354,7 +8356,7 @@
     if(numberlist.length === 0) return null;
 
     var i;
-    var numberListInterval = numberlist.getMinMaxInterval();
+    var numberListInterval = numberlist.getInterval();
     var nLAmplitude = numberListInterval.getAmplitude();
     var amplitude = interval.getAmplitude();
     var factor = amplitude/nLAmplitude;
@@ -15928,7 +15930,7 @@
       case 0:
         return RectangleOperators.squarify(rectangle, weights);
       case 1:
-        var minMax = weights.getMinMaxInterval();
+        var minMax = weights.getInterval();
         if(minMax.min < 0) {
           weights = weights.add(-minMax.min);
           minMax = new Interval(0, minMax.max - minMax.min);
@@ -15948,7 +15950,7 @@
         }
         return rectangleList;
       case 2:
-        minMax = weights.getMinMaxInterval();
+        minMax = weights.getInterval();
         if(minMax.min < 0) {
           weights = weights.add(-minMax.min);
           minMax = new Interval(0, minMax.max - minMax.min);
@@ -18812,10 +18814,10 @@
 
         var p;
         var matx = new NumberTable();
-        var ix = numberTable[0].getMinMaxInterval();
+        var ix = numberTable[0].getInterval();
         var minx = ix.x;
         var kx = ix.getAmplitude() / matrixN;
-        var iy = numberTable[1].getMinMaxInterval();
+        var iy = numberTable[1].getInterval();
         var miny = iy.x;
         var ky = iy.getAmplitude() / matrixN;
 
@@ -19738,6 +19740,19 @@
       newArray[i] = ObjectOperators.serliazeObject(array[i]);
     }
     return newArray;
+  };
+
+
+  /**
+   * returns an Interval with min and max values from object
+   * @param  {Object} object
+   * @return {Interval}
+   * tags
+   */
+  ObjectOperators.getInterval = function(object){
+    if(object==null) return;
+
+    if(object.getInterval!=null) return object.getInterval();
   };
 
 
@@ -28587,7 +28602,7 @@
     if(frame.memory == null || numberList != frame.memory.numberList) {
       frame.memory = {
         numberList: numberList,
-        minmax: numberList.getMinMaxInterval(),
+        minmax: numberList.getInterval(),
         zero: null
       };
       if(frame.memory.minmax.x > 0 && frame.memory.minmax.y > 0) {
@@ -29124,21 +29139,29 @@
     var minMaxInterval;
     var amp;
     if(!listColorsIndependent) {
-      minMaxInterval = numberTable.getMinMaxInterval();
+      minMaxInterval = numberTable.getInterval();
       amp = minMaxInterval.getAmplitude();
     }
 
     var mouseXOnColumn;
 
-    for(i = 0; numberTable[i] != null; i++) {
+    var n = numberTable.length;
+    var nR;
+
+    console.log('n:', n);
+
+    for(i = 0; i<n; i++) {
       numberList = numberTable[i];
       x = Math.round(frame.x + i * dX);
       mouseXOnColumn = graphics.mX > x && graphics.mX <= x + dX;
       if(listColorsIndependent) {
-        minMaxInterval = numberList.getMinMaxInterval();
+        minMaxInterval = numberList.getInterval();
         amp = minMaxInterval.getAmplitude();
       }
-      for(j = 0; numberList[j] != null; j++) {
+      nR = numberList.length;
+      console.log('   nR:', nR);
+      for(j = 0; j<nR; j++) {
+        if(i<5 && j<5) console.log('    ', x, Math.round(frame.y + j * dY))
         graphics.context.fillStyle = colorScale((numberList[j] - minMaxInterval.x) / amp);
         graphics.context.fillRect(x, Math.round(frame.y + j * dY), Math.ceil(dX) - margin, Math.ceil(dY) - margin);
         if(mouseXOnColumn && graphics.mY > frame.y + j * dY && graphics.mY <= frame.y + (j + 1) * dY) overCoordinates = new _Point(i, j);

@@ -640,13 +640,14 @@ ListOperators.intersection = function(list0, list1) {//TODO:expand for more list
  * calculates Jaccard index |list0 ∩ list1|/|list0 ∪ list1| see: https://en.wikipedia.org/wiki/Jaccard_index
  * @param  {List} list0
  * @param  {List} list1
+ * @param  {Number} sigma value added to the intersection, so two lists are more distant whenever the interestion is small or 0 and the union gets bigger ( [A,B] closer to [P,Q] than [A,B,C,D,D] to [P,Q,R,S,T,U,V] the later pair holding more differences)
  * @return {Number}
  * tags:
  */
-ListOperators.jaccardIndex = function(list0, list1) {//TODO: see if this can be more efficient, maybe one idctionar for doing union and interstection at the same time
+ListOperators.jaccardIndex = function(list0, list1, sigma) {//TODO: see if this can be more efficient, maybe one idctionar for doing union and interstection at the same time
   var union  = ListOperators.union(list0, list1).length;
   if(union==0) return 0;
-  return ListOperators.intersection(list0, list1).length/union;
+  return (ListOperators.intersection(list0, list1).length+sigma)/union;
 };
 
 /**
