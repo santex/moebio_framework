@@ -1490,7 +1490,7 @@ NetworkOperators._jLouvain = function() {
   return core;
 };
 
-NetworkOperators.getAdjacencyMap = function(network,bDirected,bReversed,bStochastic){
+NetworkOperators._getAdjacencyMap = function(network,bDirected,bReversed,bStochastic){
 // derived from Graph.js inside http://www.clips.ua.ac.be/pages/pattern
   if(network==null) return null;
   bDirected = bDirected == null ? false : bDirected;
@@ -1556,7 +1556,7 @@ NetworkOperators.addEigenvectorCentralityToNodes = function(network, bNormalized
       vector[node] *= w;
     }
   }
-  var G = NetworkOperators.getAdjacencyMap(network,null,bReversed);
+  var G = NetworkOperators._getAdjacencyMap(network,null,bReversed);
   NumberOperators.randomSeed(1); // use consistent random function so we get consistent results
   var v = {}; for(var i=0;i<network.nodeList.length;i++) v[network.nodeList[i].id] = NumberOperators.random(); normalize(v);
   NumberOperators.randomSeedPop();
@@ -1642,7 +1642,7 @@ NetworkOperators.addBetweennessCentralityToNodes = function(network, bNormalized
       };
   };
 
-  var W = NetworkOperators.getAdjacencyMap(network,null,true);
+  var W = NetworkOperators._getAdjacencyMap(network,null,true);
   var b = {}; for(var i=0;i<network.nodeList.length;i++) b[network.nodeList[i].id] = 0.0;
   var dist,pred,v;
   for(i=0;i<network.nodeList.length;i++) {
