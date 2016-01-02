@@ -114,6 +114,17 @@ export var dataModelsInfo = [
     color:"#386080"
   },
   {
+    type:"IntervalList",
+    short:"##L",
+    category:"numeric",
+    level:"1",
+    write:"true",
+    inherits:"List",
+    to:"StringList",
+    contains:"Interval",
+    color:"#386080"
+  },
+  {
     type:"NumberTable",
     short:"#T",
     category:"numeric",

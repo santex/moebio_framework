@@ -1257,7 +1257,7 @@
     var newList;
     switch(typeOfElements) {
       case "number":
-        newList = _NumberList.fromArray(this, false);
+        newList = NumberList.fromArray(this, false);
         break;
       case "string":
         newList = StringList.fromArray(this, false);
@@ -1464,7 +1464,7 @@
     var newList;
 
     if(this.type == "NumberList") {
-      newList = _NumberList.fromArray(this.slice(interval.x, interval.y + 1), false);
+      newList = NumberList.fromArray(this.slice(interval.x, interval.y + 1), false);
       newList.name = this.name;
       return newList;
     } else if(this.type == "StringList") {
@@ -1690,7 +1690,7 @@
    * tags:count
    */
   List.prototype.countOccurrences = function() { //TODO: more efficient
-    var occurrences = new _NumberList();
+    var occurrences = new NumberList();
     var l = this.length;
     for(var i = 0; i<l; i++) {
       occurrences[i] = this.indexesOf(this[i]).length;
@@ -1714,7 +1714,7 @@
 
     var table = new Table();
     var elementList = new List();
-    var numberList = new _NumberList();
+    var numberList = new NumberList();
     var i;
     var index;
 
@@ -1958,7 +1958,7 @@
       return array_a - array_b;// ? -1 : array_a > array_b ? 1 : 0;
     };
     index = index.sort(comparator);
-    var result = new _NumberList();
+    var result = new NumberList();
     for(i = 0; i < index.length; i++) {
       result.push(index[i].index);
     }
@@ -2118,7 +2118,7 @@
    */
   List.prototype.indexesOf = function(element) {//@todo: probably better to just traverse de list
     var index = this.indexOf(element);
-    var numberList = new _NumberList();
+    var numberList = new NumberList();
     while(index != -1) {
       numberList.push(index);
       index = this.indexOf(element, index + 1);
@@ -2134,7 +2134,7 @@
    * tags:
    */
   List.prototype.indexOfElements = function(elements) {//@todo: probably better to just traverse de list
-    var numberList = new _NumberList();
+    var numberList = new NumberList();
     var l = elements.length;
     for(var i = 0; i<l; i++) {
       numberList[i] = this.indexOf(elements[i]);
@@ -2167,7 +2167,7 @@
    * tags:filter
    */
   List.prototype.getElementsByNames = function(names, returnIndex) {
-    var list = returnIndex ? new _NumberList() : new List();
+    var list = returnIndex ? new NumberList() : new List();
     var i;
     var l = this.length;
 
@@ -2420,7 +2420,7 @@
 
     if(arguments[0].type == this.type) {//var type = … / switch/case
       if(this.type == "NumberList") {
-        return _NumberList.fromArray(this._concat.apply(this, arguments), false);
+        return NumberList.fromArray(this._concat.apply(this, arguments), false);
       } else if(this.type == "StringList") {
         return StringList.fromArray(this._concat.apply(this, arguments), false);
       } else if(this.type == "DateList") {
@@ -2529,7 +2529,7 @@
   List.prototype.splice = function() { //TODO: replace
     switch(this.type) {
       case 'NumberList':
-        return _NumberList.fromArray(this._splice.apply(this, arguments));
+        return NumberList.fromArray(this._splice.apply(this, arguments));
       case 'StringList':
         return StringList.fromArray(this._splice.apply(this, arguments));
       case 'NodeList':
@@ -3042,7 +3042,7 @@
   * @return {NumberList} NumberList of interpolated values.
   */
   Interval.prototype.getInterpolatedValues = function(numberList) {
-    var newNumberList = new _NumberList();
+    var newNumberList = new NumberList();
     var nElements = numberList.length;
     for(var i = 0; i < nElements; i++) {
       newNumberList[i] = this.getInterpolatedValue(numberList[i]);
@@ -3058,7 +3058,7 @@
   * @return {NumberList} NumberList of inverse interpolated values.
   */
   Interval.prototype.getInverseInterpolatedValues = function(numberList) {
-    var newNumberList = new _NumberList();
+    var newNumberList = new NumberList();
     var nElements = numberList.length;
     for(var i = 0; i < nElements; i++) {
       newNumberList.push(this.getInverseInterpolatedValue(numberList[i]));
@@ -3122,8 +3122,8 @@
     return "Interval[x:" + this.x + "| y:" + this.y + "| amplitude:" + this.getAmplitude() + "]";
   };
 
-  _NumberList.prototype = new List();
-  _NumberList.prototype.constructor = _NumberList;
+  NumberList.prototype = new List();
+  NumberList.prototype.constructor = NumberList;
 
   /**
    * @classdesc List structure for Numbers. Provides basic data type for
@@ -3140,7 +3140,7 @@
    * @description Creates a new NumberList.
    * @category numbers
    */
-  function _NumberList() {
+  function NumberList() {
     var args = [];
     var l = arguments.length;
 
@@ -3148,7 +3148,7 @@
       args[i] = Number(arguments[i]);
     }
     var array = List.apply(this, args);
-    array = _NumberList.fromArray(array);
+    array = NumberList.fromArray(array);
     return array;
   }
   /**
@@ -3158,7 +3158,7 @@
    * @param {Boolean} forceToNumber If true, explicitly converts values in array to Numbers.
    * @return {NumberList} New NumberList containing values in array
    */
-  _NumberList.fromArray = function(array, forceToNumber) {
+  NumberList.fromArray = function(array, forceToNumber) {
     forceToNumber = forceToNumber == null ? true : forceToNumber;
 
     var result = List.fromArray(array);
@@ -3173,63 +3173,63 @@
     result.type = "NumberList";
 
     //assign methods to array:
-    result.unit = _NumberList.prototype.unit;
-    result.tenPower = _NumberList.prototype.tenPower;
-    result.getMin = _NumberList.prototype.getMin;
-    result.getMax = _NumberList.prototype.getMax;
-    result.getAmplitude = _NumberList.prototype.getAmplitude;
+    result.unit = NumberList.prototype.unit;
+    result.tenPower = NumberList.prototype.tenPower;
+    result.getMin = NumberList.prototype.getMin;
+    result.getMax = NumberList.prototype.getMax;
+    result.getAmplitude = NumberList.prototype.getAmplitude;
     //result.getMinMaxInterval = NumberList.prototype.getMinMaxInterval;
-    result.getSum = _NumberList.prototype.getSum;
-    result.getProduct = _NumberList.prototype.getProduct;
-    result.getInterval = _NumberList.prototype.getInterval;
-    result.getNumbersSimplified = _NumberList.prototype.getNumbersSimplified;
+    result.getSum = NumberList.prototype.getSum;
+    result.getProduct = NumberList.prototype.getProduct;
+    result.getInterval = NumberList.prototype.getInterval;
+    result.getNumbersSimplified = NumberList.prototype.getNumbersSimplified;
 
     //statistics
-    result.getAverage = _NumberList.prototype.getAverage;
-    result.getNorm = _NumberList.prototype.getNorm;
-    result.getStandardDeviation = _NumberList.prototype.getStandardDeviation;
-    result.getVariance = _NumberList.prototype.getVariance;
-    result.getMedian = _NumberList.prototype.getMedian;
-    result.getQuantiles = _NumberList.prototype.getQuantiles;
+    result.getAverage = NumberList.prototype.getAverage;
+    result.getNorm = NumberList.prototype.getNorm;
+    result.getStandardDeviation = NumberList.prototype.getStandardDeviation;
+    result.getVariance = NumberList.prototype.getVariance;
+    result.getMedian = NumberList.prototype.getMedian;
+    result.getQuantiles = NumberList.prototype.getQuantiles;
 
     //sorting
-    result.getSorted = _NumberList.prototype.getSorted;
-    result.getSortIndexes = _NumberList.prototype.getSortIndexes;
+    result.getSorted = NumberList.prototype.getSorted;
+    result.getSortIndexes = NumberList.prototype.getSortIndexes;
 
     //
-    result.getNormalized = _NumberList.prototype.getNormalized;
+    result.getNormalized = NumberList.prototype.getNormalized;
 
     //math
-    result.factor = _NumberList.prototype.factor;
-    result.add = _NumberList.prototype.add;
-    result.subtract = _NumberList.prototype.subtract;
-    result.divide = _NumberList.prototype.divide;
-    result.sqrt = _NumberList.prototype.sqrt;
-    result.pow = _NumberList.prototype.pow;
-    result.log = _NumberList.prototype.log;
-    result.floor = _NumberList.prototype.floor;
-    result.isEquivalent = _NumberList.prototype.isEquivalent;
+    result.factor = NumberList.prototype.factor;
+    result.add = NumberList.prototype.add;
+    result.subtract = NumberList.prototype.subtract;
+    result.divide = NumberList.prototype.divide;
+    result.sqrt = NumberList.prototype.sqrt;
+    result.pow = NumberList.prototype.pow;
+    result.log = NumberList.prototype.log;
+    result.floor = NumberList.prototype.floor;
+    result.isEquivalent = NumberList.prototype.isEquivalent;
 
     //transform
-    result.approach = _NumberList.prototype.approach;
+    result.approach = NumberList.prototype.approach;
 
     //override
-    result.clone = _NumberList.prototype.clone;
+    result.clone = NumberList.prototype.clone;
     //result._slice = Array.prototype.slice;
     //result.slice = NumberList.prototype.slice;
 
     return result;
   };
 
-  _NumberList.prototype.unit = "";
-  _NumberList.prototype.tenPower = 0;
+  NumberList.prototype.unit = "";
+  NumberList.prototype.tenPower = 0;
 
   /**
    * Returns minimum value in the List. Null if the NumberList is empty.
    *
    * @return {Number} The min value.
    */
-  _NumberList.prototype.getMin = function() {
+  NumberList.prototype.getMin = function() {
     //TODO:store result and retrieve while the NumberList doesn't change;
     if(this.length === 0) return null;
     var i;
@@ -3245,7 +3245,7 @@
    *
    * @return {Number} The max value.
    */
-  _NumberList.prototype.getMax = function() {
+  NumberList.prototype.getMax = function() {
     //TODO:store result and retrieve while the NumberList doesn't change;
     if(this.length === 0) return null;
     var i;
@@ -3262,7 +3262,7 @@
    *
    * @return {Number} The difference between the minimum and maximum value in the List.
    */
-  _NumberList.prototype.getAmplitude = function() {
+  NumberList.prototype.getAmplitude = function() {
     if(this.length === 0) return 0;
     var min = this[0];
     var max = this[0];
@@ -3289,7 +3289,7 @@
    * @return {Number} Sum of all values in the List.
    * tags:
    */
-  _NumberList.prototype.getSum = function() {
+  NumberList.prototype.getSum = function() {
     if(this.length === 0) return 0;
     var i;
     var sum = this[0];
@@ -3306,7 +3306,7 @@
    * @return {Number} The product of all values in the NumberList.
    * tags:
    */
-  _NumberList.prototype.getProduct = function() {
+  NumberList.prototype.getProduct = function() {
     if(this.length === 0) return null;
     var i;
     var product = this[0];
@@ -3323,7 +3323,7 @@
    * @return {Interval} with starting value as the min of the NumberList
    * and ending value as the max.
    */
-  _NumberList.prototype.getInterval = function() {
+  NumberList.prototype.getInterval = function() {
     if(this.length === 0) return null;
     var max = this[0];
     var min = this[0];
@@ -3348,7 +3348,7 @@
    * @return {NumberList} simplified list
    * tags:
    */
-  _NumberList.prototype.getNumbersSimplified = function(method, param) {
+  NumberList.prototype.getNumbersSimplified = function(method, param) {
     var newList;
     var i, j;
     var l = this.length;
@@ -3356,7 +3356,7 @@
     method = method||0;
     param = param||0;
 
-    newList = new _NumberList();
+    newList = new NumberList();
     newList.name = this.name;
 
     switch(method){
@@ -3426,7 +3426,7 @@
    * @return {Polygon} Polygon representing the values
    * in the NumberList as x/y coordinates.
    */
-  _NumberList.prototype.toPolygon = function() {
+  NumberList.prototype.toPolygon = function() {
     if(this.length === 0) return null;
     var polygon = new Polygon();
     for(var i = 0; this[i + 1] != null; i += 2) {
@@ -3444,7 +3444,7 @@
    * @return {Number} Mean of all values in the List.
    * tags:statistics
    */
-  _NumberList.prototype.getAverage = function() {//@todo: change name to getMean
+  NumberList.prototype.getAverage = function() {//@todo: change name to getMean
     return this.getSum()/this.length;
   };
 
@@ -3454,7 +3454,7 @@
    * @return {Number}
    * tags:statistics
    */
-  _NumberList.prototype.getGeometricMean = function() {
+  NumberList.prototype.getGeometricMean = function() {
     var s = 0;
     //this.forEach(function(val) {
     var l = this.length;
@@ -3470,7 +3470,7 @@
    * @return {Number}
    * tags:statistics
    */
-  _NumberList.prototype.getNorm = function() {
+  NumberList.prototype.getNorm = function() {
     var sq = 0;
     var l = this.length;
     for(var i = 0; i<l; i++) {
@@ -3485,7 +3485,7 @@
    * @return {Number}
    * tags:statistics
    */
-  _NumberList.prototype.getVariance = function() {
+  NumberList.prototype.getVariance = function() {
     var sd = 0;
     var average = this.getAverage();
     var l = this.length;
@@ -3501,7 +3501,7 @@
    * @return {Number}
    * tags:statistics
    */
-  _NumberList.prototype.getStandardDeviation = function() {
+  NumberList.prototype.getStandardDeviation = function() {
     return Math.sqrt(this.getVariance());
   };
 
@@ -3511,7 +3511,7 @@
    * @return {Number}
    * tags:statistics
    */
-  _NumberList.prototype.getMedian = function() {
+  NumberList.prototype.getMedian = function() {
     var sorted = this.getSorted(true);
     var prop = (this.length - 1) / 2;
     var entProp = Math.floor(prop);
@@ -3528,7 +3528,7 @@
    * @return {NumberList} A number list of the quantiles.
    * tags:statistics
    */
-  _NumberList.prototype.getQuantiles = function(nQuantiles, mode) {//TODO: defines different options for return
+  NumberList.prototype.getQuantiles = function(nQuantiles, mode) {//TODO: defines different options for return
     mode = mode || 0;
 
     var l = this.length;
@@ -3536,7 +3536,7 @@
     var prop = l/nQuantiles;
     var entProp = Math.floor(prop);
     var onIndex = prop == entProp;
-    var quantiles = new _NumberList();
+    var quantiles = new NumberList();
     var i;
 
     for(i = 0; i < nQuantiles - 1; i++) {
@@ -3549,7 +3549,7 @@
 
     if(mode===0) return quantiles;
 
-    var numberQuantil = new _NumberList();
+    var numberQuantil = new NumberList();
     var j;
 
     for(i=0; i<l; i++){
@@ -3576,15 +3576,15 @@
    * If false, values will be sorted in descending order.
    * @return {NumberList} new sorted NumberList.
    */
-  _NumberList.prototype.getSorted = function(ascending) {
+  NumberList.prototype.getSorted = function(ascending) {
     ascending = ascending == null ? true : ascending;
 
     if(ascending) {
-      return _NumberList.fromArray(this.slice().sort(function(a, b) {
+      return NumberList.fromArray(this.slice().sort(function(a, b) {
         return a - b;
       }), false);
     }
-    return _NumberList.fromArray(this.slice().sort(function(a, b) {
+    return NumberList.fromArray(this.slice().sort(function(a, b) {
       return b - a;
     }), false);
   };
@@ -3602,11 +3602,11 @@
    * var indices = nl.getSortIndexes();
    * indices[0]; // produces 1 as nl[1] == 3.
    */
-  _NumberList.prototype.getSortIndexes = function(descending) {
+  NumberList.prototype.getSortIndexes = function(descending) {
     if(descending == null) descending = true;
 
     var pairs = [];
-    var newList = new _NumberList();
+    var newList = new NumberList();
     var l = this.length;
 
     if(this.length === 0) return newList;
@@ -3643,7 +3643,7 @@
    * @return {NumberList}
    * tags:
    */
-  _NumberList.prototype.getNormalized = function(factor) {
+  NumberList.prototype.getNormalized = function(factor) {
     if(this==null) return;
 
     factor = factor == null ? 1 : factor;
@@ -3653,7 +3653,7 @@
     var i;
     var interval = this.getInterval();
     var a = interval.getAmplitude();
-    var newNumberList = new _NumberList();
+    var newNumberList = new NumberList();
     for(i = 0; i < this.length; i++) {
       newNumberList[i] = factor * ((this[i] - interval.x) / a);
     }
@@ -3671,9 +3671,9 @@
    * @return {NumberList} New NumberList with values multiplied.
    * tags:
    */
-  _NumberList.prototype.factor = function(value) {
+  NumberList.prototype.factor = function(value) {
     var i;
-    var newNumberList = new _NumberList();
+    var newNumberList = new NumberList();
     var l = this.length;
 
     if(isArray(value)){
@@ -3704,9 +3704,9 @@
    * @return {NumberList}
    * tags:
    */
-  _NumberList.prototype.add = function(object) {
+  NumberList.prototype.add = function(object) {
     var i;
-    var newNumberList = new _NumberList();
+    var newNumberList = new NumberList();
     var type = _typeOf(object);
     var l = this.length;
 
@@ -3742,9 +3742,9 @@
    * @return {NumberList}
    * tags:
    */
-  _NumberList.prototype.subtract = function(object) {
+  NumberList.prototype.subtract = function(object) {
     var i;
-    var newNumberList = new _NumberList();
+    var newNumberList = new NumberList();
     var type = _typeOf(object);
     var l = this.length;
 
@@ -3780,9 +3780,9 @@
    * @return {NumberList}
    * tags:
    */
-  _NumberList.prototype.divide = function(object) {
+  NumberList.prototype.divide = function(object) {
     var i;
-    var newNumberList = new _NumberList();
+    var newNumberList = new NumberList();
     var type = _typeOf(object);
     var l = this.length;
 
@@ -3810,9 +3810,9 @@
    *
    * @return {NumberList} NumberList with square rooted values.
    */
-  _NumberList.prototype.sqrt = function() {
+  NumberList.prototype.sqrt = function() {
     var i;
-    var newNumberList = new _NumberList();
+    var newNumberList = new NumberList();
     var l = this.length;
 
     for(i = 0; i < l; i++) {
@@ -3829,9 +3829,9 @@
    * @param {Number} power Power to raise each value by.
    * @return {NumberList} New NumberList.
    */
-  _NumberList.prototype.pow = function(power) {
+  NumberList.prototype.pow = function(power) {
     var i;
-    var newNumberList = new _NumberList();
+    var newNumberList = new NumberList();
     var l = this.length;
     for(i = 0; i < l; i++) {
       newNumberList.push(Math.pow(this[i], power));
@@ -3850,11 +3850,11 @@
    * Defaults to 0.
    * @return {NumberList}
    */
-  _NumberList.prototype.log = function(add) {
+  NumberList.prototype.log = function(add) {
     add = add || 0;
 
     var i;
-    var newNumberList = new _NumberList();
+    var newNumberList = new NumberList();
     var l = this.length;
     for(i = 0; i<l; i++) {
       newNumberList[i] = Math.log(this[i] + add);
@@ -3870,9 +3870,9 @@
    *
    * @return {NumberList} NumberList with integer values.
    */
-  _NumberList.prototype.floor = function() {
+  NumberList.prototype.floor = function() {
     var i;
-    var newNumberList = new _NumberList();
+    var newNumberList = new NumberList();
     var l = this.length;
     for(i = 0; i < l; i++) {
       newNumberList.push(Math.floor(this[i]));
@@ -3885,7 +3885,7 @@
   /**
    * @todo write docs
    */
-  _NumberList.prototype.approach = function(destinty, speed) {
+  NumberList.prototype.approach = function(destinty, speed) {
     speed = speed || 0.5;
 
     var i;
@@ -3903,7 +3903,7 @@
    * @param numberList2 Second NumberList to compare.
    * @return {Boolean} True if all values in both lists match.
    */
-  _NumberList.prototype.isEquivalent = function(numberList) {
+  NumberList.prototype.isEquivalent = function(numberList) {
     var l = this.length;
     if(numberList.length != l) {
       return false;
@@ -3916,7 +3916,7 @@
 
   //transform
 
-  _NumberList.prototype.approach = function(destinty, speed) {
+  NumberList.prototype.approach = function(destinty, speed) {
     speed = speed || 0.5;
 
     var i;
@@ -3934,8 +3934,8 @@
   /**
    * @todo write docs
    */
-  _NumberList.prototype.clone = function() {
-    var newList = _NumberList.fromArray(this.slice(), false);
+  NumberList.prototype.clone = function() {
+    var newList = NumberList.fromArray(this.slice(), false);
     newList.name = this.name;
     return newList;
   };
@@ -4001,7 +4001,7 @@
    */
   DateList.prototype.getTimes = function() {
     var i;
-    var numberList = new _NumberList();
+    var numberList = new NumberList();
     for(i = 0; this[i] != null; i++) {
       numberList.push(this[i].getTime());
     }
@@ -4463,7 +4463,7 @@
    * @todo write docs
    */
   _Polygon.prototype.toNumberList = function() {
-    var numberList = new _NumberList();
+    var numberList = new NumberList();
     var i;
     for(i = 0; this[i] != null; i++) {
       numberList[i * 2] = this[i].x;
@@ -4647,7 +4647,7 @@
    * @return {NumberList} Lengths of all columns in Table.
    */
   Table.prototype.getLengths = function() {
-    var lengths = new _NumberList();
+    var lengths = new NumberList();
     var l = this.length;
 
     for(var i = 0; i<l; i++) {
@@ -4793,7 +4793,7 @@
       list = tableToTranspose[i];
       nElements = list.length;
       for(j = 0; j<nElements; j++) {
-        if(i === 0) table[j] = this.type == "NumberTable" ? new _NumberList() : new List();
+        if(i === 0) table[j] = this.type == "NumberTable" ? new NumberList() : new List();
         table[j][i] = tableToTranspose[i][j];
       }
     }
@@ -4920,11 +4920,11 @@
     if(arguments.length > 0 && Number(arguments[0]) == arguments[0]) {
       array = [];
       for(i = 0; i < arguments[0]; i++) {
-        array.push(new _NumberList());
+        array.push(new NumberList());
       }
     } else {
       for(i = 0; arguments[i] != null; i++) {
-        newNumberList = _NumberList.fromArray(arguments[i]);
+        newNumberList = NumberList.fromArray(arguments[i]);
         newNumberList.name = arguments[i].name;
         args[i] = newNumberList;
       }
@@ -5004,7 +5004,7 @@
    * tags:
    */
   NumberTable.prototype.getSums = function() {
-    var numberList = new _NumberList();
+    var numberList = new NumberList();
     var l = this.length;
     for(var i = 0; i<l; i++) {
       numberList[i] = this[i].getSum();
@@ -5033,7 +5033,7 @@
    * @todo write docs
    */
   NumberTable.prototype.getAverages = function() {
-    var numberList = new _NumberList();
+    var numberList = new NumberList();
     for(var i = 0; this[i] != null; i++) {
       numberList[i] = this[i].getAverage();
     }
@@ -5184,7 +5184,7 @@
    * overrides List.prototype.getLengths (see comments there)
    */
   StringList.prototype.getLengths = function() {
-    var lengths = new _NumberList();
+    var lengths = new NumberList();
 
     this.forEach(function(string) {
       lengths.push(string.length);
@@ -5837,7 +5837,7 @@
    */
   NumberOperators.powersOfTwoDecomposition = function(number, length) {
 
-    var powers = new _NumberList();
+    var powers = new NumberList();
 
     var constructingNumber = 0;
     var biggestPower;
@@ -5862,7 +5862,7 @@
    */
   NumberOperators.positionsFromBinaryValues = function(binaryValues) {
     var i;
-    var positions = new _NumberList();
+    var positions = new NumberList();
     for(i = 0; binaryValues[i] != null; i++) {
       if(binaryValues[i] == 1) positions.push(i);
     }
@@ -6119,7 +6119,7 @@
     step = step || 1;
     if(step === 0) step = 1;
     var i;
-    var numberList = new _NumberList();
+    var numberList = new NumberList();
     for(i = 0; i < nValues; i++) {
       numberList.push(start + i * step);
     }
@@ -6140,7 +6140,7 @@
     if(interval == null) interval = new Interval(0, 1);
     mode = mode==null?0:mode;
 
-    var numberList = new _NumberList();
+    var numberList = new NumberList();
     var range = interval.getAmplitude();
     var min = Number(interval.getMin());
     var i;
@@ -6253,7 +6253,7 @@
     seed = seed == null ? -1 : seed;
     interval = interval == null ? new Interval(0, 1) : interval;
 
-    var numberList = new _NumberList();
+    var numberList = new NumberList();
     var amplitude = interval.getAmplitude();
 
     var random = seed == -1 ? Math.random : new NumberOperators._Alea("my", seed, "seeds");
@@ -6285,7 +6285,7 @@
   ListConversions.toNumberList = function(list) {
     if(list==null) return;
 
-    var numberList = new _NumberList();
+    var numberList = new NumberList();
     var l = list.length;
     var i;
 
@@ -6780,7 +6780,7 @@
 
     //list.forEach(function(element, i){
     for(i=0; i<l; i++){
-      if(indexesDictionary[list[i]]==null) indexesDictionary[list[i]]=new _NumberList();
+      if(indexesDictionary[list[i]]==null) indexesDictionary[list[i]]=new NumberList();
       indexesDictionary[list[i]].push(i);
     }
 
@@ -6801,7 +6801,7 @@
       indexOnTable = indexesDictionary[element];
       if(indexOnTable==null){
         indexesTable[0].push(element);
-        indexesTable[1].push(new _NumberList(i));
+        indexesTable[1].push(new NumberList(i));
         indexesDictionary[element]=indexesTable[0].length-1;
       } else {
         indexesTable[1][indexOnTable].push(i);
@@ -6913,7 +6913,7 @@
 
     var indexes = NumberListGenerators.createSortedNumberList(list.length);
     indexes = indexes.getSortedByList(list, ascendant, randomSortingForEqualElements);
-    var rankings = new _NumberList();
+    var rankings = new NumberList();
     var l = list.length;
     var i;
     for(i=0;i<l; i++){
@@ -7222,7 +7222,7 @@
         table[1] = table[1].getImproved();
         return table;
       case 1://count
-        table[1] = new _NumberList();
+        table[1] = new NumberList();
         //indexesTable[1].forEach(function(indexes){
         for(i=0; i<nIndexes; i++){
           indexes = indexesTable[1][i];
@@ -7232,7 +7232,7 @@
       case 2://sum
       case 3://average
         var sum;
-        table[1] = new _NumberList();
+        table[1] = new NumberList();
         //indexesTable[1].forEach(function(indexes){
         for(i=0; i<nIndexes; i++){
           indexes = indexesTable[1][i];
@@ -7248,7 +7248,7 @@
         return table;
       case 4://min
         var min;
-        table[1] = new _NumberList();
+        table[1] = new NumberList();
         //indexesTable[1].forEach(function(indexes){
         for(i=0; i<nIndexes; i++){
           indexes = indexesTable[1][i];
@@ -7263,7 +7263,7 @@
         return table;
       case 5://max
         var max;
-        table[1] = new _NumberList();
+        table[1] = new NumberList();
         //indexesTable[1].forEach(function(indexes){
         for(i=0; i<nIndexes; i++){
           indexes = indexesTable[1][i];
@@ -7337,7 +7337,7 @@
       case 11://indexes (returned previosuly)
         break;
       case 12://count non repeated
-        table[1] = new _NumberList();
+        table[1] = new NumberList();
         elementsTable = ListOperators.aggregateList(aggregatorList, toAggregateList, 7, indexesTable);
         //elementsTable[1].forEach(function(elements){
         for(i=0;i<elementsTable[1].length;i++){
@@ -7667,7 +7667,7 @@
       var min = 999999999999;
       var max = -999999999999;
       var average = 0;
-      var shorten = new _NumberList();
+      var shorten = new NumberList();
       var index = 0;
       var accumsum = 0;
       var maxAccumsum = -999999999999;
@@ -8015,7 +8015,7 @@
     var list;
     switch(_typeOf(element)) {
       case 'number':
-        list = new _NumberList();
+        list = new NumberList();
         break;
       case 'List':
         list = new Table();
@@ -8118,7 +8118,7 @@
    */
   NumberListOperators.linearRegression = function(numberListX, numberListY, returnType) {
     returnType = returnType == null || returnType > 1 ? 0:returnType;
-    var numberListR = new _NumberList();
+    var numberListR = new NumberList();
     if(numberListX == null || numberListY == null ||
        numberListX.length != numberListY.length || numberListX.length === 0)
       return returnType===0?numberListR:new _Point();
@@ -8247,7 +8247,7 @@
     if(numberlist==null) return;
     
     factor = factor == null ? 1 : factor;
-    var newNumberList = new _NumberList();
+    var newNumberList = new NumberList();
     newNumberList.name = numberlist.name;
     if(numberlist.length === 0) return newNumberList;
     var i;
@@ -8279,7 +8279,7 @@
     var i;
     var interval = numberlist.getInterval();
     var a = interval.getAmplitude();
-    var newNumberList = new _NumberList();
+    var newNumberList = new NumberList();
     factor = factor == null ? 1 : factor;
     factor/=a;
     for(i = 0; i < numberlist.length; i++) {
@@ -8305,7 +8305,7 @@
     var stddev = numberlist.getStandardDeviation();
     if(stddev===0) stddev=1; // all returned values will be zero
 
-    var newNumberList = new _NumberList();
+    var newNumberList = new NumberList();
     for(i = 0; i < numberlist.length; i++) {
       newNumberList.push((numberlist[i] - mean) / stddev);
     }
@@ -8333,7 +8333,7 @@
       max = numberlist.getMin();
       if(max === 0) return ListGenerators.createListWithSameElement(numberlist.length, 0);
     }
-    var newNumberList = new _NumberList();
+    var newNumberList = new NumberList();
     for(var i = 0; numberlist[i] != null; i++) {
       newNumberList.push(factor * (numberlist[i] / max));
     }
@@ -8360,7 +8360,7 @@
     var nLAmplitude = numberListInterval.getAmplitude();
     var amplitude = interval.getAmplitude();
     var factor = amplitude/nLAmplitude;
-    var newNumberList = new _NumberList();
+    var newNumberList = new NumberList();
     for(i = 0; i < numberlist.length; i++) {
       newNumberList.push( interval.x + factor*(numberlist[i] - numberListInterval.x) );
     }
@@ -8381,7 +8381,7 @@
     if(newLength==null || newLength>=numberList.length) return numberList;
 
     var windowSize = numberList.length/newLength;
-    var newNumberList = new _NumberList();
+    var newNumberList = new NumberList();
     var windowSizeInt = Math.floor(windowSize);
     var val;
     var i, j, j0;
@@ -8413,7 +8413,7 @@
     method = method||0;
     param = param||0;
 
-    var newList = new _NumberList();
+    var newList = new NumberList();
     newList.name = numberlist.name;
 
 
@@ -8459,15 +8459,15 @@
     var dMin;
     var n;
     var N = 1000;
-    var means = new _NumberList();
-    var nextMeans = new _NumberList();
-    var nValuesInCluster = new _NumberList();
+    var means = new NumberList();
+    var nextMeans = new NumberList();
+    var nValuesInCluster = new NumberList();
     var length = numberList.length;
 
     var initdMin = 1 + max - min;
 
     for(i = 0; i < k; i++) {
-      clusters[i] = new _NumberList();
+      clusters[i] = new NumberList();
       nextMeans[i] = min + (i + 0.5) * dX;
     }
 
@@ -8564,7 +8564,7 @@
    */
   NumberListOperators.filterNumberListByNumber = function(numberList, value, comparisonOperator, returnIndexes) {
     returnIndexes = returnIndexes || false;
-    var newNumberList = new _NumberList();
+    var newNumberList = new NumberList();
     var i;
 
     if(returnIndexes) {
@@ -8694,7 +8694,7 @@
     mode = mode || 0;
     var nLCounts = ListGenerators.createListWithSameElement(nBins,0);
     var f,bin,len=numberList.length;
-    var binIndexes = new _NumberList();
+    var binIndexes = new NumberList();
     for(var i=0;i<len;i++){
       f = interval.getInverseInterpolatedValue(numberList[i]);
       bin = Math.min(Math.floor(f*nBins),nBins-1);
@@ -9818,7 +9818,7 @@
    */
   StringOperators.getWordsOccurrencesTable = function(string, stopWords, includeLinks, limit, minSizeWords) {
     if(string == null) return;
-    if(string.length === 0) return new Table(new StringList(), new _NumberList());
+    if(string.length === 0) return new Table(new StringList(), new NumberList());
     var words = StringOperators.getWords(string, false, stopWords, false, includeLinks, limit, minSizeWords);
     var table;
     if(limit != null)
@@ -9833,8 +9833,8 @@
    */
   StringOperators.indexesOf = function(text, string) { //TODO:test
     var index = text.indexOf(string);
-    if(index == -1) return new _NumberList();
-    var indexes = new _NumberList(index);
+    if(index == -1) return new NumberList();
+    var indexes = new NumberList(index);
     index = text.indexOf(string, index + 1);
     while(index != -1) {
       indexes.push(index);
@@ -9914,7 +9914,7 @@
     if(text==null || strings==null) return;
 
     var i;
-    var numberList = new _NumberList();
+    var numberList = new NumberList();
     var nStrings = strings.length;
     for(i = 0; i<nStrings; i++) {
       if(asWords){
@@ -11664,6 +11664,17 @@
       color:"#386080"
     },
     {
+      type:"IntervalList",
+      short:"##L",
+      category:"numeric",
+      level:"1",
+      write:"true",
+      inherits:"List",
+      to:"StringList",
+      contains:"Interval",
+      color:"#386080"
+    },
+    {
       type:"NumberTable",
       short:"#T",
       category:"numeric",
@@ -12242,7 +12253,7 @@
    * tags:
    */
   NodeList.prototype.getWeights = function() {
-    var numberList = new _NumberList();
+    var numberList = new NumberList();
     var i;
     for(i = 0; this[i] != null; i++) {
       numberList[i] = this[i].weight;
@@ -12275,7 +12286,7 @@
    * of Relations each Node has.
    */
   NodeList.prototype.getDegrees = function() {
-    var numberList = new _NumberList();
+    var numberList = new NumberList();
     for(var i = 0; this[i] != null; i++) {
       numberList[i] = this[i].nodeList.length;
     }
@@ -12570,7 +12581,7 @@
     List: List,
     Table: Table,
     StringList: StringList,
-    NumberList: _NumberList,
+    NumberList: NumberList,
     NumberTable: NumberTable,
     NodeList: NodeList,
     RelationList: RelationList,
@@ -13128,6 +13139,9 @@
 
     return headers + lines.getConcatenated("\n");
   };
+
+  IntervalList.prototype = new List();
+  IntervalList.prototype.constructor = IntervalList;
 
   /**
    * @classdesc List structure for Intervals. Provides basic data type for
@@ -14239,7 +14253,7 @@
     if(GeometryOperators._bezierSimpleCurveTable == null) {
       var i, p;
 
-      GeometryOperators._bezierSimpleCurveTable = new _NumberList();
+      GeometryOperators._bezierSimpleCurveTable = new NumberList();
 
       for(i = 1; i < 10000; i++) {
         p = GeometryOperators.bezierCurvePoints(0, 0, c0x, 0, c1x, 1, 1, 1, i / 10000);
@@ -14499,9 +14513,9 @@
     var beta = Math.asin(h / circle1.z);
 
     if(circle0.x + x0 < circle1.x) {
-      return new _NumberList(-alfa, alfa, Math.PI - beta, Math.PI + beta);
+      return new NumberList(-alfa, alfa, Math.PI - beta, Math.PI + beta);
     } else {
-      return new _NumberList(-alfa, alfa, beta, -beta);
+      return new NumberList(-alfa, alfa, beta, -beta);
     }
   };
 
@@ -14721,7 +14735,7 @@
     var h = new _Polygon();
     var indexes;
     if(returnIndexes){
-      indexes = new _NumberList();
+      indexes = new NumberList();
     }
 
     p = PolygonOperators.sortOnXY(p);
@@ -14741,7 +14755,7 @@
         indexes[k - 1] = i;
       }
 
-      return _NumberList.fromArray(indexes.getSubList(new Interval(0, k - 2)));
+      return NumberList.fromArray(indexes.getSubList(new Interval(0, k - 2)));
     }
 
     for(i = 0; i < n; i++) {
@@ -16159,7 +16173,7 @@
           rectangleList.push(new Rectangle(freeSubRectangle.x, freeSubRectangle.y, 0, 0));
         } else {
           for(j = 1; j < nWeights; j++) {
-            subWeightList = _NumberList.fromArray(newWeightList.slice(i, i + j)); //NumberList.fromArray(newWeightList.slice(i, i+j));//
+            subWeightList = NumberList.fromArray(newWeightList.slice(i, i + j)); //NumberList.fromArray(newWeightList.slice(i, i+j));//
             prevSubRectangleList = subRectangleList.slice(); //.clone();
             sum = subWeightList.getSum();
             subArea = sum * area;
@@ -16530,8 +16544,8 @@
     if(polygon == null) return null;
 
     var numberTable = new NumberTable();
-    numberTable[0] = new _NumberList();
-    numberTable[1] = new _NumberList();
+    numberTable[0] = new NumberList();
+    numberTable[1] = new NumberList();
 
     polygon.forEach(function(p) {
       numberTable[0].push(p.x);
@@ -16754,7 +16768,7 @@
     if(table==null || table.length === 0 || value == null) return;
     if(operator==null) operator='=c';
     if(operator == '=') operator = '==';
-    var nLKeep = new _NumberList();
+    var nLKeep = new NumberList();
     var nRows = table.getListLength();
     var r,c,val,bKeep;
     var cStart=0;
@@ -17059,8 +17073,8 @@
 
     var n_mod = 0;
 
-    var indexesTr = new _NumberList();
-    var indexesTe = new _NumberList();
+    var indexesTr = new NumberList();
+    var indexesTe = new NumberList();
 
     var random = mode == 1 ? new NumberOperators._Alea("my", seed, "seeds") : Math.random;
 
@@ -17236,7 +17250,7 @@
         element1 = table[indexSecondAggregationList][i];
         coordinate = String(element0)+"∞"+String(element1);
         if(indexesDictionary[coordinate]==null){
-          indexesDictionary[coordinate]=new _NumberList();
+          indexesDictionary[coordinate]=new NumberList();
           elementsDictionary[coordinate]=new List();
         }
         indexesDictionary[coordinate].push(i);
@@ -17252,7 +17266,7 @@
         case 1://count
         case 2://sum
         case 3://average
-          newTable[2] = new _NumberList();
+          newTable[2] = new NumberList();
           break;
       }
 
@@ -17325,7 +17339,7 @@
           case 1:
           case 2:
           case 3:
-            newList = new _NumberList();
+            newList = new NumberList();
             break;
         }
         newTable.push(newList);
@@ -17370,7 +17384,7 @@
       case 1://count
       case 2://sum
         for(i=1; i<newTable.length; i++){
-          if(newTable[i]==null) newTable[i]=new _NumberList();
+          if(newTable[i]==null) newTable[i]=new NumberList();
           newTable[0].forEach(function(val, j){
             if(newTable[i][j]==null) newTable[i][j]=0;
           });
@@ -17378,7 +17392,7 @@
         break;
       case 3://average
         for(i=1; i<newTable.length; i++){
-          if(newTable[i]==null) newTable[i]=new _NumberList();
+          if(newTable[i]==null) newTable[i]=new NumberList();
           newTable[0].forEach(function(val, j){
             if(newTable[i][j]==null){
               newTable[i][j]=0;
@@ -17591,7 +17605,7 @@
       if(index > -1) {
         for(j = 0; j < nNumbers0; j++) {
           if(i === 0) {
-            numberTable0[j] = new _NumberList();
+            numberTable0[j] = new NumberList();
             numberTable0[j].name = table0[j + 1].name;
           }
           numberTable0[j][i] = table0[j + 1][index];
@@ -17599,7 +17613,7 @@
       } else {
         for(j = 0; j < nNumbers0; j++) {
           if(i === 0) {
-            numberTable0[j] = new _NumberList();
+            numberTable0[j] = new NumberList();
             numberTable0[j].name = table0[j + 1].name;
           }
           numberTable0[j][i] = 0;
@@ -17611,7 +17625,7 @@
       if(index > -1) {
         for(j = 0; j < nNumbers1; j++) {
           if(i === 0) {
-            numberTable1[j] = new _NumberList();
+            numberTable1[j] = new NumberList();
             numberTable1[j].name = table1[j + 1].name;
           }
           numberTable1[j][i] = table1[j + 1][index];
@@ -17619,7 +17633,7 @@
       } else {
         for(j = 0; j < nNumbers1; j++) {
           if(i === 0) {
-            numberTable1[j] = new _NumberList();
+            numberTable1[j] = new NumberList();
             numberTable1[j].name = table1[j + 1].name;
           }
           numberTable1[j][i] = 0;
@@ -17764,7 +17778,7 @@
   TableOperators.getVariablesInformationGain = function(variablesTable, supervised) {
     if(variablesTable == null) return null;
 
-    var igs = new _NumberList();
+    var igs = new NumberList();
     variablesTable.forEach(function(feature) {
       igs.push(ListOperators.getInformationGain(feature, supervised));
     });
@@ -17898,7 +17912,7 @@
         node = new Node(id, name);
 
         node.row = table.getRow(i);
-        node.numbers = new _NumberList();
+        node.numbers = new NumberList();
         node.categories = new List();
 
         if(colors) node.color = colors[i];
@@ -18650,7 +18664,7 @@
 
       //clean clusters
       for(j = 0; j < k; j++) {
-        clusters[j] = new _NumberList();
+        clusters[j] = new NumberList();
       }
 
       //for each row finds its closer mean
@@ -18680,7 +18694,7 @@
       for(j=0; j<k; j++){
         meanRowsIndexes = clusters[j];
         nRowsMean = meanRowsIndexes.length;
-        means[j] = new _NumberList();
+        means[j] = new NumberList();
 
         newMean = means[j];
 
@@ -18713,7 +18727,7 @@
 
 
     if(returnIndexesMode==1 || returnIndexesMode==5){
-      meanNumber = new _NumberList();
+      meanNumber = new NumberList();
       for(i=0; i<k; i++){
         cluster = clusters[i];
         sizeCluster = cluster.length;
@@ -18798,8 +18812,8 @@
 
       var table = new NumberTable();
 
-      table[0] = new _NumberList();
-      table[1] = new _NumberList();
+      table[0] = new NumberList();
+      table[1] = new NumberList();
       numberTable[0].forEach(function(val, i) {//TODO: make it more efficient by using for
         d2 = 0;
         numberTable.forEach(function(nList, j) {
@@ -18825,7 +18839,7 @@
       if(calculateClass) {
         var classTable = new Table();
         classTable[0] = new List();
-        classTable[1] = new _NumberList();
+        classTable[1] = new NumberList();
         for(i = 0; i < k; i++) {
           var clas = propertyList[table[0][i]];
           var index = classTable[0].indexOf(clas);
@@ -18887,7 +18901,7 @@
         var ky = iy.getAmplitude() / matrixN;
 
         for(i = 0; i < matrixN; i++) {
-          matx[i] = new _NumberList();
+          matx[i] = new NumberList();
 
           for(j = 0; j < matrixN; j++) {
             p = [
@@ -18938,7 +18952,7 @@
     var val;
 
     for(i=0; i<n; i++){
-      newTable[i] = new _NumberList();
+      newTable[i] = new NumberList();
       for(j=0; j<n; j++){
         val = 0;
         for(k=0; k<m; k++){
@@ -18978,9 +18992,9 @@
     var nElements = numberTable.length;
     var nRows = numberTable[0].length;
     var numberList;
-    var minList = new _NumberList();
-    var maxList = new _NumberList();
-    var sums = new _NumberList();
+    var minList = new NumberList();
+    var maxList = new NumberList();
+    var sums = new NumberList();
     var minInRow;
     var maxInRow;
     var sumInRow;
@@ -19043,10 +19057,10 @@
       minToNormalize = Math.max(MIN, 0);
     }
     for(i = 0; i < nElements; i++) {
-      flowNumberList = new _NumberList();
+      flowNumberList = new NumberList();
       flowTable.push(flowNumberList);
     }
-    if(include0s) flowTable.push(new _NumberList());
+    if(include0s) flowTable.push(new NumberList());
 
     for(i = 0; i < nRows; i++) {
       numberList = numberTable[0];
@@ -19085,7 +19099,7 @@
 
     var intervalList;
 
-    var maxCols = new _NumberList();
+    var maxCols = new NumberList();
 
     var numberList;
     for(i = 1; i < nElements; i++) {
@@ -19104,7 +19118,7 @@
       var amplitudes;
       var yy;
       for(j = 0; j < nRows; j++) {
-        amplitudes = new _NumberList();
+        amplitudes = new NumberList();
         intervalList = intervalTable[i];
         for(i = 0; i < nElements - 1; i++) {
           amplitudes.push(intervalTable[i][j].getAmplitude());
@@ -19483,7 +19497,7 @@
    * @param {StringList} stringlist StringList to convert
    */
   StringListConversions.toNumberList = function(stringlist) {
-    var numbers = new _NumberList();
+    var numbers = new NumberList();
     numbers.name = stringlist.name;
     var i;
     for(i = 0; stringlist[i] != null; i++) {
@@ -20021,7 +20035,7 @@
       case 'NumberList':
         if(minDistance && Math.abs(object0.subtract(object1).getSum()) <= minDistance) return object0;
         var minL = Math.min(object0.length, object1.length);
-        var newNumberList = new _NumberList();
+        var newNumberList = new NumberList();
         for(i = 0; i < minL; i++) {
           newNumberList[i] = antivalue * object0[i] + value * object1[i];
         }
@@ -20516,7 +20530,7 @@
     if(stringList==null || string==null) return null;
 
     var i;
-    var newList = returnIndexes ? new _NumberList() : new StringList();
+    var newList = returnIndexes ? new NumberList() : new StringList();
     var regex;
     var l = stringList.length;
 
@@ -20662,7 +20676,7 @@
     for(i = 0; i<nStrings; i++) {
       string = strings[i];
       wordRegex = new RegExp("\\b" + string + "\\b");
-      numberList = new _NumberList();
+      numberList = new NumberList();
       numberList.name = string;
       for(j = 0; j<nTexts; j++) {
         if(asWords){
@@ -20707,7 +20721,7 @@
     if(strings[0]==""){
       matrix = new Table();
       matrix.push(new StringList(""));
-      matrix.push(new _NumberList(0));
+      matrix.push(new NumberList(0));
       console.log('-.-');
     } else {
       matrix = StringOperators.getWordsOccurrencesTable(strings[0], stopWords, includeLinks, wordsLimitPerString, minSizeWords);
@@ -20732,7 +20746,7 @@
     if(matrix[0].length > totalWordsLimit) sortByTotalWeight = true;
 
     if(stressUniqueness || sortByTotalWeight) {
-      var totalList = new _NumberList();
+      var totalList = new NumberList();
       totalList = matrix[1].clone();
       matrix.forEach(function(occurrences, i) {
         if(i < 2) return;
@@ -20883,7 +20897,7 @@
       var words = StringOperators.getWords(text, true, stopWords, false, false, 0, 3);
 
       n_words = words.length;
-      weights = new _NumberList();
+      weights = new NumberList();
       //words.forEach(function(word, j){
       for(j = 0; words[j] != null; j++) {
         word = words[j];
@@ -21103,7 +21117,7 @@
           }
 
           node.firstIndexInTable = j;
-          node.indexesInTable = new _NumberList(j);
+          node.indexesInTable = new NumberList(j);
 
         } else {
           node.weight++;
@@ -21136,7 +21150,7 @@
       if(node.toNodeList.length === 0) {
         return node.indexesInTable;
       } else {
-        node.indexesInTable = new _NumberList();
+        node.indexesInTable = new NumberList();
       }
       for(i = 0; node.toNodeList[i] != null; i++) {
         node.indexesInTable = node.indexesInTable.concat( _assignIndexesToNode(node.toNodeList[i]) );
@@ -21800,7 +21814,7 @@
   NetworkOperators.degreesFromNodeToNodes = function(network, node, nodeList) {
     //TODO: probably very unefficient
     var table = NetworkOperators.degreesPartition(network, node);
-    var degrees = new _NumberList();
+    var degrees = new NumberList();
     degrees.max = 0;
     var j;
     for(var i = 0; i<nodeList.length; i++) {
@@ -27893,7 +27907,7 @@
     this.nodeList = new NodeList();
 
     this.forcesList = new List();
-    this.equilibriumDistances = new _NumberList();
+    this.equilibriumDistances = new NumberList();
     this.forcesTypeList = new List();
     this.fromNodeList = new NodeList();
     this.toNodeList = new NodeList();
@@ -27914,7 +27928,7 @@
 
 
     this.forcesList = new List();
-    this.equilibriumDistances = new _NumberList();
+    this.equilibriumDistances = new NumberList();
     this.forcesTypeList = new List();
     this.fromNodeList = new NodeList();
     this.toNodeList = new NodeList();
@@ -28348,7 +28362,7 @@
 
     pairsArray = pairsArray.sort(this._sortingCriteria.bind(this));
 
-    var indexes = new _NumberList();
+    var indexes = new NumberList();
 
     for(i = 0; polygon3D[i] != null; i++) {
       indexes[i] = pairsArray[i][1];
@@ -29633,7 +29647,7 @@
           y = Math.floor(polygon[i].y - miny);
         }
 
-        if(matrix[x] == null) matrix[x] = new _NumberList();
+        if(matrix[x] == null) matrix[x] = new NumberList();
         if(matrix[x][y] == null) matrix[x][y] = 0;
         matrix[x][y]++;
         max = Math.max(max, matrix[x][y]);
@@ -29642,7 +29656,7 @@
       }
 
       for(i = 0; i < nCols; i++) {
-        if(matrix[i] == null) matrix[i] = new _NumberList();
+        if(matrix[i] == null) matrix[i] = new NumberList();
         matrixColors[i] = new ColorList();
         for(j = 0; j < nLists; j++) {
           if(matrix[i][j] == null) matrix[i][j] = 0;
@@ -29699,7 +29713,7 @@
         x = frame.memory.selected[0] + minx;
         y = frame.memory.selected[1] + miny;
 
-        frame.memory.indexes = new _NumberList();
+        frame.memory.indexes = new NumberList();
 
         for(i = 0; numberTable[0][i] != null; i++) {
           if(numberTable[0][i] == x && numberTable[1][i] == y) frame.memory.indexes.push(i);
@@ -29992,7 +30006,7 @@
         height: frame.height,
         radius: Math.min(frame.width, frame.height) * 0.46 - (names == null ? 0 : 8),
         r0: Math.min(frame.width, frame.height) * 0.05,
-        angles: new _NumberList(),
+        angles: new NumberList(),
         zoom: 1,
         angle0: 0,
         image: null
@@ -30236,7 +30250,7 @@
       maxST = 0;
       i0Line = 0;
 
-      sizes = new _NumberList();
+      sizes = new NumberList();
       positions = new _Polygon();
 
       for(i = 0; stringList[i] != null; i++) {
@@ -30308,7 +30322,7 @@
     var roundSizes = mode === 0;
 
     var rectangles = new List();
-    var textSizes = new _NumberList();
+    var textSizes = new NumberList();
 
     var rectanglesPlaced = new List();
 
@@ -30497,7 +30511,7 @@
       maxST = 0;
       i0Line = 0;
 
-      sizes = new _NumberList();
+      sizes = new NumberList();
       positions = new _Polygon();
 
       for(i = 0; stringList[i] != null; i++) {
@@ -30565,7 +30579,7 @@
     var roundSizes = (mode === 0);
 
     var rectangles = new List();
-    var textSizes = new _NumberList();
+    var textSizes = new NumberList();
 
     var rectanglesPlaced = new List();
 
@@ -31114,7 +31128,7 @@
   TreeDraw._generateRectangles = function(node) {
     var n = node.toNodeList.length;
     var i;
-    var weights = new _NumberList();
+    var weights = new NumberList();
     var child;
     //node.toNodeList.forEach(function(node) {
     for(i=0; i<n; i++){
@@ -31531,7 +31545,7 @@
    */
   TreeDraw._generateRectanglesDecision = function(node, hLevel) {
 
-    var weights = new _NumberList();
+    var weights = new NumberList();
     node.toNodeList.forEach(function(node) {
       weights.push(node.weight);
     });
@@ -31912,7 +31926,7 @@
   exports.Axis2D = Axis2D;
   exports.Interval = Interval;
   exports.Matrix = Matrix;
-  exports.NumberList = _NumberList;
+  exports.NumberList = NumberList;
   exports.NumberTable = NumberTable;
   exports.IntervalList = IntervalList;
   exports.DateAxis = DateAxis;
