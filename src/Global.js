@@ -314,7 +314,7 @@ export var dataModelsInfo = [
   {
     type:"Node",
     short:"n",
-    category:"structures",
+    category:"structures/elements",
     level:"0",
     inherits:null,
     color:"#FAA542"
@@ -322,7 +322,7 @@ export var dataModelsInfo = [
   {
     type:"Relation",
     short:"r",
-    category:"structures",
+    category:"structures/elements",
     level:"0.5",
     inherits:"Node",
     contains:"Node",
@@ -331,7 +331,7 @@ export var dataModelsInfo = [
   {
     type:"NodeList",
     short:"nL",
-    category:"structures",
+    category:"structures/lists",
     level:"1",
     inherits:"List",
     contains:"Node",
@@ -340,7 +340,7 @@ export var dataModelsInfo = [
   {
     type:"RelationList",
     short:"rL",
-    category:"structures",
+    category:"structures/lists",
     level:"1.5",
     inherits:"NodeList",
     contains:"Relation",
@@ -349,7 +349,7 @@ export var dataModelsInfo = [
   {
     type:"Network",
     short:"Nt",
-    category:"structures",
+    category:"structures/networks",
     level:"2",
     inherits:null,
     to:"Table",
@@ -359,7 +359,7 @@ export var dataModelsInfo = [
   {
     type:"Tree",
     short:"Tr",
-    category:"structures",
+    category:"structures/networks",
     level:"2",
     inherits:"Network",
     to:"Table",
