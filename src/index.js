@@ -19,7 +19,8 @@ import Interval from "src/dataTypes/numeric/Interval";
 import Matrix from "src/dataTypes/numeric/Matrix";
 import NumberList from "src/dataTypes/numeric/NumberList";
 import NumberTable from "src/dataTypes/numeric/NumberTable";
-export { Axis, Axis2D, Interval, Matrix, NumberList, NumberTable };
+import IntervalList from "src/dataTypes/numeric/IntervalList";
+export { Axis, Axis2D, Interval, Matrix, NumberList, NumberTable, IntervalList };
 
 // dataTypes/dates
 import DateAxis from "src/dataTypes/dates/DateAxis";
