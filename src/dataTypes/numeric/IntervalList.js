@@ -1,8 +1,8 @@
 import List from "src/dataTypes/lists/List";
 import Interval from "src/dataTypes/numeric/Interval";
 
-NumberList.prototype = new List();
-NumberList.prototype.constructor = IntervalList;
+IntervalList.prototype = new List();
+IntervalList.prototype.constructor = IntervalList;
 
 /**
  * @classdesc List structure for Intervals. Provides basic data type for
