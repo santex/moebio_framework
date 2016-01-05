@@ -82,7 +82,7 @@ ObjectOperators.serliazeObjectsInArray = function(array){
  * returns an Interval with min and max values from object
  * @param  {Object} object
  * @return {Interval}
- * tags
+ * tags:
  */
 ObjectOperators.getInterval = function(object){
   if(object==null) return;
