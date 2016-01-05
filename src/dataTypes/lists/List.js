@@ -446,10 +446,10 @@ List.prototype.getSubListByIndexes = function() { //TODO: merge with getSubList
     newList = instantiate(typeOf(this));
   }
 
+  newList.name = this.name;
   if(indexes.length === 0) {
     return newList;
   }
-  newList.name = this.name;
   var nElements = this.length;
   var nPositions = indexes.length;
   var i;
