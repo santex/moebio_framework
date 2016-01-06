@@ -2,6 +2,9 @@ import Tree from "src/dataTypes/structures/networks/Tree";
 import Node from "src/dataTypes/structures/elements/Node";
 import DateList from "src/dataTypes/dates/DateList";
 import DateOperators from "src/operators/dates/DateOperators";
+import Table from "src/dataTypes/lists/Table";
+import NumberList from "src/dataTypes/numeric/NumberList";
+import StringList from "src/dataTypes/strings/StringList";
 
 /**
  * @classdesc Provides a set of tools that work with DateLists.
@@ -210,4 +213,58 @@ DateListOperators._s = function(date) {
  */
 DateListOperators._ms = function(date) {
   return date.getMilliseconds();
+};
+
+/**
+ * builds a Day by Hour summary table from dates
+ * @param  {DateList} list of dates
+ *
+ * @param  {NumberList} values associated with dates (optional)
+ * @return {Table}
+ * tags:dates
+ */
+DateListOperators.buildDayOfWeekByHourTableFromDates = function(dates,nlValues){
+  if(dates == null || dates.type != 'DateList') return null;
+  var tab = new Table();
+  if(dates.name != null)
+    tab.name = dates.name + ' Day/Hour Summary';
+  else
+    tab.name = 'Day/Hour Summary';
+  tab.push(new StringList());
+  tab[0].name = 'Hour';
+  var lang = window && window.navigator && window.navigator.language ? window.navigator.language : 'en-US';
+  var dtSunday = DateOperators.stringToDate('2016-01-3');
+  var i,dt,nL,j,d,h;
+  var bValues = nlValues && nlValues.length == dates.length;
+  for(i=0;i<7;i++){
+    dt = i == 0 ? dtSunday : DateOperators.addDaysToDate(dtSunday,i);
+    nL = new NumberList();
+    nL.name = dt.toLocaleString(lang, {weekday: 'long'});
+    tab.push(nL);
+    if(i==0)
+      for(j=0;j<24;j++){
+        if(j==0)
+          tab[0][j] = 'Midnight';
+        else if(j==12)
+          tab[0][j] = 'Noon';
+        else if(j > 12)
+          tab[0][j] = String(j-12);
+        else
+          tab[0][j] = String(j);
+      }
+  }
+  for(d=1;d<=7;d++){
+    for(h=0;h<tab[0].length;h++)
+      tab[d][h]=0;
+  }
+  for(i=0;i<dates.length;i++){
+    d = dates[i].getDay();
+    h = dates[i].getHours();
+    if(bValues)
+      tab[d+1][h]+=nlValues[i];
+    else
+      tab[d+1][h]++;
+  }
+
+  return tab;
 };
