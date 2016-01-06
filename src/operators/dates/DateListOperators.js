@@ -216,50 +216,67 @@ DateListOperators._ms = function(date) {
 };
 
 /**
- * builds a Day by Hour summary table from dates
+ * builds a various types of summary tables from dates and optional associated values
  * @param  {DateList} list of dates
  *
+ * @param  {Number} outputType 0 - Weekday by Hour (default)<br>outputType 1 - Month by Day
  * @param  {NumberList} values associated with dates (optional)
  * @return {Table}
  * tags:dates
  */
-DateListOperators.buildDayOfWeekByHourTableFromDates = function(dates,nlValues){
+DateListOperators.buildSummaryTableFromDates = function(dates,outputType,nlValues){
   if(dates == null || dates.type != 'DateList') return null;
+  outputType = outputType == null ? 0 : outputType;
+  var nameType = outputType == 0 ? 'Weekday by Hour Summary' : 'Month by Day Summary';
   var tab = new Table();
   if(dates.name != null)
-    tab.name = dates.name + ' Day/Hour Summary';
+    tab.name = dates.name + ' ' + nameType;
   else
-    tab.name = 'Day/Hour Summary';
+    tab.name = nameType;
   tab.push(new StringList());
-  tab[0].name = 'Hour';
+  tab[0].name = outputType == 0 ? 'Hour' : 'Day';
   var lang = window && window.navigator && window.navigator.language ? window.navigator.language : 'en-US';
-  var dtSunday = DateOperators.stringToDate('2016-01-3');
+  var dt0 = new Date(2016,0,17,10,0,0,0); // sunday
   var i,dt,nL,j,d,h;
   var bValues = nlValues && nlValues.length == dates.length;
-  for(i=0;i<7;i++){
-    dt = i == 0 ? dtSunday : DateOperators.addDaysToDate(dtSunday,i);
+  var nCols = outputType == 0 ? 7 : 12;
+  var inc = outputType == 0 ? 1 : 30;
+  for(i=0;i<nCols;i++){
+    dt = i == 0 ? dt0 : DateOperators.addDaysToDate(dt0,i*inc);
     nL = new NumberList();
-    nL.name = dt.toLocaleString(lang, {weekday: 'long'});
+    nL.name = dt.toLocaleString(lang, outputType == 0 ? {weekday: 'long'} : {month: 'long'});
     tab.push(nL);
-    if(i==0)
-      for(j=0;j<24;j++){
-        if(j==0)
-          tab[0][j] = 'Midnight';
-        else if(j==12)
-          tab[0][j] = 'Noon';
-        else if(j > 12)
-          tab[0][j] = String(j-12);
-        else
-          tab[0][j] = String(j);
-      }
+    if(i==0){
+      if(outputType == 0)
+        for(j=0;j<24;j++){
+          if(j==0)
+            tab[0][j] = 'Midnight';
+          else if(j==12)
+            tab[0][j] = 'Noon';
+          else if(j > 12)
+            tab[0][j] = String(j-12);
+          else
+            tab[0][j] = String(j);
+        }
+      else
+        for(j=0;j<31;j++){
+          tab[0][j] = String(j+1);
+        }
+    }
   }
-  for(d=1;d<=7;d++){
+  for(d=1;d<=nCols;d++){
     for(h=0;h<tab[0].length;h++)
       tab[d][h]=0;
   }
   for(i=0;i<dates.length;i++){
-    d = dates[i].getDay();
-    h = dates[i].getHours();
+    if(outputType==0){
+      d = dates[i].getDay();
+      h = dates[i].getHours();
+    }
+    else{
+      d = dates[i].getMonth();
+      h = dates[i].getDate()-1;
+    }
     if(bValues)
       tab[d+1][h]+=nlValues[i];
     else
