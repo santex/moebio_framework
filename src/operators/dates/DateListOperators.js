@@ -1,6 +1,7 @@
 import Tree from "src/dataTypes/structures/networks/Tree";
 import Node from "src/dataTypes/structures/elements/Node";
 import DateList from "src/dataTypes/dates/DateList";
+import DateInterval from "src/dataTypes/dates/DateInterval";
 import DateOperators from "src/operators/dates/DateOperators";
 import Table from "src/dataTypes/lists/Table";
 import NumberList from "src/dataTypes/numeric/NumberList";
@@ -219,25 +220,61 @@ DateListOperators._ms = function(date) {
  * builds a various types of summary tables from dates and optional associated values
  * @param  {DateList} list of dates
  *
- * @param  {Number} outputType 0 - Weekday by Hour (default)<br>outputType 1 - Month by Day
+ * @param  {Number} outputType 0 - Weekday by Hour (default)<br>outputType 1 - Month by Day<br>outputType 2 - Day Sequence (with optional DateInterval)
  * @param  {NumberList} values associated with dates (optional)
+ * @param  {DateInterval} range of dates to use for outputType=2 (optional)
  * @return {Table}
  * tags:dates
  */
-DateListOperators.buildSummaryTableFromDates = function(dates,outputType,nlValues){
+DateListOperators.buildSummaryTableFromDates = function(dates,outputType,nlValues,intDates){
   if(dates == null || dates.type != 'DateList') return null;
   outputType = outputType == null ? 0 : outputType;
-  var nameType = outputType == 0 ? 'Weekday by Hour Summary' : 'Month by Day Summary';
+  var nameType = 'Weekday by Hour Summary';
+  var sCol0 = 'Hour';
+  if(outputType == 1){
+    nameType = 'Month by Day Summary';
+    sCol0 = 'Day';
+  }
+  else if(outputType == 2){
+    nameType = 'Sequence';
+    sCol0 = 'Date';
+  }
   var tab = new Table();
   if(dates.name != null)
     tab.name = dates.name + ' ' + nameType;
   else
     tab.name = nameType;
   tab.push(new StringList());
-  tab[0].name = outputType == 0 ? 'Hour' : 'Day';
+  tab[0].name = sCol0;
   var lang = window && window.navigator && window.navigator.language ? window.navigator.language : 'en-US';
   var dt0 = new Date(2016,0,17,10,0,0,0); // sunday
   var i,dt,nL,j,d,h;
+  if(outputType == 2){
+    // do this separately, it's too different from the other two outputs
+    if(intDates == null || intDates.type != 'DateInterval')
+      intDates = new DateInterval(dates.getMin(),dates.getMax());
+    tab.push(new NumberList());
+    tab[1].name = 'Value';
+    var iDays = DateOperators.daysBetweenDates(intDates.date0,intDates.date1);
+    // fill values with zero to start
+    for(i=0;i<=iDays;i++){
+      dt = DateOperators.addDaysToDate(intDates.date0,i);
+      tab[0][i] = DateOperators.dateToString(dt,1);
+      tab[1][i] = 0;
+    }
+    // now process dates
+    for(i=0;i<dates.length;i++){
+      // get row number
+      j = Math.floor(DateOperators.daysBetweenDates(intDates.date0,dates[i]));
+      if(j < 0 || j >= tab[1].length) continue; // skip entries outside of range
+      if(bValues)
+        tab[1][j] += nlValues[i];
+      else
+        tab[1][j] ++;
+    }
+    return tab;
+  }
+
   var bValues = nlValues && nlValues.length == dates.length;
   var nCols = outputType == 0 ? 7 : 12;
   var inc = outputType == 0 ? 1 : 30;
