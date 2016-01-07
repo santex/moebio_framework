@@ -217,7 +217,7 @@ DateListOperators._ms = function(date) {
 };
 
 /**
- * builds a various types of summary tables from dates and optional associated values
+ * builds various types of summary tables from dates and optional associated values
  * @param  {DateList} list of dates
  *
  * @param  {Number} outputType 0 - Weekday by Hour (default)<br>outputType 1 - Month by Day<br>outputType 2 - Day Sequence (with optional DateInterval)
