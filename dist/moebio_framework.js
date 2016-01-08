@@ -1539,10 +1539,10 @@
       newList = instantiate(_typeOf(this));
     }
 
+    newList.name = this.name;
     if(indexes.length === 0) {
       return newList;
     }
-    newList.name = this.name;
     var nElements = this.length;
     var nPositions = indexes.length;
     var i;
@@ -15882,6 +15882,113 @@
    */
   DateListOperators._ms = function(date) {
     return date.getMilliseconds();
+  };
+
+  /**
+   * builds various types of summary tables from dates and optional associated values
+   * @param  {DateList} list of dates
+   *
+   * @param  {Number} outputType 0 - Weekday by Hour (default)<br>outputType 1 - Month by Day<br>outputType 2 - Day Sequence (with optional DateInterval)
+   * @param  {NumberList} values associated with dates (optional)
+   * @param  {DateInterval} range of dates to use for outputType=2 (optional)
+   * @return {Table}
+   * tags:dates
+   */
+  DateListOperators.buildSummaryTableFromDates = function(dates,outputType,nlValues,intDates){
+    if(dates == null || dates.type != 'DateList') return null;
+    outputType = outputType == null ? 0 : outputType;
+    var nameType = 'Weekday by Hour Summary';
+    var sCol0 = 'Hour';
+    if(outputType == 1){
+      nameType = 'Month by Day Summary';
+      sCol0 = 'Day';
+    }
+    else if(outputType == 2){
+      nameType = 'Sequence';
+      sCol0 = 'Date';
+    }
+    var tab = new Table();
+    if(dates.name != null)
+      tab.name = dates.name + ' ' + nameType;
+    else
+      tab.name = nameType;
+    tab.push(new StringList());
+    tab[0].name = sCol0;
+    var lang = window && window.navigator && window.navigator.language ? window.navigator.language : 'en-US';
+    var dt0 = new Date(2016,0,17,10,0,0,0); // sunday
+    var i,dt,nL,j,d,h;
+    if(outputType == 2){
+      // do this separately, it's too different from the other two outputs
+      if(intDates == null || intDates.type != 'DateInterval')
+        intDates = new DateInterval(dates.getMin(),dates.getMax());
+      tab.push(new NumberList());
+      tab[1].name = 'Value';
+      var iDays = DateOperators.daysBetweenDates(intDates.date0,intDates.date1);
+      // fill values with zero to start
+      for(i=0;i<=iDays;i++){
+        dt = DateOperators.addDaysToDate(intDates.date0,i);
+        tab[0][i] = DateOperators.dateToString(dt,1);
+        tab[1][i] = 0;
+      }
+      // now process dates
+      for(i=0;i<dates.length;i++){
+        // get row number
+        j = Math.floor(DateOperators.daysBetweenDates(intDates.date0,dates[i]));
+        if(j < 0 || j >= tab[1].length) continue; // skip entries outside of range
+        if(bValues)
+          tab[1][j] += nlValues[i];
+        else
+          tab[1][j] ++;
+      }
+      return tab;
+    }
+
+    var bValues = nlValues && nlValues.length == dates.length;
+    var nCols = outputType == 0 ? 7 : 12;
+    var inc = outputType == 0 ? 1 : 30;
+    for(i=0;i<nCols;i++){
+      dt = i == 0 ? dt0 : DateOperators.addDaysToDate(dt0,i*inc);
+      nL = new NumberList();
+      nL.name = dt.toLocaleString(lang, outputType == 0 ? {weekday: 'long'} : {month: 'long'});
+      tab.push(nL);
+      if(i==0){
+        if(outputType == 0)
+          for(j=0;j<24;j++){
+            if(j==0)
+              tab[0][j] = 'Midnight';
+            else if(j==12)
+              tab[0][j] = 'Noon';
+            else if(j > 12)
+              tab[0][j] = String(j-12);
+            else
+              tab[0][j] = String(j);
+          }
+        else
+          for(j=0;j<31;j++){
+            tab[0][j] = String(j+1);
+          }
+      }
+    }
+    for(d=1;d<=nCols;d++){
+      for(h=0;h<tab[0].length;h++)
+        tab[d][h]=0;
+    }
+    for(i=0;i<dates.length;i++){
+      if(outputType==0){
+        d = dates[i].getDay();
+        h = dates[i].getHours();
+      }
+      else{
+        d = dates[i].getMonth();
+        h = dates[i].getDate()-1;
+      }
+      if(bValues)
+        tab[d+1][h]+=nlValues[i];
+      else
+        tab[d+1][h]++;
+    }
+
+    return tab;
   };
 
   /**
