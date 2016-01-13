@@ -41,6 +41,7 @@ StringListConversions.toDateList = function(stringList, formatCase, separator) {
   if(stringList==null) return;
   
   var dateList = new DateList();
+  dateList.name = stringList.name;
   var i;
   var l = stringList.length;
   for(i = 0; i<l; i++) {
