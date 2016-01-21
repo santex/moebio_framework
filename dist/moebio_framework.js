@@ -9819,7 +9819,7 @@
   StringOperators.getWordsOccurrencesTable = function(string, stopWords, includeLinks, limit, minSizeWords) {
     if(string == null) return;
     if(string.length === 0) return new Table(new StringList(), new NumberList());
-    var words = StringOperators.getWords(string, false, stopWords, false, includeLinks, limit, minSizeWords);
+    var words = StringOperators.getWords(string, false, stopWords, false, includeLinks, null, minSizeWords);
     var table;
     if(limit != null)
       table = words.getFrequenciesTable(true).sliceRows(0, limit-1);
@@ -19627,6 +19627,7 @@
     if(stringList==null) return;
     
     var dateList = new DateList();
+    dateList.name = stringList.name;
     var i;
     var l = stringList.length;
     for(i = 0; i<l; i++) {
