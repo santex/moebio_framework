@@ -729,6 +729,7 @@ StringOperators.getWordsOccurrencesTable = function(string, stopWords, includeLi
   return table;// ListOperators.countElementsRepetitionOnList(words, true, false, limit);
 };
 
+
 /**
  * @todo finish docs
  */
