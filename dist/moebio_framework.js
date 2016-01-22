@@ -7088,7 +7088,7 @@
     if(list0==null || list1==null) return;
 
     var intersection;
-    //var l0  = list0.length;
+    var l0  = list0.length;
     var l1  = list1.length;
     var i;
     var element;
@@ -7096,11 +7096,13 @@
     if(list0.type=="NodeList" && list1.type=="NodeList"){
       intersection = new NodeList();
 
-      list0.forEach(function(node){
-        if(list1.getNodeById(node.id)){
-          intersection.addNode(node);
+      //list0.forEach(function(node){
+      for(i=0; i<l0; i++){
+        if(list1.getNodeById(list0[i].id)){
+          intersection.addNode(list0[i]);
         }
-      });
+      }
+      //});
 
       return intersection;
     }
@@ -7125,6 +7127,76 @@
     //});
     return intersection.getImproved();
   };
+
+  /**
+   * creates a List that contains the difference between two lists (subtracting the second list to the first)
+   * @param  {List} list0 first list
+   * @param  {List} list1 second list
+   * @return {List} list0 subtracted list1
+   * tags:
+   */
+  ListOperators.difference = function(list0, list1) {
+    if(list0==null || list1==null) return;
+
+    var dictionary =  ListOperators.getBooleanDictionaryForList(list1);
+    var dictionaryDif =  {};
+    var i;
+    var difference = new List();
+    var l0  = list0.length;
+
+    if(list0.type=="NodeList"){
+      //@todo:finish
+    }
+
+    for(i=0; i<l0; i++){
+      if(!dictionary[list0[i]] && !dictionaryDif[list0[i]]){
+        difference.push(list0[i]);
+        dictionaryDif[list0[i]] = true;
+      }
+    }
+
+    return difference.getImproved();
+  };
+
+  /**
+   * creates a List that contains the symmetric difference of two List (elements present in only one of the lists)
+   * @param  {List} list0 first list
+   * @param  {List} list1 second list
+   * @return {List} symmetric difference of two lists
+   * tags:
+   */
+  ListOperators.symmetricDifference = function(list0, list1) {
+    if(list0==null || list1==null) return;
+
+    var dictionary0 =  ListOperators.getBooleanDictionaryForList(list0);
+    var dictionary1 =  ListOperators.getBooleanDictionaryForList(list1);
+    var dictionaryDif =  {};
+    var i;
+    var difference = new List();
+    var l0  = list0.length;
+    var l1  = list1.length;
+
+    if(list0.type=="NodeList"){
+      //@todo:finish
+    }
+
+    for(i=0; i<l0; i++){
+      if(!dictionary1[list0[i]] && !dictionaryDif[list0[i]]){
+        difference.push(list0[i]);
+        dictionaryDif[list0[i]] = true;
+      }
+    }
+    for(i=0; i<l1; i++){
+      if(!dictionary0[list1[i]] && !dictionaryDif[list1[i]]){
+        difference.push(list1[i]);
+        dictionaryDif[list1[i]] = true;
+      }
+    }
+
+    return difference.getImproved();
+  };
+
+
 
 
   /**
@@ -7897,6 +7969,65 @@
     list._infoObject = infoObject;
 
     return text;
+  };
+
+
+  /**
+   * returns a table containing all possible lists (overlooking sorting) of k elements, with k<=n list length, see https://en.wikipedia.org/wiki/Combination
+   * @param  {List} list
+   * @param  {Number} k length of sublists
+   * @return {Table} containing all sublists of size k
+   * tags:combinatorics
+   */
+  ListOperators.kCombinations = function(list, k){
+    if(list==null || k==null) return;
+
+    var kCombinations = new Table();
+    var i, j;
+    var head, tailkCombinations;
+
+    if (k > list.length || k <= 0) {
+      return kCombinations;
+    }
+    
+    if (k == list.length) {
+      kCombinations.push(list.clone());
+      return kCombinations;
+    }
+    
+    if (k == 1) {
+      for (i = 0; i < list.length; i++) {
+        kCombinations.push( new List(list[i]).getImproved() );
+      }
+      return kCombinations;
+    }
+    
+    for (i = 0; i < list.length - k + 1; i++) {
+      head = list.slice(i, i+1);
+      tailkCombinations = ListOperators.kCombinations(List.fromArray(list.slice(i + 1)).getImproved(), k - 1);
+      for (j = 0; j < tailkCombinations.length; j++) {
+        kCombinations.push( List.fromArray( head.concat(tailkCombinations[j]) ).getImproved() );
+      }
+    }
+    return kCombinations.getImproved();
+
+  };
+
+  /**
+   * returns a table containing all possible sublists (overlooking sorting), that is all kCombinations with k = 1 … n, see https://en.wikipedia.org/wiki/Combination
+   * @param  {List} list
+   * @return {Table} containing all sublists of sizes from 1 to n
+   * tags:combinatorics
+   */
+  ListOperators.allSubLists = function(list){
+    if(list==null) return null;
+
+    var allSubLists  = new Table();
+    var k;
+    for(k=1; k<=list.length; k++){
+      allSubLists = Table.fromArray( allSubLists.concat( ListOperators.kCombinations(list, k) ) );
+    }
+    return allSubLists.getImproved();
   };
 
   RectangleList.prototype = new List();
@@ -23205,16 +23336,19 @@
    * a Relation is created between two nodes if and only if the returned weight is > 0
    * @param {List} list List of objects that define the nodes
    * @param {Function} weightFunction method used to eval each pair of nodes
+   *
    * @param {StringList} names optional, names of Nodes
+   * @param {Number} threshold
    * @return {Network} a network with number of nodes equal to the length of the List
    */
-  NetworkGenerators.createNetworkFromListAndFunction = function(list, weightFunction, names) {
-    var i;
-    var j;
+  NetworkGenerators.createNetworkFromListAndFunction = function(list, weightFunction, names, threshold) {
+    var i, j;
     var w;
     var node;
     var network = new Network();
 
+    threshold = threshold==null?0:threshold;
+    
     for(i = 0; list[i + 1] != null; i++) {
       if(i === 0) {
         network.addNode(new Node("n_0", names == null ? "n_0" : names[i]));
@@ -23225,7 +23359,7 @@
           network.addNode(new Node("n_" + j, names == null ? "n_" + j : names[j]));
         }
         w = weightFunction(list[i], list[j]);
-        if(w > 0) {
+        if(w > threshold) {
           network.addRelation(new Relation(i + "_" + j, i + "_" + j, node, network.nodeList[j], w));
         }
       }
