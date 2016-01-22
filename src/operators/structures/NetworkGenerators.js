@@ -182,16 +182,19 @@ NetworkGenerators.createNetworkFromOccurrencesTable = function(occurrencesTable,
  * a Relation is created between two nodes if and only if the returned weight is > 0
  * @param {List} list List of objects that define the nodes
  * @param {Function} weightFunction method used to eval each pair of nodes
+ *
  * @param {StringList} names optional, names of Nodes
+ * @param {Number} threshold
  * @return {Network} a network with number of nodes equal to the length of the List
  */
-NetworkGenerators.createNetworkFromListAndFunction = function(list, weightFunction, names) {
-  var i;
-  var j;
+NetworkGenerators.createNetworkFromListAndFunction = function(list, weightFunction, names, threshold) {
+  var i, j;
   var w;
   var node;
   var network = new Network();
 
+  threshold = threshold==null?0:threshold;
+  
   for(i = 0; list[i + 1] != null; i++) {
     if(i === 0) {
       network.addNode(new Node("n_0", names == null ? "n_0" : names[i]));
@@ -202,7 +205,7 @@ NetworkGenerators.createNetworkFromListAndFunction = function(list, weightFuncti
         network.addNode(new Node("n_" + j, names == null ? "n_" + j : names[j]));
       }
       w = weightFunction(list[i], list[j]);
-      if(w > 0) {
+      if(w > threshold) {
         network.addRelation(new Relation(i + "_" + j, i + "_" + j, node, network.nodeList[j], w));
       }
     }
