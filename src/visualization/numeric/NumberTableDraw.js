@@ -60,8 +60,6 @@ NumberTableDraw.drawNumberTable = function(frame, numberTable, colorScale, listC
   var n = numberTable.length;
   var nR;
 
-  console.log('n:', n);
-
   for(i = 0; i<n; i++) {
     numberList = numberTable[i];
     x = Math.round(frame.x + i * dX);
@@ -71,9 +69,7 @@ NumberTableDraw.drawNumberTable = function(frame, numberTable, colorScale, listC
       amp = minMaxInterval.getAmplitude();
     }
     nR = numberList.length;
-    console.log('   nR:', nR);
     for(j = 0; j<nR; j++) {
-      if(i<5 && j<5) console.log('    ', x, Math.round(frame.y + j * dY))
       graphics.context.fillStyle = colorScale((numberList[j] - minMaxInterval.x) / amp);
       graphics.context.fillRect(x, Math.round(frame.y + j * dY), Math.ceil(dX) - margin, Math.ceil(dY) - margin);
       if(mouseXOnColumn && graphics.mY > frame.y + j * dY && graphics.mY <= frame.y + (j + 1) * dY) overCoordinates = new Point(i, j);
