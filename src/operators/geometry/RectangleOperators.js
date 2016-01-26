@@ -373,6 +373,15 @@ RectangleOperators._getHighestRatio = function(rectangleList) {
   return highestRatio;
 };
 
+/**
+ * makeRectanglesNonOverlapping
+ * @param {RectangleList} rL0 is a list of Rectangles
+ * @param {Rectangle} rBoundary is the boundary of allowed space
+ *
+ * @param {Number} fPad is the minimum spacing between rectangles
+ *
+ * @return {RectangleList} a list of Rectangles which do not overlap unless they do not fit otherwise
+ */
 RectangleOperators.makeRectanglesNonOverlapping = function(rL0,rBoundary,fPad){
   var rLNonOverlap = new RectangleList();
   if(fPad == null) fPad=0;
@@ -387,6 +396,17 @@ RectangleOperators.makeRectanglesNonOverlapping = function(rL0,rBoundary,fPad){
   return rLNonOverlap;
 };
 
+/**
+ * placeRectangleAvoidingOthers
+ * @param {Rectangle} rItem is the location and size of a rectangle
+ * @param {Rectangle} rBoundary is the boundary of allowed space
+ * @param {RectangleList} rLAvoid is a list of Rectangles already place which must be avoided
+ * @param {Number} fPad is the minimum spacing between rectangles
+ * @param {Number} dx is the horizontal increment
+ * @param {Number} dy is the vertical increment
+ *
+ * @return {Boolean} true if it fits, rItem will be set to new location
+ */
 RectangleOperators.placeRectangleAvoidingOthers = function(rItem, rBoundary, rLAvoid, fPad, dx, dy)
 {
   // r is boundary rectangle, rItem is starting location for desired item, fPad is padding
