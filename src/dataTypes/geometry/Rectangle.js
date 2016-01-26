@@ -197,6 +197,21 @@ Rectangle.prototype.intersectsRectangle = function(rectangle) {
 };
 
 /**
+ * Returns true if provided Rectangle is completely inside this Rectangle.
+ * @param  {Rectangle} rectangle Rectangle to check.
+ * @return {Boolean} true if provided Rectangle is completely inside this Rectangle.
+ * tags:geometry
+ */
+Rectangle.prototype.containsRectangle=function(rectangle){
+  if(rectangle.getRight() <= this.getRight() &&
+     rectangle.x >= this.x &&
+     rectangle.getBottom() <= this.getBottom() &&
+     rectangle.y >= this.y )
+    return true;
+  return false;
+};
+
+/**
  * Expands Rectangle by multiplying dimensions by the given expansion around a
  * given center point. If no center point is provided, the new Rectangle is
  * expanded around the center of the current Rectangle.

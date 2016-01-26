@@ -372,3 +372,114 @@ RectangleOperators._getHighestRatio = function(rectangleList) {
   }
   return highestRatio;
 };
+
+/**
+ * makeRectanglesNonOverlapping
+ * @param {RectangleList} rL0 is a list of Rectangles
+ * @param {Rectangle} rBoundary is the boundary of allowed space
+ *
+ * @param {Number} fPad is the minimum spacing between rectangles
+ *
+ * @return {RectangleList} a list of Rectangles which do not overlap unless they do not fit otherwise
+ */
+RectangleOperators.makeRectanglesNonOverlapping = function(rL0,rBoundary,fPad){
+  var rLNonOverlap = new RectangleList();
+  if(fPad == null) fPad=0;
+  var i,rItem,dx,dy;
+  for(i=0; i<rL0.length; i++){
+    rItem = rL0[i].clone();
+    dx = Math.max(2,rItem.width*.1);
+    dy = Math.max(2,rItem.height*.1);
+    RectangleOperators.placeRectangleAvoidingOthers(rItem,rBoundary,rLNonOverlap,fPad,dx,dy);
+    rLNonOverlap.push(rItem);
+  }
+  return rLNonOverlap;
+};
+
+/**
+ * placeRectangleAvoidingOthers
+ * @param {Rectangle} rItem is the location and size of a rectangle
+ * @param {Rectangle} rBoundary is the boundary of allowed space
+ * @param {RectangleList} rLAvoid is a list of Rectangles already place which must be avoided
+ * @param {Number} fPad is the minimum spacing between rectangles
+ * @param {Number} dx is the horizontal increment
+ * @param {Number} dy is the vertical increment
+ *
+ * @return {Boolean} true if it fits, rItem will be set to new location
+ */
+RectangleOperators.placeRectangleAvoidingOthers = function(rItem, rBoundary, rLAvoid, fPad, dx, dy)
+{
+  // r is boundary rectangle, rItem is starting location for desired item, fPad is padding
+  // rLAvoid has items already placed that we need to check for overlap
+  // rItem comes in with desired location, ends up with closest to it that will fit
+  if(isNaN(rItem.x) || isNaN(rItem.y)) return false;
+  if(rItem.width > rBoundary.width || rItem.height > rBoundary.height) return false;
+  var x0 = rItem.x;
+  var y0 = rItem.y;
+  var idir = rLAvoid.length%2 == 0?2:4; // 1 - right, 2 - down, 3 - left, 4 - up
+  var iSteps = 0;
+  var iStepLimit = 1;
+
+  var rBoundHit = new Rectangle();
+  var rTestInner = new Rectangle();
+  if(dy == 0){
+    rBoundHit.y = rBoundHit.height = 1;
+  }
+  if(dx == 0){
+    rBoundHit.x = rBoundHit.width = 1;
+  }
+  var iPrevInt = -1;
+  var rTest = new Rectangle();
+  while(rBoundHit.x*rBoundHit.y*rBoundHit.width*rBoundHit.height == 0){
+    if(rItem.x < rBoundary.x) rBoundHit.x = 1;
+    if(rItem.y < rBoundary.y) rBoundHit.y = 1;
+    if(rItem.x > rBoundary.x+rBoundary.width) rBoundHit.width = 1;
+    if(rItem.y > rBoundary.y+rBoundary.height) rBoundHit.height = 1;
+    if(rBoundary.containsRectangle(rItem)){
+      // check all other placed items for overlap with this one
+      var bOverlap = false;
+      rTest.x = rItem.x - fPad/2;
+      rTest.width = rItem.width + fPad;
+      rTest.y = rItem.y - fPad/2;
+      rTest.height = rItem.height + fPad;
+      if(iPrevInt != -1 && rTest.intersectsRectangle(rLAvoid[iPrevInt])){
+        bOverlap=true;
+      }
+      for(var i=0; i < rLAvoid.length && !bOverlap; i++){
+        if(rTest.intersectsRectangle(rLAvoid[i])){
+          bOverlap=true;
+          iPrevInt = i;
+          break;
+        }
+      }
+      if(!bOverlap){
+        return true;
+      }
+    }
+    if(dx == 0 && (idir == 1 || idir == 3))
+      iSteps = iStepLimit;
+    else if(dy == 0 && (idir == 2 || idir == 4))
+      iSteps = iStepLimit;
+    // spiral direction change
+    if(iSteps >= iStepLimit){
+      if(idir == 1 || idir == 3)
+        iStepLimit++;
+      idir++;
+      if(idir > 4)
+        idir = 1;
+      iSteps = 0;
+    }
+    if(idir == 1)
+      rItem.x += dx;
+    else if(idir == 2)
+      rItem.y += dy;
+    else if(idir == 3)
+      rItem.x -= dx;
+    else if(idir == 4)
+      rItem.y -= dy;
+    iSteps++;
+  }
+  rItem.x = x0;
+  rItem.y = y0;
+  return false;
+};

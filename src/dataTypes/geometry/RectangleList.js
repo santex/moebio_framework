@@ -25,6 +25,7 @@ RectangleList.fromArray = function(array) {
 
   result.getFrame = RectangleList.prototype.getFrame;
   result.add = RectangleList.prototype.add;
+  result.clone = RectangleList.prototype.clone;
   result.factor = RectangleList.prototype.factor;
   result.getAddedArea = RectangleList.prototype.getAddedArea;
   result.getIntersectionArea = RectangleList.prototype.getIntersectionArea;
@@ -57,6 +58,18 @@ RectangleList.prototype.getFrame = function() {//TODO: use RectangleOperators.mi
 };
 
 // TODO:finish RectangleList methods
+
+/**
+ * @todo write docs
+ */
+RectangleList.prototype.clone = function() {
+  var newRectangleList = new RectangleList();
+  for(var i = 0; this[i] != null; i++) {
+    newRectangleList[i] = this[i].clone();
+  }
+  newRectangleList.name = this.name;
+  return newRectangleList;
+};
 
 /**
  * @ignore
@@ -97,3 +110,4 @@ RectangleList.prototype.getIntersectionArea = function() {
 
   return intersectionArea;
 };
+
