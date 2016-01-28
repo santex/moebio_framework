@@ -1851,18 +1851,23 @@
   /**
    * creates a List with randomly selected elements.
    * @param  {Number} n number of elements
-   * @param  {Boolean} avoidRepetitions
+   *
+   * @param  {Boolean} avoidRepetitions (true by default)
+   * @param {Number} randomSeed (to expect stable results)
    * @return {List}
    * tags:filter
    */
-  List.prototype.getRandomElements = function(n, avoidRepetitions) {
+  List.prototype.getRandomElements = function(n, avoidRepetitions, randomSeed) {
+    if(n==null) return;
+
+    var random = randomSeed!=null ? new NumberOperators._Alea("my", randomSeed, "seeds") : Math.random;
     avoidRepetitions = avoidRepetitions == null ? true : avoidRepetitions;
     n = Math.min(n, this.length);
     var newList = instantiateWithSameType(this);
     var element;
 
     while(newList.length < n) {
-      element = this[Math.floor(this.length * Math.random())];
+      element = this[Math.floor(this.length * random())];
       if(!avoidRepetitions || newList.indexOf(element) == -1) newList.push(element);
     }
     return newList;
