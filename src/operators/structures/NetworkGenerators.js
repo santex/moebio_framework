@@ -2,8 +2,11 @@ import Node from "src/dataTypes/structures/elements/Node";
 import Relation from "src/dataTypes/structures/elements/Relation";
 import NodeList from "src/dataTypes/structures/lists/NodeList";
 import Network from "src/dataTypes/structures/networks/Network";
+import Table from "src/dataTypes/lists/Table";
+import StringOperators from "src/operators/strings/StringOperators";
 import StringListOperators from "src/operators/strings/StringListOperators";
 import NumberListOperators from "src/operators/numeric/numberList/NumberListOperators";
+import TableOperators from "src/operators/lists/TableOperators";
 import NumberOperators from "src/operators/numeric/NumberOperators";
 import StringList from "src/dataTypes/strings/StringList";
 import NetworkEncodings from "src/operators/structures/NetworkEncodings";
@@ -30,7 +33,7 @@ export default NetworkGenerators;
  * @example
  * // generate a sparsely connected network with 2000 Nodes
  * network = NetworkGenerators.createRandomNetwork(2000, 0.0006, 1);
- * tags:generator
+ * tags:
  */
 NetworkGenerators.createRandomNetwork = function(nNodes, pRelationOrNumberOfRelations, mode, randomRelationsWeights, seed) {
   if(nNodes == null || pRelationOrNumberOfRelations == null) return null;
@@ -104,8 +107,48 @@ NetworkGenerators.createRandomNetwork = function(nNodes, pRelationOrNumberOfRela
       }
       return network;
   }
-
 };
+
+
+/**
+ * Build a random network based on words co-occurrences in a list of texts, each text has an associated node
+ * @param {StringList} nNodes number of nodes
+
+ * @param {Number} threshold minimum cosine similarity value to create a relation
+ * @param {StringList} titles optional names for nodes
+ * @param {StringList|Number} stopWords optional list of words to overlook in analysis (if stopWords is 1 predefined english stopwords StringOperators.STOP_WORDS will be used)
+ * @return {Network} network of texts, nodes will have extra parameters text (with original texts) and freqTable (table with words and frequencies)
+ * tags:
+ */
+NetworkGenerators.createNetworkFromTexts = function(stringList, threshold, titles, stopWords){
+  if(stringList==null) return;
+  if(threshold==null) threshold = 0.7;
+  if(stopWords==1) stopWords = StringOperators.STOP_WORDS;
+
+  var i, j;
+  var nTexts = stringList.length;
+  
+  var freqTablesList = new Table();
+
+  for(i=0; i<nTexts; i++){
+    freqTablesList[i] = StringOperators.getWordsOccurrencesTable(stringList[i], stopWords, true, 200, 3);
+    //freqTablesList[i][2] = freqTablesList[i][1].getNormalized();
+  }
+  
+  if(titles==null){
+    titles = new StringList();
+    for(i=0; i<nTexts; i++){
+      titles[i] = "text "+i;
+    }
+  }
+  var net = NetworkGenerators.createNetworkFromListAndFunction(freqTablesList, TableOperators.cosineSimilarityDataTables, titles, threshold, 2);
+  for(i=0; i<nTexts; i++){
+    net.nodeList[i].text = stringList[i];
+    net.nodeList[i].freqTable = freqTablesList[i];
+  }
+  return net;
+};
+
 
 /**
  * @param strings
@@ -185,16 +228,18 @@ NetworkGenerators.createNetworkFromOccurrencesTable = function(occurrencesTable,
  *
  * @param {StringList} names optional, names of Nodes
  * @param {Number} threshold
+ * @param {Number} weightMode relations weight mode<br>0: weight<br>1:weight -  threshold<br>2:(weight -  threshold)/(1 - threshold)
  * @return {Network} a network with number of nodes equal to the length of the List
+ tags:
  */
-NetworkGenerators.createNetworkFromListAndFunction = function(list, weightFunction, names, threshold) {
+NetworkGenerators.createNetworkFromListAndFunction = function(list, weightFunction, names, threshold, weightMode) {
   var i, j;
   var w;
   var node;
   var network = new Network();
 
   threshold = threshold==null?0:threshold;
-  
+
   for(i = 0; list[i + 1] != null; i++) {
     if(i === 0) {
       network.addNode(new Node("n_0", names == null ? "n_0" : names[i]));
@@ -206,6 +251,8 @@ NetworkGenerators.createNetworkFromListAndFunction = function(list, weightFuncti
       }
       w = weightFunction(list[i], list[j]);
       if(w > threshold) {
+        if(weightMode>0) w -= threshold;
+        if(weightMode==2) w /= (1-threshold);
         network.addRelation(new Relation(i + "_" + j, i + "_" + j, node, network.nodeList[j], w));
       }
     }
