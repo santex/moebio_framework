@@ -251,7 +251,7 @@ Network.prototype.clone = function(nodePropertiesNames, relationPropertiesNames,
   });
 
   this.relationList.forEach(function(relation) {
-    newRelation = new Relation(idsSubfix + relation.id, namesSubfix + relation.name, newNetwork.nodeList.getNodeById(idsSubfix + relation.node0.id), newNetwork.nodeList.getNodeById(idsSubfix + relation.node1.id));
+    newRelation = new Relation(idsSubfix + relation.id, namesSubfix + relation.name, newNetwork.nodeList.getNodeById(idsSubfix + relation.node0.id), newNetwork.nodeList.getNodeById(idsSubfix + relation.node1.id), relation.weight);
     if(idsSubfix !== '') newRelation.basicId = relation.id;
     if(namesSubfix !== '') newRelation.basicName = relation.name;
     if(relationPropertiesNames) {
