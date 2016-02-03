@@ -710,7 +710,7 @@ StringOperators.removeAccentsAndDiacritics = function(string) {
  * creates a table with frequent words and occurrences numbers
  * @param  {String} string text to be analyzed
  *
- * @param  {StringList} stopWords
+ * @param  {StringList|Number} stopWords optional list of stop words, if values is 1 default stop words will be used
  * @param  {Boolean} includeLinks
  * @param  {Number} limit max size of rows
  * @param  {Number} minSizeWords
@@ -720,6 +720,9 @@ StringOperators.removeAccentsAndDiacritics = function(string) {
 StringOperators.getWordsOccurrencesTable = function(string, stopWords, includeLinks, limit, minSizeWords) {
   if(string == null) return;
   if(string.length === 0) return new Table(new StringList(), new NumberList());
+
+  if(stopWords==1) stopWords = StringOperators.STOP_WORDS;
+  
   var words = StringOperators.getWords(string, false, stopWords, false, includeLinks, null, minSizeWords);
   var table;
   if(limit != null)
