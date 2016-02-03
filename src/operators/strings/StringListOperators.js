@@ -263,7 +263,6 @@ StringListOperators.getWordsOccurrencesMatrix = function(strings, stopWords, inc
   var table;
   var nStrings = strings.length;
   for(i = 1; i<nStrings; i++) {
-    console.log('strings[i]:['+strings[i]+']');
 
     if(strings[i]==""){
       matrix.push(ListGenerators.createListWithSameElement(matrix[0].length, 0));
