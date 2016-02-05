@@ -27,23 +27,86 @@ NumberTable.prototype.constructor = NumberTable;
 function NumberTable() {
   var args = [];
   var newNumberList;
-  var array;
+  var array = [];
   var i;
 
-  if(arguments.length > 0 && Number(arguments[0]) == arguments[0]) {
-    array = [];
-    for(i = 0; i < arguments[0]; i++) {
-      array.push(new NumberList());
+  if (arguments.length == 1 ) {
+    var arg0 = arguments[0];
+    // one argument as number(n). create a Table with n columns
+    if ( typeof arg0 == 'number' ) {
+        for (var i=0; i<arg0; i++) {
+            array.push([]);
+        }
     }
-  } else {
-    for(i = 0; arguments[i] != null; i++) {
-      newNumberList = NumberList.fromArray(arguments[i]);
-      newNumberList.name = arguments[i].name;
-      args[i] = newNumberList;
+    // one argument as array.
+    else if ( Array.isArray(arg0) ) {
+        var _array = Array.prototype.slice.call(arg0);
+        array = fetchArray(arg0,1);
     }
-    // TODO: this converts all our NumberLists into Lists
-    array = Table.apply(this, args);
   }
+  // more than one argument
+  else if ( arguments.length > 1) {
+    var arg = arguments;
+    // arguments as numbers will be a NUmberTable with 1 NumberList
+    if( typeof arg[0] == 'number' ) {
+        var arr=[];
+        for (var i=0; i<arg.length; i++) {
+            arr.push(arg[i]);
+        }
+        array.push(arr);
+    }
+    // arguments other than numbers. the array is cloned and re-evaluated
+    else {
+        var _array = Array.prototype.slice.call(arguments);
+        array = fetchArray( _array, 1);
+    }
+  }
+
+ function fetchArray(arr, iteration) {
+    var _array;
+
+    // check if is a Lichen List or Table
+    if ( arr.type !== undefined) {
+        _array = arr.clone();
+        if ( _array.type == 'NumberTable')
+            return _array.toArray();
+        else if ( _array.type == 'NumberList')
+            return [_array.toArray()];
+        else
+            return [];
+    }
+    else { // is a simple array
+
+        //clone the array
+        _array = [];
+        for ( var i=0; i<arr.length; i++){
+            /* if is an array containing other array, fetch it and then pass to _array.
+             * here the iteration number (>1) is important to not receive a Table (*1) */
+            if( Array.isArray(arr[i]) && arr[i].type === undefined )
+                arr[i] = fetchArray( arr[i], ++iteration);
+            _array[i] = arr[i];
+        }
+
+        if ( _array.length == 0 )
+            return []; //empty array
+        else if ( _array.length == 1 ) {
+            if ( typeof _array[0] == 'number' )
+                return [_array]; // an array with just one number as a one element list
+            else if ( Array.isArray(_array[0]) )
+                return _array; // an array
+            else // any other type return empty array
+                return [];
+        }
+        else if ( _array.length > 1 ) {
+            // if is the first iteration with an array of numbers, return it as a Table (*1)
+            if ( typeof _array[0] == 'number' && iteration == 1 )// {
+                return [_array];
+            else // otherwise, it returns the array
+                return _array;
+        }
+    }
+ }
+
   array = NumberTable.fromArray(array);
   return array;
 }
