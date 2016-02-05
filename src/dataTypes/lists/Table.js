@@ -55,6 +55,9 @@ export default Table;
  * @return {Table}
  */
 Table.fromArray = function(array) {
+  for ( var i=0; i< array.length; i++ ){
+    if( Array.isArray(array[i]) ) array[i] = List.fromArray(array[i]);
+  }
   var result = List.fromArray(array);
   result.type = "Table";
   //assign methods to array:
