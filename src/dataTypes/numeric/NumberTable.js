@@ -9,10 +9,19 @@ NumberTable.prototype.constructor = NumberTable;
 /**
  * @classdesc {@link Table} to store numbers.
  *
- * @param [Number|[Number]] args If a single Number, indicates number of
- * columns to make for the NumberTable. Each column is created as an empty
- * NumberList. If an Array, or a set of Arrays, it will make a new NumberList
- * for each array present, populating it with the contents of the array.
+ * @param [ Number|[Number]|array|[array]|NumberList|[NumberList]|NumberTable ]
+ * args If
+ * Single Number: indicates number of columns to make for the NumberTable.
+ *              Each column is created as an empty NumberList;
+ * Set of Numbers: it will make a new NumberList containing all the listed numbers,
+ *              this NumberList will be the single column for the NumberTable;
+ * Array, or a set of Arrays: it will make a new NumberList for each array
+ *              present, populating it with the cloned contents of the array;
+ * Two dimensional array: it will make a new NumberTable, containing
+ *              the nested arrays as NumberLists.
+ * NumberList, or a set of NumberList: it will make a new NumberTable
+ *              populating it with the incoming cloned NumberLists;
+ * NumberTable: it will clone the incoming NumberTable to create a new one;
  *
  * Additional functions that work on NumberTable can be found in:
  * <ul>
@@ -37,7 +46,7 @@ function NumberTable() {
             array.push([]);
         }
     }
-    // one argument as array (NumberList, TableList)
+    // one argument as array|NumberList|TableList
     else if ( Array.isArray(args[0]) ) {
         array = fetchArray(args[0],1);
     }
@@ -51,7 +60,7 @@ function NumberTable() {
         }
         array.push(arr);
     }
-    // for arguments other than numbers. turn the arguments into an array
+    // for arguments other than numbers. turns the arguments into an array
     else {
         var _array = Array.prototype.slice.call(args);
         array = fetchArray( _array, 1);
