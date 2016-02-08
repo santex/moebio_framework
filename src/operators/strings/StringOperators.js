@@ -1,5 +1,4 @@
 import StringList from "src/dataTypes/strings/StringList";
-import ListOperators from "src/operators/lists/ListOperators";
 import NumberList from "src/dataTypes/numeric/NumberList";
 import ColorListGenerators from "src/operators/graphic/ColorListGenerators";
 import ColorOperators from "src/operators/graphic/ColorOperators";
@@ -722,7 +721,7 @@ StringOperators.getWordsOccurrencesTable = function(string, stopWords, includeLi
   if(string.length === 0) return new Table(new StringList(), new NumberList());
 
   if(stopWords==1) stopWords = StringOperators.STOP_WORDS;
-  
+
   var words = StringOperators.getWords(string, false, stopWords, false, includeLinks, null, minSizeWords);
   var table;
   if(limit != null)
@@ -879,12 +878,12 @@ StringOperators.createsCategoricalColorsBlocksHtml = function(normalizedWeights,
 };
 
 /**
- * calculate the Levenshtein Distance between two strings
+ * calculate the Levenshtein (aka edit) Distance between two strings
  * @param {String} text1
  * @param {String} text2
  *
  * @return {Number} edit distance
- * tags:count
+ * tags:distance
  */
 StringOperators.getLevenshteinDistance = function(a, b) {
 /*
