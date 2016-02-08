@@ -175,7 +175,7 @@ Table.prototype.sliceRows = function(startIndex, endIndex) {
 };
 
 /**
- * Filters the lists of the table by indexes.
+ * Filters the lists of the table by indexes (getRows).
  * @param  {NumberList} indexes
  * @return {Table}
  * tags:filter
