@@ -1264,7 +1264,9 @@ ListOperators.buildInformationObject = function(list){
     infoObject.average = average;
     infoObject.shorten = shorten;
     infoObject.allIntegers = allIntegers;
-    infoObject.kind = "numbers";
+    infoObject.kind = allIntegers?"integer numbers":"numbers";
+    infoObject.allPositive = infoObject.min>=0;
+    infoObject.allNegative = infoObject.min<0;
   }
 
   if(list.type != "NumberList" || infoObject.allIntegers) {
@@ -1272,13 +1274,17 @@ ListOperators.buildInformationObject = function(list){
     infoObject.numberDifferentElements = infoObject.frequenciesTable[0].length;
     infoObject.categoricalColors = infoObject.frequenciesTable[3];
     
+
     if(list.type=="StringList" && infoObject.numberDifferentElements/list.length>0.8){
+      //if 80% of texts are different, they aren't reckoned as categories
       infoObject.kind = "texts";
-    } else if(list.type!="NumberList" ||  (list.type=="NumberList" && infoObject.numberDifferentElements/list.length<0.8) ){
+    } else if(list.type!="NumberList"){// ||  (list.type=="NumberList" && infoObject.numberDifferentElements/list.length<0.8) ){
       infoObject.kind = "categories";
+    } else if(list.type=="NumberList"){
+      infoObject.kind = "integer numbers";
     }
 
-    if(infoObject.kind == "categories") infoObject.entropy = ListOperators.getListEntropy(list, null, infoObject.frequenciesTable);
+    if(infoObject.kind == "categories" || infoObject.kind == "integer numbers") infoObject.entropy = ListOperators.getListEntropy(list, null, infoObject.frequenciesTable);
   }
 
   return infoObject;
@@ -1320,8 +1326,8 @@ ListOperators.getReport = function(list, level, infoObject) { //TODO:complete
       text += ident + "min: " + infoObject.min;
       text += ident + "max: " + infoObject.max;
       text += ident + "average: " + infoObject.average;
-      text += ident + (infoObject.allIntegers?"":"not ")+"all are integers";
-      if(length < 101) {
+      //text += ident + (infoObject.allIntegers?"":"not ")+"all are integers";
+      if(length < 41) {
         text += ident + "numbers: " + list.join(", ");
       }
       break;
@@ -1348,7 +1354,7 @@ ListOperators.getReport = function(list, level, infoObject) { //TODO:complete
         joined = ListConversions.toStringList(list).join("], [");
       }
 
-      if(joined.length < 2000) text += ident + "strings: [" + joined + "]";
+      if(joined.length < 1000) text += ident + "strings: [" + joined + "]";
       break;
 
   }
@@ -1371,6 +1377,9 @@ ListOperators.getReportHtml = function(list, level, infoObject) { //TODO:complet
 
   infoObject = infoObject==null?ListOperators.buildInformationObject(list):infoObject;
 
+  console.log('getReportHtml, infoObject:', infoObject);
+  //console.log('infoObject.entropy', infoObject.entropy);
+
   var ident = "<br>" + (level > 0 ? StringOperators.repeatString("&nbsp", level) : "");
   var text =  level > 0 ? "" : "<b><font style=\"font-size:18px\">list report</f></b>";
 
@@ -1378,16 +1387,20 @@ ListOperators.getReportHtml = function(list, level, infoObject) { //TODO:complet
   var i, n;
 
   var categoriesText = function(list, ident, infoObject){
-    var text = ident + "entropy: <b>" + NumberOperators.numberToString(infoObject.entropy, 4) + "</b>";
+    //console.log('infoObject.entropy', infoObject.entropy);
+    var text = "";
+    if(infoObject.entropy) text += ident + "entropy: <b>" + NumberOperators.numberToString(infoObject.entropy, 4) + "</b>";
     text += ident + "number of different elements: <b>" + infoObject.frequenciesTable[0].length + "</b>";
     if(infoObject.frequenciesTable[0].length < 10) {
       text += ident + "elements frequency:";
-    } else {
+    } else if(infoObject.frequenciesTable[0].length < list.length){
       text += ident + "some elements frequency:";
     }
 
-    for(i = 0; infoObject.frequenciesTable[0][i] != null && i < 10; i++) {
-      text += ident + "  [<b>" + String(infoObject.frequenciesTable[0][i]) + "</b>]: <font style=\"font-size:10px\"><b><font color=\""+ColorOperators.colorStringToHEX(infoObject.categoricalColors[i])+"\">" + infoObject.frequenciesTable[1][i] + "</f></b></f>";
+    if(infoObject.frequenciesTable[0].length < list.length){
+      for(i = 0; infoObject.frequenciesTable[0][i] != null && i < 10; i++) {
+        text += ident + "  [<b>" + String(infoObject.frequenciesTable[0][i]) + "</b>]: <font style=\"font-size:10px\"><b><font color=\""+ColorOperators.colorStringToHEX(infoObject.categoricalColors[i])+"\">" + infoObject.frequenciesTable[1][i] + "</f></b></f>";
+      }
     }
 
     var joined;
@@ -1397,7 +1410,7 @@ ListOperators.getReportHtml = function(list, level, infoObject) { //TODO:complet
       joined = ListConversions.toStringList(list).join("], [");
     }
 
-    if(joined.length < 2000) text += ident + "contents: [" + joined + "]";
+    if(joined.length < 1000) text += ident + "contents: [" + joined + "]";
 
     return text;
   };
@@ -1423,13 +1436,13 @@ ListOperators.getReportHtml = function(list, level, infoObject) { //TODO:complet
       text += ident + "min: <b>" + infoObject.min + "</b>";
       text += ident + "max: <b>" + infoObject.max + "</b>";
       text += ident + "average: <b>" + infoObject.average + "</b>";
-      text += ident + (infoObject.allIntegers?"":"not ")+"all are integers</b>";
-      if(length < 101) {
+      //text += ident + (infoObject.allIntegers?"":"not ")+"all are integers</b>";
+      if(length < 41) {
         text += ident + "numbers: <b>" + list.join("</b>, <b>") + "</b>";
       }
 
-      if(infoObject.kind=="categories") text += categoriesText(list, ident, infoObject);
-
+      if(infoObject.kind=="categories" || infoObject.kind=="integer numbers") text += categoriesText(list, ident, infoObject);
+      
       text += ident;
       n = infoObject.shorten.length;
       for(i=0; i<n; i++){
