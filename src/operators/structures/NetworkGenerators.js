@@ -132,7 +132,6 @@ NetworkGenerators.createNetworkFromTexts = function(stringList, threshold, title
 
   for(i=0; i<nTexts; i++){
     freqTablesList[i] = StringOperators.getWordsOccurrencesTable(stringList[i], stopWords, true, 200, 3);
-    //freqTablesList[i][2] = freqTablesList[i][1].getNormalized();
   }
   
   if(titles==null){
