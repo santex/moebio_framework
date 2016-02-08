@@ -1080,19 +1080,25 @@ List.prototype.getFirstElementByName = function(name, returnIndex) {
  * tags:filter
  */
 List.prototype.getElementsByNames = function(names, returnIndex) {
+  if(names==null) return;
+
   var list = returnIndex ? new NumberList() : new List();
-  var i;
+  var j, i;
+  var name;
   var l = this.length;
 
-  names.forEach(function(name) {
+  //names.forEach(function(name) {
+  for(j=0; j<names.length; j++){
+    name = names[j];
     for(i = 0; i<l; i++) {
       if(this[i].name == name) {
         list.push(returnIndex ? i : this[i]);
         break;
       }
     }
-    list.push(returnIndex ? -1 : null);
-  });
+    //list.push(returnIndex ? -1 : null);
+  }
+  //});
 
   return returnIndex ? list : list.getImproved();
 };
