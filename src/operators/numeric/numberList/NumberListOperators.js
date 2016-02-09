@@ -148,13 +148,18 @@ NumberListOperators.standardDeviationBetweenTwoNumberLists = function(numberList
  * returns Pearson Product Moment Correlation, the most common correlation coefficient ( covariance/(standard_deviation0*standard_deviation1) )
  * @param  {NumberList} numberList0
  * @param  {NumberList} numberList1
+
+ * @param {Number} sd0 standrad deviation of list 0, accelerates opeartion if previously calculated
+ * @param {Number} sd1 standrad deviation of list 1, accelerates opeartion if previously calculated
  * @return {Number}
  * tags:statistics
  */
-NumberListOperators.pearsonProductMomentCorrelation = function(numberList0, numberList1) { //TODO:make more efficient
+NumberListOperators.pearsonProductMomentCorrelation = function(numberList0, numberList1, sd0, sd1) { //TODO:make more efficient
   if(numberList0==null || numberList1==null) return;
+  if(sd0==null) sd0 = numberList0.getStandardDeviation();
+  if(sd1==null) sd1 = numberList1.getStandardDeviation();
   
-  var stndDeviations = numberList0.getStandardDeviation() * numberList1.getStandardDeviation();
+  var stndDeviations = sd0*sd1;//numberList0.getStandardDeviation() * numberList1.getStandardDeviation();
   if(stndDeviations===0) return 0;
   return NumberListOperators.covariance(numberList0, numberList1) / stndDeviations;
 };

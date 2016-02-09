@@ -1178,6 +1178,26 @@ TableOperators.buildCorrelationsNetwork = function(table, nodesAreRows, names, m
 
   var network = new Network();
 
+
+  var pseudoKinds = new StringList(); //numbers, categories and texts; similar to kind
+  var type;
+
+  for(i=0; i<l;i++){
+    type = table[i].type;
+    if(type == "NumberList"){
+      pseudoKinds[i] = 'numbers';
+    } else if(type == 'StringList'){
+      if(table[i].getWithoutRepetitions().length/table[i].length>0.8){
+        pseudoKinds[i] = 'texts';
+      } else {
+        pseudoKinds[i] = 'categories';
+      }
+    } else {
+      pseudoKinds[i] = 'categories';
+    }
+  }
+
+
   if(colorsByList!=null){
 
     if(typeOf(colorsByList)=="number"){
@@ -1243,12 +1263,26 @@ TableOperators.buildCorrelationsNetwork = function(table, nodesAreRows, names, m
       node.row = table.getRow(i);
       node.numbers = new NumberList();
       node.categories = new List();
+      node.texts = new StringList();
 
       if(colors) node.color = colors[i];
 
       for(j=0; j<l; j++){
-        types[j]==="NumberList"?node.numbers.push(node.row[j]):node.categories.push(node.row[j]);
+        //types[j]==="NumberList"?node.numbers.push(node.row[j]):node.categories.push(node.row[j]);
+        switch(pseudoKinds[j]){
+          case 'numbers':
+            node.numbers.push(node.row[j]);
+            break;
+          case 'categories':
+            node.categories.push(node.row[j]);
+            break;
+          case 'texts':
+            node.texts.push(node.row[j]);
+            break;
+        }
       }
+
+      node.numbers.sd = node.numbers.getStandardDeviation();
 
       network.addNode(node);
     }
@@ -1258,14 +1292,22 @@ TableOperators.buildCorrelationsNetwork = function(table, nodesAreRows, names, m
       for(j=i+1; j<nRows; j++){
         node1 = network.nodeList[j];
         
-        pearson = NumberListOperators.pearsonProductMomentCorrelation(node.numbers, node1.numbers);
+        pearson = NumberListOperators.pearsonProductMomentCorrelation(node.numbers, node1.numbers, node.numbers.sd, node1.numbers.sd);
 
         //jaccard is normalized to -1, 1 so it can be negative 
         jaccard = Math.pow( ListOperators.jaccardIndex(node.categories, node1.categories), 0.2 )*2 - 1;
 
+
+        //texts
+
+        //textDistance = cosine simlairty based on pre-calculated words tables
+
+
+        //dates, geo coordinates…
+
+
         weight = (pearson + jaccard)*0.5;
 
-        //if(Math.abs(pearson)>0.1){
         if( (negativeCorrelation && Math.abs(weight)>correlationThreshold) || (!negativeCorrelation && weight>correlationThreshold) ){
           id = i+"_"+j;
           name = names==null?id:node.name+"_"+node1.name;

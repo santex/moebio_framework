@@ -718,7 +718,8 @@ ListOperators.symmetricDifference = function(list0, list1) {
  */
 ListOperators.jaccardIndex = function(list0, list1, sigma) {//TODO: see if this can be more efficient, maybe one idctionar for doing union and interstection at the same time
   var union  = ListOperators.union(list0, list1).length;
-  if(union==0) return 0;
+  if(union===0) return 0;
+  sigma = sigma==null?0:sigma;
   return (ListOperators.intersection(list0, list1).length+sigma)/union;
 };
 
@@ -1376,8 +1377,6 @@ ListOperators.getReportHtml = function(list, level, infoObject) { //TODO:complet
   if(list==null) return;
 
   infoObject = infoObject==null?ListOperators.buildInformationObject(list):infoObject;
-
-  console.log('getReportHtml, infoObject:', infoObject);
   //console.log('infoObject.entropy', infoObject.entropy);
 
   var ident = "<br>" + (level > 0 ? StringOperators.repeatString("&nbsp", level) : "");
@@ -1442,7 +1441,7 @@ ListOperators.getReportHtml = function(list, level, infoObject) { //TODO:complet
       }
 
       if(infoObject.kind=="categories" || infoObject.kind=="integer numbers") text += categoriesText(list, ident, infoObject);
-      
+
       text += ident;
       n = infoObject.shorten.length;
       for(i=0; i<n; i++){

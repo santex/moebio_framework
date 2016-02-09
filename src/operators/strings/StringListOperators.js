@@ -224,51 +224,50 @@ StringListOperators.countStringsOccurrencesOnTexts = function(strings, texts, as
 
 /**
  * builds a table with a list of occurrent words and numberLists for occurrences in each string
- * @param  {StringList} strings
+ * @param  {StringList} texts
  *
- * @param  {StringList} stopWords words to be excluded from the list
- * @param  {Boolean} includeLinks
- * @param  {Number} wordsLimitPerString number of words extracted per string
- * @param  {Number} totalWordsLimit final number of words
- * @param  {Boolean} normalize normalize lists to sum
- * @param {Boolean} stressUniqueness divide number of occurrences in string by total number of occurrences (words that appear in one or only few texts become more weighed)
- * @param {Boolean} sortByTotalWeight sort all columns by total weights of words
- * @param  {Number} minSizeWords
+ * @param {Number} weightsMode weights mode<br>0: words count (default)<br>1: words count normalized to sum (a single word weights add up 1)<br>2:tf-idf simple (term frequency - inverse document frequency), divides number of occurrences in string by total number of texts the word occurs (see: https://en.wikipedia.org/wiki/Tf%E2%80%93idf)<br>3:tf-idf classic (idf = log(N/nt))
+ * @param {StringList} stopWords words to be excluded from the list (if value is 1, stopwords will be default english stopwrods at StringOperators.STOP_WORDS)
+ * @param {Boolean} includeLinks
+ * @param {Number} wordsLimitPerString number of words extracted per string
+ * @param {Number} totalWordsLimit final number of words
+ * @param {Boolean} sortByTotalWeight sort all columns by total weights of words (default: true)
+ * @param {Number} minSizeWords
+ * @param {Boolean} addTotalList adds a numberList with sums of weights for each word (this is ths list used optionally to sort the lists of the table) (default: false)
  * @return {Table}
  * tags:count
  */
-StringListOperators.getWordsOccurrencesMatrix = function(strings, stopWords, includeLinks, wordsLimitPerString, totalWordsLimit, normalize, stressUniqueness, sortByTotalWeight, minSizeWords) {
-  if(strings == null) return;
+StringListOperators.getWordsInTextsOccurrencesTable = function(texts, weightsMode, stopWords, includeLinks, wordsLimitPerString, totalWordsLimit, sortByTotalWeight, minSizeWords, addTotalList) {
+  if(texts == null) return;
 
-  var i;
+  var i, j;
   var matrix;
+  var nTexts = texts.length;
+
+  if(stopWords==1) stopWords = StringOperators.STOP_WORDS;
 
   wordsLimitPerString = wordsLimitPerString || 500;
   totalWordsLimit = totalWordsLimit || 1000;
-  normalize = normalize == null ? true : normalize;
-  stressUniqueness = stressUniqueness || false;
+  var normalize = weightsMode==1;
+  var tfidf = weightsMode==2 || weightsMode==3;
   sortByTotalWeight = (sortByTotalWeight || true);
   minSizeWords = minSizeWords == null ? 3 : minSizeWords;
 
-  if(strings[0]==""){
+  if(texts[0]===""){
     matrix = new Table();
     matrix.push(new StringList(""));
     matrix.push(new NumberList(0));
-    console.log('-.-');
   } else {
-    matrix = StringOperators.getWordsOccurrencesTable(strings[0], stopWords, includeLinks, wordsLimitPerString, minSizeWords);
+    matrix = StringOperators.getWordsOccurrencesTable(texts[0], stopWords, includeLinks, wordsLimitPerString, minSizeWords);
   }
 
 
   var table;
-  var nStrings = strings.length;
-  for(i = 1; i<nStrings; i++) {
-
-    if(strings[i]==""){
+  for(i = 1; i<nTexts; i++){
+    if(texts[i]===""){
       matrix.push(ListGenerators.createListWithSameElement(matrix[0].length, 0));
-      console.log('-.-');
     } else {
-      table = StringOperators.getWordsOccurrencesTable(strings[i], stopWords, includeLinks, wordsLimitPerString, minSizeWords);
+      table = StringOperators.getWordsOccurrencesTable(texts[i], stopWords, includeLinks, wordsLimitPerString, minSizeWords);
       matrix = TableOperators.mergeDataTables(matrix, table);
     }
   }
@@ -276,27 +275,60 @@ StringListOperators.getWordsOccurrencesMatrix = function(strings, stopWords, inc
 
   if(matrix[0].length > totalWordsLimit) sortByTotalWeight = true;
 
-  if(stressUniqueness || sortByTotalWeight) {
-    var totalList = new NumberList();
-    totalList = matrix[1].clone();
-    matrix.forEach(function(occurrences, i) {
-      if(i < 2) return;
-      occurrences.forEach(function(value, j) {
-        totalList[j] += value;
-      });
-    });
+  matrix[0].name = 'words';
 
-    if(stressUniqueness) {
-      matrix.forEach(function(occurrences, i) {
-        if(i === 0) return;
-        occurrences.forEach(function(value, j) {
-          occurrences[j] = value / totalList[j];
-        });
-      });
+  if(tfidf || sortByTotalWeight || addTotalList) {
+    var totalList = new NumberList();
+    var occurrencesInText;
+    totalList = matrix[1].clone();
+    var idf = ListGenerators.createListWithSameElement(matrix[0].length, 0, 'idf');
+
+    for(i=1; i<matrix.length; i++){
+        occurrencesInText = matrix[i];
+        occurrencesInText.name = 'text '+(i-1);
+        for(j=0; j<occurrencesInText.length; j++){
+          if(occurrencesInText[j]>0){
+            if(i>1) totalList[j] += occurrencesInText[j];
+            idf[j]++;
+          }
+        }
+    }
+    
+    if(tfidf) {
+
+      totalList = ListGenerators.createListWithSameElement(matrix[0].length, 0, 'total tf-idf');
+
+      if(weightsMode==2){
+        for(i=1; i<matrix.length; i++){
+          occurrencesInText = matrix[i];
+          for(j=0; j<occurrencesInText.length; j++){
+            occurrencesInText[j] /= idf[j];
+            totalList[j] += occurrencesInText[j];
+          }
+        }
+      } else {
+        for(i=1; i<matrix.length; i++){
+          occurrencesInText = matrix[i];
+          for(j=0; j<occurrencesInText.length; j++){
+            occurrencesInText[j] *= Math.log(nTexts/idf[j]);
+            totalList[j] += occurrencesInText[j];
+          }
+        }
+      }
+    }
+
+    if(addTotalList){
+      matrix.push(totalList);
+      totalList.name = 'totals';
     }
 
     if(sortByTotalWeight) {
       matrix = matrix.getListsSortedByList(totalList, false);
+    }
+
+  } else {
+    for(i=1; i<matrix.length; i++){
+      matrix[i].name = 'text '+(i-1);
     }
   }
 
@@ -313,46 +345,46 @@ StringListOperators.getWordsOccurrencesMatrix = function(strings, stopWords, inc
   return matrix;
 };
 
-//good approach for few large texts, to be tested
+
 /**
- * @todo finish docs
+ * deprecated, replaced by NetworkGenerators.createNetworkFromTexts
  */
-StringListOperators.createTextsNetwork = function(texts, stopWords, stressUniqueness, relationThreshold) {
-  var i, j;
-  var network = new Network();
+// StringListOperators.createTextsNetwork = function(texts, stopWords, stresuniqueness, relationThreshold) {
+//   var i, j;
+//   var network = new Network();
 
-  var matrix = StringListOperators.getWordsOccurrencesMatrix(texts, stopWords, false, 600, 800, false, true, false, 3);
+//   var matrix = StringListOperators.getWordsOccurrencesTable(texts, stopWords, false, 600, 800, false, true, false, 3);
 
-  texts.forEach(function(text, i) {
-    var node = new Node("_" + i, "_" + i);
-    node.content = text;
-    node.wordsWeights = matrix[i + 1];
-    network.addNode(node);
-  });
+//   texts.forEach(function(text, i) {
+//     var node = new Node("_" + i, "_" + i);
+//     node.content = text;
+//     node.wordsWeights = matrix[i + 1];
+//     network.addNode(node);
+//   });
 
-  for(i = 0; network.nodeList[i + 1] != null; i++) {
-    var node = network.nodeList[i];
-    for(j = i + 1; network.nodeList[j] != null; j++) {
-      var node1 = network.nodeList[j];
+//   for(i = 0; network.nodeList[i + 1] != null; i++) {
+//     var node = network.nodeList[i];
+//     for(j = i + 1; network.nodeList[j] != null; j++) {
+//       var node1 = network.nodeList[j];
 
-      var weight = NumberListOperators.cosineSimilarity(node.wordsWeights, node1.wordsWeights);
+//       var weight = NumberListOperators.cosineSimilarity(node.wordsWeights, node1.wordsWeights);
 
-      if(i === 0 && j == 1) {
-        console.log(node.wordsWeights.length, node1.wordsWeights.length, weight);
-        console.log(node.wordsWeights.type, node.wordsWeights);
-        console.log(node1.wordsWeights.type, node1.wordsWeights);
-        console.log(node.wordsWeights.getNorm() * node1.wordsWeights.getNorm());
-      }
+//       if(i === 0 && j == 1) {
+//         console.log(node.wordsWeights.length, node1.wordsWeights.length, weight);
+//         console.log(node.wordsWeights.type, node.wordsWeights);
+//         console.log(node1.wordsWeights.type, node1.wordsWeights);
+//         console.log(node.wordsWeights.getNorm() * node1.wordsWeights.getNorm());
+//       }
 
-      if(weight > relationThreshold) {
-        var relation = new Relation(node.id + "_" + node1.id, node.id + "_" + node1.id, node, node1, weight);
-        network.addRelation(relation);
-      }
-    }
-  }
+//       if(weight > relationThreshold) {
+//         var relation = new Relation(node.id + "_" + node1.id, node.id + "_" + node1.id, node, node1, weight);
+//         network.addRelation(relation);
+//       }
+//     }
+//   }
 
-  return network;
-};
+//   return network;
+// };
 
 
 /**

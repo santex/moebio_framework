@@ -2172,19 +2172,25 @@
    * tags:filter
    */
   List.prototype.getElementsByNames = function(names, returnIndex) {
+    if(names==null) return;
+
     var list = returnIndex ? new NumberList() : new List();
-    var i;
+    var j, i;
+    var name;
     var l = this.length;
 
-    names.forEach(function(name) {
+    //names.forEach(function(name) {
+    for(j=0; j<names.length; j++){
+      name = names[j];
       for(i = 0; i<l; i++) {
         if(this[i].name == name) {
           list.push(returnIndex ? i : this[i]);
           break;
         }
       }
-      list.push(returnIndex ? -1 : null);
-    });
+      //list.push(returnIndex ? -1 : null);
+    }
+    //});
 
     return returnIndex ? list : list.getImproved();
   };
@@ -4701,7 +4707,7 @@
   };
 
   /**
-   * Filters the lists of the table by indexes.
+   * Filters the lists of the table by indexes (getRows).
    * @param  {NumberList} indexes
    * @return {Table}
    * tags:filter
@@ -7251,7 +7257,8 @@
    */
   ListOperators.jaccardIndex = function(list0, list1, sigma) {//TODO: see if this can be more efficient, maybe one idctionar for doing union and interstection at the same time
     var union  = ListOperators.union(list0, list1).length;
-    if(union==0) return 0;
+    if(union===0) return 0;
+    sigma = sigma==null?0:sigma;
     return (ListOperators.intersection(list0, list1).length+sigma)/union;
   };
 
@@ -7797,7 +7804,9 @@
       infoObject.average = average;
       infoObject.shorten = shorten;
       infoObject.allIntegers = allIntegers;
-      infoObject.kind = "numbers";
+      infoObject.kind = allIntegers?"integer numbers":"numbers";
+      infoObject.allPositive = infoObject.min>=0;
+      infoObject.allNegative = infoObject.min<0;
     }
 
     if(list.type != "NumberList" || infoObject.allIntegers) {
@@ -7805,13 +7814,17 @@
       infoObject.numberDifferentElements = infoObject.frequenciesTable[0].length;
       infoObject.categoricalColors = infoObject.frequenciesTable[3];
       
+
       if(list.type=="StringList" && infoObject.numberDifferentElements/list.length>0.8){
+        //if 80% of texts are different, they aren't reckoned as categories
         infoObject.kind = "texts";
-      } else if(list.type!="NumberList" ||  (list.type=="NumberList" && infoObject.numberDifferentElements/list.length<0.8) ){
+      } else if(list.type!="NumberList"){// ||  (list.type=="NumberList" && infoObject.numberDifferentElements/list.length<0.8) ){
         infoObject.kind = "categories";
+      } else if(list.type=="NumberList"){
+        infoObject.kind = "integer numbers";
       }
 
-      if(infoObject.kind == "categories") infoObject.entropy = ListOperators.getListEntropy(list, null, infoObject.frequenciesTable);
+      if(infoObject.kind == "categories" || infoObject.kind == "integer numbers") infoObject.entropy = ListOperators.getListEntropy(list, null, infoObject.frequenciesTable);
     }
 
     return infoObject;
@@ -7853,8 +7866,8 @@
         text += ident + "min: " + infoObject.min;
         text += ident + "max: " + infoObject.max;
         text += ident + "average: " + infoObject.average;
-        text += ident + (infoObject.allIntegers?"":"not ")+"all are integers";
-        if(length < 101) {
+        //text += ident + (infoObject.allIntegers?"":"not ")+"all are integers";
+        if(length < 41) {
           text += ident + "numbers: " + list.join(", ");
         }
         break;
@@ -7881,7 +7894,7 @@
           joined = ListConversions.toStringList(list).join("], [");
         }
 
-        if(joined.length < 2000) text += ident + "strings: [" + joined + "]";
+        if(joined.length < 1000) text += ident + "strings: [" + joined + "]";
         break;
 
     }
@@ -7903,6 +7916,7 @@
     if(list==null) return;
 
     infoObject = infoObject==null?ListOperators.buildInformationObject(list):infoObject;
+    //console.log('infoObject.entropy', infoObject.entropy);
 
     var ident = "<br>" + (level > 0 ? StringOperators.repeatString("&nbsp", level) : "");
     var text =  level > 0 ? "" : "<b><font style=\"font-size:18px\">list report</f></b>";
@@ -7911,16 +7925,20 @@
     var i, n;
 
     var categoriesText = function(list, ident, infoObject){
-      var text = ident + "entropy: <b>" + NumberOperators.numberToString(infoObject.entropy, 4) + "</b>";
+      //console.log('infoObject.entropy', infoObject.entropy);
+      var text = "";
+      if(infoObject.entropy) text += ident + "entropy: <b>" + NumberOperators.numberToString(infoObject.entropy, 4) + "</b>";
       text += ident + "number of different elements: <b>" + infoObject.frequenciesTable[0].length + "</b>";
       if(infoObject.frequenciesTable[0].length < 10) {
         text += ident + "elements frequency:";
-      } else {
+      } else if(infoObject.frequenciesTable[0].length < list.length){
         text += ident + "some elements frequency:";
       }
 
-      for(i = 0; infoObject.frequenciesTable[0][i] != null && i < 10; i++) {
-        text += ident + "  [<b>" + String(infoObject.frequenciesTable[0][i]) + "</b>]: <font style=\"font-size:10px\"><b><font color=\""+ColorOperators.colorStringToHEX(infoObject.categoricalColors[i])+"\">" + infoObject.frequenciesTable[1][i] + "</f></b></f>";
+      if(infoObject.frequenciesTable[0].length < list.length){
+        for(i = 0; infoObject.frequenciesTable[0][i] != null && i < 10; i++) {
+          text += ident + "  [<b>" + String(infoObject.frequenciesTable[0][i]) + "</b>]: <font style=\"font-size:10px\"><b><font color=\""+ColorOperators.colorStringToHEX(infoObject.categoricalColors[i])+"\">" + infoObject.frequenciesTable[1][i] + "</f></b></f>";
+        }
       }
 
       var joined;
@@ -7930,7 +7948,7 @@
         joined = ListConversions.toStringList(list).join("], [");
       }
 
-      if(joined.length < 2000) text += ident + "contents: [" + joined + "]";
+      if(joined.length < 1000) text += ident + "contents: [" + joined + "]";
 
       return text;
     };
@@ -7956,12 +7974,12 @@
         text += ident + "min: <b>" + infoObject.min + "</b>";
         text += ident + "max: <b>" + infoObject.max + "</b>";
         text += ident + "average: <b>" + infoObject.average + "</b>";
-        text += ident + (infoObject.allIntegers?"":"not ")+"all are integers</b>";
-        if(length < 101) {
+        //text += ident + (infoObject.allIntegers?"":"not ")+"all are integers</b>";
+        if(length < 41) {
           text += ident + "numbers: <b>" + list.join("</b>, <b>") + "</b>";
         }
 
-        if(infoObject.kind=="categories") text += categoriesText(list, ident, infoObject);
+        if(infoObject.kind=="categories" || infoObject.kind=="integer numbers") text += categoriesText(list, ident, infoObject);
 
         text += ident;
         n = infoObject.shorten.length;
@@ -8388,13 +8406,18 @@
    * returns Pearson Product Moment Correlation, the most common correlation coefficient ( covariance/(standard_deviation0*standard_deviation1) )
    * @param  {NumberList} numberList0
    * @param  {NumberList} numberList1
+
+   * @param {Number} sd0 standrad deviation of list 0, accelerates opeartion if previously calculated
+   * @param {Number} sd1 standrad deviation of list 1, accelerates opeartion if previously calculated
    * @return {Number}
    * tags:statistics
    */
-  NumberListOperators.pearsonProductMomentCorrelation = function(numberList0, numberList1) { //TODO:make more efficient
+  NumberListOperators.pearsonProductMomentCorrelation = function(numberList0, numberList1, sd0, sd1) { //TODO:make more efficient
     if(numberList0==null || numberList1==null) return;
+    if(sd0==null) sd0 = numberList0.getStandardDeviation();
+    if(sd1==null) sd1 = numberList1.getStandardDeviation();
     
-    var stndDeviations = numberList0.getStandardDeviation() * numberList1.getStandardDeviation();
+    var stndDeviations = sd0*sd1;//numberList0.getStandardDeviation() * numberList1.getStandardDeviation();
     if(stndDeviations===0) return 0;
     return NumberListOperators.covariance(numberList0, numberList1) / stndDeviations;
   };
@@ -9988,7 +10011,7 @@
     if(string.length === 0) return new Table(new StringList(), new NumberList());
 
     if(stopWords==1) stopWords = StringOperators.STOP_WORDS;
-    
+
     var words = StringOperators.getWords(string, false, stopWords, false, includeLinks, null, minSizeWords);
     var table;
     if(limit != null)
@@ -10145,12 +10168,12 @@
   };
 
   /**
-   * calculate the Levenshtein Distance between two strings
+   * calculate the Levenshtein (aka edit) Distance between two strings
    * @param {String} text1
    * @param {String} text2
    *
    * @return {Number} edit distance
-   * tags:count
+   * tags:distance
    */
   StringOperators.getLevenshteinDistance = function(a, b) {
   /*
@@ -18292,6 +18315,26 @@
 
     var network = new Network();
 
+
+    var pseudoKinds = new StringList(); //numbers, categories and texts; similar to kind
+    var type;
+
+    for(i=0; i<l;i++){
+      type = table[i].type;
+      if(type == "NumberList"){
+        pseudoKinds[i] = 'numbers';
+      } else if(type == 'StringList'){
+        if(table[i].getWithoutRepetitions().length/table[i].length>0.8){
+          pseudoKinds[i] = 'texts';
+        } else {
+          pseudoKinds[i] = 'categories';
+        }
+      } else {
+        pseudoKinds[i] = 'categories';
+      }
+    }
+
+
     if(colorsByList!=null){
 
       if(_typeOf(colorsByList)=="number"){
@@ -18357,12 +18400,26 @@
         node.row = table.getRow(i);
         node.numbers = new NumberList();
         node.categories = new List();
+        node.texts = new StringList();
 
         if(colors) node.color = colors[i];
 
         for(j=0; j<l; j++){
-          types[j]==="NumberList"?node.numbers.push(node.row[j]):node.categories.push(node.row[j]);
+          //types[j]==="NumberList"?node.numbers.push(node.row[j]):node.categories.push(node.row[j]);
+          switch(pseudoKinds[j]){
+            case 'numbers':
+              node.numbers.push(node.row[j]);
+              break;
+            case 'categories':
+              node.categories.push(node.row[j]);
+              break;
+            case 'texts':
+              node.texts.push(node.row[j]);
+              break;
+          }
         }
+
+        node.numbers.sd = node.numbers.getStandardDeviation();
 
         network.addNode(node);
       }
@@ -18372,14 +18429,22 @@
         for(j=i+1; j<nRows; j++){
           node1 = network.nodeList[j];
           
-          pearson = NumberListOperators.pearsonProductMomentCorrelation(node.numbers, node1.numbers);
+          pearson = NumberListOperators.pearsonProductMomentCorrelation(node.numbers, node1.numbers, node.numbers.sd, node1.numbers.sd);
 
           //jaccard is normalized to -1, 1 so it can be negative 
           jaccard = Math.pow( ListOperators.jaccardIndex(node.categories, node1.categories), 0.2 )*2 - 1;
 
+
+          //texts
+
+          //textDistance = cosine simlairty based on pre-calculated words tables
+
+
+          //dates, geo coordinates…
+
+
           weight = (pearson + jaccard)*0.5;
 
-          //if(Math.abs(pearson)>0.1){
           if( (negativeCorrelation && Math.abs(weight)>correlationThreshold) || (!negativeCorrelation && weight>correlationThreshold) ){
             id = i+"_"+j;
             name = names==null?id:node.name+"_"+node1.name;
@@ -18583,6 +18648,103 @@
     }
   };
 
+  /**
+   * builds an object with statistical information about the table
+   * @param  {Table} table
+   * @return {Object}
+   */
+  TableOperators.buildInformationObject = function(table){
+    if(table==null) return;
+
+    var n = table.length;
+    var i, listInfoObject;
+    var min = 999999999999;
+    var max = -999999999999;
+    var average = 0;
+    var intsAndCats = true;
+
+    var infoObject = {
+      type:table.type,
+      name:table.name,
+      length:n,
+      kind:'mixed', //mixed, numbers, integer numbers, texts, categories, integers and categories
+      allListsSameLength:true,
+      allListsSameSize:true,
+      allListsSameType:true,
+      allListsSameKind:true,
+      listsInfoObjects:new List(),
+      names:new StringList(),
+      lengths:new NumberList(),
+      types:new StringList(),
+      kinds:new StringList()
+    };
+
+
+    for(i=0; i<n; i++){
+      listInfoObject = ListOperators.buildInformationObject(table[i]);
+      infoObject.listsInfoObjects[i] = listInfoObject;
+
+      infoObject.names[i] = listInfoObject.name;
+      infoObject.types[i] = listInfoObject.type;
+      infoObject.kinds[i] = listInfoObject.kind;
+      infoObject.lengths[i] = listInfoObject.length;
+
+      if(listInfoObject.kind!='categories' && listInfoObject.kind!='integer numbers') intsAndCats = false;
+
+      if(i>0){
+        if(infoObject.lengths[i]!=infoObject.lengths[i-1]) infoObject.allListsSameLength = false;
+        if(infoObject.types[i]!=infoObject.types[i-1]) infoObject.allListsSameType = false;
+        if(infoObject.kinds[i]!=infoObject.kinds[i-1]) infoObject.allListsSameKind = false;
+        if(infoObject.lengths[i]!=infoObject.lengths[i-1]) infoObject.allListsSameType = false;
+      }
+
+      if(listInfoObject.type == "NumberList"){
+        min = Math.min(min, listInfoObject.min);
+        max = Math.min(max, listInfoObject.max);
+        average+=listInfoObject.average;
+      }
+    }
+
+    if(average!==0) average/=infoObject.length;
+
+    if(infoObject.allListsSameLength){
+      infoObject.minLength = infoObject.lengths[0];
+      infoObject.maxLength = infoObject.lengths[0];
+      infoObject.averageLength = infoObject.lengths[0];
+    } else {
+      var interval = infoObject.lengths.getInterval();
+      infoObject.minLength = interval.x;
+      infoObject.maxLength = interval.y;
+      infoObject.averageLength = (interval.x + interval.y)*0.5;
+    }
+
+    if(infoObject.allListsSameKind){
+      switch(infoObject.kinds[0]){
+        case 'numbers':
+          infoObject.kind = 'numbers';
+          break;
+        case 'integer numbers':
+          infoObject.kind = 'integer numbers';
+          break;
+        case 'texts':
+          infoObject.kind = 'texts';
+          break;
+        case 'categories':
+          infoObject.kind = 'categories';
+          break;
+      }
+    } else {
+      if(intsAndCats){
+        infoObject.kind = 'integers and categories';
+      } else if(infoObject.allListsSameType && infoObject.types[0]=='NumberList'){
+        infoObject.kind = 'numbers';
+      }
+    }
+
+    return infoObject;
+
+  };
+
 
   /**
    * Generates a string containing details about the current state
@@ -18714,12 +18876,16 @@
    * @return {String} Description String.
    */
   TableOperators.getReportHtml = function(table,level) {
+    if(table==null) return;
+
+    var infoObject = TableOperators.buildInformationObject(table);
+
     var ident = "<br>" + (level > 0 ? StringOperators.repeatString("&nbsp", level) : "");
-    var lengths = table.getLengths();
-    var minLength = lengths.getMin();
-    var maxLength = lengths.getMax();
-    var averageLength = (minLength + maxLength) * 0.5;
-    var sameLengths = minLength == maxLength;
+    //var lengths = infoObject.lengths();
+    //var minLength = lengths.getMin();
+    //var maxLength = lengths.getMax();
+    //var averageLength = (infoObject.minLength + infoObject.maxLength) * 0.5;
+    //var sameLengths = infoObject.;
 
     var text = "<b>" +( level > 0 ? (ident + "<font style=\"font-size:16px\">table report</f>") : "<font style=\"font-size:18px\">table report</f>" ) + "</b>";
 
@@ -18734,39 +18900,54 @@
       text += ident + "<i>no name</i>";
     }
     text += ident + "type: <b>" + table.type + "</b>";
+    text += ident + "kind: <b>" + infoObject.kind + "</b>";
     text += ident + "number of lists: <b>" + table.length + "</b>";
 
-    text += ident + "all lists have same length: <b>" + (sameLengths ? "true" : "false") + "</b>";
+    //text += ident + "all lists have same length: <b>" + (infoObject.sameLengths ? "true" : "false") + "</b>";
 
-    if(sameLengths) {
-      text += ident + "lists length: <b>" + table[0].length + "</b>";
+    if(infoObject.allListsSameLength) {
+      text += ident + "all lists have length: <b>" + table[0].length + "</b>";
     } else {
-      text += ident + "min length: <b>" + minLength + "</b>";
-      text += ident + "max length: <b>" + maxLength + "</b>";
-      text += ident + "average length: <b>" + averageLength + "</b>";
-      text += ident + "all lengths: <b>" + lengths.join(", ") + "</b>";
+      text += ident + "min length: <b>" + infoObject.minLength + "</b>";
+      text += ident + "max length: <b>" + infoObject.maxLength + "</b>";
+      text += ident + "average length: <b>" + infoObject.averageLength + "</b>";
+      text += ident + "all lengths: <b>" + infoObject.lengths.join(", ") + "</b>";
     }
 
-    var names = table.getNames();
-    var types = table.getTypes();
+    //var names = table.getNames();
+    //var types = table.getTypes();
+    //var kinds = table.getKinds();
+
+    console.log('Table infoObject:', infoObject);
 
     text += "<hr>";
-    names.forEach(function(name, i){
-      text += ident + "<font style=\"font-size:10px\">" +i + ":</f><b>" + name + "</b> <font color=\""+getColorFromDataModelType(types[i])+ "\">" + TYPES_SHORT_NAMES_DICTIONARY[types[i]]+"</f>";
+    infoObject.names.forEach(function(name, i){
+      text += ident + "<font style=\"font-size:10px\">" +i + ":</f><b>" + name + "</b> <font color=\""+getColorFromDataModelType(infoObject.types[i])+ "\">" + TYPES_SHORT_NAMES_DICTIONARY[infoObject.types[i]]+"</f>";
     });
     text += "<hr>";
 
-    var sameTypes = types.allElementsEqual();
-    if(sameTypes) {
-      text += ident + "types of all lists: " + "<b>" + types[0] + "</b>";
+    if(infoObject.allListsSameType) {
+      text += ident + "types of all lists: " + "<b>" + infoObject.types[0] + "</b>";
     } else {
       text += ident + "types: ";
-      types.forEach(function(type, i){
+      infoObject.types.forEach(function(type, i){
         text += "<b><font color=\""+getColorFromDataModelType(type)+ "\">" + type+"</f></b>";
-        if(i<types.length-1) text += ", ";
+        if(i<infoObject.types.length-1) text += ", ";
       });
     }
-    text += "<br>" + ident + "names: <b>" + names.join("</b>, <b>") + "</b>";
+
+    if(infoObject.allListsSameKind) {
+      text += ident + "<br>kinds of all lists: " + "<b>" + infoObject.kinds[0] + "</b>";
+    } else {
+      text += ident + "<br>kinds: ";
+      infoObject.kinds.forEach(function(kind, i){
+        text += "<b>"+kind+"</b>";
+        if(i<infoObject.kinds.length-1) text += ", ";
+      });
+    }
+
+
+    text += "<br>" + ident + "names: <b>" + infoObject.names.join("</b>, <b>") + "</b>";
 
 
     //list by list
@@ -18779,7 +18960,7 @@
       for(i = 0; table[i] != null; i++) {
         text += "<br>" + ident + i + ": " + (table[i].name?"<b>"+table[i].name+"</b>":"<i>no name</i>");
         try{
-           text += ListOperators.getReportHtml(table[i], 1);
+           text += ListOperators.getReportHtml(table[i], 1, infoObject.listsInfoObjects[i]);
         } catch(err){
           text += ident + "[!] something wrong with list <font style=\"font-size:10px\">:" + err + "</f>";
           console.log('getReportHtml err', err);
@@ -18800,11 +18981,11 @@
         var nIntersection = intersected.length;
         text += ident + "intersection size: " + nIntersection;
 
-        if(table[0]._freqTable[0].length == nUnion && table[1]._freqTable[0].length == nUnion){
+        if(infoObject.listsInfoObjects[0].frequenciesTable[0].length == nUnion && infoObject.listsInfoObjects[1].frequenciesTable[0].length == nUnion){
           text += ident + "[!] both lists contain the same non repeated elements";
         } else {
-          if(table[0]._freqTable[0].length == nIntersection) text += ident + "[!] all elements in first list also occur on second list";
-          if(table[1]._freqTable[0].length == nIntersection) text += ident + "[!] all elements in second list also occur on first list";
+          if(infoObject.listsInfoObjects[0].frequenciesTable[0].length == nIntersection) text += ident + "[!] all elements in first list also occur on second list";
+          if(infoObject.listsInfoObjects[1].frequenciesTable[0].length == nIntersection) text += ident + "[!] all elements in second list also occur on first list";
         }
         text += ident + "Jaccard distance: " + (1 - (nIntersection/nUnion));
       }
@@ -21136,51 +21317,50 @@
 
   /**
    * builds a table with a list of occurrent words and numberLists for occurrences in each string
-   * @param  {StringList} strings
+   * @param  {StringList} texts
    *
-   * @param  {StringList} stopWords words to be excluded from the list
-   * @param  {Boolean} includeLinks
-   * @param  {Number} wordsLimitPerString number of words extracted per string
-   * @param  {Number} totalWordsLimit final number of words
-   * @param  {Boolean} normalize normalize lists to sum
-   * @param {Boolean} stressUniqueness divide number of occurrences in string by total number of occurrences (words that appear in one or only few texts become more weighed)
-   * @param {Boolean} sortByTotalWeight sort all columns by total weights of words
-   * @param  {Number} minSizeWords
+   * @param {Number} weightsMode weights mode<br>0: words count (default)<br>1: words count normalized to sum (a single word weights add up 1)<br>2:tf-idf simple (term frequency - inverse document frequency), divides number of occurrences in string by total number of texts the word occurs (see: https://en.wikipedia.org/wiki/Tf%E2%80%93idf)<br>3:tf-idf classic (idf = log(N/nt))
+   * @param {StringList} stopWords words to be excluded from the list (if value is 1, stopwords will be default english stopwrods at StringOperators.STOP_WORDS)
+   * @param {Boolean} includeLinks
+   * @param {Number} wordsLimitPerString number of words extracted per string
+   * @param {Number} totalWordsLimit final number of words
+   * @param {Boolean} sortByTotalWeight sort all columns by total weights of words (default: true)
+   * @param {Number} minSizeWords
+   * @param {Boolean} addTotalList adds a numberList with sums of weights for each word (this is ths list used optionally to sort the lists of the table) (default: false)
    * @return {Table}
    * tags:count
    */
-  StringListOperators.getWordsOccurrencesMatrix = function(strings, stopWords, includeLinks, wordsLimitPerString, totalWordsLimit, normalize, stressUniqueness, sortByTotalWeight, minSizeWords) {
-    if(strings == null) return;
+  StringListOperators.getWordsInTextsOccurrencesTable = function(texts, weightsMode, stopWords, includeLinks, wordsLimitPerString, totalWordsLimit, sortByTotalWeight, minSizeWords, addTotalList) {
+    if(texts == null) return;
 
-    var i;
+    var i, j;
     var matrix;
+    var nTexts = texts.length;
+
+    if(stopWords==1) stopWords = StringOperators.STOP_WORDS;
 
     wordsLimitPerString = wordsLimitPerString || 500;
     totalWordsLimit = totalWordsLimit || 1000;
-    normalize = normalize == null ? true : normalize;
-    stressUniqueness = stressUniqueness || false;
+    var normalize = weightsMode==1;
+    var tfidf = weightsMode==2 || weightsMode==3;
     sortByTotalWeight = (sortByTotalWeight || true);
     minSizeWords = minSizeWords == null ? 3 : minSizeWords;
 
-    if(strings[0]==""){
+    if(texts[0]===""){
       matrix = new Table();
       matrix.push(new StringList(""));
       matrix.push(new NumberList(0));
-      console.log('-.-');
     } else {
-      matrix = StringOperators.getWordsOccurrencesTable(strings[0], stopWords, includeLinks, wordsLimitPerString, minSizeWords);
+      matrix = StringOperators.getWordsOccurrencesTable(texts[0], stopWords, includeLinks, wordsLimitPerString, minSizeWords);
     }
 
 
     var table;
-    var nStrings = strings.length;
-    for(i = 1; i<nStrings; i++) {
-
-      if(strings[i]==""){
+    for(i = 1; i<nTexts; i++){
+      if(texts[i]===""){
         matrix.push(ListGenerators.createListWithSameElement(matrix[0].length, 0));
-        console.log('-.-');
       } else {
-        table = StringOperators.getWordsOccurrencesTable(strings[i], stopWords, includeLinks, wordsLimitPerString, minSizeWords);
+        table = StringOperators.getWordsOccurrencesTable(texts[i], stopWords, includeLinks, wordsLimitPerString, minSizeWords);
         matrix = TableOperators.mergeDataTables(matrix, table);
       }
     }
@@ -21188,27 +21368,60 @@
 
     if(matrix[0].length > totalWordsLimit) sortByTotalWeight = true;
 
-    if(stressUniqueness || sortByTotalWeight) {
-      var totalList = new NumberList();
-      totalList = matrix[1].clone();
-      matrix.forEach(function(occurrences, i) {
-        if(i < 2) return;
-        occurrences.forEach(function(value, j) {
-          totalList[j] += value;
-        });
-      });
+    matrix[0].name = 'words';
 
-      if(stressUniqueness) {
-        matrix.forEach(function(occurrences, i) {
-          if(i === 0) return;
-          occurrences.forEach(function(value, j) {
-            occurrences[j] = value / totalList[j];
-          });
-        });
+    if(tfidf || sortByTotalWeight || addTotalList) {
+      var totalList = new NumberList();
+      var occurrencesInText;
+      totalList = matrix[1].clone();
+      var idf = ListGenerators.createListWithSameElement(matrix[0].length, 0, 'idf');
+
+      for(i=1; i<matrix.length; i++){
+          occurrencesInText = matrix[i];
+          occurrencesInText.name = 'text '+(i-1);
+          for(j=0; j<occurrencesInText.length; j++){
+            if(occurrencesInText[j]>0){
+              if(i>1) totalList[j] += occurrencesInText[j];
+              idf[j]++;
+            }
+          }
+      }
+      
+      if(tfidf) {
+
+        totalList = ListGenerators.createListWithSameElement(matrix[0].length, 0, 'total tf-idf');
+
+        if(weightsMode==2){
+          for(i=1; i<matrix.length; i++){
+            occurrencesInText = matrix[i];
+            for(j=0; j<occurrencesInText.length; j++){
+              occurrencesInText[j] /= idf[j];
+              totalList[j] += occurrencesInText[j];
+            }
+          }
+        } else {
+          for(i=1; i<matrix.length; i++){
+            occurrencesInText = matrix[i];
+            for(j=0; j<occurrencesInText.length; j++){
+              occurrencesInText[j] *= Math.log(nTexts/idf[j]);
+              totalList[j] += occurrencesInText[j];
+            }
+          }
+        }
+      }
+
+      if(addTotalList){
+        matrix.push(totalList);
+        totalList.name = 'totals';
       }
 
       if(sortByTotalWeight) {
         matrix = matrix.getListsSortedByList(totalList, false);
+      }
+
+    } else {
+      for(i=1; i<matrix.length; i++){
+        matrix[i].name = 'text '+(i-1);
       }
     }
 
@@ -21225,46 +21438,46 @@
     return matrix;
   };
 
-  //good approach for few large texts, to be tested
+
   /**
-   * @todo finish docs
+   * deprecated, replaced by NetworkGenerators.createNetworkFromTexts
    */
-  StringListOperators.createTextsNetwork = function(texts, stopWords, stressUniqueness, relationThreshold) {
-    var i, j;
-    var network = new Network();
+  // StringListOperators.createTextsNetwork = function(texts, stopWords, stresuniqueness, relationThreshold) {
+  //   var i, j;
+  //   var network = new Network();
 
-    var matrix = StringListOperators.getWordsOccurrencesMatrix(texts, stopWords, false, 600, 800, false, true, false, 3);
+  //   var matrix = StringListOperators.getWordsOccurrencesTable(texts, stopWords, false, 600, 800, false, true, false, 3);
 
-    texts.forEach(function(text, i) {
-      var node = new Node("_" + i, "_" + i);
-      node.content = text;
-      node.wordsWeights = matrix[i + 1];
-      network.addNode(node);
-    });
+  //   texts.forEach(function(text, i) {
+  //     var node = new Node("_" + i, "_" + i);
+  //     node.content = text;
+  //     node.wordsWeights = matrix[i + 1];
+  //     network.addNode(node);
+  //   });
 
-    for(i = 0; network.nodeList[i + 1] != null; i++) {
-      var node = network.nodeList[i];
-      for(j = i + 1; network.nodeList[j] != null; j++) {
-        var node1 = network.nodeList[j];
+  //   for(i = 0; network.nodeList[i + 1] != null; i++) {
+  //     var node = network.nodeList[i];
+  //     for(j = i + 1; network.nodeList[j] != null; j++) {
+  //       var node1 = network.nodeList[j];
 
-        var weight = NumberListOperators.cosineSimilarity(node.wordsWeights, node1.wordsWeights);
+  //       var weight = NumberListOperators.cosineSimilarity(node.wordsWeights, node1.wordsWeights);
 
-        if(i === 0 && j == 1) {
-          console.log(node.wordsWeights.length, node1.wordsWeights.length, weight);
-          console.log(node.wordsWeights.type, node.wordsWeights);
-          console.log(node1.wordsWeights.type, node1.wordsWeights);
-          console.log(node.wordsWeights.getNorm() * node1.wordsWeights.getNorm());
-        }
+  //       if(i === 0 && j == 1) {
+  //         console.log(node.wordsWeights.length, node1.wordsWeights.length, weight);
+  //         console.log(node.wordsWeights.type, node.wordsWeights);
+  //         console.log(node1.wordsWeights.type, node1.wordsWeights);
+  //         console.log(node.wordsWeights.getNorm() * node1.wordsWeights.getNorm());
+  //       }
 
-        if(weight > relationThreshold) {
-          var relation = new Relation(node.id + "_" + node1.id, node.id + "_" + node1.id, node, node1, weight);
-          network.addRelation(relation);
-        }
-      }
-    }
+  //       if(weight > relationThreshold) {
+  //         var relation = new Relation(node.id + "_" + node1.id, node.id + "_" + node1.id, node, node1, weight);
+  //         network.addRelation(relation);
+  //       }
+  //     }
+  //   }
 
-    return network;
-  };
+  //   return network;
+  // };
 
 
   /**
@@ -23432,7 +23645,6 @@
 
     for(i=0; i<nTexts; i++){
       freqTablesList[i] = StringOperators.getWordsOccurrencesTable(stringList[i], stopWords, true, 200, 3);
-      //freqTablesList[i][2] = freqTablesList[i][1].getNormalized();
     }
     
     if(titles==null){
