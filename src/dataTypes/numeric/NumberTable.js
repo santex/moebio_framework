@@ -76,13 +76,13 @@ function NumberTable() {
     if ( arr.type !== undefined) {
         _array = arr.clone();
         if ( _array.type == 'NumberTable')
-            return _array.toArray();
+            return _array;
         // if is the first iteration with a NumberList, returns it as a 2 dimensional array (table)
         else if ( _array.type == 'NumberList' && iteration == 1)
-            return [_array.toArray()];
+            return [_array];
         // if is not the first iteration with a NumberList, returns it as it is.
         else if ( _array.type == 'NumberList' && iteration > 1)
-            return _array.toArray();
+            return _array;
         else
             return [];
     }
