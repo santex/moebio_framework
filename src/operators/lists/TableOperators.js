@@ -375,13 +375,14 @@ TableOperators.getSubTableByElementsOnList = function(table, nList, list){
  * transposes a table
  * @param  {Table} table to be transposed
  *
- * @param {Boolean} firstListAsHeaders removes first list of the table and uses it as names for the lists on the transposed table
+ * @param {Boolean} firstListAsHeaders removes first list of the table and uses it as names for the lists on the transposed table (default=false)
+ * @param {Boolean} headersAsFirstList adds a new first list made from the headers of original table (default=false)
  * @return {Table}
  * tags:matrixes
  */
-TableOperators.transpose = function(table, firstListAsHeaders) {
+TableOperators.transpose = function(table, firstListAsHeaders, headersAsFirstList) {
   if(table == null) return null;
-  return table.getTransposed(firstListAsHeaders);
+  return table.getTransposed(firstListAsHeaders, headersAsFirstList);
 };
 
 /**

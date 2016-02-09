@@ -2,6 +2,7 @@
 
 import List from "src/dataTypes/lists/List";
 import NumberList from "src/dataTypes/numeric/NumberList";
+import StringList from "src/dataTypes/strings/StringList";
 import TableEncodings from "src/operators/lists/TableEncodings";
 import {
   instantiate,
@@ -55,6 +56,9 @@ export default Table;
  * @return {Table}
  */
 Table.fromArray = function(array) {
+  for ( var i=0; i< array.length; i++ ){
+    if( Array.isArray(array[i]) ) array[i] = List.fromArray(array[i]);
+  }
   var result = List.fromArray(array);
   result.type = "Table";
   //assign methods to array:
@@ -269,9 +273,10 @@ Table.prototype.getListsSortedByList = function(listOrIndex, ascending) { //depr
 /**
  * Transposes Table.
  * @param firstListAsHeaders
+ * @param headersAsFirstList
  * @return {Table}
  */
-Table.prototype.getTransposed = function(firstListAsHeaders) {
+Table.prototype.getTransposed = function(firstListAsHeaders, headersAsFirstList) {
 
   var tableToTranspose = firstListAsHeaders ? this.getSubList(1) : this;
   var l = tableToTranspose.length;
@@ -303,9 +308,15 @@ Table.prototype.getTransposed = function(firstListAsHeaders) {
     for(j = 0; j<nElements; j++) {
       table[j].name = String(this[0][j]);
     }
-    // this[0].forEach(function(name, i) {
-    //   table[i].name = String(name);
-    // });
+  }
+  if(headersAsFirstList){
+    var sLHeaders = new StringList();
+    l = this.length;
+    for(i = 0; i<l; i++){
+      sLHeaders.push(this[i].name);
+    }
+    table._splice(0,0,sLHeaders);
+    table = table.getImproved();
   }
 
   return table;

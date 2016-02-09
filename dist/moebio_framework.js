@@ -4587,6 +4587,9 @@
    * @return {Table}
    */
   Table.fromArray = function(array) {
+    for ( var i=0; i< array.length; i++ ){
+      if( Array.isArray(array[i]) ) array[i] = List.fromArray(array[i]);
+    }
     var result = List.fromArray(array);
     result.type = "Table";
     //assign methods to array:
@@ -4801,9 +4804,10 @@
   /**
    * Transposes Table.
    * @param firstListAsHeaders
+   * @param headersAsFirstList
    * @return {Table}
    */
-  Table.prototype.getTransposed = function(firstListAsHeaders) {
+  Table.prototype.getTransposed = function(firstListAsHeaders, headersAsFirstList) {
 
     var tableToTranspose = firstListAsHeaders ? this.getSubList(1) : this;
     var l = tableToTranspose.length;
@@ -4835,9 +4839,15 @@
       for(j = 0; j<nElements; j++) {
         table[j].name = String(this[0][j]);
       }
-      // this[0].forEach(function(name, i) {
-      //   table[i].name = String(name);
-      // });
+    }
+    if(headersAsFirstList){
+      var sLHeaders = new StringList();
+      l = this.length;
+      for(i = 0; i<l; i++){
+        sLHeaders.push(this[i].name);
+      }
+      table._splice(0,0,sLHeaders);
+      table = table.getImproved();
     }
 
     return table;
@@ -4922,10 +4932,19 @@
   /**
    * @classdesc {@link Table} to store numbers.
    *
-   * @param [Number|[Number]] args If a single Number, indicates number of
-   * columns to make for the NumberTable. Each column is created as an empty
-   * NumberList. If an Array, or a set of Arrays, it will make a new NumberList
-   * for each array present, populating it with the contents of the array.
+   * @param [ Number|[Number]|array|[array]|NumberList|[NumberList]|NumberTable ]
+   * args If
+   * Single Number: indicates number of columns to make for the NumberTable.
+   *              Each column is created as an empty NumberList;
+   * Set of Numbers: it will make a new NumberList containing all the listed numbers,
+   *              this NumberList will be the single column for the NumberTable;
+   * Array, or a set of Arrays: it will make a new NumberList for each array
+   *              present, populating it with the cloned contents of the array;
+   * Two dimensional array: it will make a new NumberTable, containing
+   *              the nested arrays as NumberLists.
+   * NumberList, or a set of NumberList: it will make a new NumberTable
+   *              populating it with the incoming cloned NumberLists;
+   * NumberTable: it will clone the incoming NumberTable to create a new one;
    *
    * Additional functions that work on NumberTable can be found in:
    * <ul>
@@ -4938,25 +4957,83 @@
    * @category numbers
    */
   function NumberTable() {
-    var args = [];
+    var args = arguments;
     var newNumberList;
-    var array;
+    var array = [];
     var i;
 
-    if(arguments.length > 0 && Number(arguments[0]) == arguments[0]) {
-      array = [];
-      for(i = 0; i < arguments[0]; i++) {
-        array.push(new NumberList());
+    if (arguments.length == 1 ) {
+      // one argument as number(n). creates a Table with n empty columns
+      if ( typeof args[0] == 'number' ) {
+          for (var i=0; i<args[0]; i++) {
+              array.push([]);
+          }
       }
-    } else {
-      for(i = 0; arguments[i] != null; i++) {
-        newNumberList = NumberList.fromArray(arguments[i]);
-        newNumberList.name = arguments[i].name;
-        args[i] = newNumberList;
+      // one argument as array|NumberList|TableList
+      else if ( Array.isArray(args[0]) ) {
+          array = fetchArray(args[0],1);
       }
-      // TODO: this converts all our NumberLists into Lists
-      array = Table.apply(this, args);
     }
+    else if ( arguments.length > 1) {
+      // arguments as numbers will be a NumberTable with 1 NumberList
+      if( typeof args[0] == 'number' ) {
+          var arr=[];
+          for (var i=0; i<args.length; i++) {
+              arr.push(args[i]);
+          }
+          array.push(arr);
+      }
+      // for arguments other than numbers. turns the arguments into an array
+      else {
+          var _array = Array.prototype.slice.call(args);
+          array = fetchArray( _array, 1);
+      }
+    }
+
+   /* receives an array and a number (iteration) to count
+    * how many times the function has been called recursively */
+   function fetchArray(arr, iteration) {
+      var _array;
+
+      // check if the array is a Moebio NumberList or NumberTable
+      if ( arr.type !== undefined) {
+          _array = arr.clone();
+          if ( _array.type == 'NumberTable')
+              return _array.toArray();
+          // if is the first iteration with a NumberList, returns it as a 2 dimensional array (table)
+          else if ( _array.type == 'NumberList' && iteration == 1)
+              return [_array.toArray()];
+          // if is not the first iteration with a NumberList, returns it as it is.
+          else if ( _array.type == 'NumberList' && iteration > 1)
+              return _array.toArray();
+          else
+              return [];
+      }
+      else { // is a simple array
+
+          //clone the array and nested arrays.
+          _array = [];
+          for ( var i=0; i<arr.length; i++){
+              /* if there are a nested array, fetch it and then pass it to _array.
+               * here the iteration number (>1) is important, because
+               * nested arrays or lists will not be returned as Tables */
+              if( Array.isArray(arr[i]) )
+                  arr[i] = fetchArray( arr[i], ++iteration);
+              _array[i] = arr[i];
+          }
+
+          if ( _array.length == 0 )
+              return []; //empty array
+          else {
+              // if is the first iteration with an array of numbers, returns a 2 dimensional array (table)
+              if ( typeof _array[0] == 'number' && iteration == 1 )//
+                  return [_array];
+              else // otherwise, returns the array
+                  return _array;
+          }
+      }
+   }
+
     array = NumberTable.fromArray(array);
     return array;
   }
@@ -17512,13 +17589,14 @@
    * transposes a table
    * @param  {Table} table to be transposed
    *
-   * @param {Boolean} firstListAsHeaders removes first list of the table and uses it as names for the lists on the transposed table
+   * @param {Boolean} firstListAsHeaders removes first list of the table and uses it as names for the lists on the transposed table (default=false)
+   * @param {Boolean} headersAsFirstList adds a new first list made from the headers of original table (default=false)
    * @return {Table}
    * tags:matrixes
    */
-  TableOperators.transpose = function(table, firstListAsHeaders) {
+  TableOperators.transpose = function(table, firstListAsHeaders, headersAsFirstList) {
     if(table == null) return null;
-    return table.getTransposed(firstListAsHeaders);
+    return table.getTransposed(firstListAsHeaders, headersAsFirstList);
   };
 
   /**
