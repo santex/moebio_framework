@@ -155,6 +155,7 @@ ListOperators.containSameElements = function(list0, list1) {
  * tags:
  */
 ListOperators.indexOf = function(list, element) {
+  if(list==null) return;
   return list.indexOf(element);
 };
 
