@@ -502,7 +502,6 @@
    *
    * <strong>Warning:</strong> If this Node is part of a Network that is not a tree, this method could run an infinite loop.
    * @return {NodeList} Leaf Nodes of this Node.
-   * tags:
    */
   Node.prototype.getLeaves = function() {
       var leaves = new NodeList();
@@ -4588,7 +4587,7 @@
    */
   Table.fromArray = function(array) {
     for ( var i=0; i< array.length; i++ ){
-      if( Array.isArray(array[i]) ) array[i] = List.fromArray(array[i]);
+      if( Array.isArray(array[i])  && !array[i]["isList"] ) array[i] = List.fromArray(array[i]);
     }
     var result = List.fromArray(array);
     result.type = "Table";
@@ -5049,6 +5048,7 @@
     result.factor = NumberTable.prototype.factor;
     result.add = NumberTable.prototype.add;
     result.getMax = NumberTable.prototype.getMax;
+    result.getMaxValues = NumberTable.prototype.getMaxValues;
     result.getMin = NumberTable.prototype.getMin;
     result.getInterval = NumberTable.prototype.getInterval;
     result.getCovarianceMatrix = NumberTable.prototype.getCovarianceMatrix;
@@ -5057,7 +5057,9 @@
   };
 
   /**
-   * @todo write docs
+   * returns max value in all numberLists
+   * @return {Number}
+   * tags:
    */
   NumberTable.prototype.getMax = function() {
     if(this.length === 0) return null;
@@ -5069,6 +5071,24 @@
       max = Math.max(this[i].getMax(), max);
     }
     return max;
+  };
+
+  /**
+   * returns max values from numberLists
+   * @return {NumberList}
+   * tags:
+   */
+  NumberTable.prototype.getMaxValues = function() {
+    if(this.length === 0) return null;
+
+    var maxs = new NumberList();
+    var i;
+
+    for(i = 0; this[i] != null; i++) {
+      maxs[i] = this[i].getMax();
+    }
+
+    return maxs;
   };
 
   /**
@@ -5084,6 +5104,24 @@
       min = Math.min(this[i].getMin(), min);
     }
     return min;
+  };
+
+  /**
+   * returns min values from numberLists
+   * @return {NumberList}
+   * tags:
+   */
+  NumberTable.prototype.getMinValues = function() {
+    if(this.length === 0) return null;
+
+    var mins = new NumberList();
+    var i;
+    
+    for(i = 0; this[i] != null; i++) {
+      mins[i] = this[i].getMin();
+    }
+
+    return mins;
   };
 
   /**
@@ -6771,6 +6809,7 @@
    * tags:
    */
   ListOperators.indexOf = function(list, element) {
+    if(list==null) return;
     return list.indexOf(element);
   };
 
@@ -9002,6 +9041,31 @@
     return nT;
   };
 
+  /**
+   * in case the numberList is sorted, it generates a new one with lower values, by subtracting consecutive numbers
+   * @param {NumberList} nl
+   * @param {Boolean} compress true for compression, false for decompression
+   * tags:
+   */
+  NumberListOperators.simpleCompression = function(nl, compress){
+    if(nl==null) return;
+
+    var i;
+    var newNl = new NumberList();
+    newNl[0] = nl[0];
+
+    if(compress==0){
+      for(i=1; i<nl.length; i++){
+        newNl[i] = nl[i]-nl[i-1]-1;
+      }
+    } else {
+      for(i=1; i<nl.length; i++){
+        newNl[i] = newNl[i-1]+nl[i]+1;
+      }
+    }
+    return newNl;
+  };
+
   ColorListGenerators._HARDCODED_CATEGORICAL_COLORS = new ColorList(
     "#d62728", "#1f77b4", "#2ca02c", "#ff7f00", "#9467bd", "#bcbd22", "#8c564b", "#17becf", "#dd4411", "#206010", "#e377c2",
     "#2200bb", "#dd8811", "#ff220e", "#1f66a3", "#8c453a", "#2ba01c", "#dfc500", "#945600", "#ff008b", "#e37700", "#7f7f7f"
@@ -9041,6 +9105,8 @@
    * tags:generator
    */
   ColorListGenerators.colorsForCategoricalList = function(list){
+    if(list==null) return;
+
     return ColorListGenerators.createCategoricalColorListForList(list)[0].value;
   };
 
@@ -9094,6 +9160,11 @@
     var fullColorList = ListOperators.translateWithDictionary(list, colorDictTable, 'black');
 
     fullColorList = ColorList.fromArray(fullColorList);
+    
+
+    // var dictionaryTable = new Table();
+    // dictionaryTable[0] = diffValues;
+    // dictionaryTable[1] = fullColorList;
 
     return [
       {
@@ -9106,7 +9177,7 @@
         value: diffColors,
         type: 'ColorList'
       }, {
-        value: new Table(diffValues, fullColorList),
+        value: colorDictTable,//new Table(diffValues, fullColorList),
         type: 'Table'
       }, {
         value: dictionaryObject,
@@ -14282,7 +14353,6 @@
    * @param {Node} node Optional parent Node to start the leaf search from.
    * If no Node is provided, all leaf Nodes are returned.
    * @return {NodeList} Leaves of the Tree or sub-tree.
-   * tags:
    */
   Tree.prototype.getLeaves = function(node) {
     var leaves = new NodeList();
@@ -18367,22 +18437,20 @@
    *
    * @param  {Boolean} nodesAreRows if true (default value) each node corresponds to a row in the table, and rows are compared, if false lists are compared ([!] working only for NumberTable, using pearson correlation)
    * @param  {Object} names (StringList|Number) optionally add names to nodes with a list that could be part of the table or not; receives a StringList for names, index for list in the providade table
-   * @param  {Number} mode 0:(default) takes into account numbers, uses Pearson Correlation
    * @param {Object} colorsByList (List|Number) optionally add color to nodes from a NumberList (for scale) or any List (for categorical colors) that could be part of the table or not; receives a List or an index if the list is in the providade table
    * @param {Number} correlationThreshold 0.3 by default, above that level a relation is created
    * @param  {Boolean} negativeCorrelation takes into account negative correlations for building relations
    * @return {Network}
    * tags:
    */
-  TableOperators.buildCorrelationsNetwork = function(table, nodesAreRows, names, mode, colorsByList, correlationThreshold, negativeCorrelation){
+  TableOperators.buildCorrelationsNetwork = function(table, nodesAreRows, names, colorsByList, correlationThreshold, negativeCorrelation){
     if(table==null) return null;
 
     nodesAreRows = nodesAreRows==null?true:Boolean(nodesAreRows);
-    mode = mode||0;
     correlationThreshold = correlationThreshold==null?0.3:correlationThreshold;
     negativeCorrelation = Boolean(negativeCorrelation);
 
-    var types = table.getTypes();
+    //var types = table.getTypes();
     var i, j;
     var l = table.length;
     var nRows = table[0].length;
@@ -18390,6 +18458,10 @@
     var id, name;
     var pearson, jaccard, weight;
     var colorsList, colors;
+
+    var someCategorical = false;
+    var someText = false;
+    var someNumeric = false;
 
     var network = new Network();
 
@@ -18435,9 +18507,7 @@
 
     if(names!=null && _typeOf(names)=="number" && names<l) names = table[names];
 
-    
-
-    if(!nodesAreRows){
+    if(!nodesAreRows){ //why not just take transposed table?????
       
       if(table.type=="NumberTable"){//correlations network, for the time being
         
@@ -18487,12 +18557,15 @@
           switch(pseudoKinds[j]){
             case 'numbers':
               node.numbers.push(node.row[j]);
+              someNumeric = true;
               break;
             case 'categories':
               node.categories.push(node.row[j]);
+              someCategorical = true;
               break;
             case 'texts':
               node.texts.push(node.row[j]);
+              someText = true;
               break;
           }
         }
@@ -18506,16 +18579,18 @@
         node = network.nodeList[i];
         for(j=i+1; j<nRows; j++){
           node1 = network.nodeList[j];
-          
-          pearson = NumberListOperators.pearsonProductMomentCorrelation(node.numbers, node1.numbers, node.numbers.sd, node1.numbers.sd);
+
+          pearson = someNumeric?NumberListOperators.pearsonProductMomentCorrelation(node.numbers, node1.numbers, node.numbers.sd, node1.numbers.sd):0;
 
           //jaccard is normalized to -1, 1 so it can be negative 
-          jaccard = Math.pow( ListOperators.jaccardIndex(node.categories, node1.categories), 0.2 )*2 - 1;
+          jaccard = someCategorical?Math.pow( ListOperators.jaccardIndex(node.categories, node1.categories), 0.2 )*2 - 1 : 0;
 
+
+          //console.log("•••••••", pearson, jaccard);
 
           //texts
 
-          //textDistance = cosine simlairty based on pre-calculated words tables
+          //textDistance =  someText?… cosine simlairty based on pre-calculated words tables
 
 
           //dates, geo coordinates…
@@ -21833,20 +21908,42 @@
     var i, j;
     var list, element;
 
+    //var nodesDictionary = {};
+
     for(i=0; i<nLists; i++){
       list = table[i];
       if(list.length!=nElements) return null;
+      
       for(j=0; j<nElements; j++){
+        //console.log('------------------j:', j);
         element = list[j];
         
         id = TreeConversions._getId(table, i, j);
         node = tree.nodeList.getNodeById(id);
         if(node == null) {
           node = new Node(id, String(element));
+
+          //console.log('\n');
+          //console.log(node);
+          //nodesDictionary[ (i+"**"+j) ] = node;
+          //console.log('+++['+ (i+"**"+j)+']');//'   -->', nodesDictionary[ (i+"**"+j) ]);
+
           if(i === 0) {
             tree.addNodeToTree(node, father);
           } else {
+            
+            //parent = nodesDictionary[ ((i-1)+"**"+j) ];// tree.nodeList.getNodeById(TreeConversions._getId(table, i - 1, j)); //<----why it doesn't work??
             parent = tree.nodeList.getNodeById(TreeConversions._getId(table, i - 1, j));
+            
+            // if(parent==null) {
+            //   console.log('<<<['+ ((i-1)+"**"+j)+']' );
+            //   console.log('nodesDictionary:', nodesDictionary);
+            //   console.log(tree.nodeList);
+            //   return;
+            // } else {
+            //   console.log('√');
+            // }
+
             tree.addNodeToTree(node, parent);
           }
 
@@ -21859,23 +21956,6 @@
         }
       }
     }
-
-
-    // table.forEach(function(list, i) {
-    //   table[i].forEach(function(element, j) {
-    //     id = TreeConversions._getId(table, i, j);
-    //     node = tree.nodeList.getNodeById(id);
-    //     if(node == null) {
-    //       node = new Node(id, String(element));
-    //       if(i === 0) {
-    //         tree.addNodeToTree(node, father);
-    //       } else {
-    //         parent = tree.nodeList.getNodeById(TreeConversions._getId(table, i - 1, j));
-    //         tree.addNodeToTree(node, parent);
-    //       }
-    //     }
-    //   });
-    // });
 
     tree.assignDescentWeightsToNodes();
 
@@ -21902,7 +21982,7 @@
    */
   TreeConversions._getId = function(table, i, j) {
     var iCol = 1;
-    var id = String(table[0][j]);
+    var id = "_"+String(table[0][j]);
     while(iCol <= i) {
       id += "_" + String(table[iCol][j]);
       iCol++;
@@ -23417,6 +23497,25 @@
     return map;
   }
 
+
+  /**
+   * Adds centrality properties to the network nodes. Nodes with no incoming connections have a score of zero. This method is transformative;
+   *
+   * @param {Network} network
+   * @param {Number} mode centralities to add<br>0:eigen vector eigenvectorCentrality<br>1:betweenness betweennessCentrality<br>10:all
+   * @param {Boolean} bNormalized=true (default), scale so maximum centrality is 1
+   * @param {Boolean} bReversed=true (default), use outgoing relations
+   * @return {Network}
+   * tags:analytics,transformative
+   */
+  NetworkOperators.addCentralitiesToNodes = function(network, mode, bNormalized, bReversed) {
+    if(network==null) return;
+    mode = mode==null?0:mode;
+    if(mode===0 || mode==10) NetworkOperators.addEigenvectorCentralityToNodes(network, bNormalized, bReversed);
+    if(mode===1 || mode==10) NetworkOperators.addBetweennessCentralityToNodes(network, bNormalized, bReversed);
+    return network;
+  };
+
   /**
    * Adds eigenvectorCentrality as a property to the network nodes.
    * Nodes with no incoming connections have a score of zero.
@@ -23425,7 +23524,6 @@
    * @param {Boolean} bNormalized=true (default), scale so maximum eigenvectorCentrality is 1
    * @param {Boolean} bReversed=true (default), use outgoing relations
    * @return {Network}
-   * tags:analytics,transformative
    */
   NetworkOperators.addEigenvectorCentralityToNodes = function(network, bNormalized, bReversed) {
     // derived from Graph.js inside http://www.clips.ua.ac.be/pages/pattern
@@ -23491,13 +23589,11 @@
 
   /**
    * Adds betweennessCentrality as a property to the network nodes.
-   * Nodes in high-density areas will get a good score.
    *
    * @param {Network} network
    * @param {Boolean} bNormalized=true (default), scale so maximum betweennessCentrality is 1
    * @param {Boolean} bDirected=false (default), count relations in both directions
    * @return {Network}
-   * tags:analytics,transformative
    */
   NetworkOperators.addBetweennessCentralityToNodes = function(network, bNormalized, bDirected) {
     // derived from Graph.js inside http://www.clips.ua.ac.be/pages/pattern
@@ -23604,6 +23700,23 @@
   NetworkOperators.getReport = function() {
     return "network contains " + this.nodeList.length + " nodes and " + this.relationList.length + " relations";
   };
+
+
+
+
+
+  /**
+   * returns the leaves of a tree or a node belonging to a tree
+   *
+   * @param {Tree|Node} tree or node
+   * @return {NodeList}
+   * tags:
+   */
+  NetworkOperators.getLeaves = function(object){//@todo: move to TreeOperators
+    if(object==null) return;
+    if(object.getLeaves!=null) return object.getLeaves();
+    return null;
+  }
 
   /**
    * @classdesc NetworkGenerators provides a set of tools to generate Network
@@ -31564,6 +31677,8 @@
     var nNodes = tree.nodeList.length;
     var node;
     var i;
+    var leaves;
+    var nLeaves
 
     if(change) {
       var changeInTree = frame.memory==null || frame.memory.tree!=tree;
@@ -31593,8 +31708,9 @@
 
       //frame.memory.nodeSelected = prevNodeSelected==null?tree.nodeList[0]:prevNodeSelected;
 
-      var leaves = (!changeInTree && frame.memory.leaves) ? frame.memory.leaves : tree.getLeaves();
+      leaves = (!changeInTree && frame.memory.leaves) ? frame.memory.leaves : tree.getLeaves();
       frame.memory.leaves = leaves;
+      nLeaves = leaves.length;
 
       if(weights == null) {
         //tree.nodeList.forEach(function(node) {
@@ -31603,7 +31719,7 @@
         }
         //});
       } else {
-        var nLeaves = leaves.length;
+        
 
         //leaves.forEach(function(node, i) {
         for(i=0; i<nLeaves; i++){
@@ -31630,6 +31746,7 @@
 
       tree.nodeList[0]._outRectangle = new Rectangle(0, 0, frame.width, frame.height);
       tree.nodeList[0]._inRectangle = TreeDraw._inRectFromOutRect(tree.nodeList[0]._outRectangle);
+
       TreeDraw._generateRectangles(tree.nodeList[0]);
 
       //frame.memory.focusFrame = prevFocusFrame==null?TreeDraw._expandRect(tree.nodeList[0]._outRectangle):prevFocusFrame;
@@ -31671,24 +31788,49 @@
         }
         //});
       } else if(frame.memory.actualColorList.length == frame.memory.leaves.length) {
-        frame.memory.leaves.forEach(function(node, i) {
+        
+        leaves = frame.memory.leaves;
+
+        for(i=0; i<nLeaves; i++){
+          node = leaves[i];
           node._color = frame.memory.actualColorList[i];
           node._rgb = ColorOperators.colorStringToRGB(node._color);
-        });
+        }
+
+        // frame.memory.leaves.forEach(function(node, i) {
+          
+        // });
+
         var assignColor = function(node) {
-          var i;
+          
+          //console.log('-'.repeat(node.level),node.level,node.name);
+          
           if(node.toNodeList.length === 0) return;
 
+          var sumWeights = 0;
+          var i;
+          var son;
+          var nSons = node.toNodeList.length;
+
           node._rgb = [0, 0, 0];
-          for(i = 0; node.toNodeList[i] != null; i++) {
-            assignColor(node.toNodeList[i]);
-            node._rgb[0] += node.toNodeList[i]._rgb[0];
-            node._rgb[1] += node.toNodeList[i]._rgb[1];
-            node._rgb[2] += node.toNodeList[i]._rgb[2];
+          for(i = 0; i<nSons; i++) {
+            son = node.toNodeList[i];
+            assignColor(son);
+            node._rgb[0] += (son._rgb[0]*son.weight);
+            node._rgb[1] += (son._rgb[1]*son.weight);
+            node._rgb[2] += (son._rgb[2]*son.weight);
+            sumWeights+=son.weight;
+
+            //console.log(' '.repeat(node.level), '•••', son.level, son.weight, son.name);
+
           }
-          node._rgb[0] = Math.floor(node._rgb[0] / node.toNodeList.length);
-          node._rgb[1] = Math.floor(node._rgb[1] / node.toNodeList.length);
-          node._rgb[2] = Math.floor(node._rgb[2] / node.toNodeList.length);
+
+          //console.log('sumWeights', sumWeights, 'node._rgb', node._rgb.join(','));
+
+          node._rgb[0] = Math.floor(node._rgb[0] / sumWeights);//node.toNodeList.length);
+          node._rgb[1] = Math.floor(node._rgb[1] / sumWeights);//node.toNodeList.length);
+          node._rgb[2] = Math.floor(node._rgb[2] / sumWeights);//node.toNodeList.length);
+          //console.log('new node._rgb', node._rgb.join(','));
         };
         assignColor(tree.nodeList[0]);
         //tree.nodeList.forEach(function(node, i) {
@@ -31920,6 +32062,7 @@
       child = node.toNodeList[i];
       child._outRectangle = TreeDraw._reduceRect(rectangles[i]);
       child._inRectangle = TreeDraw._inRectFromOutRect(child._outRectangle);
+
       TreeDraw._generateRectangles(child);
     }
     //});
