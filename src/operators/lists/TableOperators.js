@@ -1153,22 +1153,20 @@ TableOperators.splitTableByCategoricList = function(table, list) {
  *
  * @param  {Boolean} nodesAreRows if true (default value) each node corresponds to a row in the table, and rows are compared, if false lists are compared ([!] working only for NumberTable, using pearson correlation)
  * @param  {Object} names (StringList|Number) optionally add names to nodes with a list that could be part of the table or not; receives a StringList for names, index for list in the providade table
- * @param  {Number} mode 0:(default) takes into account numbers, uses Pearson Correlation
  * @param {Object} colorsByList (List|Number) optionally add color to nodes from a NumberList (for scale) or any List (for categorical colors) that could be part of the table or not; receives a List or an index if the list is in the providade table
  * @param {Number} correlationThreshold 0.3 by default, above that level a relation is created
  * @param  {Boolean} negativeCorrelation takes into account negative correlations for building relations
  * @return {Network}
  * tags:
  */
-TableOperators.buildCorrelationsNetwork = function(table, nodesAreRows, names, mode, colorsByList, correlationThreshold, negativeCorrelation){
+TableOperators.buildCorrelationsNetwork = function(table, nodesAreRows, names, colorsByList, correlationThreshold, negativeCorrelation){
   if(table==null) return null;
 
   nodesAreRows = nodesAreRows==null?true:Boolean(nodesAreRows);
-  mode = mode||0;
   correlationThreshold = correlationThreshold==null?0.3:correlationThreshold;
   negativeCorrelation = Boolean(negativeCorrelation);
 
-  var types = table.getTypes();
+  //var types = table.getTypes();
   var i, j;
   var l = table.length;
   var nRows = table[0].length;
@@ -1176,6 +1174,10 @@ TableOperators.buildCorrelationsNetwork = function(table, nodesAreRows, names, m
   var id, name;
   var pearson, jaccard, weight;
   var colorsList, colors;
+
+  var someCategorical = false;
+  var someText = false;
+  var someNumeric = false;
 
   var network = new Network();
 
@@ -1221,9 +1223,7 @@ TableOperators.buildCorrelationsNetwork = function(table, nodesAreRows, names, m
 
   if(names!=null && typeOf(names)=="number" && names<l) names = table[names];
 
-  
-
-  if(!nodesAreRows){
+  if(!nodesAreRows){ //why not just take transposed table?????
     
     if(table.type=="NumberTable"){//correlations network, for the time being
       
@@ -1273,12 +1273,15 @@ TableOperators.buildCorrelationsNetwork = function(table, nodesAreRows, names, m
         switch(pseudoKinds[j]){
           case 'numbers':
             node.numbers.push(node.row[j]);
+            someNumeric = true;
             break;
           case 'categories':
             node.categories.push(node.row[j]);
+            someCategorical = true;
             break;
           case 'texts':
             node.texts.push(node.row[j]);
+            someText = true;
             break;
         }
       }
@@ -1292,16 +1295,18 @@ TableOperators.buildCorrelationsNetwork = function(table, nodesAreRows, names, m
       node = network.nodeList[i];
       for(j=i+1; j<nRows; j++){
         node1 = network.nodeList[j];
-        
-        pearson = NumberListOperators.pearsonProductMomentCorrelation(node.numbers, node1.numbers, node.numbers.sd, node1.numbers.sd);
+
+        pearson = someNumeric?NumberListOperators.pearsonProductMomentCorrelation(node.numbers, node1.numbers, node.numbers.sd, node1.numbers.sd):0;
 
         //jaccard is normalized to -1, 1 so it can be negative 
-        jaccard = Math.pow( ListOperators.jaccardIndex(node.categories, node1.categories), 0.2 )*2 - 1;
+        jaccard = someCategorical?Math.pow( ListOperators.jaccardIndex(node.categories, node1.categories), 0.2 )*2 - 1 : 0;
 
+
+        //console.log("•••••••", pearson, jaccard);
 
         //texts
 
-        //textDistance = cosine simlairty based on pre-calculated words tables
+        //textDistance =  someText?… cosine simlairty based on pre-calculated words tables
 
 
         //dates, geo coordinates…
