@@ -82,6 +82,8 @@ TreeDraw.drawTreemap = function(frame, tree, colorList, weights, textColor, exte
   var nNodes = tree.nodeList.length;
   var node;
   var i;
+  var leaves;
+  var nLeaves
 
   if(change) {
     var changeInTree = frame.memory==null || frame.memory.tree!=tree;
@@ -111,8 +113,9 @@ TreeDraw.drawTreemap = function(frame, tree, colorList, weights, textColor, exte
 
     //frame.memory.nodeSelected = prevNodeSelected==null?tree.nodeList[0]:prevNodeSelected;
 
-    var leaves = (!changeInTree && frame.memory.leaves) ? frame.memory.leaves : tree.getLeaves();
+    leaves = (!changeInTree && frame.memory.leaves) ? frame.memory.leaves : tree.getLeaves();
     frame.memory.leaves = leaves;
+    nLeaves = leaves.length;
 
     if(weights == null) {
       //tree.nodeList.forEach(function(node) {
@@ -121,7 +124,7 @@ TreeDraw.drawTreemap = function(frame, tree, colorList, weights, textColor, exte
       }
       //});
     } else {
-      var nLeaves = leaves.length;
+      
 
       //leaves.forEach(function(node, i) {
       for(i=0; i<nLeaves; i++){
@@ -148,6 +151,7 @@ TreeDraw.drawTreemap = function(frame, tree, colorList, weights, textColor, exte
 
     tree.nodeList[0]._outRectangle = new Rectangle(0, 0, frame.width, frame.height);
     tree.nodeList[0]._inRectangle = TreeDraw._inRectFromOutRect(tree.nodeList[0]._outRectangle);
+
     TreeDraw._generateRectangles(tree.nodeList[0]);
 
     //frame.memory.focusFrame = prevFocusFrame==null?TreeDraw._expandRect(tree.nodeList[0]._outRectangle):prevFocusFrame;
@@ -189,24 +193,49 @@ TreeDraw.drawTreemap = function(frame, tree, colorList, weights, textColor, exte
       }
       //});
     } else if(frame.memory.actualColorList.length == frame.memory.leaves.length) {
-      frame.memory.leaves.forEach(function(node, i) {
+      
+      leaves = frame.memory.leaves;
+
+      for(i=0; i<nLeaves; i++){
+        node = leaves[i];
         node._color = frame.memory.actualColorList[i];
         node._rgb = ColorOperators.colorStringToRGB(node._color);
-      });
+      }
+
+      // frame.memory.leaves.forEach(function(node, i) {
+        
+      // });
+
       var assignColor = function(node) {
-        var i;
+        
+        //console.log('-'.repeat(node.level),node.level,node.name);
+        
         if(node.toNodeList.length === 0) return;
 
+        var sumWeights = 0;
+        var i;
+        var son;
+        var nSons = node.toNodeList.length;
+
         node._rgb = [0, 0, 0];
-        for(i = 0; node.toNodeList[i] != null; i++) {
-          assignColor(node.toNodeList[i]);
-          node._rgb[0] += node.toNodeList[i]._rgb[0];
-          node._rgb[1] += node.toNodeList[i]._rgb[1];
-          node._rgb[2] += node.toNodeList[i]._rgb[2];
+        for(i = 0; i<nSons; i++) {
+          son = node.toNodeList[i];
+          assignColor(son);
+          node._rgb[0] += (son._rgb[0]*son.weight);
+          node._rgb[1] += (son._rgb[1]*son.weight);
+          node._rgb[2] += (son._rgb[2]*son.weight);
+          sumWeights+=son.weight;
+
+          //console.log(' '.repeat(node.level), '•••', son.level, son.weight, son.name);
+
         }
-        node._rgb[0] = Math.floor(node._rgb[0] / node.toNodeList.length);
-        node._rgb[1] = Math.floor(node._rgb[1] / node.toNodeList.length);
-        node._rgb[2] = Math.floor(node._rgb[2] / node.toNodeList.length);
+
+        //console.log('sumWeights', sumWeights, 'node._rgb', node._rgb.join(','));
+
+        node._rgb[0] = Math.floor(node._rgb[0] / sumWeights);//node.toNodeList.length);
+        node._rgb[1] = Math.floor(node._rgb[1] / sumWeights);//node.toNodeList.length);
+        node._rgb[2] = Math.floor(node._rgb[2] / sumWeights);//node.toNodeList.length);
+        //console.log('new node._rgb', node._rgb.join(','));
       };
       assignColor(tree.nodeList[0]);
       //tree.nodeList.forEach(function(node, i) {
@@ -438,6 +467,7 @@ TreeDraw._generateRectangles = function(node) {
     child = node.toNodeList[i];
     child._outRectangle = TreeDraw._reduceRect(rectangles[i]);
     child._inRectangle = TreeDraw._inRectFromOutRect(child._outRectangle);
+
     TreeDraw._generateRectangles(child);
   }
   //});
