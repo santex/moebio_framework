@@ -128,6 +128,7 @@ NumberTable.fromArray = function(array) {
   result.factor = NumberTable.prototype.factor;
   result.add = NumberTable.prototype.add;
   result.getMax = NumberTable.prototype.getMax;
+  result.getMaxValues = NumberTable.prototype.getMaxValues;
   result.getMin = NumberTable.prototype.getMin;
   result.getInterval = NumberTable.prototype.getInterval;
   result.getCovarianceMatrix = NumberTable.prototype.getCovarianceMatrix;
@@ -136,7 +137,9 @@ NumberTable.fromArray = function(array) {
 };
 
 /**
- * @todo write docs
+ * returns max value in all numberLists
+ * @return {Number}
+ * tags:
  */
 NumberTable.prototype.getMax = function() {
   if(this.length === 0) return null;
@@ -148,6 +151,24 @@ NumberTable.prototype.getMax = function() {
     max = Math.max(this[i].getMax(), max);
   }
   return max;
+};
+
+/**
+ * returns max values from numberLists
+ * @return {NumberList}
+ * tags:
+ */
+NumberTable.prototype.getMaxValues = function() {
+  if(this.length === 0) return null;
+
+  var maxs = new NumberList();
+  var i;
+
+  for(i = 0; this[i] != null; i++) {
+    maxs[i] = this[i].getMax();
+  }
+
+  return maxs;
 };
 
 /**
@@ -163,6 +184,24 @@ NumberTable.prototype.getMin = function() {
     min = Math.min(this[i].getMin(), min);
   }
   return min;
+};
+
+/**
+ * returns min values from numberLists
+ * @return {NumberList}
+ * tags:
+ */
+NumberTable.prototype.getMinValues = function() {
+  if(this.length === 0) return null;
+
+  var mins = new NumberList();
+  var i;
+  
+  for(i = 0; this[i] != null; i++) {
+    mins[i] = this[i].getMin();
+  }
+
+  return mins;
 };
 
 /**
