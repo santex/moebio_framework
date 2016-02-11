@@ -48,6 +48,8 @@ ColorListGenerators.createDefaultCategoricalColorList = function(nColors, alpha,
  * tags:generator
  */
 ColorListGenerators.colorsForCategoricalList = function(list){
+  if(list==null) return;
+
   return ColorListGenerators.createCategoricalColorListForList(list)[0].value;
 };
 
@@ -101,6 +103,11 @@ ColorListGenerators.createCategoricalColorListForList = function(list, colorList
   var fullColorList = ListOperators.translateWithDictionary(list, colorDictTable, 'black');
 
   fullColorList = ColorList.fromArray(fullColorList);
+  
+
+  // var dictionaryTable = new Table();
+  // dictionaryTable[0] = diffValues;
+  // dictionaryTable[1] = fullColorList;
 
   return [
     {
@@ -113,7 +120,7 @@ ColorListGenerators.createCategoricalColorListForList = function(list, colorList
       value: diffColors,
       type: 'ColorList'
     }, {
-      value: new Table(diffValues, fullColorList),
+      value: colorDictTable,//new Table(diffValues, fullColorList),
       type: 'Table'
     }, {
       value: dictionaryObject,
