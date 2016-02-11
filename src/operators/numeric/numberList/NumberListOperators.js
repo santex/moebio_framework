@@ -667,3 +667,28 @@ NumberListOperators.rangeCounts2D = function(nL1,nL2,nBins1,nBins2,int1,int2){
   return nT;
 };
 
+/**
+ * in case the numberList is sorted, it generates a new one with lower values, by subtracting consecutive numbers
+ * @param {NumberList} nl
+ * @param {Boolean} compress true for compression, false for decompression
+ * tags:
+ */
+NumberListOperators.simpleCompression = function(nl, compress){
+  if(nl==null) return;
+
+  var i;
+  var newNl = new NumberList();
+  newNl[0] = nl[0];
+
+  if(compress==0){
+    for(i=1; i<nl.length; i++){
+      newNl[i] = nl[i]-nl[i-1]-1;
+    }
+  } else {
+    for(i=1; i<nl.length; i++){
+      newNl[i] = newNl[i-1]+nl[i]+1;
+    }
+  }
+  return newNl;
+};
+
