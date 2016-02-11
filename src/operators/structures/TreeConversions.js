@@ -38,20 +38,42 @@ TreeConversions.TableToTree = function(table, fatherName)  {
   var i, j;
   var list, element;
 
+  //var nodesDictionary = {};
+
   for(i=0; i<nLists; i++){
     list = table[i];
     if(list.length!=nElements) return null;
+    
     for(j=0; j<nElements; j++){
+      //console.log('------------------j:', j);
       element = list[j];
       
       id = TreeConversions._getId(table, i, j);
       node = tree.nodeList.getNodeById(id);
       if(node == null) {
         node = new Node(id, String(element));
+
+        //console.log('\n');
+        //console.log(node);
+        //nodesDictionary[ (i+"**"+j) ] = node;
+        //console.log('+++['+ (i+"**"+j)+']');//'   -->', nodesDictionary[ (i+"**"+j) ]);
+
         if(i === 0) {
           tree.addNodeToTree(node, father);
         } else {
+          
+          //parent = nodesDictionary[ ((i-1)+"**"+j) ];// tree.nodeList.getNodeById(TreeConversions._getId(table, i - 1, j)); //<----why it doesn't work??
           parent = tree.nodeList.getNodeById(TreeConversions._getId(table, i - 1, j));
+          
+          // if(parent==null) {
+          //   console.log('<<<['+ ((i-1)+"**"+j)+']' );
+          //   console.log('nodesDictionary:', nodesDictionary);
+          //   console.log(tree.nodeList);
+          //   return;
+          // } else {
+          //   console.log('√');
+          // }
+
           tree.addNodeToTree(node, parent);
         }
 
@@ -64,23 +86,6 @@ TreeConversions.TableToTree = function(table, fatherName)  {
       }
     }
   }
-
-
-  // table.forEach(function(list, i) {
-  //   table[i].forEach(function(element, j) {
-  //     id = TreeConversions._getId(table, i, j);
-  //     node = tree.nodeList.getNodeById(id);
-  //     if(node == null) {
-  //       node = new Node(id, String(element));
-  //       if(i === 0) {
-  //         tree.addNodeToTree(node, father);
-  //       } else {
-  //         parent = tree.nodeList.getNodeById(TreeConversions._getId(table, i - 1, j));
-  //         tree.addNodeToTree(node, parent);
-  //       }
-  //     }
-  //   });
-  // });
 
   tree.assignDescentWeightsToNodes();
 
@@ -107,7 +112,7 @@ TreeConversions.TableToTree = function(table, fatherName)  {
  */
 TreeConversions._getId = function(table, i, j) {
   var iCol = 1;
-  var id = String(table[0][j]);
+  var id = "_"+String(table[0][j]);
   while(iCol <= i) {
     id += "_" + String(table[iCol][j]);
     iCol++;
