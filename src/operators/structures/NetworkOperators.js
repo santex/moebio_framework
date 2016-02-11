@@ -1521,6 +1521,25 @@ NetworkOperators._getAdjacencyMap = function(network,bDirected,bReversed,bStocha
   return map;
 }
 
+
+/**
+ * Adds centrality properties to the network nodes. Nodes with no incoming connections have a score of zero. This method is transformative;
+ *
+ * @param {Network} network
+ * @param {Number} mode centralities to add<br>0:eigen vector eigenvectorCentrality<br>1:betweenness betweennessCentrality<br>10:all
+ * @param {Boolean} bNormalized=true (default), scale so maximum centrality is 1
+ * @param {Boolean} bReversed=true (default), use outgoing relations
+ * @return {Network}
+ * tags:analytics,transformative
+ */
+NetworkOperators.addCentralitiesToNodes = function(network, mode, bNormalized, bReversed) {
+  if(network==null) return;
+  mode = mode==null?0:mode;
+  if(mode===0 || mode==10) NetworkOperators.addEigenvectorCentralityToNodes(network, bNormalized, bReversed);
+  if(mode===1 || mode==10) NetworkOperators.addBetweennessCentralityToNodes(network, bNormalized, bReversed);
+  return network;
+};
+
 /**
  * Adds eigenvectorCentrality as a property to the network nodes.
  * Nodes with no incoming connections have a score of zero.
@@ -1529,7 +1548,6 @@ NetworkOperators._getAdjacencyMap = function(network,bDirected,bReversed,bStocha
  * @param {Boolean} bNormalized=true (default), scale so maximum eigenvectorCentrality is 1
  * @param {Boolean} bReversed=true (default), use outgoing relations
  * @return {Network}
- * tags:analytics,transformative
  */
 NetworkOperators.addEigenvectorCentralityToNodes = function(network, bNormalized, bReversed) {
   // derived from Graph.js inside http://www.clips.ua.ac.be/pages/pattern
@@ -1595,13 +1613,11 @@ NetworkOperators.addEigenvectorCentralityToNodes = function(network, bNormalized
 
 /**
  * Adds betweennessCentrality as a property to the network nodes.
- * Nodes in high-density areas will get a good score.
  *
  * @param {Network} network
  * @param {Boolean} bNormalized=true (default), scale so maximum betweennessCentrality is 1
  * @param {Boolean} bDirected=false (default), count relations in both directions
  * @return {Network}
- * tags:analytics,transformative
  */
 NetworkOperators.addBetweennessCentralityToNodes = function(network, bNormalized, bDirected) {
   // derived from Graph.js inside http://www.clips.ua.ac.be/pages/pattern
@@ -1708,3 +1724,25 @@ NetworkOperators.addBetweennessCentralityToNodes = function(network, bNormalized
 NetworkOperators.getReport = function() {
   return "network contains " + this.nodeList.length + " nodes and " + this.relationList.length + " relations";
 };
+
+
+
+
+
+/**
+ * returns the leaves of a tree or a node belonging to a tree
+ *
+ * @param {Tree|Node} tree or node
+ * @return {NodeList}
+ * tags:
+ */
+NetworkOperators.getLeaves = function(object){//@todo: move to TreeOperators
+  if(object==null) return;
+  if(object.getLeaves!=null) return object.getLeaves();
+  return null;
+}
+
+
+
+
+

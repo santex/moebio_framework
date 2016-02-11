@@ -121,7 +121,6 @@ Node.prototype.getParent = function() {
  *
  * <strong>Warning:</strong> If this Node is part of a Network that is not a tree, this method could run an infinite loop.
  * @return {NodeList} Leaf Nodes of this Node.
- * tags:
  */
 Node.prototype.getLeaves = function() {
     var leaves = new NodeList();
