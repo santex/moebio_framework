@@ -298,10 +298,12 @@ Table.prototype.getTransposed = function(firstListAsHeaders, headersAsFirstList)
   }
 
   nElements = tableToTranspose[0].length;
-  if(this.type != "NumberTable")
+  
+  if(this.type != "NumberTable"){
     for(j = 0; j<nElements; j++) {
       table[j] = table[j].getImproved();
     }
+  }
 
   if(firstListAsHeaders) {
     nElements = this[0].length;
