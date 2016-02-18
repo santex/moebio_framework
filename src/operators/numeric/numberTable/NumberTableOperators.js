@@ -141,6 +141,7 @@ NumberTableOperators.kMeans = function(numberTable, k, returnIndexesMode, N){
   N = (N==null || (N<=0))?1000:N;
 
   var clusters = new NumberTable();// = returnIndexesMode?new NumberList():new NumberTable();
+  clusters.name = "k-means clusters";
   var i, j, l;
   var jK;
   var row;
@@ -189,6 +190,7 @@ NumberTableOperators.kMeans = function(numberTable, k, returnIndexesMode, N){
     //clean clusters
     for(j = 0; j < k; j++) {
       clusters[j] = new NumberList();
+      clusters[j].name = "-means cluster "+j;
     }
 
     //for each row finds its closer mean
@@ -219,6 +221,7 @@ NumberTableOperators.kMeans = function(numberTable, k, returnIndexesMode, N){
       meanRowsIndexes = clusters[j];
       nRowsMean = meanRowsIndexes.length;
       means[j] = new NumberList();
+      means[j].name = "k-means mean "+j;
 
       newMean = means[j];
 
@@ -252,6 +255,7 @@ NumberTableOperators.kMeans = function(numberTable, k, returnIndexesMode, N){
 
   if(returnIndexesMode==1 || returnIndexesMode==5){
     meanNumber = new NumberList();
+    meanNumber.name = "mean index";
     for(i=0; i<k; i++){
       cluster = clusters[i];
       sizeCluster = cluster.length;
@@ -266,6 +270,7 @@ NumberTableOperators.kMeans = function(numberTable, k, returnIndexesMode, N){
 
   if(returnIndexesMode==2 || returnIndexesMode==5){
     colors = new ColorList();
+    meanNumber.name = "mean color";
     var catColors = ColorListGenerators.createDefaultCategoricalColorList(k);
     for(i=0; i<k; i++){
       cluster = clusters[i];
@@ -281,7 +286,7 @@ NumberTableOperators.kMeans = function(numberTable, k, returnIndexesMode, N){
   if(returnIndexesMode==4 || returnIndexesMode==5){
     for(i=0; i<k; i++){
       subTables[i] = new NumberTable();
-      subTables[i].name = 'subtable_'+i;
+      subTables[i].name = 'k-means subtable_'+i;
       cluster = clusters[i];
       sizeCluster = cluster.length;
       for(j=0; j<sizeCluster; j++){
@@ -309,152 +314,154 @@ NumberTableOperators.kMeans = function(numberTable, k, returnIndexesMode, N){
   return null;
 };
 
-/**
- * builds a k-nearest neighbors function, that calculates a class membership or a regression, taking the vote or average of the k nearest instances, using Euclidean distance, and applies it to a list of points, see: http://en.wikipedia.org/wiki/K-nearest_neighbors_algorithm
- * <br>[!] regression still not built
- * @param  {NumberTable} numberTable
- * @param  {List} propertyList categories or values
- *
- * @param  {Polygon} vectorList optional list of points to be tested, if provided classes or regressions are calculated, if not the function is returned
- * @param  {Number} k number of neighbors
- * @param  {Boolean} calculateClass if true propertyList is a list of categories for membership calculation, if false a numberList for regression
- * @param {Number} matrixN if provided, the result will be a numberTable with values in a grid in the numberTable ranges
- * @return {Object} kNN Function or a matrix (grid) of values if matrixN is provided, or classes or values from points if vectorList is provided
- * tags:ds
- */
-NumberTableOperators.kNN = function(numberTable, propertyList, vectorList, k, calculateClass, matrixN) {
-  if(numberTable == null ||  propertyList == null) return null;
 
-  k = k || 1;
-  calculateClass = calculateClass == null ? true : calculateClass;
 
-  var i, j;
+// /**
+//  * builds a k-nearest neighbors function, that calculates a class membership or a regression, taking the vote or average of the k nearest instances, using Euclidean distance, and applies it to a list of points, see: http://en.wikipedia.org/wiki/K-nearest_neighbors_algorithm
+//  * <br>[!] regression still not built
+//  * @param  {NumberTable} numberTable
+//  * @param  {List} propertyList categories or values
+//  *
+//  * @param  {Polygon} vectorList optional list of points to be tested, if provided classes or regressions are calculated, if not the function is returned
+//  * @param  {Number} k number of neighbors
+//  * @param  {Boolean} calculateClass if true propertyList is a list of categories for membership calculation, if false a numberList for regression
+//  * @param {Number} matrixN if provided, the result will be a numberTable with values in a grid in the numberTable ranges
+//  * @return {Object} kNN Function or a matrix (grid) of values if matrixN is provided, or classes or values from points if vectorList is provided
+//  * tags:ds
+//  */
+// NumberTableOperators.kNN = function(numberTable, propertyList, vectorList, k, calculateClass, matrixN) {//@todo: imporve performance
+//   if(numberTable == null ||  propertyList == null) return null;
 
-  var fKNN = function(vector) {
-    var i, j;
-    var d2;
+//   k = k || 1;
+//   calculateClass = calculateClass == null ? true : calculateClass;
 
-    var table = new NumberTable();
+//   var i, j;
 
-    table[0] = new NumberList();
-    table[1] = new NumberList();
-    numberTable[0].forEach(function(val, i) {//TODO: make it more efficient by using for
-      d2 = 0;
-      numberTable.forEach(function(nList, j) {
-        d2 += Math.pow(nList[i] - vector[j], 2);
-      });
-      if(table[1].length < k || table[1][k - 1] > d2) {
-        var inserted = false;
-        for(j = 0; table[1][j] < k; j++) {
-          if(d2 < table[1][j]) {
-            table[1].splice(j, 0, d2);
-            table[0].splice(j, 0, i);
-            inserted = true;
-            break;
-          }
-        }
-        if(!inserted && table[1].length < k) {
-          table[1].push(d2);
-          table[0].push(i);
-        }
-      }
-    });
+//   var fKNN = function(vector) {
+//     var i, j;
+//     var d2;
 
-    if(calculateClass) {
-      var classTable = new Table();
-      classTable[0] = new List();
-      classTable[1] = new NumberList();
-      for(i = 0; i < k; i++) {
-        var clas = propertyList[table[0][i]];
-        var index = classTable[0].indexOf(clas);
-        if(index == -1) {
-          classTable[0].push(clas);
-          classTable[1].push(1);
-        } else {
-          classTable[1][index]++;
-        }
-      }
-      var max = classTable[1][0];
-      var iMax = 0;
-      classTable[1].slice(1).forEach(function(val, i) {
-        if(val > max) {
-          max = val;
-          iMax = i + 1;
-        }
-      });
-      return classTable[0][iMax];
-    }
+//     var table = new NumberTable();
 
-    var val;
-    var combination = 0;
-    var sumD = 0;
-    for(i = 0; i < k; i++) {
-      val = propertyList[table[0][i]];
-      combination += val / (table[1][i] + 0.000001);
-      sumD += (1 / (table[1][i] + 0.000001));
-    }
+//     table[0] = new NumberList();
+//     table[1] = new NumberList();
+//     numberTable[0].forEach(function(val, i) {//TODO: make it more efficient by using for
+//       d2 = 0;
+//       numberTable.forEach(function(nList, j) {
+//         d2 += Math.pow(nList[i] - vector[j], 2);
+//       });
+//       if(table[1].length < k || table[1][k - 1] > d2) {
+//         var inserted = false;
+//         for(j = 0; table[1][j] < k; j++) {
+//           if(d2 < table[1][j]) {
+//             table[1].splice(j, 0, d2);
+//             table[0].splice(j, 0, i);
+//             inserted = true;
+//             break;
+//           }
+//         }
+//         if(!inserted && table[1].length < k) {
+//           table[1].push(d2);
+//           table[0].push(i);
+//         }
+//       }
+//     });
 
-    //console.log('vector:', vector[0], vector[1], 'colsest:', Math.floor(100000000 * table[1][0]), Math.floor(100000000 * table[1][1]), 'categories', propertyList[table[0][0]], propertyList[table[0][1]], 'result', combination / sumD);
+//     if(calculateClass) {
+//       var classTable = new Table();
+//       classTable[0] = new List();
+//       classTable[1] = new NumberList();
+//       for(i = 0; i < k; i++) {
+//         var clas = propertyList[table[0][i]];
+//         var index = classTable[0].indexOf(clas);
+//         if(index == -1) {
+//           classTable[0].push(clas);
+//           classTable[1].push(1);
+//         } else {
+//           classTable[1][index]++;
+//         }
+//       }
+//       var max = classTable[1][0];
+//       var iMax = 0;
+//       classTable[1].slice(1).forEach(function(val, i) {
+//         if(val > max) {
+//           max = val;
+//           iMax = i + 1;
+//         }
+//       });
+//       return classTable[0][iMax];
+//     }
 
-    return combination / sumD;
+//     var val;
+//     var combination = 0;
+//     var sumD = 0;
+//     for(i = 0; i < k; i++) {
+//       val = propertyList[table[0][i]];
+//       combination += val / (table[1][i] + 0.000001);
+//       sumD += (1 / (table[1][i] + 0.000001));
+//     }
 
-    //regression
-    //…
-  };
+//     //console.log('vector:', vector[0], vector[1], 'colsest:', Math.floor(100000000 * table[1][0]), Math.floor(100000000 * table[1][1]), 'categories', propertyList[table[0][0]], propertyList[table[0][1]], 'result', combination / sumD);
 
-  if(vectorList == null) {
+//     return combination / sumD;
 
-    if(matrixN != null && matrixN > 0) {
-      var propertiesNumbers = {};
-      var n = 0;
+//     //regression
+//     //…
+//   };
 
-      propertyList.forEach(function(val) {
-        if(propertiesNumbers[val] == null) {
-          propertiesNumbers[val] = n;
-          n++;
-        }
-      });
+//   if(vectorList == null) {
 
-      var p;
-      var matx = new NumberTable();
-      var ix = numberTable[0].getInterval();
-      var minx = ix.x;
-      var kx = ix.getAmplitude() / matrixN;
-      var iy = numberTable[1].getInterval();
-      var miny = iy.x;
-      var ky = iy.getAmplitude() / matrixN;
+//     if(matrixN != null && matrixN > 0) {
+//       var propertiesNumbers = {};
+//       var n = 0;
 
-      for(i = 0; i < matrixN; i++) {
-        matx[i] = new NumberList();
+//       propertyList.forEach(function(val) {
+//         if(propertiesNumbers[val] == null) {
+//           propertiesNumbers[val] = n;
+//           n++;
+//         }
+//       });
 
-        for(j = 0; j < matrixN; j++) {
-          p = [
-            minx + kx * i,
-            miny + ky * j
-          ];
+//       var p;
+//       var matx = new NumberTable();
+//       var ix = numberTable[0].getInterval();
+//       var minx = ix.x;
+//       var kx = ix.getAmplitude() / matrixN;
+//       var iy = numberTable[1].getInterval();
+//       var miny = iy.x;
+//       var ky = iy.getAmplitude() / matrixN;
 
-          fKNN(p);
+//       for(i = 0; i < matrixN; i++) {
+//         matx[i] = new NumberList();
 
-          matx[i][j] = calculateClass ? propertiesNumbers[fKNN(p)] : fKNN(p);
-        }
-      }
-      //return matrix
-      return matx;
-    }
+//         for(j = 0; j < matrixN; j++) {
+//           p = [
+//             minx + kx * i,
+//             miny + ky * j
+//           ];
 
-    //return Function
-    return fKNN;
-  }
+//           fKNN(p);
 
-  var results = instantiateWithSameType(propertyList);
+//           matx[i][j] = calculateClass ? propertiesNumbers[fKNN(p)] : fKNN(p);
+//         }
+//       }
+//       //return matrix
+//       return matx;
+//     }
 
-  vectorList.forEach(function(vector) {
-    results.push(fKNN(vector));
-  });
+//     //return Function
+//     return fKNN;
+//   }
 
-  //return results
-  return results;
-};
+//   var results = instantiateWithSameType(propertyList);
+
+//   vectorList.forEach(function(vector) {
+//     results.push(fKNN(vector));
+//   });
+
+//   //return results
+//   return results;
+// };
 
 
 /**
