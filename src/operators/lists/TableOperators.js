@@ -250,6 +250,7 @@ TableOperators.getFilteredByValue = function(table, operator, value, nList, valu
   return newTable;
 };
 
+
 /**
  * filters lists on a table, keeping elements that are in the same of row of a certain element of a given list from the table
  * @param  {Table} table Table.
@@ -351,25 +352,25 @@ TableOperators.getSubTableByElementsOnList = function(table, nList, list){
 };
 
 /**
-   * creates a Table by randomly sampling rows from the input table.
-   * @param  {Table} input table
-   * @param  {Number} f fraction of rows to randomly select [0,1] (Default is .5)
-   * @param  {Boolean} avoidRepetitions (Default is true)
-   * @return {Table}
-   * tags:filter,sampling
-   */
-  TableOperators.getRandomRows = function(table, f, avoidRepetitions) {
-    avoidRepetitions = avoidRepetitions == null ? true : avoidRepetitions;
-    if(table == null || table[0] == null) return null;
-    if(f == null) f=.5
-    if(f < 0 || f > 1) return null;
-    var nRows = table[0].length;
-    var n=Math.round(f*nRows);
-    var listIndexes = NumberListGenerators.createSortedNumberList(nRows, 0, 1);
-    listIndexes = listIndexes.getRandomElements(n, avoidRepetitions);
-    listIndexes = listIndexes.getSorted();
-    return table.getSubListsByIndexes(listIndexes);
-  };
+ * creates a Table by randomly sampling rows from the input table.
+ * @param  {Table} input table
+ * @param  {Number} f fraction of rows to randomly select [0,1] (Default is .5)
+ * @param  {Boolean} avoidRepetitions (Default is true)
+ * @return {Table}
+ * tags:filter,sampling
+ */
+TableOperators.getRandomRows = function(table, f, avoidRepetitions) {
+  avoidRepetitions = avoidRepetitions == null ? true : avoidRepetitions;
+  if(table == null || table[0] == null) return null;
+  if(f == null) f=.5
+  if(f < 0 || f > 1) return null;
+  var nRows = table[0].length;
+  var n=Math.round(f*nRows);
+  var listIndexes = NumberListGenerators.createSortedNumberList(nRows, 0, 1);
+  listIndexes = listIndexes.getRandomElements(n, avoidRepetitions);
+  listIndexes = listIndexes.getSorted();
+  return table.getSubListsByIndexes(listIndexes);
+};
 
 /**
  * transposes a table
@@ -516,7 +517,7 @@ TableOperators.sortListsByNumberList = function(table, numberList, descending) {
  * @param  {Table} table containing the aggregation list and lists to be aggregated
  * @param  {Number} indexAggregationList index of the aggregation list on the table
  * @param  {NumberList} indexesListsToAggregate indexs of the lists to be aggregated; typically it also contains the index of the aggregation list at the beginning, to be aggregated using mode 0 (first element) thus resulting as the list of non repeated elements
- * @param  {NumberList} modes list of modes of aggregation, these are the options:<br>0:first element<br>1:count (default)<br>2:sum<br>3:average<br>4:min<br>5:max<br>6:standard deviation<br>7:enlist (creates a list of elements)<br>8:last element<br>9:most common element<br>10:random element<br>11:indexes<br>12:count non repeated elements<br>13:enlist non repeated elements<br>14:concat elements (string)<br>15:concat non-repeated elements
+ * @param  {NumberList} modes list of modes of aggregation, these are the options:<br>0:first element<br>1:count (default)<br>2:sum<br>3:average<br>4:min<br>5:max<br>6:standard deviation<br>7:enlist (creates a list of elements)<br>8:last element<br>9:most common element<br>10:random element<br>11:indexes<br>12:count non repeated elements<br>13:enlist non repeated elements<br>14:concat elements (string)<br>15:concat non-repeated elements<br>16:frequencies tables
  *
  * @param {StringList} newListsNames optional names for generated lists
  * @return {Table} aggregated table
@@ -532,13 +533,22 @@ TableOperators.aggregateTable = function(table, indexAggregationList, indexesLis
   var newTable = new Table();
   var newList;
   var toAggregateList;
+  var i, index;
+  var l = indexesListsToAggregate.length;
 
-  indexesListsToAggregate.forEach(function(index, i){
+  //indexesListsToAggregate.forEach(function(index, i){
+  for(i=0; i<l; i++){
+    index = indexesListsToAggregate[i];
     toAggregateList = table[index];
     newList = ListOperators.aggregateList(aggregatorList, toAggregateList, i<modes.length?modes[i]:1, indexesTable)[1];
-    if(newListsNames && i<newListsNames.length) newList.name = newListsNames[i];
+    if(newListsNames && i<newListsNames.length){
+      newList.name = newListsNames[i];
+    } else {
+      newList.name = toAggregateList.name;
+    }
     newTable.push(newList);
-  });
+  }
+  //});
 
   return newTable.getImproved();
 };
@@ -877,19 +887,34 @@ TableOperators.filterTableByElementsInList = function(table, nList, elements, ke
 };
 
 
+
+
 /**
- * @todo finish docs
+ * builds the vector of values from a data table and the complete list of categories
+ * @param {Table} dataTable lwith categories and values
+ * @param {List} allCategories complete list of categories
+ *
+ * @param {Object} allCategoriesIndexesDictionary optional dictionar of indexes if pre-calculated
+ * @return {NumberList} values for each category from complete categorical list
+ * tags:
  */
-TableOperators.mergeDataTablesInList = function(tableList) {
-  if(tableList.length < 2) return tableList;
+TableOperators.numberListFromDataTable = function(dataTable, allCategories, allCategoriesIndexesDictionary){
+  if(dataTable==null || allCategories==null) return;
 
-  var merged = tableList[0];
+  var i;
+  var l = dataTable[0].length;
 
-  for(var i = 1; tableList[i] != null; i++) {
-    merged = TableOperators.mergeDataTables(merged, tableList[i]);
+  allCategoriesIndexesDictionary = allCategoriesIndexesDictionary==null?ListOperators.getSingleIndexDictionaryForList(allCategories):allCategoriesIndexesDictionary; 
+
+  var nL = ListGenerators.createListWithSameElement(allCategories.length, 0); 
+  var index;
+
+  for(i=0; i<l; i++){
+    index = allCategoriesIndexesDictionary[dataTable[0][i]];
+    if(index!=null) nL[index] = dataTable[1][i];
   }
 
-  return merged;
+  return nL;
 };
 
 /**
@@ -988,6 +1013,95 @@ TableOperators.mergeDataTables = function(table0, table1) {
 };
 
 /**
+ * creates a new table with an updated first categorical List of elements and  added new numberLists with the new values from all data tables
+ * @param {List} tableList list of data tables to merge
+ *
+ * @param {Boolean} categoriesAsColumns if true (default) returns a numberTable with a NumberList per category, if false return a data table with firt list containing all categories
+ * @return {Table} numberTable fo categories weights, or data table with categories on first list, and merged values in n numberLists
+ * tags:
+ */
+TableOperators.mergeDataTablesList = function(tableList, categoriesAsColumns) {//@todo: improve performance
+  if(tableList==null || tableList.length < 2) return tableList;
+
+  categoriesAsColumns = categoriesAsColumns==null?true:categoriesAsColumns;
+
+  //var categories = new List();
+  var categoriesIndexes = {};
+  var numberTable = new NumberTable();
+  var i, j, index;
+  var i0, k, nCategories;
+  var table;
+  var n = tableList.length;
+  var l;
+
+  if(categoriesAsColumns){
+
+    for(i = 0; i<n; i++) {
+      table = tableList[i];
+      l = table[0].length;
+      for(j=0; j<l; j++){
+        index = categoriesIndexes[ table[0][j] ];
+        if(index==null){
+          index = numberTable.length;
+          //categories[index] = table[0][j];
+          if(categoriesAsColumns) numberTable[index] = ListGenerators.createListWithSameElement(n, 0, table[0][j]);
+          numberTable[index].name = table[0][j];
+          categoriesIndexes[ nCategories ] = index;
+        }
+        numberTable[index][i] += table[1][j];
+      }
+    }
+
+  } else {
+    nCategories = 0;
+
+    for(i = 0; i<n; i++) {
+      table = tableList[i];
+
+      l = table[0].length;
+      numberTable[i] = new NumberList();
+      numberTable.name = table.name;
+
+      for(j=0; j<l; j++){
+        index = categoriesIndexes[ table[0][j] ];
+        if(index==null){
+          index = nCategories;
+          //categories[index] = table[0][j];
+          if(categoriesAsColumns) numberTable[index] = ListGenerators.createListWithSameElement(n, 0, table[0][j]);
+
+          categoriesIndexes[ table[0][j] ] = index;
+
+          nCategories++;
+        }
+
+        
+        
+        if(numberTable[i][index]==null){
+          i0 = numberTable[i].length;
+          for(k=i0; k<index; k++){
+            numberTable[i][k]=0;
+          }
+          numberTable[i][index] = table[1][j];
+        } else {
+          numberTable[i][index] += table[1][j];
+        }
+      }
+    }
+
+    for(i = 0; i<n; i++) {
+      i0=numberTable[i].length;
+      for(j=i0; j<=nCategories; j++){
+        numberTable[i][j] = 0;
+      }
+    }
+
+
+  }
+
+  return numberTable;
+};
+
+/**
  * From two DataTables creates a new DataTable with combined elements in the first List, and added values in the second
  * @param {Object} table0
  * @param {Object} table1
@@ -1017,7 +1131,7 @@ TableOperators.sumDataTables = function(table0, table1) {//
  * @return {Number}
  * tags:statistics
  */
-NumberListOperators.dotProductDataTables = function(table0, table1) {
+TableOperators.dotProductDataTables = function(table0, table1) {
   if(table0==null || table1==null || table0.length<2 || table1.length<2) return null;
 
   var i, j;
@@ -1036,21 +1150,28 @@ NumberListOperators.dotProductDataTables = function(table0, table1) {
   return product;
 };
 
+
 /**
- * calcualtes the cosine similarity based on NumberListOperators.dotProductDataTables
+ * calcualtes the cosine similarity based on TableOperators.dotProductDataTables
  * @param  {Table} table0 dataTable with categories and numbers
  * @param  {Table} table1 dataTable with categories and numbers
+ *
+ * @param {Number} norm0 optionally pre-calculated norm of table0[1]
+ * @param {Number} norm1 optionally pre-calculated norm of table1[1]
  * @return {Number}
  * tags:statistics
  */
-TableOperators.cosineSimilarityDataTables = function(table0, table1) {
+TableOperators.cosineSimilarityDataTables = function(table0, table1, norm0, norm1) {
   if(table0==null || table1==null || table0.length<2 || table1.length<2) return null;
 
   if(table0[0].length===0 || table1[0].length===0) return 0;
 
-  var norms = table0[1].getNorm()*table1[1].getNorm();
+  norm0 = norm0==null?table0[1].getNorm():norm0;
+  norm1 = norm1==null?table1[1].getNorm():norm1;
+
+  var norms = norm0*norm1;
   if(norms === 0) return 0;
-  return NumberListOperators.dotProductDataTables(table0, table1)/norms;
+  return TableOperators.dotProductDataTables(table0, table1)/norms;
 };
 
 /**
@@ -1156,15 +1277,17 @@ TableOperators.splitTableByCategoricList = function(table, list) {
  * @param {Object} colorsByList (List|Number) optionally add color to nodes from a NumberList (for scale) or any List (for categorical colors) that could be part of the table or not; receives a List or an index if the list is in the providade table
  * @param {Number} correlationThreshold 0.3 by default, above that level a relation is created
  * @param  {Boolean} negativeCorrelation takes into account negative correlations for building relations
+ * @param {Number} numericMode numeric correlation mode<br>0:Pearson correlation (defualt)<br>1:cosine similarity
  * @return {Network}
  * tags:
  */
-TableOperators.buildCorrelationsNetwork = function(table, nodesAreRows, names, colorsByList, correlationThreshold, negativeCorrelation){
+TableOperators.buildCorrelationsNetwork = function(table, nodesAreRows, names, colorsByList, correlationThreshold, negativeCorrelation, numericMode){
   if(table==null) return null;
 
   nodesAreRows = nodesAreRows==null?true:Boolean(nodesAreRows);
   correlationThreshold = correlationThreshold==null?0.3:correlationThreshold;
   negativeCorrelation = Boolean(negativeCorrelation);
+  numericMode = numericMode==null?0:numericMode;
 
   //var types = table.getTypes();
   var i, j;
@@ -1286,7 +1409,11 @@ TableOperators.buildCorrelationsNetwork = function(table, nodesAreRows, names, c
         }
       }
 
-      node.numbers.sd = node.numbers.getStandardDeviation();
+      if(numericMode===0){
+        node.numbers.sd = node.numbers.getStandardDeviation();
+      } else {
+        node.numbers.norm = node.numbers.getNorm();
+      }
 
       network.addNode(node);
     }
@@ -1296,7 +1423,14 @@ TableOperators.buildCorrelationsNetwork = function(table, nodesAreRows, names, c
       for(j=i+1; j<nRows; j++){
         node1 = network.nodeList[j];
 
-        pearson = someNumeric?NumberListOperators.pearsonProductMomentCorrelation(node.numbers, node1.numbers, node.numbers.sd, node1.numbers.sd):0;
+        pearson = someNumeric?
+          (numericMode===0?
+            NumberListOperators.pearsonProductMomentCorrelation(node.numbers, node1.numbers, node.numbers.sd, node1.numbers.sd)
+            :
+            NumberListOperators.cosineSimilarity(node.numbers, node1.numbers, node.numbers.norm, node1.numbers.norm)
+          )
+          :
+          0;
 
         //jaccard is normalized to -1, 1 so it can be negative 
         jaccard = someCategorical?Math.pow( ListOperators.jaccardIndex(node.categories, node1.categories), 0.2 )*2 - 1 : 0;
