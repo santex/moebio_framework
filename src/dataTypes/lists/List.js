@@ -83,8 +83,10 @@ List.fromArray = function(array) {
   array.getMostRepeatedElement = List.prototype.getMostRepeatedElement;
   array.getMin = List.prototype.getMin;
   array.getMax = List.prototype.getMax;
+  array.indexOfElement = List.prototype.indexOfElement;
   array.indexesOf = List.prototype.indexesOf;
   array.indexOfElements = List.prototype.indexOfElements;
+  array.indexesOfElements = List.prototype.indexesOfElements;
   array.indexOfByPropertyValue = List.prototype.indexOfByPropertyValue;
   array.getFirstElementByName = List.prototype.getFirstElementByName;
   array.getElementsByNames = List.prototype.getElementsByNames;
@@ -96,7 +98,6 @@ List.fromArray = function(array) {
   array.getRandomElement = List.prototype.getRandomElement;
   array.getRandomElements = List.prototype.getRandomElements;
   array.containsElement = List.prototype.containsElement;
-  array.indexOfElement = List.prototype.indexOfElement;
   //sorting:
   array.isSorted = List.prototype.isSorted;
   array.sortIndexed = List.prototype.sortIndexed;
@@ -138,6 +139,7 @@ List.fromArray = function(array) {
   array.removeRepetitions = List.prototype.removeRepetitions;
   array.replace = List.prototype.replace;
   array.assignNames = List.prototype.assignNames;
+  array.assignPropertyValues = List.prototype.assignPropertyValues;
   array._splice = Array.prototype.splice;
   array.splice = List.prototype.splice;
 
@@ -159,9 +161,6 @@ List.prototype.getImproved = function() {
   }
 
   var typeOfElements = this.getTypeOfElements();
-
-  //console.log('getImproved | typeOfElements: ['+typeOfElements+']');
-
   var newList;
   switch(typeOfElements) {
     case "number":
@@ -273,6 +272,7 @@ List.prototype.getLengths = function() {
  * Uses typeOf to determine type. If multiple types,
  * returns an empty string.
  * @return {String} Type of element stored in the List.
+ * tags:
  */
 List.prototype.getTypeOfElements = function() {
   var typeOfElements = typeOf(this[0]);
@@ -532,11 +532,6 @@ List.prototype.getWithoutRepetitions = function() {
       dictionary[this[i]] = true;
     }
   }
-  // } else {
-  //   for(i = 0; this[i] != null; i++) {
-  //     if(newList.indexOf(this[i]) == -1) newList.push(this[i]);
-  //   }
-  // }
 
   return newList;
 };
@@ -566,9 +561,6 @@ List.prototype.getSimplified = function(nCategories, othersElement) {
   for(i=0; i<l; i++){
     newList.push(frequencyIndexesDictionary[this[i]]<nCategories-1?this[i]:othersElement);
   }
-  // this.forEach(function(element){
-  //   newList.push(freqTable._indexesDictionary[element]<nCategories-1?element:othersElement);
-  // });
   
   return newList;
 };
@@ -621,7 +613,7 @@ List.prototype.getFrequenciesTable = function(sortListsByOccurrences, addWeights
   sortListsByOccurrences = sortListsByOccurrences == null?true:sortListsByOccurrences;
 
   var table = new Table();
-  var elementList = new List();
+  var elementList =  instantiateWithSameType(this); //new List();
   var numberList = new NumberList();
   var i;
   var index;
@@ -797,21 +789,6 @@ List.prototype.containsElement = function(element) { //TODO: test if this is fas
 };
 
 /**
- * returns the index position of the given element in the List.
- * @param {Object} element Value to search for in the List.
- * @return {Number} Index of the given element in the List.
- * If element is not found, -1 is returned.
- */
-List.prototype.indexOfElement = function(element) { //TODO: test if this is faster than indexOf
-  var i;
-  var l = this.length;
-  for(i = 0; i<l; i++) {
-    if(this[i] == element) return i;
-  }
-  return -1;
-};
-
-/**
  * Returns a List of values of a property of all elements.
  *
  * @param  {String} propertyName
@@ -879,10 +856,13 @@ List.prototype.sortIndexed = function() {
 };
 
 List.prototype.sortOnIndexes = function(indexes) {
+  if(indexes==null) return;
+
   var result = instantiateWithSameType(this);
   result.name = this.name;
   var i;
-  for(i = 0; this[i] != null; i++) {
+  var l = this.length;
+  for(i = 0; i<l; i++) {
     if(indexes[i] != -1) result.push(this[indexes[i]]);
   }
   return result;
@@ -1022,6 +1002,23 @@ List.prototype.getSortedRandom = function() {
   return newList;
 };
 
+
+
+/**
+ * returns the index position of the given element in the List.
+ * @param {Object} element Value to search for in the List.
+ * @return {Number} Index of the given element in the List.
+ * If element is not found, -1 is returned.
+ */
+List.prototype.indexOfElement = function(element) { //TODO: test if this is faster than indexOf
+  var i;
+  var l = this.length;
+  for(i = 0; i<l; i++) {
+    if(this[i] == element) return i;
+  }
+  return -1;
+};
+
 /**
  * Returns a NumberList with the indexes (positions) of an element.
  *
@@ -1030,8 +1027,11 @@ List.prototype.getSortedRandom = function() {
  * tags:
  */
 List.prototype.indexesOf = function(element) {//@todo: probably better to just traverse de list
+  if(element==null) return;
+
   var index = this.indexOf(element);
   var numberList = new NumberList();
+
   while(index != -1) {
     numberList.push(index);
     index = this.indexOf(element, index + 1);
@@ -1047,10 +1047,33 @@ List.prototype.indexesOf = function(element) {//@todo: probably better to just t
  * tags:
  */
 List.prototype.indexOfElements = function(elements) {//@todo: probably better to just traverse de list
+  if(elements==null) return;
+
   var numberList = new NumberList();
   var l = elements.length;
   for(var i = 0; i<l; i++) {
     numberList[i] = this.indexOf(elements[i]);
+  }
+  return numberList;
+};
+
+/**
+ * Returns a numberList with all the positions of elements in a list.
+ *
+ * @param  {List} elements
+ * @return {NumberList}
+ * tags:
+ */
+List.prototype.indexesOfElements = function(elements) {
+  if(elements==null) return;
+
+  var dictionary = ListOperators.getBooleanDictionaryForList(elements);
+
+  var numberList = new NumberList();
+  var i;
+  var l = this.length;
+  for(i = 0; i<l; i++) {
+    if(dictionary[this[i]]) numberList.push(i);
   }
   return numberList;
 };
@@ -1072,30 +1095,38 @@ List.prototype.getFirstElementByName = function(name, returnIndex) {
 };
 
 /**
- * Returns the first element from each name ([!] to be tested).
+ * Returns the first element from each name
+ * @param {StringList} names of elements to be filtered
  *
- * @param  {StringList} names of elements to be filtered
- * @param  {Boolean} returnIndexes if true returns the indexes of elements (false by default)
+ * @param {Boolean} returnIndexes if true returns the indexes of elements (false by default)
+ * @param {Boolean} includeElementIfNameNotFound if name is not found, includes an element (hat could be null) in returned list (or a -1 in case of indexes), guaranting the list has same length as list of names
+ * @param {Object} elementToIncludeIfNameNotFound element to include in case there's no elemnt with found name
  * @return {List}
  * tags:filter
  */
-List.prototype.getElementsByNames = function(names, returnIndex) {
+List.prototype.getElementsByNames = function(names, returnIndex, includeElementIfNameNotFound, elementToIncludeIfNameNotFound) {
   if(names==null) return;
 
   var list = returnIndex ? new NumberList() : new List();
   var j, i;
   var name;
   var l = this.length;
+  var found;
 
   //names.forEach(function(name) {
   for(j=0; j<names.length; j++){
     name = names[j];
+    found = false;
     for(i = 0; i<l; i++) {
       if(this[i].name == name) {
         list.push(returnIndex ? i : this[i]);
+        found = true;
         break;
       }
     }
+
+    if(includeElementIfNameNotFound && !found) list.push(returnIndex ? -1 : elementToIncludeIfNameNotFound);
+
     //list.push(returnIndex ? -1 : null);
   }
   //});
@@ -1425,9 +1456,9 @@ List.prototype.replace = function(elementToFind, elementToInsert) {
 };
 
 /**
- * assign value to property name on all elements
+ * assign value to property name on all elements [!] transformative
  * @param  {StringList} names
- * @return {List}
+ * @return {List} same list transformed
  * tags:transform
  */
 List.prototype.assignNames = function(names) {
@@ -1436,9 +1467,29 @@ List.prototype.assignNames = function(names) {
   var l = this.length;
   var i;
 
-  //this.forEach(function(element, i) {
   for(i=0; i<l; i++){
     this[i].name = names[i % n];
+  }
+
+  return this;
+};
+
+/**
+ * assign values to a given property [!] transformative
+ * @param {String} propertyName property name
+ * @param {List} values
+ * @return {List} same list transformed
+ * tags:transform
+ */
+List.prototype.assignPropertyValues = function(propertyName, values) {
+  if(propertyName == null || values==null) return this;
+
+  var n = values.length;
+  var l = this.length;
+  var i;
+
+  for(i=0; i<l; i++){
+    this[i][propertyName] = values[i % n];
   }
 
   return this;
