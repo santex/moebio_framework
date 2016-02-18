@@ -22,6 +22,7 @@ function Tree() {
 }
 export default Tree;
 
+
 /**
  * Adds a given Node to the tree, under the given parent Node.
  *
@@ -74,6 +75,7 @@ Tree.prototype.addFather = function(node, child) {
  *
  * @param {Number} level Level (depth) of the Tree to extract Nodes at.
  * @return {NodeList} All Nodes at the given level of the tree.
+ * tags:
  */
 Tree.prototype.getNodesByLevel = function(level) {
   var newNodeList = new NodeList();
