@@ -160,6 +160,27 @@ ListOperators.indexOf = function(list, element) {
 };
 
 /**
+ * builds a new list with an element replaced
+ * @param  {List} list
+ * @param  {Object} elementToSearch element that will be replaced
+ * @param  {Object} elementToPlace element that will be placed instead
+ * @return {List}
+ * tags:
+ */
+ListOperators.replaceElement = function(list, elementToSearch, elementToPlace){
+  if(list==null || elementToSearch==null) return null;
+
+  var newList = new List();
+  newList.name = list.name;
+  var l = list.length;
+  var i;
+  for(i=0; i<l; i++){
+    newList[i] = (list[i]==elementToSearch)?elementToPlace:list[i];
+  }
+  return newList.getImproved();
+};
+
+/**
  * concats lists
  * @param  {List} list0
  * @param  {List} list1
@@ -215,7 +236,10 @@ ListOperators.reverse = function(list) {
 };
 
 /**
- * @todo write docs
+ * builds a boolean dictionary, and relation array whose value (booleanDictionary[element]) is true if the element belongs to the list
+ * @param {List} list
+ * @return {Object}
+ * tags:dictionary
  */
 ListOperators.getBooleanDictionaryForList = function(list){
   if(list==null) return;
@@ -742,7 +766,7 @@ ListOperators.jaccardDistance = function(list0, list1) {
  *
  * @param  {List} aggregatorList aggregator list that typically contains several repeated elements
  * @param  {List} toAggregateList list of elements that will be aggregated
- * @param  {Number} mode aggregation modes:<br>0:first element<br>1:count (default)<br>2:sum<br>3:average<br>4:min<br>5:max<br>6:standard deviation<br>7:enlist (creates a list of elements)<br>8:last element<br>9:most common element<br>10:random element<br>11:indexes<br>12:count non repeated elements<br>13:enlist non repeated elements<br>14:concat elements (for strings, uses ', ' as separator)<br>15:concat non-repeated elements
+ * @param  {Number} mode aggregation modes:<br>0:first element<br>1:count (default)<br>2:sum<br>3:average<br>4:min<br>5:max<br>6:standard deviation<br>7:enlist (creates a list of elements)<br>8:last element<br>9:most common element<br>10:random element<br>11:indexes<br>12:count non repeated elements<br>13:enlist non repeated elements<br>14:concat elements (for strings, uses ', ' as separator)<br>15:concat non-repeated elements<br>16:frequencies tables
  * @param  {Table} indexesTable optional already calculated table of indexes of elements on the aggregator list (if not provided, the method calculates it)
  * @return {Table} contains a list with non repeated elements on the first list, and the aggregated elements on a second list
  * tags:
@@ -853,20 +877,28 @@ ListOperators.aggregateList = function(aggregatorList, toAggregateList, mode, in
         table[1][i] = Math.sqrt(sum/indexes.length);
       }
       return table;
+    case 16://frequency table
     case 7://enlist
       table[1] = new Table();
       //indexesTable[1].forEach(function(indexes){
       for(i=0; i<nIndexes; i++){
         indexes = indexesTable[1][i];
         list = new List();
-        table[1].push(list);
         //indexes.forEach(function(index){
         for(j=0; j<indexes.length; j++){
           index = indexes[j];
           list.push(toAggregateList[index]);
         }
+        
         list = list.getImproved();
+
+        if(mode==16){
+          list = list.getFrequenciesTable(true);
+        }
+
+        table[1].push(list);
       }
+      if(mode==16) return table;
       return table.getImproved();
     case 8://last element
       table[1] = new List();
@@ -900,7 +932,6 @@ ListOperators.aggregateList = function(aggregatorList, toAggregateList, mode, in
     case 12://count non repeated
       table[1] = new NumberList();
       elementsTable = ListOperators.aggregateList(aggregatorList, toAggregateList, 7, indexesTable);
-      //elementsTable[1].forEach(function(elements){
       for(i=0;i<elementsTable[1].length;i++){
         elements = elementsTable[1][i];
         table[1].push(elements.getWithoutRepetitions().length);
@@ -909,7 +940,6 @@ ListOperators.aggregateList = function(aggregatorList, toAggregateList, mode, in
     case 13://enlist non repeated
       table[1] = new List();
       elementsTable = ListOperators.aggregateList(aggregatorList, toAggregateList, 7, indexesTable);
-      //elementsTable[1].forEach(function(elements){
       for(i=0;i<elementsTable[1].length;i++){
         elements = elementsTable[1][i];
         table[1].push(elements.getWithoutRepetitions());
@@ -919,7 +949,6 @@ ListOperators.aggregateList = function(aggregatorList, toAggregateList, mode, in
     case 14://concat string
       table[1] = new StringList();
       elementsTable = ListOperators.aggregateList(aggregatorList, toAggregateList, 7, indexesTable);
-      //elementsTable[1].forEach(function(elements){
       for(i=0;i<elementsTable[1].length;i++){
         elements = elementsTable[1][i];
         table[1].push( elements.join(', ') );
@@ -934,6 +963,8 @@ ListOperators.aggregateList = function(aggregatorList, toAggregateList, mode, in
         table[1].push( elements.getWithoutRepetitions().join(', ') );
       }
       return table;
+    case 16://frequencies table (solved on case 7)
+      break;
   }
 
   return null;
