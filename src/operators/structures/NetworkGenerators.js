@@ -226,33 +226,36 @@ NetworkGenerators.createNetworkFromOccurrencesTable = function(occurrencesTable,
  * @param {Function} weightFunction method used to eval each pair of nodes
  *
  * @param {StringList} names optional, names of Nodes
- * @param {Number} threshold
+ * @param {Number} threshold (default: 0.3)
  * @param {Number} weightMode relations weight mode<br>0: weight<br>1:weight -  threshold<br>2:(weight -  threshold)/(1 - threshold)
  * @return {Network} a network with number of nodes equal to the length of the List
- tags:
+ * tags:
  */
 NetworkGenerators.createNetworkFromListAndFunction = function(list, weightFunction, names, threshold, weightMode) {
+  if(list==null || weightFunction==null) return;
+
   var i, j;
   var w;
-  var node;
+  var node, node1;
   var network = new Network();
+  var n = list.length;
 
-  threshold = threshold==null?0:threshold;
+  threshold = threshold==null?0.3:threshold;
 
-  for(i = 0; list[i + 1] != null; i++) {
-    if(i === 0) {
-      network.addNode(new Node("n_0", names == null ? "n_0" : names[i]));
-    }
+  for(i=0; i<n; i++){
+    network.addNode(new Node("n_"+i, names == null ? "n_"+i : names[i]));
+  }
+
+  for(i=0; i<n; i++){
     node = network.nodeList[i];
-    for(j = i + 1; list[j] != null; j++) {
-      if(i === 0) {
-        network.addNode(new Node("n_" + j, names == null ? "n_" + j : names[j]));
-      }
+    for(j=i+1; j<n; j++){
+      node1 = network.nodeList[j];
       w = weightFunction(list[i], list[j]);
+      if(Math.random()<0.0001) console.log(i,j,w);
       if(w > threshold) {
         if(weightMode>0) w -= threshold;
         if(weightMode==2) w /= (1-threshold);
-        network.addRelation(new Relation(i + "_" + j, i + "_" + j, node, network.nodeList[j], w));
+        network.addRelation(new Relation(i + "_" + j, i + "_" + j, node, node1, w));
       }
     }
   }
