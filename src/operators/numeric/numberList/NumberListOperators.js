@@ -98,8 +98,10 @@ NumberListOperators.distance = function(numberList1, numberList2) {
  * @return {Number}
  * tags:statistics
  */
-NumberListOperators.cosineSimilarity = function(numberList0, numberList1) {
-  var norms = numberList0.getNorm() * numberList1.getNorm();
+NumberListOperators.cosineSimilarity = function(numberList0, numberList1, norm0, norm1) {
+  norm0 = norm0==null?numberList0.getNorm():norm0;
+  norm1 = norm1==null?numberList1.getNorm():norm1;
+  var norms = norm0 * norm1;
   if(norms === 0) return 0;
   return NumberListOperators.dotProduct(numberList0, numberList1) / norms;
 };
@@ -670,17 +672,24 @@ NumberListOperators.rangeCounts2D = function(nL1,nL2,nBins1,nBins2,int1,int2){
 /**
  * in case the numberList is sorted, it generates a new one with lower values, by subtracting consecutive numbers
  * @param {NumberList} nl
- * @param {Boolean} compress true for compression, false for decompression
+ *
+ * @param {Boolean} compress true (default) for compression, false for decompression
+ * @return {NumberList}
  * tags:
  */
 NumberListOperators.simpleCompression = function(nl, compress){
-  if(nl==null) return;
+  if(nl==null) return null;
+
+  compress = compress==null?true:compress;
 
   var i;
   var newNl = new NumberList();
+
+  if(nl.length===0) return newNl;
+
   newNl[0] = nl[0];
 
-  if(compress==0){
+  if(compress){
     for(i=1; i<nl.length; i++){
       newNl[i] = nl[i]-nl[i-1]-1;
     }
