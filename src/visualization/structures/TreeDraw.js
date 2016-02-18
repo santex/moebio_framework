@@ -83,7 +83,7 @@ TreeDraw.drawTreemap = function(frame, tree, colorList, weights, textColor, exte
   var node;
   var i;
   var leaves;
-  var nLeaves
+  var nLeaves;
 
   if(change) {
     var changeInTree = frame.memory==null || frame.memory.tree!=tree;
@@ -159,7 +159,9 @@ TreeDraw.drawTreemap = function(frame, tree, colorList, weights, textColor, exte
     //if(frame.memory.nodeSelected!=null) console.log('frame.memory.nodeSelected.id', frame.memory.nodeSelected.id);
 
     //if(frame.memory.focusFrame==null || changeSelection) frame.memory.focusFrame = TreeDraw._expandRect(frame.memory.nodeSelected._outRectangle);
-    frame.memory.focusFrame = TreeDraw._expandRect(frame.memory.nodeSelected._outRectangle);
+    
+    //frame.memory.focusFrame = TreeDraw._expandRect(frame.memory.nodeSelected._outRectangle);
+    frame.memory.focusFrame = frame.memory.nodeSelected._outRectangle.clone();
 
     if(changeInTree){
       //console.log('----->kx…');
@@ -401,7 +403,8 @@ TreeDraw.drawTreemap = function(frame, tree, colorList, weights, textColor, exte
       graphics.sRect(x, y, Math.floor(rect.width), Math.floor(rect.height));
 
       if(graphics.MOUSE_UP_FAST) {
-        frame.memory.focusFrame = TreeDraw._expandRect(overNode._outRectangle);
+        frame.memory.focusFrame = overNode==tree.nodeList[0]?overNode._outRectangle.clone():TreeDraw._expandRect(overNode._outRectangle);
+        //frame.memory.focusFrame = TreeDraw._expandRect(overNode._outRectangle);
         frame.memory.nodeSelected = overNode;
 
         frame.memory.image = null;
@@ -433,7 +436,7 @@ TreeDraw.drawTreemap = function(frame, tree, colorList, weights, textColor, exte
   }
 
   if(changeSelection) {
-    frame.memory.focusFrame = TreeDraw._expandRect(externalSelectedNode._outRectangle);
+    frame.memory.focusFrame =  externalSelectedNode==tree.nodeList[0]?externalSelectedNode._outRectangle:TreeDraw._expandRect(externalSelectedNode._outRectangle);
     frame.memory.nodeSelected = externalSelectedNode;
     frame.memory.image = null;
   }
