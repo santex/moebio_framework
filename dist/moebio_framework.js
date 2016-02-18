@@ -1174,8 +1174,10 @@
     array.getMostRepeatedElement = List.prototype.getMostRepeatedElement;
     array.getMin = List.prototype.getMin;
     array.getMax = List.prototype.getMax;
+    array.indexOfElement = List.prototype.indexOfElement;
     array.indexesOf = List.prototype.indexesOf;
     array.indexOfElements = List.prototype.indexOfElements;
+    array.indexesOfElements = List.prototype.indexesOfElements;
     array.indexOfByPropertyValue = List.prototype.indexOfByPropertyValue;
     array.getFirstElementByName = List.prototype.getFirstElementByName;
     array.getElementsByNames = List.prototype.getElementsByNames;
@@ -1187,7 +1189,6 @@
     array.getRandomElement = List.prototype.getRandomElement;
     array.getRandomElements = List.prototype.getRandomElements;
     array.containsElement = List.prototype.containsElement;
-    array.indexOfElement = List.prototype.indexOfElement;
     //sorting:
     array.isSorted = List.prototype.isSorted;
     array.sortIndexed = List.prototype.sortIndexed;
@@ -1229,6 +1230,7 @@
     array.removeRepetitions = List.prototype.removeRepetitions;
     array.replace = List.prototype.replace;
     array.assignNames = List.prototype.assignNames;
+    array.assignPropertyValues = List.prototype.assignPropertyValues;
     array._splice = Array.prototype.splice;
     array.splice = List.prototype.splice;
 
@@ -1250,9 +1252,6 @@
     }
 
     var typeOfElements = this.getTypeOfElements();
-
-    //console.log('getImproved | typeOfElements: ['+typeOfElements+']');
-
     var newList;
     switch(typeOfElements) {
       case "number":
@@ -1364,6 +1363,7 @@
    * Uses typeOf to determine type. If multiple types,
    * returns an empty string.
    * @return {String} Type of element stored in the List.
+   * tags:
    */
   List.prototype.getTypeOfElements = function() {
     var typeOfElements = _typeOf(this[0]);
@@ -1623,11 +1623,6 @@
         dictionary[this[i]] = true;
       }
     }
-    // } else {
-    //   for(i = 0; this[i] != null; i++) {
-    //     if(newList.indexOf(this[i]) == -1) newList.push(this[i]);
-    //   }
-    // }
 
     return newList;
   };
@@ -1657,9 +1652,6 @@
     for(i=0; i<l; i++){
       newList.push(frequencyIndexesDictionary[this[i]]<nCategories-1?this[i]:othersElement);
     }
-    // this.forEach(function(element){
-    //   newList.push(freqTable._indexesDictionary[element]<nCategories-1?element:othersElement);
-    // });
     
     return newList;
   };
@@ -1712,7 +1704,7 @@
     sortListsByOccurrences = sortListsByOccurrences == null?true:sortListsByOccurrences;
 
     var table = new Table();
-    var elementList = new List();
+    var elementList =  instantiateWithSameType(this); //new List();
     var numberList = new NumberList();
     var i;
     var index;
@@ -1888,21 +1880,6 @@
   };
 
   /**
-   * returns the index position of the given element in the List.
-   * @param {Object} element Value to search for in the List.
-   * @return {Number} Index of the given element in the List.
-   * If element is not found, -1 is returned.
-   */
-  List.prototype.indexOfElement = function(element) { //TODO: test if this is faster than indexOf
-    var i;
-    var l = this.length;
-    for(i = 0; i<l; i++) {
-      if(this[i] == element) return i;
-    }
-    return -1;
-  };
-
-  /**
    * Returns a List of values of a property of all elements.
    *
    * @param  {String} propertyName
@@ -1970,10 +1947,13 @@
   };
 
   List.prototype.sortOnIndexes = function(indexes) {
+    if(indexes==null) return;
+
     var result = instantiateWithSameType(this);
     result.name = this.name;
     var i;
-    for(i = 0; this[i] != null; i++) {
+    var l = this.length;
+    for(i = 0; i<l; i++) {
       if(indexes[i] != -1) result.push(this[indexes[i]]);
     }
     return result;
@@ -2113,6 +2093,23 @@
     return newList;
   };
 
+
+
+  /**
+   * returns the index position of the given element in the List.
+   * @param {Object} element Value to search for in the List.
+   * @return {Number} Index of the given element in the List.
+   * If element is not found, -1 is returned.
+   */
+  List.prototype.indexOfElement = function(element) { //TODO: test if this is faster than indexOf
+    var i;
+    var l = this.length;
+    for(i = 0; i<l; i++) {
+      if(this[i] == element) return i;
+    }
+    return -1;
+  };
+
   /**
    * Returns a NumberList with the indexes (positions) of an element.
    *
@@ -2121,8 +2118,11 @@
    * tags:
    */
   List.prototype.indexesOf = function(element) {//@todo: probably better to just traverse de list
+    if(element==null) return;
+
     var index = this.indexOf(element);
     var numberList = new NumberList();
+
     while(index != -1) {
       numberList.push(index);
       index = this.indexOf(element, index + 1);
@@ -2138,10 +2138,33 @@
    * tags:
    */
   List.prototype.indexOfElements = function(elements) {//@todo: probably better to just traverse de list
+    if(elements==null) return;
+
     var numberList = new NumberList();
     var l = elements.length;
     for(var i = 0; i<l; i++) {
       numberList[i] = this.indexOf(elements[i]);
+    }
+    return numberList;
+  };
+
+  /**
+   * Returns a numberList with all the positions of elements in a list.
+   *
+   * @param  {List} elements
+   * @return {NumberList}
+   * tags:
+   */
+  List.prototype.indexesOfElements = function(elements) {
+    if(elements==null) return;
+
+    var dictionary = ListOperators.getBooleanDictionaryForList(elements);
+
+    var numberList = new NumberList();
+    var i;
+    var l = this.length;
+    for(i = 0; i<l; i++) {
+      if(dictionary[this[i]]) numberList.push(i);
     }
     return numberList;
   };
@@ -2163,30 +2186,38 @@
   };
 
   /**
-   * Returns the first element from each name ([!] to be tested).
+   * Returns the first element from each name
+   * @param {StringList} names of elements to be filtered
    *
-   * @param  {StringList} names of elements to be filtered
-   * @param  {Boolean} returnIndexes if true returns the indexes of elements (false by default)
+   * @param {Boolean} returnIndexes if true returns the indexes of elements (false by default)
+   * @param {Boolean} includeElementIfNameNotFound if name is not found, includes an element (hat could be null) in returned list (or a -1 in case of indexes), guaranting the list has same length as list of names
+   * @param {Object} elementToIncludeIfNameNotFound element to include in case there's no elemnt with found name
    * @return {List}
    * tags:filter
    */
-  List.prototype.getElementsByNames = function(names, returnIndex) {
+  List.prototype.getElementsByNames = function(names, returnIndex, includeElementIfNameNotFound, elementToIncludeIfNameNotFound) {
     if(names==null) return;
 
     var list = returnIndex ? new NumberList() : new List();
     var j, i;
     var name;
     var l = this.length;
+    var found;
 
     //names.forEach(function(name) {
     for(j=0; j<names.length; j++){
       name = names[j];
+      found = false;
       for(i = 0; i<l; i++) {
         if(this[i].name == name) {
           list.push(returnIndex ? i : this[i]);
+          found = true;
           break;
         }
       }
+
+      if(includeElementIfNameNotFound && !found) list.push(returnIndex ? -1 : elementToIncludeIfNameNotFound);
+
       //list.push(returnIndex ? -1 : null);
     }
     //});
@@ -2516,9 +2547,9 @@
   };
 
   /**
-   * assign value to property name on all elements
+   * assign value to property name on all elements [!] transformative
    * @param  {StringList} names
-   * @return {List}
+   * @return {List} same list transformed
    * tags:transform
    */
   List.prototype.assignNames = function(names) {
@@ -2527,9 +2558,29 @@
     var l = this.length;
     var i;
 
-    //this.forEach(function(element, i) {
     for(i=0; i<l; i++){
       this[i].name = names[i % n];
+    }
+
+    return this;
+  };
+
+  /**
+   * assign values to a given property [!] transformative
+   * @param {String} propertyName property name
+   * @param {List} values
+   * @return {List} same list transformed
+   * tags:transform
+   */
+  List.prototype.assignPropertyValues = function(propertyName, values) {
+    if(propertyName == null || values==null) return this;
+
+    var n = values.length;
+    var l = this.length;
+    var i;
+
+    for(i=0; i<l; i++){
+      this[i][propertyName] = values[i % n];
     }
 
     return this;
@@ -4828,10 +4879,12 @@
     }
 
     nElements = tableToTranspose[0].length;
-    if(this.type != "NumberTable")
+    
+    if(this.type != "NumberTable"){
       for(j = 0; j<nElements; j++) {
         table[j] = table[j].getImproved();
       }
+    }
 
     if(firstListAsHeaders) {
       nElements = this[0].length;
@@ -4998,13 +5051,13 @@
       if ( arr.type !== undefined) {
           _array = arr.clone();
           if ( _array.type == 'NumberTable')
-              return _array.toArray();
+              return _array;
           // if is the first iteration with a NumberList, returns it as a 2 dimensional array (table)
           else if ( _array.type == 'NumberList' && iteration == 1)
-              return [_array.toArray()];
+              return [_array];
           // if is not the first iteration with a NumberList, returns it as it is.
           else if ( _array.type == 'NumberList' && iteration > 1)
-              return _array.toArray();
+              return _array;
           else
               return [];
       }
@@ -6814,6 +6867,27 @@
   };
 
   /**
+   * builds a new list with an element replaced
+   * @param  {List} list
+   * @param  {Object} elementToSearch element that will be replaced
+   * @param  {Object} elementToPlace element that will be placed instead
+   * @return {List}
+   * tags:
+   */
+  ListOperators.replaceElement = function(list, elementToSearch, elementToPlace){
+    if(list==null || elementToSearch==null) return null;
+
+    var newList = new List();
+    newList.name = list.name;
+    var l = list.length;
+    var i;
+    for(i=0; i<l; i++){
+      newList[i] = (list[i]==elementToSearch)?elementToPlace:list[i];
+    }
+    return newList.getImproved();
+  };
+
+  /**
    * concats lists
    * @param  {List} list0
    * @param  {List} list1
@@ -6869,7 +6943,10 @@
   };
 
   /**
-   * @todo write docs
+   * builds a boolean dictionary, and relation array whose value (booleanDictionary[element]) is true if the element belongs to the list
+   * @param {List} list
+   * @return {Object}
+   * tags:dictionary
    */
   ListOperators.getBooleanDictionaryForList = function(list){
     if(list==null) return;
@@ -7396,7 +7473,7 @@
    *
    * @param  {List} aggregatorList aggregator list that typically contains several repeated elements
    * @param  {List} toAggregateList list of elements that will be aggregated
-   * @param  {Number} mode aggregation modes:<br>0:first element<br>1:count (default)<br>2:sum<br>3:average<br>4:min<br>5:max<br>6:standard deviation<br>7:enlist (creates a list of elements)<br>8:last element<br>9:most common element<br>10:random element<br>11:indexes<br>12:count non repeated elements<br>13:enlist non repeated elements<br>14:concat elements (for strings, uses ', ' as separator)<br>15:concat non-repeated elements
+   * @param  {Number} mode aggregation modes:<br>0:first element<br>1:count (default)<br>2:sum<br>3:average<br>4:min<br>5:max<br>6:standard deviation<br>7:enlist (creates a list of elements)<br>8:last element<br>9:most common element<br>10:random element<br>11:indexes<br>12:count non repeated elements<br>13:enlist non repeated elements<br>14:concat elements (for strings, uses ', ' as separator)<br>15:concat non-repeated elements<br>16:frequencies tables
    * @param  {Table} indexesTable optional already calculated table of indexes of elements on the aggregator list (if not provided, the method calculates it)
    * @return {Table} contains a list with non repeated elements on the first list, and the aggregated elements on a second list
    * tags:
@@ -7507,20 +7584,28 @@
           table[1][i] = Math.sqrt(sum/indexes.length);
         }
         return table;
+      case 16://frequency table
       case 7://enlist
         table[1] = new Table();
         //indexesTable[1].forEach(function(indexes){
         for(i=0; i<nIndexes; i++){
           indexes = indexesTable[1][i];
           list = new List();
-          table[1].push(list);
           //indexes.forEach(function(index){
           for(j=0; j<indexes.length; j++){
             index = indexes[j];
             list.push(toAggregateList[index]);
           }
+          
           list = list.getImproved();
+
+          if(mode==16){
+            list = list.getFrequenciesTable(true);
+          }
+
+          table[1].push(list);
         }
+        if(mode==16) return table;
         return table.getImproved();
       case 8://last element
         table[1] = new List();
@@ -7554,7 +7639,6 @@
       case 12://count non repeated
         table[1] = new NumberList();
         elementsTable = ListOperators.aggregateList(aggregatorList, toAggregateList, 7, indexesTable);
-        //elementsTable[1].forEach(function(elements){
         for(i=0;i<elementsTable[1].length;i++){
           elements = elementsTable[1][i];
           table[1].push(elements.getWithoutRepetitions().length);
@@ -7563,7 +7647,6 @@
       case 13://enlist non repeated
         table[1] = new List();
         elementsTable = ListOperators.aggregateList(aggregatorList, toAggregateList, 7, indexesTable);
-        //elementsTable[1].forEach(function(elements){
         for(i=0;i<elementsTable[1].length;i++){
           elements = elementsTable[1][i];
           table[1].push(elements.getWithoutRepetitions());
@@ -7573,7 +7656,6 @@
       case 14://concat string
         table[1] = new StringList();
         elementsTable = ListOperators.aggregateList(aggregatorList, toAggregateList, 7, indexesTable);
-        //elementsTable[1].forEach(function(elements){
         for(i=0;i<elementsTable[1].length;i++){
           elements = elementsTable[1][i];
           table[1].push( elements.join(', ') );
@@ -7588,6 +7670,8 @@
           table[1].push( elements.getWithoutRepetitions().join(', ') );
         }
         return table;
+      case 16://frequencies table (solved on case 7)
+        break;
     }
 
     return null;
@@ -8472,8 +8556,10 @@
    * @return {Number}
    * tags:statistics
    */
-  NumberListOperators.cosineSimilarity = function(numberList0, numberList1) {
-    var norms = numberList0.getNorm() * numberList1.getNorm();
+  NumberListOperators.cosineSimilarity = function(numberList0, numberList1, norm0, norm1) {
+    norm0 = norm0==null?numberList0.getNorm():norm0;
+    norm1 = norm1==null?numberList1.getNorm():norm1;
+    var norms = norm0 * norm1;
     if(norms === 0) return 0;
     return NumberListOperators.dotProduct(numberList0, numberList1) / norms;
   };
@@ -9044,17 +9130,24 @@
   /**
    * in case the numberList is sorted, it generates a new one with lower values, by subtracting consecutive numbers
    * @param {NumberList} nl
-   * @param {Boolean} compress true for compression, false for decompression
+   *
+   * @param {Boolean} compress true (default) for compression, false for decompression
+   * @return {NumberList}
    * tags:
    */
   NumberListOperators.simpleCompression = function(nl, compress){
-    if(nl==null) return;
+    if(nl==null) return null;
+
+    compress = compress==null?true:compress;
 
     var i;
     var newNl = new NumberList();
+
+    if(nl.length===0) return newNl;
+
     newNl[0] = nl[0];
 
-    if(compress==0){
+    if(compress){
       for(i=1; i<nl.length; i++){
         newNl[i] = nl[i]-nl[i-1]-1;
       }
@@ -14338,6 +14431,7 @@
    *
    * @param {Number} level Level (depth) of the Tree to extract Nodes at.
    * @return {NodeList} All Nodes at the given level of the tree.
+   * tags:
    */
   Tree.prototype.getNodesByLevel = function(level) {
     var newNodeList = new NodeList();
@@ -17534,6 +17628,7 @@
     return newTable;
   };
 
+
   /**
    * filters lists on a table, keeping elements that are in the same of row of a certain element of a given list from the table
    * @param  {Table} table Table.
@@ -17635,25 +17730,25 @@
   };
 
   /**
-     * creates a Table by randomly sampling rows from the input table.
-     * @param  {Table} input table
-     * @param  {Number} f fraction of rows to randomly select [0,1] (Default is .5)
-     * @param  {Boolean} avoidRepetitions (Default is true)
-     * @return {Table}
-     * tags:filter,sampling
-     */
-    TableOperators.getRandomRows = function(table, f, avoidRepetitions) {
-      avoidRepetitions = avoidRepetitions == null ? true : avoidRepetitions;
-      if(table == null || table[0] == null) return null;
-      if(f == null) f=.5
-      if(f < 0 || f > 1) return null;
-      var nRows = table[0].length;
-      var n=Math.round(f*nRows);
-      var listIndexes = NumberListGenerators.createSortedNumberList(nRows, 0, 1);
-      listIndexes = listIndexes.getRandomElements(n, avoidRepetitions);
-      listIndexes = listIndexes.getSorted();
-      return table.getSubListsByIndexes(listIndexes);
-    };
+   * creates a Table by randomly sampling rows from the input table.
+   * @param  {Table} input table
+   * @param  {Number} f fraction of rows to randomly select [0,1] (Default is .5)
+   * @param  {Boolean} avoidRepetitions (Default is true)
+   * @return {Table}
+   * tags:filter,sampling
+   */
+  TableOperators.getRandomRows = function(table, f, avoidRepetitions) {
+    avoidRepetitions = avoidRepetitions == null ? true : avoidRepetitions;
+    if(table == null || table[0] == null) return null;
+    if(f == null) f=.5
+    if(f < 0 || f > 1) return null;
+    var nRows = table[0].length;
+    var n=Math.round(f*nRows);
+    var listIndexes = NumberListGenerators.createSortedNumberList(nRows, 0, 1);
+    listIndexes = listIndexes.getRandomElements(n, avoidRepetitions);
+    listIndexes = listIndexes.getSorted();
+    return table.getSubListsByIndexes(listIndexes);
+  };
 
   /**
    * transposes a table
@@ -17800,7 +17895,7 @@
    * @param  {Table} table containing the aggregation list and lists to be aggregated
    * @param  {Number} indexAggregationList index of the aggregation list on the table
    * @param  {NumberList} indexesListsToAggregate indexs of the lists to be aggregated; typically it also contains the index of the aggregation list at the beginning, to be aggregated using mode 0 (first element) thus resulting as the list of non repeated elements
-   * @param  {NumberList} modes list of modes of aggregation, these are the options:<br>0:first element<br>1:count (default)<br>2:sum<br>3:average<br>4:min<br>5:max<br>6:standard deviation<br>7:enlist (creates a list of elements)<br>8:last element<br>9:most common element<br>10:random element<br>11:indexes<br>12:count non repeated elements<br>13:enlist non repeated elements<br>14:concat elements (string)<br>15:concat non-repeated elements
+   * @param  {NumberList} modes list of modes of aggregation, these are the options:<br>0:first element<br>1:count (default)<br>2:sum<br>3:average<br>4:min<br>5:max<br>6:standard deviation<br>7:enlist (creates a list of elements)<br>8:last element<br>9:most common element<br>10:random element<br>11:indexes<br>12:count non repeated elements<br>13:enlist non repeated elements<br>14:concat elements (string)<br>15:concat non-repeated elements<br>16:frequencies tables
    *
    * @param {StringList} newListsNames optional names for generated lists
    * @return {Table} aggregated table
@@ -17816,13 +17911,22 @@
     var newTable = new Table();
     var newList;
     var toAggregateList;
+    var i, index;
+    var l = indexesListsToAggregate.length;
 
-    indexesListsToAggregate.forEach(function(index, i){
+    //indexesListsToAggregate.forEach(function(index, i){
+    for(i=0; i<l; i++){
+      index = indexesListsToAggregate[i];
       toAggregateList = table[index];
       newList = ListOperators.aggregateList(aggregatorList, toAggregateList, i<modes.length?modes[i]:1, indexesTable)[1];
-      if(newListsNames && i<newListsNames.length) newList.name = newListsNames[i];
+      if(newListsNames && i<newListsNames.length){
+        newList.name = newListsNames[i];
+      } else {
+        newList.name = toAggregateList.name;
+      }
       newTable.push(newList);
-    });
+    }
+    //});
 
     return newTable.getImproved();
   };
@@ -18161,19 +18265,34 @@
   };
 
 
+
+
   /**
-   * @todo finish docs
+   * builds the vector of values from a data table and the complete list of categories
+   * @param {Table} dataTable lwith categories and values
+   * @param {List} allCategories complete list of categories
+   *
+   * @param {Object} allCategoriesIndexesDictionary optional dictionar of indexes if pre-calculated
+   * @return {NumberList} values for each category from complete categorical list
+   * tags:
    */
-  TableOperators.mergeDataTablesInList = function(tableList) {
-    if(tableList.length < 2) return tableList;
+  TableOperators.numberListFromDataTable = function(dataTable, allCategories, allCategoriesIndexesDictionary){
+    if(dataTable==null || allCategories==null) return;
 
-    var merged = tableList[0];
+    var i;
+    var l = dataTable[0].length;
 
-    for(var i = 1; tableList[i] != null; i++) {
-      merged = TableOperators.mergeDataTables(merged, tableList[i]);
+    allCategoriesIndexesDictionary = allCategoriesIndexesDictionary==null?ListOperators.getSingleIndexDictionaryForList(allCategories):allCategoriesIndexesDictionary; 
+
+    var nL = ListGenerators.createListWithSameElement(allCategories.length, 0); 
+    var index;
+
+    for(i=0; i<l; i++){
+      index = allCategoriesIndexesDictionary[dataTable[0][i]];
+      if(index!=null) nL[index] = dataTable[1][i];
     }
 
-    return merged;
+    return nL;
   };
 
   /**
@@ -18272,6 +18391,95 @@
   };
 
   /**
+   * creates a new table with an updated first categorical List of elements and  added new numberLists with the new values from all data tables
+   * @param {List} tableList list of data tables to merge
+   *
+   * @param {Boolean} categoriesAsColumns if true (default) returns a numberTable with a NumberList per category, if false return a data table with firt list containing all categories
+   * @return {Table} numberTable fo categories weights, or data table with categories on first list, and merged values in n numberLists
+   * tags:
+   */
+  TableOperators.mergeDataTablesList = function(tableList, categoriesAsColumns) {//@todo: improve performance
+    if(tableList==null || tableList.length < 2) return tableList;
+
+    categoriesAsColumns = categoriesAsColumns==null?true:categoriesAsColumns;
+
+    //var categories = new List();
+    var categoriesIndexes = {};
+    var numberTable = new NumberTable();
+    var i, j, index;
+    var i0, k, nCategories;
+    var table;
+    var n = tableList.length;
+    var l;
+
+    if(categoriesAsColumns){
+
+      for(i = 0; i<n; i++) {
+        table = tableList[i];
+        l = table[0].length;
+        for(j=0; j<l; j++){
+          index = categoriesIndexes[ table[0][j] ];
+          if(index==null){
+            index = numberTable.length;
+            //categories[index] = table[0][j];
+            if(categoriesAsColumns) numberTable[index] = ListGenerators.createListWithSameElement(n, 0, table[0][j]);
+            numberTable[index].name = table[0][j];
+            categoriesIndexes[ nCategories ] = index;
+          }
+          numberTable[index][i] += table[1][j];
+        }
+      }
+
+    } else {
+      nCategories = 0;
+
+      for(i = 0; i<n; i++) {
+        table = tableList[i];
+
+        l = table[0].length;
+        numberTable[i] = new NumberList();
+        numberTable.name = table.name;
+
+        for(j=0; j<l; j++){
+          index = categoriesIndexes[ table[0][j] ];
+          if(index==null){
+            index = nCategories;
+            //categories[index] = table[0][j];
+            if(categoriesAsColumns) numberTable[index] = ListGenerators.createListWithSameElement(n, 0, table[0][j]);
+
+            categoriesIndexes[ table[0][j] ] = index;
+
+            nCategories++;
+          }
+
+          
+          
+          if(numberTable[i][index]==null){
+            i0 = numberTable[i].length;
+            for(k=i0; k<index; k++){
+              numberTable[i][k]=0;
+            }
+            numberTable[i][index] = table[1][j];
+          } else {
+            numberTable[i][index] += table[1][j];
+          }
+        }
+      }
+
+      for(i = 0; i<n; i++) {
+        i0=numberTable[i].length;
+        for(j=i0; j<=nCategories; j++){
+          numberTable[i][j] = 0;
+        }
+      }
+
+
+    }
+
+    return numberTable;
+  };
+
+  /**
    * From two DataTables creates a new DataTable with combined elements in the first List, and added values in the second
    * @param {Object} table0
    * @param {Object} table1
@@ -18301,7 +18509,7 @@
    * @return {Number}
    * tags:statistics
    */
-  NumberListOperators.dotProductDataTables = function(table0, table1) {
+  TableOperators.dotProductDataTables = function(table0, table1) {
     if(table0==null || table1==null || table0.length<2 || table1.length<2) return null;
 
     var i, j;
@@ -18320,21 +18528,28 @@
     return product;
   };
 
+
   /**
-   * calcualtes the cosine similarity based on NumberListOperators.dotProductDataTables
+   * calcualtes the cosine similarity based on TableOperators.dotProductDataTables
    * @param  {Table} table0 dataTable with categories and numbers
    * @param  {Table} table1 dataTable with categories and numbers
+   *
+   * @param {Number} norm0 optionally pre-calculated norm of table0[1]
+   * @param {Number} norm1 optionally pre-calculated norm of table1[1]
    * @return {Number}
    * tags:statistics
    */
-  TableOperators.cosineSimilarityDataTables = function(table0, table1) {
+  TableOperators.cosineSimilarityDataTables = function(table0, table1, norm0, norm1) {
     if(table0==null || table1==null || table0.length<2 || table1.length<2) return null;
 
     if(table0[0].length===0 || table1[0].length===0) return 0;
 
-    var norms = table0[1].getNorm()*table1[1].getNorm();
+    norm0 = norm0==null?table0[1].getNorm():norm0;
+    norm1 = norm1==null?table1[1].getNorm():norm1;
+
+    var norms = norm0*norm1;
     if(norms === 0) return 0;
-    return NumberListOperators.dotProductDataTables(table0, table1)/norms;
+    return TableOperators.dotProductDataTables(table0, table1)/norms;
   };
 
   /**
@@ -18440,15 +18655,17 @@
    * @param {Object} colorsByList (List|Number) optionally add color to nodes from a NumberList (for scale) or any List (for categorical colors) that could be part of the table or not; receives a List or an index if the list is in the providade table
    * @param {Number} correlationThreshold 0.3 by default, above that level a relation is created
    * @param  {Boolean} negativeCorrelation takes into account negative correlations for building relations
+   * @param {Number} numericMode numeric correlation mode<br>0:Pearson correlation (defualt)<br>1:cosine similarity
    * @return {Network}
    * tags:
    */
-  TableOperators.buildCorrelationsNetwork = function(table, nodesAreRows, names, colorsByList, correlationThreshold, negativeCorrelation){
+  TableOperators.buildCorrelationsNetwork = function(table, nodesAreRows, names, colorsByList, correlationThreshold, negativeCorrelation, numericMode){
     if(table==null) return null;
 
     nodesAreRows = nodesAreRows==null?true:Boolean(nodesAreRows);
     correlationThreshold = correlationThreshold==null?0.3:correlationThreshold;
     negativeCorrelation = Boolean(negativeCorrelation);
+    numericMode = numericMode==null?0:numericMode;
 
     //var types = table.getTypes();
     var i, j;
@@ -18570,7 +18787,11 @@
           }
         }
 
-        node.numbers.sd = node.numbers.getStandardDeviation();
+        if(numericMode===0){
+          node.numbers.sd = node.numbers.getStandardDeviation();
+        } else {
+          node.numbers.norm = node.numbers.getNorm();
+        }
 
         network.addNode(node);
       }
@@ -18580,7 +18801,14 @@
         for(j=i+1; j<nRows; j++){
           node1 = network.nodeList[j];
 
-          pearson = someNumeric?NumberListOperators.pearsonProductMomentCorrelation(node.numbers, node1.numbers, node.numbers.sd, node1.numbers.sd):0;
+          pearson = someNumeric?
+            (numericMode===0?
+              NumberListOperators.pearsonProductMomentCorrelation(node.numbers, node1.numbers, node.numbers.sd, node1.numbers.sd)
+              :
+              NumberListOperators.cosineSimilarity(node.numbers, node1.numbers, node.numbers.norm, node1.numbers.norm)
+            )
+            :
+            0;
 
           //jaccard is normalized to -1, 1 so it can be negative 
           jaccard = someCategorical?Math.pow( ListOperators.jaccardIndex(node.categories, node1.categories), 0.2 )*2 - 1 : 0;
@@ -19394,6 +19622,7 @@
     N = (N==null || (N<=0))?1000:N;
 
     var clusters = new NumberTable();// = returnIndexesMode?new NumberList():new NumberTable();
+    clusters.name = "k-means clusters";
     var i, j, l;
     var jK;
     var row;
@@ -19442,6 +19671,7 @@
       //clean clusters
       for(j = 0; j < k; j++) {
         clusters[j] = new NumberList();
+        clusters[j].name = "-means cluster "+j;
       }
 
       //for each row finds its closer mean
@@ -19472,6 +19702,7 @@
         meanRowsIndexes = clusters[j];
         nRowsMean = meanRowsIndexes.length;
         means[j] = new NumberList();
+        means[j].name = "k-means mean "+j;
 
         newMean = means[j];
 
@@ -19505,6 +19736,7 @@
 
     if(returnIndexesMode==1 || returnIndexesMode==5){
       meanNumber = new NumberList();
+      meanNumber.name = "mean index";
       for(i=0; i<k; i++){
         cluster = clusters[i];
         sizeCluster = cluster.length;
@@ -19519,6 +19751,7 @@
 
     if(returnIndexesMode==2 || returnIndexesMode==5){
       colors = new ColorList();
+      meanNumber.name = "mean color";
       var catColors = ColorListGenerators.createDefaultCategoricalColorList(k);
       for(i=0; i<k; i++){
         cluster = clusters[i];
@@ -19534,7 +19767,7 @@
     if(returnIndexesMode==4 || returnIndexesMode==5){
       for(i=0; i<k; i++){
         subTables[i] = new NumberTable();
-        subTables[i].name = 'subtable_'+i;
+        subTables[i].name = 'k-means subtable_'+i;
         cluster = clusters[i];
         sizeCluster = cluster.length;
         for(j=0; j<sizeCluster; j++){
@@ -19562,152 +19795,154 @@
     return null;
   };
 
-  /**
-   * builds a k-nearest neighbors function, that calculates a class membership or a regression, taking the vote or average of the k nearest instances, using Euclidean distance, and applies it to a list of points, see: http://en.wikipedia.org/wiki/K-nearest_neighbors_algorithm
-   * <br>[!] regression still not built
-   * @param  {NumberTable} numberTable
-   * @param  {List} propertyList categories or values
-   *
-   * @param  {Polygon} vectorList optional list of points to be tested, if provided classes or regressions are calculated, if not the function is returned
-   * @param  {Number} k number of neighbors
-   * @param  {Boolean} calculateClass if true propertyList is a list of categories for membership calculation, if false a numberList for regression
-   * @param {Number} matrixN if provided, the result will be a numberTable with values in a grid in the numberTable ranges
-   * @return {Object} kNN Function or a matrix (grid) of values if matrixN is provided, or classes or values from points if vectorList is provided
-   * tags:ds
-   */
-  NumberTableOperators.kNN = function(numberTable, propertyList, vectorList, k, calculateClass, matrixN) {
-    if(numberTable == null ||  propertyList == null) return null;
 
-    k = k || 1;
-    calculateClass = calculateClass == null ? true : calculateClass;
 
-    var i, j;
+  // /**
+  //  * builds a k-nearest neighbors function, that calculates a class membership or a regression, taking the vote or average of the k nearest instances, using Euclidean distance, and applies it to a list of points, see: http://en.wikipedia.org/wiki/K-nearest_neighbors_algorithm
+  //  * <br>[!] regression still not built
+  //  * @param  {NumberTable} numberTable
+  //  * @param  {List} propertyList categories or values
+  //  *
+  //  * @param  {Polygon} vectorList optional list of points to be tested, if provided classes or regressions are calculated, if not the function is returned
+  //  * @param  {Number} k number of neighbors
+  //  * @param  {Boolean} calculateClass if true propertyList is a list of categories for membership calculation, if false a numberList for regression
+  //  * @param {Number} matrixN if provided, the result will be a numberTable with values in a grid in the numberTable ranges
+  //  * @return {Object} kNN Function or a matrix (grid) of values if matrixN is provided, or classes or values from points if vectorList is provided
+  //  * tags:ds
+  //  */
+  // NumberTableOperators.kNN = function(numberTable, propertyList, vectorList, k, calculateClass, matrixN) {//@todo: imporve performance
+  //   if(numberTable == null ||  propertyList == null) return null;
 
-    var fKNN = function(vector) {
-      var i, j;
-      var d2;
+  //   k = k || 1;
+  //   calculateClass = calculateClass == null ? true : calculateClass;
 
-      var table = new NumberTable();
+  //   var i, j;
 
-      table[0] = new NumberList();
-      table[1] = new NumberList();
-      numberTable[0].forEach(function(val, i) {//TODO: make it more efficient by using for
-        d2 = 0;
-        numberTable.forEach(function(nList, j) {
-          d2 += Math.pow(nList[i] - vector[j], 2);
-        });
-        if(table[1].length < k || table[1][k - 1] > d2) {
-          var inserted = false;
-          for(j = 0; table[1][j] < k; j++) {
-            if(d2 < table[1][j]) {
-              table[1].splice(j, 0, d2);
-              table[0].splice(j, 0, i);
-              inserted = true;
-              break;
-            }
-          }
-          if(!inserted && table[1].length < k) {
-            table[1].push(d2);
-            table[0].push(i);
-          }
-        }
-      });
+  //   var fKNN = function(vector) {
+  //     var i, j;
+  //     var d2;
 
-      if(calculateClass) {
-        var classTable = new Table();
-        classTable[0] = new List();
-        classTable[1] = new NumberList();
-        for(i = 0; i < k; i++) {
-          var clas = propertyList[table[0][i]];
-          var index = classTable[0].indexOf(clas);
-          if(index == -1) {
-            classTable[0].push(clas);
-            classTable[1].push(1);
-          } else {
-            classTable[1][index]++;
-          }
-        }
-        var max = classTable[1][0];
-        var iMax = 0;
-        classTable[1].slice(1).forEach(function(val, i) {
-          if(val > max) {
-            max = val;
-            iMax = i + 1;
-          }
-        });
-        return classTable[0][iMax];
-      }
+  //     var table = new NumberTable();
 
-      var val;
-      var combination = 0;
-      var sumD = 0;
-      for(i = 0; i < k; i++) {
-        val = propertyList[table[0][i]];
-        combination += val / (table[1][i] + 0.000001);
-        sumD += (1 / (table[1][i] + 0.000001));
-      }
+  //     table[0] = new NumberList();
+  //     table[1] = new NumberList();
+  //     numberTable[0].forEach(function(val, i) {//TODO: make it more efficient by using for
+  //       d2 = 0;
+  //       numberTable.forEach(function(nList, j) {
+  //         d2 += Math.pow(nList[i] - vector[j], 2);
+  //       });
+  //       if(table[1].length < k || table[1][k - 1] > d2) {
+  //         var inserted = false;
+  //         for(j = 0; table[1][j] < k; j++) {
+  //           if(d2 < table[1][j]) {
+  //             table[1].splice(j, 0, d2);
+  //             table[0].splice(j, 0, i);
+  //             inserted = true;
+  //             break;
+  //           }
+  //         }
+  //         if(!inserted && table[1].length < k) {
+  //           table[1].push(d2);
+  //           table[0].push(i);
+  //         }
+  //       }
+  //     });
 
-      //console.log('vector:', vector[0], vector[1], 'colsest:', Math.floor(100000000 * table[1][0]), Math.floor(100000000 * table[1][1]), 'categories', propertyList[table[0][0]], propertyList[table[0][1]], 'result', combination / sumD);
+  //     if(calculateClass) {
+  //       var classTable = new Table();
+  //       classTable[0] = new List();
+  //       classTable[1] = new NumberList();
+  //       for(i = 0; i < k; i++) {
+  //         var clas = propertyList[table[0][i]];
+  //         var index = classTable[0].indexOf(clas);
+  //         if(index == -1) {
+  //           classTable[0].push(clas);
+  //           classTable[1].push(1);
+  //         } else {
+  //           classTable[1][index]++;
+  //         }
+  //       }
+  //       var max = classTable[1][0];
+  //       var iMax = 0;
+  //       classTable[1].slice(1).forEach(function(val, i) {
+  //         if(val > max) {
+  //           max = val;
+  //           iMax = i + 1;
+  //         }
+  //       });
+  //       return classTable[0][iMax];
+  //     }
 
-      return combination / sumD;
+  //     var val;
+  //     var combination = 0;
+  //     var sumD = 0;
+  //     for(i = 0; i < k; i++) {
+  //       val = propertyList[table[0][i]];
+  //       combination += val / (table[1][i] + 0.000001);
+  //       sumD += (1 / (table[1][i] + 0.000001));
+  //     }
 
-      //regression
-      //…
-    };
+  //     //console.log('vector:', vector[0], vector[1], 'colsest:', Math.floor(100000000 * table[1][0]), Math.floor(100000000 * table[1][1]), 'categories', propertyList[table[0][0]], propertyList[table[0][1]], 'result', combination / sumD);
 
-    if(vectorList == null) {
+  //     return combination / sumD;
 
-      if(matrixN != null && matrixN > 0) {
-        var propertiesNumbers = {};
-        var n = 0;
+  //     //regression
+  //     //…
+  //   };
 
-        propertyList.forEach(function(val) {
-          if(propertiesNumbers[val] == null) {
-            propertiesNumbers[val] = n;
-            n++;
-          }
-        });
+  //   if(vectorList == null) {
 
-        var p;
-        var matx = new NumberTable();
-        var ix = numberTable[0].getInterval();
-        var minx = ix.x;
-        var kx = ix.getAmplitude() / matrixN;
-        var iy = numberTable[1].getInterval();
-        var miny = iy.x;
-        var ky = iy.getAmplitude() / matrixN;
+  //     if(matrixN != null && matrixN > 0) {
+  //       var propertiesNumbers = {};
+  //       var n = 0;
 
-        for(i = 0; i < matrixN; i++) {
-          matx[i] = new NumberList();
+  //       propertyList.forEach(function(val) {
+  //         if(propertiesNumbers[val] == null) {
+  //           propertiesNumbers[val] = n;
+  //           n++;
+  //         }
+  //       });
 
-          for(j = 0; j < matrixN; j++) {
-            p = [
-              minx + kx * i,
-              miny + ky * j
-            ];
+  //       var p;
+  //       var matx = new NumberTable();
+  //       var ix = numberTable[0].getInterval();
+  //       var minx = ix.x;
+  //       var kx = ix.getAmplitude() / matrixN;
+  //       var iy = numberTable[1].getInterval();
+  //       var miny = iy.x;
+  //       var ky = iy.getAmplitude() / matrixN;
 
-            fKNN(p);
+  //       for(i = 0; i < matrixN; i++) {
+  //         matx[i] = new NumberList();
 
-            matx[i][j] = calculateClass ? propertiesNumbers[fKNN(p)] : fKNN(p);
-          }
-        }
-        //return matrix
-        return matx;
-      }
+  //         for(j = 0; j < matrixN; j++) {
+  //           p = [
+  //             minx + kx * i,
+  //             miny + ky * j
+  //           ];
 
-      //return Function
-      return fKNN;
-    }
+  //           fKNN(p);
 
-    var results = instantiateWithSameType(propertyList);
+  //           matx[i][j] = calculateClass ? propertiesNumbers[fKNN(p)] : fKNN(p);
+  //         }
+  //       }
+  //       //return matrix
+  //       return matx;
+  //     }
 
-    vectorList.forEach(function(vector) {
-      results.push(fKNN(vector));
-    });
+  //     //return Function
+  //     return fKNN;
+  //   }
 
-    //return results
-    return results;
-  };
+  //   var results = instantiateWithSameType(propertyList);
+
+  //   vectorList.forEach(function(vector) {
+  //     results.push(fKNN(vector));
+  //   });
+
+  //   //return results
+  //   return results;
+  // };
 
 
   /**
@@ -23930,33 +24165,36 @@
    * @param {Function} weightFunction method used to eval each pair of nodes
    *
    * @param {StringList} names optional, names of Nodes
-   * @param {Number} threshold
+   * @param {Number} threshold (default: 0.3)
    * @param {Number} weightMode relations weight mode<br>0: weight<br>1:weight -  threshold<br>2:(weight -  threshold)/(1 - threshold)
    * @return {Network} a network with number of nodes equal to the length of the List
-   tags:
+   * tags:
    */
   NetworkGenerators.createNetworkFromListAndFunction = function(list, weightFunction, names, threshold, weightMode) {
+    if(list==null || weightFunction==null) return;
+
     var i, j;
     var w;
-    var node;
+    var node, node1;
     var network = new Network();
+    var n = list.length;
 
-    threshold = threshold==null?0:threshold;
+    threshold = threshold==null?0.3:threshold;
 
-    for(i = 0; list[i + 1] != null; i++) {
-      if(i === 0) {
-        network.addNode(new Node("n_0", names == null ? "n_0" : names[i]));
-      }
+    for(i=0; i<n; i++){
+      network.addNode(new Node("n_"+i, names == null ? "n_"+i : names[i]));
+    }
+
+    for(i=0; i<n; i++){
       node = network.nodeList[i];
-      for(j = i + 1; list[j] != null; j++) {
-        if(i === 0) {
-          network.addNode(new Node("n_" + j, names == null ? "n_" + j : names[j]));
-        }
+      for(j=i+1; j<n; j++){
+        node1 = network.nodeList[j];
         w = weightFunction(list[i], list[j]);
+        if(Math.random()<0.0001) console.log(i,j,w);
         if(w > threshold) {
           if(weightMode>0) w -= threshold;
           if(weightMode==2) w /= (1-threshold);
-          network.addRelation(new Relation(i + "_" + j, i + "_" + j, node, network.nodeList[j], w));
+          network.addRelation(new Relation(i + "_" + j, i + "_" + j, node, node1, w));
         }
       }
     }
@@ -31678,7 +31916,7 @@
     var node;
     var i;
     var leaves;
-    var nLeaves
+    var nLeaves;
 
     if(change) {
       var changeInTree = frame.memory==null || frame.memory.tree!=tree;
@@ -31754,7 +31992,9 @@
       //if(frame.memory.nodeSelected!=null) console.log('frame.memory.nodeSelected.id', frame.memory.nodeSelected.id);
 
       //if(frame.memory.focusFrame==null || changeSelection) frame.memory.focusFrame = TreeDraw._expandRect(frame.memory.nodeSelected._outRectangle);
-      frame.memory.focusFrame = TreeDraw._expandRect(frame.memory.nodeSelected._outRectangle);
+      
+      //frame.memory.focusFrame = TreeDraw._expandRect(frame.memory.nodeSelected._outRectangle);
+      frame.memory.focusFrame = frame.memory.nodeSelected._outRectangle.clone();
 
       if(changeInTree){
         //console.log('----->kx…');
@@ -31996,7 +32236,8 @@
         graphics.sRect(x, y, Math.floor(rect.width), Math.floor(rect.height));
 
         if(graphics.MOUSE_UP_FAST) {
-          frame.memory.focusFrame = TreeDraw._expandRect(overNode._outRectangle);
+          frame.memory.focusFrame = overNode==tree.nodeList[0]?overNode._outRectangle.clone():TreeDraw._expandRect(overNode._outRectangle);
+          //frame.memory.focusFrame = TreeDraw._expandRect(overNode._outRectangle);
           frame.memory.nodeSelected = overNode;
 
           frame.memory.image = null;
@@ -32028,7 +32269,7 @@
     }
 
     if(changeSelection) {
-      frame.memory.focusFrame = TreeDraw._expandRect(externalSelectedNode._outRectangle);
+      frame.memory.focusFrame =  externalSelectedNode==tree.nodeList[0]?externalSelectedNode._outRectangle:TreeDraw._expandRect(externalSelectedNode._outRectangle);
       frame.memory.nodeSelected = externalSelectedNode;
       frame.memory.image = null;
     }
