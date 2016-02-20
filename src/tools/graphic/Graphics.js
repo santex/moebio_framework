@@ -191,6 +191,12 @@ Graphics.prototype._initialize = function(autoStart) {
     "keyup": []
   };
 
+  if(this.IS_TOUCH){
+    this._listeners["touchstart"] = [];
+    this._listeners["touchend"] = [];
+    this._listeners["touchmove"] = [];
+  }
+
   // Call the user provided init function.
   this.init();
 
@@ -215,6 +221,8 @@ Graphics.prototype._initialize = function(autoStart) {
  */
 Graphics.prototype._getRelativeMousePos = function(evt) {
   var rect = this.canvas.getBoundingClientRect();
+  console.log('rect', rect);
+  console.log('evt', evt);
   return {
     x: evt.clientX - rect.left,
     y: evt.clientY - rect.top
@@ -231,10 +239,21 @@ Graphics.prototype._getRelativeMousePos = function(evt) {
 Graphics.prototype._onMouseOrKeyBoard = function(e) {
   console.log('_+_+_+_+ e.type:', e.type);
 
+  console.log('1 this.mX', this.mX);
+
+  var pos;
+
   switch(e.type){
     case "mousemove":
     case "touchmove":
-      var pos = this._getRelativeMousePos(e);
+      console.log('1oh');
+      
+      if(e.type=="mousemove"){
+        pos = this._getRelativeMousePos(e);
+      } else {
+        pos = {x:e.touches[0].clientX, y:e.touches[0].clientY};
+      }
+      console.log('pos', pos);
 
       this.mX = pos.x;
       this.mY = pos.y;
@@ -246,6 +265,14 @@ Graphics.prototype._onMouseOrKeyBoard = function(e) {
       break;
     case "mousedown":
     case "touchstart":
+      console.log('2oh');
+
+      if(e.type=="touchstart"){
+        this.mX = e.touches[0].clientX;
+        this.mY = e.touches[0].clientY;
+      }
+
+
       this.NF_DOWN = this.nF;
       this.MOUSE_PRESSED = true;
       this.T_MOUSE_PRESSED = 0;
@@ -253,6 +280,9 @@ Graphics.prototype._onMouseOrKeyBoard = function(e) {
       this.mX_DOWN = this.mX;
       this.mY_DOWN = this.mY;
       this.MOUSE_IN_DOCUMENT = true;
+
+      
+
       break;
     case "mouseup":
     case "touchend":
@@ -275,11 +305,15 @@ Graphics.prototype._onMouseOrKeyBoard = function(e) {
     //"gesturechange"
   }
 
+  
+
   this._emit(e.type, e);
 
   if(this.cycleActive && new Date().getTime()>this._LAST_TIME+33){
     this._onCycle();
   }
+
+  console.log('2 this.mX', this.mX);
 };
 
 
@@ -593,8 +627,12 @@ Graphics.prototype.cycleOnMouseMovement = function(time) {
     this.canvas.removeEventListener('mousemove', this.cycleOnMouseMovementListener, false);
     this.canvas.removeEventListener('mousewheel', this.cycleOnMouseMovementListener, false);
     this.canvas.removeEventListener('mousemove', this.cycleOnMouseMovementListener, false);
-
     this.canvas.removeEventListener('mousedown', this.cycleOnMouseMovementListener, false);
+    if(this.IS_TOUCH){
+      this.canvas.removeEventListener("touchstart", this.cycleOnMouseMovementListener, false);
+      this.canvas.removeEventListener("touchend", this.cycleOnMouseMovementListener, false);
+      this.canvas.removeEventListener("touchmove", this.cycleOnMouseMovementListener, false);
+    }
   }
 
   if(time>1){
@@ -605,11 +643,17 @@ Graphics.prototype.cycleOnMouseMovement = function(time) {
     this.canvas.addEventListener('mousemove', this.cycleOnMouseMovementListener, false);
     this.canvas.addEventListener('mousewheel', this.cycleOnMouseMovementListener, false);
     this.canvas.addEventListener('mousemove', this.cycleOnMouseMovementListener, false);
-
     this.canvas.addEventListener('mousedown', this.cycleOnMouseMovementListener, false);
+
+    if(this.IS_TOUCH){
+      this.canvas.addEventListener("touchstart", this.cycleOnMouseMovementListener, false);
+      this.canvas.addEventListener("touchend", this.cycleOnMouseMovementListener, false);
+      this.canvas.addEventListener("touchmove", this.cycleOnMouseMovementListener, false);
+    }
 
     self.cycleFor(time);
   }
+  console.log('5 this.mX', this.mX);
 };
 
 /**
