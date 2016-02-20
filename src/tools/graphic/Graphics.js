@@ -222,6 +222,8 @@ Graphics.prototype._getRelativeMousePos = function(evt) {
  * @ignore
  */
 Graphics.prototype._onMouseOrKeyBoard = function(e) {
+  console.log('_+_+_+_+ e.type:', e.type);
+  
   switch(e.type){
     case "mousemove":
     case "touchmove":
