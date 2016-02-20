@@ -25503,8 +25503,6 @@
    */
   Graphics.prototype._getRelativeMousePos = function(evt) {
     var rect = this.canvas.getBoundingClientRect();
-    console.log('rect', rect);
-    console.log('evt', evt);
     return {
       x: evt.clientX - rect.left,
       y: evt.clientY - rect.top
@@ -25519,10 +25517,6 @@
    * @ignore
    */
   Graphics.prototype._onMouseOrKeyBoard = function(e) {
-    console.log('_+_+_+_+ e.type:', e.type);
-
-    console.log('1 this.mX', this.mX);
-
     var pos;
 
     switch(e.type){
@@ -25535,7 +25529,6 @@
         } else {
           pos = {x:e.touches[0].clientX, y:e.touches[0].clientY};
         }
-        console.log('pos', pos);
 
         this.mX = pos.x;
         this.mY = pos.y;
@@ -25547,7 +25540,6 @@
         break;
       case "mousedown":
       case "touchstart":
-        console.log('2oh');
 
         if(e.type=="touchstart"){
           this.mX = e.touches[0].clientX;
@@ -25562,8 +25554,6 @@
         this.mX_DOWN = this.mX;
         this.mY_DOWN = this.mY;
         this.MOUSE_IN_DOCUMENT = true;
-
-        
 
         break;
       case "mouseup":
@@ -25594,8 +25584,6 @@
     if(this.cycleActive && new Date().getTime()>this._LAST_TIME+33){
       this._onCycle();
     }
-
-    console.log('2 this.mX', this.mX);
   };
 
 
@@ -25625,6 +25613,10 @@
    * @ignore
    */
   Graphics.prototype._onResize = function(e) {
+    //console.log('Graphics.prototype._onResize:', e);
+    //console.log('this.container.clientWidth, this.container.clientHeight:' + this.container.clientWidth + "-" + this.container.clientHeight);
+
+
     var currentW = this.cW;
     var currentH = this.cH;
     // If the user has set the dimensions explicitly
@@ -25935,7 +25927,6 @@
 
       self.cycleFor(time);
     }
-    console.log('5 this.mX', this.mX);
   };
 
   /**
