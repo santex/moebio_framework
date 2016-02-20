@@ -102,6 +102,10 @@ Graphics.prototype._initialize = function(autoStart) {
   this.T_MOUSE_PRESSED = 0; //time in milliseconds of mouse being pressed, useful for sutained pressure detection
   this.IS_TOUCH = (('ontouchstart' in window) || (navigator.msMaxTouchPoints > 0));
 
+
+  console.log('*_*_*_*_ this.IS_TOUCH:', this.IS_TOUCH);
+  console.log('*_*_*_*_ ontouchstart in window:', 'ontouchstart' in window);
+
   this.cursorStyle = 'auto';
   this.backGroundColor = 'white'; // YY why keep this if we only use the rgb version
   this.backGroundColorRGB = [255,255,255];
@@ -157,6 +161,9 @@ Graphics.prototype._initialize = function(autoStart) {
 
   this.canvas.addEventListener("keydown", boundMouseOrKeyboard, false);
   this.canvas.addEventListener("keyup", boundMouseOrKeyboard, false);
+
+
+
 
   if(this.IS_TOUCH){
     this.canvas.addEventListener("touchstart", boundMouseOrKeyboard, false);
@@ -223,7 +230,7 @@ Graphics.prototype._getRelativeMousePos = function(evt) {
  */
 Graphics.prototype._onMouseOrKeyBoard = function(e) {
   console.log('_+_+_+_+ e.type:', e.type);
-  
+
   switch(e.type){
     case "mousemove":
     case "touchmove":
