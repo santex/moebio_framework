@@ -100,6 +100,7 @@ Graphics.prototype._initialize = function(autoStart) {
   this.DY_MOUSE_PRESSED=0; //vertical movement of cursor in last frame
   this.MOUSE_MOVED = false; //boolean that indicates wether the mouse moved in the last frame / STATE
   this.T_MOUSE_PRESSED = 0; //time in milliseconds of mouse being pressed, useful for sutained pressure detection
+  this.IS_TOUCH = (('ontouchstart' in window) || (navigator.msMaxTouchPoints > 0));
 
   this.cursorStyle = 'auto';
   this.backGroundColor = 'white'; // YY why keep this if we only use the rgb version
@@ -156,6 +157,15 @@ Graphics.prototype._initialize = function(autoStart) {
 
   this.canvas.addEventListener("keydown", boundMouseOrKeyboard, false);
   this.canvas.addEventListener("keyup", boundMouseOrKeyboard, false);
+
+  if(this.IS_TOUCH){
+    this.canvas.addEventListener("touchstart", boundMouseOrKeyboard, false);
+    this.canvas.addEventListener("touchend", boundMouseOrKeyboard, false);
+    this.canvas.addEventListener("touchmove", boundMouseOrKeyboard, false);
+    //this.canvas.addEventListener("gesturestart", boundMouseOrKeyboard, false);
+    //this.canvas.addEventListener("gestureend", boundMouseOrKeyboard, false);
+    //this.canvas.addEventListener("gesturechange", boundMouseOrKeyboard, false);
+  }
 
   // Setup resize listeners
   var boundResize = this._onResize.bind(this);
@@ -214,6 +224,7 @@ Graphics.prototype._getRelativeMousePos = function(evt) {
 Graphics.prototype._onMouseOrKeyBoard = function(e) {
   switch(e.type){
     case "mousemove":
+    case "touchmove":
       var pos = this._getRelativeMousePos(e);
 
       this.mX = pos.x;
@@ -225,6 +236,7 @@ Graphics.prototype._onMouseOrKeyBoard = function(e) {
       this.MOUSE_IN_DOCUMENT = true;
       break;
     case "mousedown":
+    case "touchstart":
       this.NF_DOWN = this.nF;
       this.MOUSE_PRESSED = true;
       this.T_MOUSE_PRESSED = 0;
@@ -234,6 +246,7 @@ Graphics.prototype._onMouseOrKeyBoard = function(e) {
       this.MOUSE_IN_DOCUMENT = true;
       break;
     case "mouseup":
+    case "touchend":
       this.NF_UP = this.nF;
       this.MOUSE_PRESSED = false;
       this.T_MOUSE_PRESSED = 0;
@@ -247,6 +260,10 @@ Graphics.prototype._onMouseOrKeyBoard = function(e) {
     case "mouseleave":
       this.MOUSE_IN_DOCUMENT = false;
       break;
+
+    //"gesturestart"
+    //"gestureend"
+    //"gesturechange"
   }
 
   this._emit(e.type, e);
