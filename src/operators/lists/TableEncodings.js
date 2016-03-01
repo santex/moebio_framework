@@ -1,4 +1,8 @@
 import List from "src/dataTypes/lists/List";
+import NumberList from "src/dataTypes/numeric/NumberList";
+import StringList from "src/dataTypes/strings/StringList";
+import DateList from "src/dataTypes/dates/DateList";
+import IntervalList from "src/dataTypes/numeric/IntervalList";
 import Table from "src/dataTypes/lists/Table";
 import NetworkEncodings from "src/operators/structures/NetworkEncodings";
 import ListGenerators from "src/operators/lists/ListGenerators";
@@ -133,7 +137,7 @@ TableEncodings._removeQuotes = function(string) {
 
 /**
  * Encode a Table into a String in format CSV
- * @param {Table} Table to be enconded
+ * @param {Table} Table to be encoded
  *
  * @param {String} separator character (default: ",")
  * @param {Boolean} first row as List names (default: false)
@@ -178,3 +182,70 @@ TableEncodings.TableToCSV = function(table, separator, namesAsHeaders) {
 
   return headers + lines.getConcatenated("\n");
 };
+
+/**
+ * Encode a Table into a JSON String in a format that preserves key attributes
+ * @param {Table} Table to be encoded
+ *
+ * @return {String} resulting String in JSON format
+ * tags:encoder
+ */
+TableEncodings.TableToJSONString = function(table) {
+  if(table == null) return '';
+  var array = table.slice(0);
+  var names = table.getNames();
+  var types = table.getTypes();
+  var obj = {
+    data:array,
+    name:table.name,
+    type:table.type,
+    handle:table.handle,
+    names:names,
+    types:types
+    };
+  return JSON.stringify(obj);
+}
+
+/**
+ * Decode a JSON String representation of a Table
+ * @param {String} json formatted text
+ *
+ * @return {Table} resulting Table
+ * tags:decoder
+ */
+TableEncodings.JSONStringToTable = function(json) {
+  if(json == null || json.length == 0) return new Table();
+  var obj = JSON.parse(json);
+  var table = Table.fromArray(obj.data);
+  table.name = obj.name;
+  table.type = obj.type;
+  table.handle = obj.handle;
+  var i;
+  if(obj.types)
+    for(i=0; i < obj.types.length; i++){
+      if(table[i]){
+        switch(obj.types[i]){
+          case 'StringList':
+            table[i] = StringList.fromArray(table[i],false);
+            break;
+          case 'NumberList':
+            table[i] = NumberList.fromArray(table[i],false);
+            break;
+          case 'DateList':
+            table[i] = DateList.fromArray(table[i],false);
+            break;
+          case 'IntervalList':
+            table[i] = IntervalList.fromArray(table[i],false);
+            break;
+          case 'List':
+          default:
+        }
+      }
+    }
+  if(obj.names)
+    for(i=0; i < obj.names.length; i++){
+      if(table[i]) table[i].name = obj.names[i];
+    }
+  return table;
+}
+
