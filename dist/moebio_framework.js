@@ -13456,6 +13456,72 @@
   // return t;
   // }
 
+  IntervalList.prototype = new List();
+  IntervalList.prototype.constructor = IntervalList;
+
+  /**
+   * @classdesc List structure for Intervals. Provides basic data type for
+   * storing and working with intervals in a List.
+   *
+   * Additional functions that work on IntervalList can be found in:
+   * <ul>
+   *  <li>Operators:   {@link IntervalListOperators}</li>
+   * </ul>
+   *
+   * @constructor
+   * @description Creates a new IntervalList.
+   * @category numbers
+   */
+  function IntervalList() {
+    var args = [];
+    var l = arguments.length;
+
+    for(var i = 0; i < l; i++) {
+      args[i] = arguments[i];
+    }
+    var array = List.apply(this, args);
+    array = IntervalList.fromArray(array);
+    return array;
+  }
+  /**
+   * Creates a new IntervalList from a raw array of intervals.
+   *
+   * @param {Interval[]} array The array of numbers to create the list from.
+   * @return {IntervalList} New IntervalList containing values in array
+   */
+  IntervalList.fromArray = function(array) {
+    var result = List.fromArray(array);
+    var l = result.length;
+
+  	for(var i = 0; i < l; i++) {
+  	  result[i] = result[i];
+  	}
+
+    result.type = "IntervalList";
+
+    return result;
+  };
+
+  /**
+   * Builds an Interval with min and max value from the NumberList
+   *
+   * @return {Interval} with starting value as the min of the NumberList
+   * and ending value as the max.
+   */
+  IntervalList.prototype.getInterval = function() {
+    if(this.length === 0) return null;
+    var max = Math.max(this[0].x, this[0].y);
+    var min = Math.min(this[0].x, this[0].y);
+    var l = this.length;
+    var i;
+    for(i = 1; i<l; i++) {
+      max = Math.max(max, this[i].x, this[i].y);
+      min = Math.min(min, this[i].x, this[i].y);
+    }
+    var interval = new Interval(min, max);
+    return interval;
+  };
+
   /**
    * @classdesc Table Encodings
    *
@@ -13583,7 +13649,7 @@
 
   /**
    * Encode a Table into a String in format CSV
-   * @param {Table} Table to be enconded
+   * @param {Table} Table to be encoded
    *
    * @param {String} separator character (default: ",")
    * @param {Boolean} first row as List names (default: false)
@@ -13629,71 +13695,71 @@
     return headers + lines.getConcatenated("\n");
   };
 
-  IntervalList.prototype = new List();
-  IntervalList.prototype.constructor = IntervalList;
-
   /**
-   * @classdesc List structure for Intervals. Provides basic data type for
-   * storing and working with intervals in a List.
+   * Encode a Table into a JSON String in a format that preserves key attributes
+   * @param {Table} Table to be encoded
    *
-   * Additional functions that work on IntervalList can be found in:
-   * <ul>
-   *  <li>Operators:   {@link IntervalListOperators}</li>
-   * </ul>
-   *
-   * @constructor
-   * @description Creates a new IntervalList.
-   * @category numbers
+   * @return {String} resulting String in JSON format
+   * tags:encoder
    */
-  function IntervalList() {
-    var args = [];
-    var l = arguments.length;
-
-    for(var i = 0; i < l; i++) {
-      args[i] = arguments[i];
-    }
-    var array = List.apply(this, args);
-    array = IntervalList.fromArray(array);
-    return array;
+  TableEncodings.TableToJSONString = function(table) {
+    if(table == null) return '';
+    var array = table.slice(0);
+    var names = table.getNames();
+    var types = table.getTypes();
+    var obj = {
+      data:array,
+      name:table.name,
+      type:table.type,
+      handle:table.handle,
+      names:names,
+      types:types
+      };
+    return JSON.stringify(obj);
   }
-  /**
-   * Creates a new IntervalList from a raw array of intervals.
-   *
-   * @param {Interval[]} array The array of numbers to create the list from.
-   * @return {IntervalList} New IntervalList containing values in array
-   */
-  IntervalList.fromArray = function(array) {
-    var result = List.fromArray(array);
-    var l = result.length;
-
-  	for(var i = 0; i < l; i++) {
-  	  result[i] = result[i];
-  	}
-
-    result.type = "IntervalList";
-
-    return result;
-  };
 
   /**
-   * Builds an Interval with min and max value from the NumberList
+   * Decode a JSON String representation of a Table
+   * @param {String} json formatted text
    *
-   * @return {Interval} with starting value as the min of the NumberList
-   * and ending value as the max.
+   * @return {Table} resulting Table
+   * tags:decoder
    */
-  IntervalList.prototype.getInterval = function() {
-    if(this.length === 0) return null;
-    var max = Math.max(this[0].x, this[0].y);
-    var min = Math.min(this[0].x, this[0].y);
-    var l = this.length;
+  TableEncodings.JSONStringToTable = function(json) {
+    if(json == null || json.length == 0) return new Table();
+    var obj = JSON.parse(json);
+    var table = Table.fromArray(obj.data);
+    table.name = obj.name;
+    table.type = obj.type;
+    table.handle = obj.handle;
     var i;
-    for(i = 1; i<l; i++) {
-      max = Math.max(max, this[i].x, this[i].y);
-      min = Math.min(min, this[i].x, this[i].y);
-    }
-    var interval = new Interval(min, max);
-    return interval;
-  };
+    if(obj.types)
+      for(i=0; i < obj.types.length; i++){
+        if(table[i]){
+          switch(obj.types[i]){
+            case 'StringList':
+              table[i] = StringList.fromArray(table[i],false);
+              break;
+            case 'NumberList':
+              table[i] = NumberList.fromArray(table[i],false);
+              break;
+            case 'DateList':
+              table[i] = DateList.fromArray(table[i],false);
+              break;
+            case 'IntervalList':
+              table[i] = IntervalList.fromArray(table[i],false);
+              break;
+            case 'List':
+            default:
+          }
+        }
+      }
+    if(obj.names)
+      for(i=0; i < obj.names.length; i++){
+        if(table[i]) table[i].name = obj.names[i];
+      }
+    return table;
+  }
 
   /**
    * @classdesc Create default Matrix instances.
@@ -25385,8 +25451,8 @@
     this.IS_TOUCH = (('ontouchstart' in window) || (navigator.msMaxTouchPoints > 0));
 
 
-    console.log('*_*_*_*_ this.IS_TOUCH:', this.IS_TOUCH);
-    console.log('*_*_*_*_ ontouchstart in window:', 'ontouchstart' in window);
+    // console.log('*_*_*_*_ this.IS_TOUCH:', this.IS_TOUCH);
+    // console.log('*_*_*_*_ ontouchstart in window:', 'ontouchstart' in window);
 
     this.cursorStyle = 'auto';
     this.backGroundColor = 'white'; // YY why keep this if we only use the rgb version
@@ -25503,8 +25569,8 @@
    */
   Graphics.prototype._getRelativeMousePos = function(evt) {
     var rect = this.canvas.getBoundingClientRect();
-    console.log('rect', rect);
-    console.log('evt', evt);
+    // console.log('rect', rect);
+    // console.log('evt', evt);
     return {
       x: evt.clientX - rect.left,
       y: evt.clientY - rect.top
@@ -25519,23 +25585,23 @@
    * @ignore
    */
   Graphics.prototype._onMouseOrKeyBoard = function(e) {
-    console.log('_+_+_+_+ e.type:', e.type);
+    // console.log('_+_+_+_+ e.type:', e.type);
 
-    console.log('1 this.mX', this.mX);
+    // console.log('1 this.mX', this.mX);
 
     var pos;
 
     switch(e.type){
       case "mousemove":
       case "touchmove":
-        console.log('1oh');
+        // console.log('1oh');
         
         if(e.type=="mousemove"){
           pos = this._getRelativeMousePos(e);
         } else {
           pos = {x:e.touches[0].clientX, y:e.touches[0].clientY};
         }
-        console.log('pos', pos);
+        // console.log('pos', pos);
 
         this.mX = pos.x;
         this.mY = pos.y;
@@ -25547,7 +25613,7 @@
         break;
       case "mousedown":
       case "touchstart":
-        console.log('2oh');
+        // console.log('2oh');
 
         if(e.type=="touchstart"){
           this.mX = e.touches[0].clientX;
@@ -25595,7 +25661,7 @@
       this._onCycle();
     }
 
-    console.log('2 this.mX', this.mX);
+    // console.log('2 this.mX', this.mX);
   };
 
 
@@ -25935,7 +26001,7 @@
 
       self.cycleFor(time);
     }
-    console.log('5 this.mX', this.mX);
+    // console.log('5 this.mX', this.mX);
   };
 
   /**
