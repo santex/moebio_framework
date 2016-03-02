@@ -25723,7 +25723,7 @@
       this.cH = dimensions.height;
     } else {
       // https://developer.mozilla.org/en-US/docs/Web/API/CSS_Object_Model/Determining_the_dimensions_of_elements
-      
+
       var dim = this._containerDimensions();
       this.cW = dim.width;
       this.cH = dim.height;
