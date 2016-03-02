@@ -29525,6 +29525,9 @@
 
     this._cuttingPlane = 10;
 
+
+    this._dx = 0; // for VR
+
     if(configuration.angles != null) this.setAngles(configuration.angles);
   }
   Engine3D.prototype.setBasis = function(point3D) {
@@ -29552,7 +29555,7 @@
    *
    * @param {Point3D} planeVector rotation vector to add to scene.
    */
-  Engine3D.prototype.applyRotation = function(planeVector) {
+  Engine3D.prototype.applyRotation = function(planeVector){
     if(!this._freeRotation) {
       this._freeRotation = true;
       this.updateAngles();
@@ -29578,6 +29581,9 @@
     var prescale = this.lens / (this.lens + (this._basis[0].z * point3D.x + this._basis[1].z * point3D.y + this._basis[2].z * point3D.z));
     return new Point3D((this._basis[0].x * point3D.x + this._basis[1].x * point3D.y + this._basis[2].x * point3D.z) * prescale, (this._basis[0].y * point3D.x + this._basis[1].y * point3D.y + this._basis[2].y * point3D.z) * prescale, prescale);
   };
+
+
+
 
   /**
   * @todo write docs
@@ -29686,7 +29692,11 @@
     var cg = Math.cos(angles.z);
     var sg = Math.sin(angles.z);
 
-    return new Polygon3D(new Point3D(basis[0].x * cg * cb + basis[0].y * (cg * sa * sb + sg * ca) + basis[0].z * (sg * sa - cg * ca * sb), -basis[0].x * sg * cb + basis[0].y * (cg * ca - sg * sa * sb) + basis[0].z * (sg * ca * sb + cg * sa), basis[0].x * sb - basis[0].y * sa * cb + basis[0].z * cb * ca), new Point3D(basis[1].x * cg * cb + basis[1].y * (cg * sa * sb + sg * ca) + basis[1].z * (sg * sa - cg * ca * sb), -basis[1].x * sg * cb + basis[1].y * (cg * ca - sg * sa * sb) + basis[1].z * (sg * ca * sb + cg * sa), basis[1].x * sb - basis[1].y * sa * cb + basis[1].z * cb * ca), new Point3D(basis[2].x * cg * cb + basis[2].y * (cg * sa * sb + sg * ca) + basis[2].z * (sg * sa - cg * ca * sb), -basis[2].x * sg * cb + basis[2].y * (cg * ca - sg * sa * sb) + basis[2].z * (sg * ca * sb + cg * sa), basis[2].x * sb - basis[2].y * sa * cb + basis[2].z * cb * ca));
+    return new Polygon3D(
+      new Point3D(basis[0].x * cg * cb + basis[0].y * (cg * sa * sb + sg * ca) + basis[0].z * (sg * sa - cg * ca * sb), -basis[0].x * sg * cb + basis[0].y * (cg * ca - sg * sa * sb) + basis[0].z * (sg * ca * sb + cg * sa), basis[0].x * sb - basis[0].y * sa * cb + basis[0].z * cb * ca), 
+      new Point3D(basis[1].x * cg * cb + basis[1].y * (cg * sa * sb + sg * ca) + basis[1].z * (sg * sa - cg * ca * sb), -basis[1].x * sg * cb + basis[1].y * (cg * ca - sg * sa * sb) + basis[1].z * (sg * ca * sb + cg * sa), basis[1].x * sb - basis[1].y * sa * cb + basis[1].z * cb * ca), 
+      new Point3D(basis[2].x * cg * cb + basis[2].y * (cg * sa * sb + sg * ca) + basis[2].z * (sg * sa - cg * ca * sb), -basis[2].x * sg * cb + basis[2].y * (cg * ca - sg * sa * sb) + basis[2].z * (sg * ca * sb + cg * sa), basis[2].x * sb - basis[2].y * sa * cb + basis[2].z * cb * ca)
+    );
 
   };
 
@@ -29712,8 +29722,8 @@
 
     if(prescale0 > 0 || prescale1 > 0) {
       if(prescale0 > 0 && prescale1 > 0) {
-        polygon.push(new _Point((this._basis[0].x * x0 + this._basis[1].x * y0 + this._basis[2].x * z0) * prescale0, (this._basis[0].y * x0 + this._basis[1].y * y0 + this._basis[2].y * z0) * prescale0));
-        polygon.push(new _Point((this._basis[0].x * x1 + this._basis[1].x * y1 + this._basis[2].x * z1) * prescale1, (this._basis[0].y * x1 + this._basis[1].y * y1 + this._basis[2].y * z1) * prescale1));
+        polygon.push(new _Point((this._basis[0].x * x0 + this._basis[1].x * y0 + this._basis[2].x * z0 + this._dx) * prescale0, (this._basis[0].y * x0 + this._basis[1].y * y0 + this._basis[2].y * z0) * prescale0));
+        polygon.push(new _Point((this._basis[0].x * x1 + this._basis[1].x * y1 + this._basis[2].x * z1 + this._dx) * prescale1, (this._basis[0].y * x1 + this._basis[1].y * y1 + this._basis[2].y * z1) * prescale1));
         return polygon;
       } else {
         var p0B = new Point3D(this._basis[0].x * x0 + this._basis[1].x * y0 + this._basis[2].x * z0, this._basis[0].y * x0 + this._basis[1].y * y0 + this._basis[2].y * z0, this._basis[0].z * x0 + this._basis[1].z * y0 + this._basis[2].z * z0);
@@ -29722,11 +29732,11 @@
         var pM = new Point3D(p0B.x + t * (p1B.x - p0B.x), p0B.y + t * (p1B.y - p0B.y), -this.lens + this._cuttingPlane);
         var prescaleM = this.lens / (this.lens + pM.z);
         if(prescale0 > 0) {
-          polygon.push(new _Point(p0B.x * prescale0, p0B.y * prescale0));
-          polygon.push(new _Point(pM.x * prescaleM, pM.y * prescaleM));
+          polygon.push(new _Point((p0B.x + this._dx) * prescale0, p0B.y * prescale0));
+          polygon.push(new _Point((pM.x + this._dx) * prescaleM, pM.y * prescaleM));
         } else {
-          polygon.push(new _Point(pM.x * prescaleM, pM.y * prescaleM));
-          polygon.push(new _Point(p1B.x * prescale1, p1B.y * prescale1));
+          polygon.push(new _Point((pM.x + this._dx) * prescaleM, pM.y * prescaleM));
+          polygon.push(new _Point((p1B.x +this._dx) * prescale1, p1B.y * prescale1));
         }
         return polygon;
       }
