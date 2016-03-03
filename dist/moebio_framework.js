@@ -13766,6 +13766,15 @@
       // No types defined. Get improved versions of lists
       for(i=0;i<table.length;i++){
         table[i] = table[i].getImproved();
+        // sometimes numbers get encoded as strings
+        if(table[i].type == 'StringList'){
+          var bAllNumbers=true;
+          for(var j=0;bAllNumbers && j<table[i].length;j++){
+            bAllNumbers = !isNaN(table[i][j]) && table[i][j].trim() !== '';
+          }
+          if(bAllNumbers)
+            table[i] = ListConversions.toNumberList(table[i]);
+        }
       }
     }
     if(obj.names)
