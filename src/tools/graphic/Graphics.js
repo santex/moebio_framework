@@ -145,30 +145,32 @@ Graphics.prototype._initialize = function(autoStart) {
   // YY TODO allow user to bind to these events as well. Probably
   // through a generic event mechanism. c.f. global addInteractionEventListener
   var boundMouseOrKeyboard = this._onMouseOrKeyBoard.bind(this);
-  this.canvas.addEventListener("mousemove", boundMouseOrKeyboard, false);
-  this.canvas.addEventListener("mousedown", boundMouseOrKeyboard, false);
-  this.canvas.addEventListener("mouseup", boundMouseOrKeyboard, false);
-  this.canvas.addEventListener("mouseenter", boundMouseOrKeyboard, false);
-  this.canvas.addEventListener("mouseleave", boundMouseOrKeyboard, false);
-  this.canvas.addEventListener("click", boundMouseOrKeyboard, false);
-
-  this.canvas.addEventListener("DOMMouseScroll", boundMouseOrKeyboard, false);
-  this.canvas.addEventListener("mousewheel", boundMouseOrKeyboard, false);
-
-  this.canvas.addEventListener("keydown", boundMouseOrKeyboard, false);
-  this.canvas.addEventListener("keyup", boundMouseOrKeyboard, false);
 
 
-
-
-  if(this.IS_TOUCH){
+   if(this.IS_TOUCH){
     this.canvas.addEventListener("touchstart", boundMouseOrKeyboard, false);
     this.canvas.addEventListener("touchend", boundMouseOrKeyboard, false);
     this.canvas.addEventListener("touchmove", boundMouseOrKeyboard, false);
     //this.canvas.addEventListener("gesturestart", boundMouseOrKeyboard, false);
     //this.canvas.addEventListener("gestureend", boundMouseOrKeyboard, false);
     //this.canvas.addEventListener("gesturechange", boundMouseOrKeyboard, false);
+  } else {
+    this.canvas.addEventListener("mousemove", boundMouseOrKeyboard, false);
+    this.canvas.addEventListener("mousedown", boundMouseOrKeyboard, false);
+    this.canvas.addEventListener("mouseup", boundMouseOrKeyboard, false);
+    this.canvas.addEventListener("mouseenter", boundMouseOrKeyboard, false);
+    this.canvas.addEventListener("mouseleave", boundMouseOrKeyboard, false);
+    this.canvas.addEventListener("click", boundMouseOrKeyboard, false);
+
+    this.canvas.addEventListener("DOMMouseScroll", boundMouseOrKeyboard, false);
+    this.canvas.addEventListener("mousewheel", boundMouseOrKeyboard, false);
   }
+
+  
+
+  this.canvas.addEventListener("keydown", boundMouseOrKeyboard, false);
+  this.canvas.addEventListener("keyup", boundMouseOrKeyboard, false);
+ 
 
   // Setup resize listeners
   var boundResize = this._onResize.bind(this);
@@ -233,10 +235,11 @@ Graphics.prototype._getRelativeMousePos = function(evt) {
 Graphics.prototype._onMouseOrKeyBoard = function(e) {
   var pos;
 
+  if(this.IS_TOUCH) console.log('_onMouseOrKeyBoard, e.type:'+e.type);
+
   switch(e.type){
     case "mousemove":
     case "touchmove":
-      
       if(e.type=="mousemove"){
         pos = this._getRelativeMousePos(e);
       } else {
@@ -253,12 +256,10 @@ Graphics.prototype._onMouseOrKeyBoard = function(e) {
       break;
     case "mousedown":
     case "touchstart":
-
       if(e.type=="touchstart"){
         this.mX = e.touches[0].clientX;
         this.mY = e.touches[0].clientY;
       }
-
 
       this.NF_DOWN = this.nF;
       this.MOUSE_PRESSED = true;
@@ -326,10 +327,6 @@ function resizeThrottler(actualResizeHandler, interval) {
  * @ignore
  */
 Graphics.prototype._onResize = function(e) {
-  //console.log('Graphics.prototype._onResize:', e);
-  //console.log('this.container.clientWidth, this.container.clientHeight:' + this.container.clientWidth + "-" + this.container.clientHeight);
-
-
   var currentW = this.cW;
   var currentH = this.cH;
   // If the user has set the dimensions explicitly
@@ -439,6 +436,7 @@ Graphics.prototype.cycleFor = function(time) {
       // the _startCycle call.
       clearTimeout(this._setTimeOutId);
     } else {
+      //this._onCycle(); // <----- maybe this is a good idea
       this._startCycle();
     }
     this._stopAfter(time);
@@ -690,6 +688,7 @@ Graphics.prototype.off = function(eventName, callback) {
  * Clear the canvas.
  */
 Graphics.prototype.clearCanvas = function() {
+  console.log('[G] clearCanvas');
   this.context.clearRect(0, 0, this.cW, this.cH);
 };
 
