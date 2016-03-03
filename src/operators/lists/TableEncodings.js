@@ -203,7 +203,11 @@ TableEncodings.TableToJSONString = function(table) {
     names:names,
     types:types
     };
-  return JSON.stringify(obj);
+  try {
+    return JSON.stringify(obj);
+  } catch (e) {
+    return JSON.stringify({"error":"cannot convert."});
+  }
 }
 
 /**
@@ -215,13 +219,17 @@ TableEncodings.TableToJSONString = function(table) {
  */
 TableEncodings.JSONStringToTable = function(json) {
   if(json == null || json.length == 0) return new Table();
-  var obj = JSON.parse(json);
+  var obj,i;
+  try {
+    obj = JSON.parse(json);
+  } catch(err) {
+    return null;
+  }
   var table = Table.fromArray(obj.data);
-  table.name = obj.name;
+  table.name = String(obj.name);
   table.type = obj.type;
   table.handle = obj.handle;
-  var i;
-  if(obj.types)
+  if(obj.types && obj.types.length > 0)
     for(i=0; i < obj.types.length; i++){
       if(table[i]){
         switch(obj.types[i]){
@@ -242,9 +250,15 @@ TableEncodings.JSONStringToTable = function(json) {
         }
       }
     }
+  else{
+    // No types defined. Get improved versions of lists
+    for(i=0;i<table.length;i++){
+      table[i] = table[i].getImproved();
+    }
+  }
   if(obj.names)
     for(i=0; i < obj.names.length; i++){
-      if(table[i]) table[i].name = obj.names[i];
+      if(table[i]) table[i].name = String(obj.names[i]);
     }
   return table;
 }
