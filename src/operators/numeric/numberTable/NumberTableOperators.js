@@ -270,7 +270,7 @@ NumberTableOperators.kMeans = function(numberTable, k, returnIndexesMode, N){
 
   if(returnIndexesMode==2 || returnIndexesMode==5){
     colors = new ColorList();
-    meanNumber.name = "mean color";
+    colors.name = "mean color";
     var catColors = ColorListGenerators.createDefaultCategoricalColorList(k);
     for(i=0; i<k; i++){
       cluster = clusters[i];
