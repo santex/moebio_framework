@@ -86,7 +86,7 @@ TableOperators.getSubTable = function(table, x, y, width, height) {
  * @param  {Table} table Table.
  * @param  {String} operator "=c"(default, exact match for numbers, contains for strings), "==", "<", "<=", ">", ">=", "!=", "contains", "between", Function that returns a boolean
  * @param  {Object} value to compare against, can be String or Number
- * @param  {Number} nList null(default) means check every column, otherwise column index to test
+ * @param  {Number} nList null(default) means check every column, otherwise column index to test. Can also be another List instance of same length as table.
  * @param  {Object} value2 only used for "between" operator
  * @param  {Boolean} bIgnoreCase for string compares, defaults to true
  * @return {Table}
