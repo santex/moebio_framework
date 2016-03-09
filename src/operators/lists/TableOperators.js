@@ -99,10 +99,15 @@ TableOperators.getFilteredByValue = function(table, operator, value, nList, valu
   if(operator == '=') operator = '==';
   var nLKeep = new NumberList();
   var nRows = table.getListLength();
-  var r,c,val,bKeep;
+  var r,c,val,val0,bKeep;
   var cStart=0;
   var cEnd=table.length;
   var type = typeOf(value);
+  var bExternalList = nList != null && nList.isList === true;
+  if(bExternalList && nList.length != nRows){
+    console.log('[TableOperators.getFilteredByValue] Error, List must have same length as table.');
+    return;
+  }
   if(type == 'string' && !isNaN(value) && value.trim() !== ''){
     type='number';
     value=Number(value);
@@ -126,6 +131,11 @@ TableOperators.getFilteredByValue = function(table, operator, value, nList, valu
     cStart=nList;
     cEnd=nList+1;
   }
+  if(bExternalList){
+    cStart=0;
+    cEnd=1;
+  }
+
   if(bIgnoreCase == null || (bIgnoreCase !== true && bIgnoreCase !== false) )
     bIgnoreCase = true;
   if(type == 'string' && bIgnoreCase){
@@ -141,7 +151,8 @@ TableOperators.getFilteredByValue = function(table, operator, value, nList, valu
     case "==":
       for(r=0; r<nRows; r++){
         for(c=cStart; c<cEnd; c++){
-          if(table[c][r] == value){
+          val0 = bExternalList ? nList[r] : table[c][r];
+          if(val0 == value){
             nLKeep.push(r);
             break;
           }
@@ -151,7 +162,8 @@ TableOperators.getFilteredByValue = function(table, operator, value, nList, valu
     case "==i":
       for(r=0; r<nRows; r++){
         for(c=cStart; c<cEnd; c++){
-          val = String(table[c][r]).toLowerCase();
+          val0 = bExternalList ? nList[r] : table[c][r];
+          val = String(val0).toLowerCase();
           if(val == value){
             nLKeep.push(r);
             break;
@@ -163,7 +175,8 @@ TableOperators.getFilteredByValue = function(table, operator, value, nList, valu
       for(r=0; r<nRows; r++){
         bKeep=true;
         for(c=cStart; c<cEnd; c++){
-          if(table[c][r] == value){
+          val0 = bExternalList ? nList[r] : table[c][r];
+          if(val0 == value){
             bKeep=false;
             break;
           }
@@ -176,7 +189,8 @@ TableOperators.getFilteredByValue = function(table, operator, value, nList, valu
       for(r=0; r<nRows; r++){
         bKeep=true;
         for(c=cStart; c<cEnd; c++){
-          val = String(table[c][r]).toLowerCase();
+          val0 = bExternalList ? nList[r] : table[c][r];
+          val = String(val0).toLowerCase();
           if(val == value){
             bKeep=false;
             break;
@@ -189,7 +203,8 @@ TableOperators.getFilteredByValue = function(table, operator, value, nList, valu
     case "contains":
       for(r=0; r<nRows; r++){
         for(c=cStart; c<cEnd; c++){
-          val = bIgnoreCase ? String(table[c][r]).toLowerCase() : String(table[c][r]);
+          val0 = bExternalList ? nList[r] : table[c][r];
+          val = bIgnoreCase ? String(val0).toLowerCase() : String(val0);
           if(val.indexOf(value) > -1){
             nLKeep.push(r);
             break;
@@ -201,8 +216,9 @@ TableOperators.getFilteredByValue = function(table, operator, value, nList, valu
     case "<=":
       for(r=0; r<nRows; r++){
         for(c=cStart; c<cEnd; c++){
-          if(type != typeOf(table[c][r])) continue;
-          val = bIgnoreCase ? String(table[c][r]).toLowerCase() : String(table[c][r]);
+          val0 = bExternalList ? nList[r] : table[c][r];
+          if(type != typeOf(val0)) continue;
+          val = bIgnoreCase ? String(val0).toLowerCase() : String(val0);
           if(val < value){
             nLKeep.push(r);
             break;
@@ -218,8 +234,9 @@ TableOperators.getFilteredByValue = function(table, operator, value, nList, valu
     case ">=":
       for(r=0; r<nRows; r++){
         for(c=cStart; c<cEnd; c++){
-          if(type != typeOf(table[c][r])) continue;
-          val = bIgnoreCase ? String(table[c][r]).toLowerCase() : String(table[c][r]);
+          val0 = bExternalList ? nList[r] : table[c][r];
+          if(type != typeOf(val0)) continue;
+          val = bIgnoreCase ? String(val0).toLowerCase() : String(val0);
           if(val > value){
             nLKeep.push(r);
             break;
@@ -234,8 +251,9 @@ TableOperators.getFilteredByValue = function(table, operator, value, nList, valu
     case "between":
       for(r=0; r<nRows; r++){
         for(c=cStart; c<cEnd; c++){
-          if(type != typeOf(table[c][r])) continue;
-          val = bIgnoreCase ? String(table[c][r]).toLowerCase() : String(table[c][r]);
+          val0 = bExternalList ? nList[r] : table[c][r];
+          if(type != typeOf(val0)) continue;
+          val = bIgnoreCase ? String(val0).toLowerCase() : String(val0);
           if(type == 'number')
             val = Number(val);
           if(value <= val && val <= value2){
