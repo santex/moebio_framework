@@ -84,7 +84,7 @@ TableOperators.getSubTable = function(table, x, y, width, height) {
 /**
  * filter the rows of a table
  * @param  {Table} table Table.
- * @param  {String} operator "=c"(default, exact match for numbers, contains for strings), "==", "<", "<=", ">", ">=", "!=", "contains", "between"
+ * @param  {String} operator "=c"(default, exact match for numbers, contains for strings), "==", "<", "<=", ">", ">=", "!=", "contains", "between", Function that returns a boolean
  * @param  {Object} value to compare against, can be String or Number
  * @param  {Number} nList null(default) means check every column, otherwise column index to test
  * @param  {Object} value2 only used for "between" operator
@@ -245,6 +245,14 @@ TableOperators.getFilteredByValue = function(table, operator, value, nList, valu
         }
       }
       break;
+    default:
+      if(typeof(operator) == 'function'){
+        for(r=0; r<nRows; r++){
+          if(operator.call(this,table,r, value, nList, value2, bIgnoreCase) ){
+            nLKeep.push(r);
+          }
+        }
+      }
   }
   var newTable = table.getSubListsByIndexes(nLKeep);
   return newTable;
