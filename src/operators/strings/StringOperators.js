@@ -36,12 +36,12 @@ StringOperators.STOP_WORDS = StringList.fromArray("t,s,mt,rt,re,m,http,amp,a,abl
  *
  * @param  {String} character
  * @return {StringList}
- * tags:
+ * tags:deprecated
  */
-StringOperators.split = function(string, character) {
-  if(character == null) return StringOperators.splitByEnter(string);
-  return StringList.fromArray(string.split(character));
-};
+// StringOperators.split = function(string, character) {
+//   if(character == null) return StringOperators.splitByEnter(string);
+//   return StringList.fromArray(string.split(character));
+// };
 
 
 /**
@@ -242,7 +242,7 @@ StringOperators.substr = function(string, i0, length) {
  * split a String by a separator (a String) and returns a StringList
  * @param  {String} string
  *
- * @param  {String} separator
+ * @param  {String} separator (default: ",")
  * @return {StringList}
  * tags:
  */
