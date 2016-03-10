@@ -266,8 +266,11 @@ TableOperators.getFilteredByValue = function(table, operator, value, nList, valu
     default:
       if(typeof(operator) == 'function'){
         for(r=0; r<nRows; r++){
-          if(operator.call(this,table,r, value, nList, value2, bIgnoreCase) ){
-            nLKeep.push(r);
+          for(c=cStart; c<cEnd; c++){
+            if(operator.call(this,table[c][r], value, value2, nList, table, c, r, bIgnoreCase) ){
+              nLKeep.push(r);
+              break;
+            }
           }
         }
       }
