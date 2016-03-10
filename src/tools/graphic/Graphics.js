@@ -1623,12 +1623,10 @@ Graphics.prototype.setLW = function(lineWidth) {
 //
 
 /**
- * Creates a clipping circle with the given dimensions
- *
+ * Creates a clipping circle (mask) with the given dimensions; apply cliping, draw, and finish with graphics.restore()
  * @param  {Number} x x coordinate of the circle's center
  * @param  {Number} y y coordinate of the circle's center
  * @param  {Number} r radius of circle
- *
  * @see {@link https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/clip|Clip}
  */
 Graphics.prototype.clipCircle = function(x, y, r) {
@@ -1640,13 +1638,11 @@ Graphics.prototype.clipCircle = function(x, y, r) {
 };
 
 /**
- * Creates a clipping rectangle with the given dimensions
- *
+ * Creates a clipping rectangle (mask) with the given dimensions; apply cliping, draw, and finish with graphics.restore()
  * @param  {Number} x x coordinate of top left corner
  * @param  {Number} y y coordinate of top left corner
  * @param  {Number} w width of rect
  * @param  {Number} h height of rect
- *
  * @see {@link https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/clip|Clip}
  */
 Graphics.prototype.clipRectangle = function(x, y, w, h) {
@@ -1661,7 +1657,6 @@ Graphics.prototype.clipRectangle = function(x, y, w, h) {
 
 /**
  * Saves the entire state of the canvas by pushing the current state onto a stack.
- *
  * @see {@link https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/save|Save}
  */
 Graphics.prototype.save = function() {
@@ -1670,7 +1665,6 @@ Graphics.prototype.save = function() {
 
 /**
  * Turns the path currently being built into the current clipping path.
- *
  * @see {@link https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/clip|Clip}
  */
 Graphics.prototype.clip = function() {
@@ -1681,7 +1675,6 @@ Graphics.prototype.clip = function() {
  * Restores the most recently saved canvas state by popping the top entry
  * in the drawing state stack. If there is no saved state,
  * this method does nothing.
- *
  * @see {@link https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/restore|Restore}
  */
 Graphics.prototype.restore = function() {
