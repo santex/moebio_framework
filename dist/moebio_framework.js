@@ -5969,6 +5969,276 @@
     return relation;
   };
 
+  Network.prototype = new DataModel();
+  Network.prototype.constructor = Network;
+
+  /**
+   * @classdesc Networks are a DataType to store network data.
+   *
+   * Networks have nodes stored in a NodeList,
+   * and relations (edges) stored in a RelationList.
+   * @description Create a new Network instance.
+   * @constructor
+   * @category networks
+   */
+  function Network() {
+    this.type = "Network";
+
+    this.nodeList = new NodeList();
+    this.relationList = new RelationList();
+  }
+  /**
+   * Get Nodes of the Network as a NodeList
+   * @return {NodeList}
+   */
+  Network.prototype.getNodes = function() {
+    return this.nodeList;
+  };
+
+  /**
+   * Get Relations (edges) of the Network as
+   * a RelationList.
+   * @return {RelationList}
+   * tags:
+   */
+  Network.prototype.getRelations = function() {
+    return this.relationList;
+  };
+
+  /**
+   * get nodes ids property
+   * @return {StringList}
+   * tags:
+   */
+  Network.prototype.getNodesIds = function() {
+    return this.nodeList.getIds();
+  };
+
+
+
+  /*
+   * building methods
+   */
+
+  /**
+   * Add a node to the network
+   * @param {Node} node A new node that will be added to the network.
+   */
+  Network.prototype.addNode = function(node) {
+    this.nodeList.addNode(node);
+  };
+
+  /**
+   * Retrieve a node from the nodeList of the Network with the given name (label).
+   * @param {String} name The name of the node to retrieve from the Network.
+   * @return {Node} The node with the given name. Null if no node with that name can be found in the Network.
+   */
+  Network.prototype.getNodeByName = function(name) {
+    return this.nodeList.getNodeByName(name);
+  };
+
+  /**
+   * Retrieve node from Network with the given id.
+   * @param {String} id ID of the node to retrieve
+   * @return {Node} The node with the given id. Null if a node with this id is not in the Network.
+   */
+  Network.prototype.getNodeById = function(id) {
+    return this.nodeList.getNodeById(id);
+  };
+
+  /**
+   * Add a new Relation (edge) to the Network between two nodes.
+   * @param {Node} node0 The source of the relation.
+   * @param {Node} node1 The destination of the relation.
+   * @param {String} id The id of the relation.
+   * @param {Number} weight A numerical weight associated with the relation (edge).
+   *
+   * @param {String} content Information associated with the relation.
+   */
+  Network.prototype.createRelation = function(node0, node1, id, weight, content) {
+    this.addRelation(new Relation(id, id, node0, node1, weight, content));
+  };
+
+  /**
+   * Add an existing Relation (edge) to the Network.
+   * @param {Relation} relation The relation to add to the network.
+   */
+  Network.prototype.addRelation = function(relation) {
+    this.relationList.addNode(relation);
+    relation.node0.nodeList.addNode(relation.node1);
+    relation.node0.relationList.addNode(relation);
+    relation.node0.toNodeList.addNode(relation.node1);
+    relation.node0.toRelationList.addNode(relation);
+    relation.node1.nodeList.addNode(relation.node0);
+    relation.node1.relationList.addNode(relation);
+    relation.node1.fromNodeList.addNode(relation.node0);
+    relation.node1.fromRelationList.addNode(relation);
+  };
+
+  /**
+   * Create a new Relation between two nodes in the network
+   * @param {Node} node0 The source of the relation.
+   * @param {Node} node1 The destination of the relation.
+   * @param {String} id The id of the relation. If missing, an id will be generated
+   * based on the id's of node0 and node1.
+   * @param {Number} weight=1 A numerical weight associated with the relation (edge).
+   * @param {String} content Information associated with the relation.
+   * @return {Relation} The new relation added to the Network.
+   */
+  Network.prototype.connect = function(node0, node1, id, weight, content) {
+    id = id || (node0.id + "_" + node1.id);
+    weight = weight || 1;
+    var relation = new Relation(id, id, node0, node1, weight);
+    this.addRelation(relation);
+    relation.content = content;
+    return relation;
+  };
+
+
+
+  /*
+   * removing methods
+   */
+
+  /**
+   * Remove a node from the Network
+   * @param {Node} node The node to remove.
+   */
+  Network.prototype.removeNode = function(node) {
+    this.removeNodeRelations(node);
+    this.nodeList.removeNode(node);
+  };
+
+  /**
+   * Remove all Relations connected to the node from the Network.
+   * @param {Node} node Node who's relations will be removed.
+   */
+  Network.prototype.removeNodeRelations = function(node) {
+    for(var i = 0; node.relationList[i] != null; i++) {
+      this.removeRelation(node.relationList[i]);
+      i--;
+    }
+  };
+
+  /**
+   * Remove all Nodes from the Network.
+   */
+  Network.prototype.removeNodes = function() {
+    this.nodeList.deleteNodes();
+    this.relationList.deleteNodes();
+  };
+
+  Network.prototype.removeRelation = function(relation) {
+    this.relationList.removeElement(relation);
+    relation.node0.nodeList.removeNode(relation.node1);
+    relation.node0.relationList.removeRelation(relation);
+    relation.node0.toNodeList.removeNode(relation.node1);
+    relation.node0.toRelationList.removeRelation(relation);
+    relation.node1.nodeList.removeNode(relation.node0);
+    relation.node1.relationList.removeRelation(relation);
+    relation.node1.fromNodeList.removeNode(relation.node0);
+    relation.node1.fromRelationList.removeRelation(relation);
+  };
+
+  /**
+   * Transformative method, removes nodes without a minimal number of connections
+   * @param  {Number} minDegree minimal degree
+   * @return {Number} number of nodes removed
+   * tags:transform
+   */
+  Network.prototype.removeIsolatedNodes = function(minDegree) {
+    var i;
+    var nRemoved = 0;
+    minDegree = minDegree == null ? 1 : minDegree;
+
+    for(i = 0; this.nodeList[i] != null; i++) {
+      if(this.nodeList[i].getDegree() < minDegree) {
+        this.nodeList[i]._toRemove = true;
+      }
+    }
+
+    for(i = 0; this.nodeList[i] != null; i++) {
+      if(this.nodeList[i]._toRemove) {
+        this.removeNode(this.nodeList[i]);
+        nRemoved++;
+        i--;
+      }
+    }
+
+    return nRemoved;
+  };
+
+
+  /**
+   * generates a light clone of the network, with the same nodeList and relationList as the original
+   * @return {Network}
+   */
+  Network.prototype.lightClone = function(){
+    var newNetwork = new Network();
+    newNetwork.nodeList = this.nodeList;
+    newNetwork.relationList = this.relationList;
+    return newNetwork;
+  };
+
+
+  /**
+   * Clones the network
+   *
+   * @param  {StringList} nodePropertiesNames list of properties names to be copied from old nodes into new nodes
+   * @param  {StringList} relationPropertiesNames
+   * @param  {String} idsSubfix optional sufix to be added to ids
+   * @param  {String} namesSubfix optional sufix to be added to names
+   * @return {Networked} network with exact structure than original
+   * tags:
+   */
+  Network.prototype.clone = function(nodePropertiesNames, relationPropertiesNames, idsSubfix, namesSubfix) {
+    var newNetwork = new Network();
+    var newNode, newRelation;
+
+    if(nodePropertiesNames==null) nodePropertiesNames=[];
+    if(relationPropertiesNames==null) relationPropertiesNames=[];
+
+    idsSubfix = idsSubfix == null ? '' : String(idsSubfix);
+    namesSubfix = namesSubfix == null ? '' : String(namesSubfix);
+
+    this.nodeList.forEach(function(node) {
+      newNode = new Node(idsSubfix + node.id, namesSubfix + node.name);
+      if(idsSubfix !== '') newNode.basicId = node.id;
+      if(namesSubfix !== '') newNode.basicName = node.name;
+      if(nodePropertiesNames) {
+        nodePropertiesNames.forEach(function(propName) {
+          if(node[propName] != null) newNode[propName] = node[propName];
+        });
+      }
+      newNetwork.addNode(newNode);
+    });
+
+    this.relationList.forEach(function(relation) {
+      newRelation = new Relation(idsSubfix + relation.id, namesSubfix + relation.name, newNetwork.nodeList.getNodeById(idsSubfix + relation.node0.id), newNetwork.nodeList.getNodeById(idsSubfix + relation.node1.id), relation.weight);
+      if(idsSubfix !== '') newRelation.basicId = relation.id;
+      if(namesSubfix !== '') newRelation.basicName = relation.name;
+      if(relationPropertiesNames) {
+        relationPropertiesNames.forEach(function(propName) {
+          if(relation[propName] != null) newRelation[propName] = relation[propName];
+        });
+      }
+      newNetwork.addRelation(newRelation);
+    });
+
+    return newNetwork;
+  };
+
+  /**
+   * @todo write docs
+   */
+  Network.prototype.destroy = function() {
+    delete this.type;
+    this.nodeList.destroy();
+    this.relationList.destroy();
+    delete this.nodeList;
+    delete this.relationList;
+  };
+
   /**
    * @classdesc Provides a set of tools that work with Numbers.
    *
@@ -9195,7 +9465,6 @@
   /**
    * Creates a ColorList of categorical colors based on an input List. All entries with the same value will get the same color.
    * @param {List} the list containing categorical data with same length as given list
-   * tags:generator
    */
   ColorListGenerators.colorsForCategoricalList = function(list){
     if(list==null) return;
@@ -9567,12 +9836,12 @@
    *
    * @param  {String} character
    * @return {StringList}
-   * tags:
+   * tags:deprecated
    */
-  StringOperators.split = function(string, character) {
-    if(character == null) return StringOperators.splitByEnter(string);
-    return StringList.fromArray(string.split(character));
-  };
+  // StringOperators.split = function(string, character) {
+  //   if(character == null) return StringOperators.splitByEnter(string);
+  //   return StringList.fromArray(string.split(character));
+  // };
 
 
   /**
@@ -9773,7 +10042,7 @@
    * split a String by a separator (a String) and returns a StringList
    * @param  {String} string
    *
-   * @param  {String} separator
+   * @param  {String} separator (default: ",")
    * @return {StringList}
    * tags:
    */
@@ -10462,276 +10731,6 @@
     return matrix[b.length][a.length];
   };
 
-  Network.prototype = new DataModel();
-  Network.prototype.constructor = Network;
-
-  /**
-   * @classdesc Networks are a DataType to store network data.
-   *
-   * Networks have nodes stored in a NodeList,
-   * and relations (edges) stored in a RelationList.
-   * @description Create a new Network instance.
-   * @constructor
-   * @category networks
-   */
-  function Network() {
-    this.type = "Network";
-
-    this.nodeList = new NodeList();
-    this.relationList = new RelationList();
-  }
-  /**
-   * Get Nodes of the Network as a NodeList
-   * @return {NodeList}
-   */
-  Network.prototype.getNodes = function() {
-    return this.nodeList;
-  };
-
-  /**
-   * Get Relations (edges) of the Network as
-   * a RelationList.
-   * @return {RelationList}
-   * tags:
-   */
-  Network.prototype.getRelations = function() {
-    return this.relationList;
-  };
-
-  /**
-   * get nodes ids property
-   * @return {StringList}
-   * tags:
-   */
-  Network.prototype.getNodesIds = function() {
-    return this.nodeList.getIds();
-  };
-
-
-
-  /*
-   * building methods
-   */
-
-  /**
-   * Add a node to the network
-   * @param {Node} node A new node that will be added to the network.
-   */
-  Network.prototype.addNode = function(node) {
-    this.nodeList.addNode(node);
-  };
-
-  /**
-   * Retrieve a node from the nodeList of the Network with the given name (label).
-   * @param {String} name The name of the node to retrieve from the Network.
-   * @return {Node} The node with the given name. Null if no node with that name can be found in the Network.
-   */
-  Network.prototype.getNodeByName = function(name) {
-    return this.nodeList.getNodeByName(name);
-  };
-
-  /**
-   * Retrieve node from Network with the given id.
-   * @param {String} id ID of the node to retrieve
-   * @return {Node} The node with the given id. Null if a node with this id is not in the Network.
-   */
-  Network.prototype.getNodeById = function(id) {
-    return this.nodeList.getNodeById(id);
-  };
-
-  /**
-   * Add a new Relation (edge) to the Network between two nodes.
-   * @param {Node} node0 The source of the relation.
-   * @param {Node} node1 The destination of the relation.
-   * @param {String} id The id of the relation.
-   * @param {Number} weight A numerical weight associated with the relation (edge).
-   *
-   * @param {String} content Information associated with the relation.
-   */
-  Network.prototype.createRelation = function(node0, node1, id, weight, content) {
-    this.addRelation(new Relation(id, id, node0, node1, weight, content));
-  };
-
-  /**
-   * Add an existing Relation (edge) to the Network.
-   * @param {Relation} relation The relation to add to the network.
-   */
-  Network.prototype.addRelation = function(relation) {
-    this.relationList.addNode(relation);
-    relation.node0.nodeList.addNode(relation.node1);
-    relation.node0.relationList.addNode(relation);
-    relation.node0.toNodeList.addNode(relation.node1);
-    relation.node0.toRelationList.addNode(relation);
-    relation.node1.nodeList.addNode(relation.node0);
-    relation.node1.relationList.addNode(relation);
-    relation.node1.fromNodeList.addNode(relation.node0);
-    relation.node1.fromRelationList.addNode(relation);
-  };
-
-  /**
-   * Create a new Relation between two nodes in the network
-   * @param {Node} node0 The source of the relation.
-   * @param {Node} node1 The destination of the relation.
-   * @param {String} id The id of the relation. If missing, an id will be generated
-   * based on the id's of node0 and node1.
-   * @param {Number} weight=1 A numerical weight associated with the relation (edge).
-   * @param {String} content Information associated with the relation.
-   * @return {Relation} The new relation added to the Network.
-   */
-  Network.prototype.connect = function(node0, node1, id, weight, content) {
-    id = id || (node0.id + "_" + node1.id);
-    weight = weight || 1;
-    var relation = new Relation(id, id, node0, node1, weight);
-    this.addRelation(relation);
-    relation.content = content;
-    return relation;
-  };
-
-
-
-  /*
-   * removing methods
-   */
-
-  /**
-   * Remove a node from the Network
-   * @param {Node} node The node to remove.
-   */
-  Network.prototype.removeNode = function(node) {
-    this.removeNodeRelations(node);
-    this.nodeList.removeNode(node);
-  };
-
-  /**
-   * Remove all Relations connected to the node from the Network.
-   * @param {Node} node Node who's relations will be removed.
-   */
-  Network.prototype.removeNodeRelations = function(node) {
-    for(var i = 0; node.relationList[i] != null; i++) {
-      this.removeRelation(node.relationList[i]);
-      i--;
-    }
-  };
-
-  /**
-   * Remove all Nodes from the Network.
-   */
-  Network.prototype.removeNodes = function() {
-    this.nodeList.deleteNodes();
-    this.relationList.deleteNodes();
-  };
-
-  Network.prototype.removeRelation = function(relation) {
-    this.relationList.removeElement(relation);
-    relation.node0.nodeList.removeNode(relation.node1);
-    relation.node0.relationList.removeRelation(relation);
-    relation.node0.toNodeList.removeNode(relation.node1);
-    relation.node0.toRelationList.removeRelation(relation);
-    relation.node1.nodeList.removeNode(relation.node0);
-    relation.node1.relationList.removeRelation(relation);
-    relation.node1.fromNodeList.removeNode(relation.node0);
-    relation.node1.fromRelationList.removeRelation(relation);
-  };
-
-  /**
-   * Transformative method, removes nodes without a minimal number of connections
-   * @param  {Number} minDegree minimal degree
-   * @return {Number} number of nodes removed
-   * tags:transform
-   */
-  Network.prototype.removeIsolatedNodes = function(minDegree) {
-    var i;
-    var nRemoved = 0;
-    minDegree = minDegree == null ? 1 : minDegree;
-
-    for(i = 0; this.nodeList[i] != null; i++) {
-      if(this.nodeList[i].getDegree() < minDegree) {
-        this.nodeList[i]._toRemove = true;
-      }
-    }
-
-    for(i = 0; this.nodeList[i] != null; i++) {
-      if(this.nodeList[i]._toRemove) {
-        this.removeNode(this.nodeList[i]);
-        nRemoved++;
-        i--;
-      }
-    }
-
-    return nRemoved;
-  };
-
-
-  /**
-   * generates a light clone of the network, with the same nodeList and relationList as the original
-   * @return {Network}
-   */
-  Network.prototype.lightClone = function(){
-    var newNetwork = new Network();
-    newNetwork.nodeList = this.nodeList;
-    newNetwork.relationList = this.relationList;
-    return newNetwork;
-  };
-
-
-  /**
-   * Clones the network
-   *
-   * @param  {StringList} nodePropertiesNames list of properties names to be copied from old nodes into new nodes
-   * @param  {StringList} relationPropertiesNames
-   * @param  {String} idsSubfix optional sufix to be added to ids
-   * @param  {String} namesSubfix optional sufix to be added to names
-   * @return {Networked} network with exact structure than original
-   * tags:
-   */
-  Network.prototype.clone = function(nodePropertiesNames, relationPropertiesNames, idsSubfix, namesSubfix) {
-    var newNetwork = new Network();
-    var newNode, newRelation;
-
-    if(nodePropertiesNames==null) nodePropertiesNames=[];
-    if(relationPropertiesNames==null) relationPropertiesNames=[];
-
-    idsSubfix = idsSubfix == null ? '' : String(idsSubfix);
-    namesSubfix = namesSubfix == null ? '' : String(namesSubfix);
-
-    this.nodeList.forEach(function(node) {
-      newNode = new Node(idsSubfix + node.id, namesSubfix + node.name);
-      if(idsSubfix !== '') newNode.basicId = node.id;
-      if(namesSubfix !== '') newNode.basicName = node.name;
-      if(nodePropertiesNames) {
-        nodePropertiesNames.forEach(function(propName) {
-          if(node[propName] != null) newNode[propName] = node[propName];
-        });
-      }
-      newNetwork.addNode(newNode);
-    });
-
-    this.relationList.forEach(function(relation) {
-      newRelation = new Relation(idsSubfix + relation.id, namesSubfix + relation.name, newNetwork.nodeList.getNodeById(idsSubfix + relation.node0.id), newNetwork.nodeList.getNodeById(idsSubfix + relation.node1.id), relation.weight);
-      if(idsSubfix !== '') newRelation.basicId = relation.id;
-      if(namesSubfix !== '') newRelation.basicName = relation.name;
-      if(relationPropertiesNames) {
-        relationPropertiesNames.forEach(function(propName) {
-          if(relation[propName] != null) newRelation[propName] = relation[propName];
-        });
-      }
-      newNetwork.addRelation(newRelation);
-    });
-
-    return newNetwork;
-  };
-
-  /**
-   * @todo write docs
-   */
-  Network.prototype.destroy = function() {
-    delete this.type;
-    this.nodeList.destroy();
-    this.relationList.destroy();
-    delete this.nodeList;
-    delete this.relationList;
-  };
-
   /**
    * @classdesc Provides a set of tools that work with Dates.
    *
@@ -10926,6 +10925,629 @@
    * @category networks
    */
   function NetworkEncodings() {}
+  //////////////GDF
+
+  /**
+   * Creates Network from a GDF string representation.
+   * @param  {String} gdfCode GDF serialized Network representation.
+   * @return {Network}
+   * tags:decoder
+   */
+  NetworkEncodings.decodeGDF = function(gdfCode) {
+    if(gdfCode == null || gdfCode === "") return;
+
+    var network = new Network();
+    var lines = gdfCode.split("\n"); //TODO: split by ENTERS OUTSIDE QUOTEMARKS
+    if(lines.length === 0) return null;
+    var line;
+    var i;
+    var j;
+    var parts;
+
+    var nodesPropertiesNames = lines[0].substr(8).split(",");
+
+    var iEdges;
+
+    for(i = 1; lines[i] != null; i++) {
+      line = lines[i];
+      if(line.substr(0, 8) == "edgedef>") {
+        iEdges = i + 1;
+        break;
+      }
+      line = NetworkEncodings.replaceChomasInLine(line);
+      parts = line.split(",");
+      var node = new Node(String(parts[0]), String(parts[1]));
+      for(j = 0; (nodesPropertiesNames[j] != null && parts[j] != null); j++) {
+        if(nodesPropertiesNames[j] == "weight") {
+          node.weight = Number(parts[j]);
+        } else if(nodesPropertiesNames[j] == "x") {
+          node.x = Number(parts[j]);
+        } else if(nodesPropertiesNames[j] == "y") {
+          node.y = Number(parts[j]);
+        } else {
+          node[nodesPropertiesNames[j]] = parts[j].replace(/\*CHOMA\*/g, ",");
+        }
+      }
+      network.addNode(node);
+    }
+
+    var relationsPropertiesNames = lines[iEdges - 1].substr(8).split(",");
+
+    for(i = iEdges; lines[i] != null; i++) {
+      line = lines[i];
+      line = NetworkEncodings.replaceChomasInLine(line);
+      parts = line.split(",");
+      if(parts.length >= 2) {
+        var node0 = network.nodeList.getNodeById(String(parts[0]));
+        var node1 = network.nodeList.getNodeById(String(parts[1]));
+        if(node0 == null || node1 == null) {
+          console.log("NetworkEncodings.decodeGDF | [!] problems with nodes ids:", parts[0], parts[1], "at line", i);
+        } else {
+          var id = node0.id + "_" + node1.id + "_" + Math.floor(Math.random() * 999999);
+          var relation = new Relation(id, id, node0, node1);
+          for(j = 2; (relationsPropertiesNames[j] != null && parts[j] != null); j++) {
+            if(relationsPropertiesNames[j] == "weight") {
+              relation.weight = Number(parts[j]);
+            } else {
+              relation[relationsPropertiesNames[j]] = parts[j].replace(/\*CHOMA\*/g, ",");
+            }
+          }
+          network.addRelation(relation);
+        }
+      }
+
+    }
+
+    return network;
+  };
+
+  /**
+   * Encodes a network in GDF Format, more info on GDF
+   * format can be found from
+   * {@link https://gephi.org/users/supported-graph-formats/gml-format/|Gephi}.
+   * @param  {Network} network Network to encode.
+   *
+   * @param  {StringList} nodesPropertiesNames Names of nodes properties to be encoded.
+   * @param  {StringList} relationsPropertiesNames Names of relations properties to be encoded
+   * @return {String} GDF encoding of Network.
+   * tags:encoder
+   */
+  NetworkEncodings.encodeGDF = function(network, nodesPropertiesNames, relationsPropertiesNames) {
+    if(network == null) return;
+
+    nodesPropertiesNames = nodesPropertiesNames == null ? new StringList() : nodesPropertiesNames;
+    relationsPropertiesNames = relationsPropertiesNames == null ? new StringList() : relationsPropertiesNames;
+
+    var code = "nodedef>id" + (nodesPropertiesNames.length > 0 ? "," : "") + nodesPropertiesNames.join(",");
+    var i;
+    var j;
+    var node;
+    for(i = 0; network.nodeList[i] != null; i++) {
+      node = network.nodeList[i];
+      code += "\n" + node.id;
+      for(j = 0; nodesPropertiesNames[j] != null; j++) {
+
+        if(typeof node[nodesPropertiesNames[j]] == 'string') {
+          code += ",\"" + node[nodesPropertiesNames[j]] + "\"";
+        } else {
+          code += "," + node[nodesPropertiesNames[j]];
+        }
+      }
+    }
+
+    code += "\nedgedef>id0,id1" + (relationsPropertiesNames.length > 0 ? "," : "") + relationsPropertiesNames.join(",");
+    var relation;
+    for(i = 0; network.relationList[i] != null; i++) {
+      relation = network.relationList[i];
+      code += "\n" + relation.node0.id + "," + relation.node1.id;
+      for(j = 0; relationsPropertiesNames[j] != null; j++) {
+
+        if(typeof relation[relationsPropertiesNames[j]] == 'string') {
+          code += ",\"" + relation[relationsPropertiesNames[j]] + "\"";
+        } else {
+          code += "," + relation[relationsPropertiesNames[j]];
+        }
+      }
+    }
+
+    return code;
+  };
+
+
+  //////////////GML
+
+  /**
+   * Decodes a GML file into a new Network.
+   * @param  {String} gmlCode GML based representation of Network.
+   * @return {Network}
+   * tags:decoder
+   */
+  NetworkEncodings.decodeGML = function(gmlCode) {
+    if(gmlCode == null) return null;
+
+    gmlCode = gmlCode.substr(gmlCode.indexOf("[") + 1);
+
+    var network = new Network();
+
+    var firstEdgeIndex = gmlCode.search(/\bedge\b/);
+
+    var nodesPart = gmlCode.substr(0, firstEdgeIndex);
+    var edgesPart = gmlCode.substr(firstEdgeIndex);
+
+    var part = nodesPart;
+
+    var blocks = StringOperators.getParenthesisContents(part, true);
+
+    //console.log('blocks.length', blocks.length);
+
+    var graphicsBlock;
+    var lines;
+    var lineParts;
+
+    var indexG0;
+    var indexG1;
+
+    var node;
+    var i, j;
+
+    for(i = 0; blocks[i] != null; i++) {
+      blocks[i] = StringOperators.removeInitialRepeatedCharacter(blocks[i], "\n");
+      blocks[i] = StringOperators.removeInitialRepeatedCharacter(blocks[i], "\r");
+
+      indexG0 = blocks[i].indexOf('graphics');
+      if(indexG0 != -1) {
+        indexG1 = blocks[i].indexOf(']');
+        graphicsBlock = blocks[i].substring(indexG0, indexG1 + 1);
+        blocks[i] = blocks[i].substr(0, indexG0) + blocks[i].substr(indexG1 + 1);
+
+        graphicsBlock = StringOperators.getFirstParenthesisContent(graphicsBlock, true);
+        blocks[i] = blocks[i] + graphicsBlock;
+      }
+
+      lines = blocks[i].split('\n');
+
+      lines[0] = NetworkEncodings._cleanLineBeginning(lines[0]);
+
+      lineParts = lines[0].split(" ");
+
+      node = new Node(StringOperators.removeQuotes(lineParts[1]), StringOperators.removeQuotes(lineParts[1]));
+
+      network.addNode(node);
+
+      for(j = 1; lines[j] != null; j++) {
+        lines[j] = NetworkEncodings._cleanLineBeginning(lines[j]);
+        lines[j] = NetworkEncodings._replaceSpacesInLine(lines[j]);
+        if(lines[j] !== "") {
+          lineParts = lines[j].split(" ");
+          if(lineParts[0] == 'label') lineParts[0] = 'name';
+          node[lineParts[0]] = (lineParts[1].charAt(0) == "\"") ? StringOperators.removeQuotes(lineParts[1]).replace(/\*SPACE\*/g, " ") : Number(lineParts[1]);
+        }
+      }
+    }
+
+    part = edgesPart;
+    blocks = StringOperators.getParenthesisContents(part, true);
+
+    var id0;
+    var id1;
+    var node0;
+    var node1;
+    var relation;
+    var nodes = network.nodeList;
+
+
+    for(i = 0; blocks[i] != null; i++) {
+      blocks[i] = StringOperators.removeInitialRepeatedCharacter(blocks[i], "\n");
+      blocks[i] = StringOperators.removeInitialRepeatedCharacter(blocks[i], "\r");
+
+      lines = blocks[i].split('\n');
+
+      id0 = null;
+      id1 = null;
+      relation = null;
+
+      for(j = 0; lines[j] != null; j++) {
+        lines[j] = NetworkEncodings._cleanLineBeginning(lines[j]);
+        if(lines[j] !== "") {
+          lineParts = lines[j].split(" ");
+          if(lineParts[0] == 'source') id0 = StringOperators.removeQuotes(lineParts[1]);
+          if(lineParts[0] == 'target') id1 = StringOperators.removeQuotes(lineParts[1]);
+
+          if(relation == null) {
+            if(id0 != null && id1 != null) {
+              node0 = nodes.getNodeById(id0);
+              node1 = nodes.getNodeById(id1);
+              if(node0 != null && node1 != null) {
+                relation = new Relation(id0 + " " + id1, '', node0, node1);
+                network.addRelation(relation);
+              }
+            }
+          } else {
+            if(lineParts[0] == 'value') lineParts[0] = 'weight';
+            relation[lineParts[0]] = (lineParts[1].charAt(0) == "\"") ? StringOperators.removeQuotes(lineParts[1]) : Number(lineParts[1]);
+          }
+        }
+
+      }
+
+    }
+
+    return network;
+  };
+
+  /**
+   * _cleanLineBeginning
+   *
+   * @ignore
+   */
+  NetworkEncodings._cleanLineBeginning = function(string) {
+    string = StringOperators.removeInitialRepeatedCharacter(string, "\n");
+    string = StringOperators.removeInitialRepeatedCharacter(string, "\r");
+    string = StringOperators.removeInitialRepeatedCharacter(string, " ");
+    string = StringOperators.removeInitialRepeatedCharacter(string, "	");
+    return string;
+  };
+
+
+  /**
+   * Encodes a network into GDF format
+   * @param  {Network} network The Network to encode.
+   *
+   * @param  {StringList} nodesPropertiesNames Names of Node properties to encode.
+   * @param  {StringList} relationsPropertiesNames Names of Relation properties to encode.
+   * @param {Boolean} idsAsInts If true, then the index of the Node is used as an ID.
+   * GDF strong specification requires ids for nodes being int numbers.
+   * @return {String} GDF string.
+   * tags:encoder
+   */
+  NetworkEncodings.encodeGML = function(network, nodesPropertiesNames, relationsPropertiesNames, idsAsInts) {
+    if(network == null) return;
+
+    idsAsInts = idsAsInts == null ? true : idsAsInts;
+
+    nodesPropertiesNames = nodesPropertiesNames == null ? new StringList() : nodesPropertiesNames;
+    relationsPropertiesNames = relationsPropertiesNames == null ? new StringList() : relationsPropertiesNames;
+
+    var code = "graph\n[";
+    var ident = "	";
+    var i;
+    var j;
+    var node;
+    var isString;
+    var value;
+    for(i = 0; network.nodeList[i] != null; i++) {
+      node = network.nodeList[i];
+      code += "\n" + ident + "node\n" + ident + "[";
+      ident = "		";
+      if(idsAsInts) {
+        code += "\n" + ident + "id " + i;
+      } else {
+        code += "\n" + ident + "id \"" + node.id + "\"";
+      }
+      if(node.name !== '') code += "\n" + ident + "label \"" + node.name + "\"";
+      for(j = 0; nodesPropertiesNames[j] != null; j++) {
+        value = node[nodesPropertiesNames[j]];
+        if(value == null) continue;
+        if(value.getMonth) value = DateOperators.dateToString(value);
+        isString = (typeof value == 'string');
+        if(isString) value = value.replace(/\n/g, "\\n").replace(/\"/g, "'");
+        code += "\n" + ident + nodesPropertiesNames[j] + " " + (isString ? "\"" + value + "\"" : value);
+      }
+      ident = "	";
+      code += "\n" + ident + "]";
+    }
+
+    var relation;
+    for(i = 0; network.relationList[i] != null; i++) {
+      relation = network.relationList[i];
+      code += "\n" + ident + "edge\n" + ident + "[";
+      ident = "		";
+      if(idsAsInts) {
+        code += "\n" + ident + "source " + network.nodeList.indexOf(relation.node0);
+        code += "\n" + ident + "target " + network.nodeList.indexOf(relation.node1);
+      } else {
+        code += "\n" + ident + "source \"" + relation.node0.id + "\"";
+        code += "\n" + ident + "target \"" + relation.node1.id + "\"";
+      }
+      for(j = 0; relationsPropertiesNames[j] != null; j++) {
+        value = relation[relationsPropertiesNames[j]];
+        if(value == null) continue;
+        if(value.getMonth) value = DateOperators.dateToString(value);
+        isString = (typeof value == 'string');
+        if(isString) value = value.replace(/\n/g, "\\n").replace(/\"|“|”/g, "'");
+        code += "\n" + ident + relationsPropertiesNames[j] + " " + (isString ? "\"" + value + "\"" : value);
+      }
+      ident = "	";
+      code += "\n" + ident + "]";
+    }
+
+    code += "\n]";
+    return code;
+  };
+
+
+
+
+
+  //////////////SYM
+
+  /**
+   * decode SYM
+   * @param symCode
+   * @return {Network}
+   */
+  NetworkEncodings.decodeSYM = function(symCode) {
+    //console.log("/////// decodeSYM\n"+symCode+"\n/////////");
+    var i;
+    var j;
+
+    var lines = StringOperators.splitByEnter(symCode);
+    lines = lines == null ? [] : lines;
+
+    var objectPattern = /((?:NODE|RELATION)|GROUP)\s*([A-Za-z0-9_,\s]*)/;
+
+    var network = new Network();
+    var groups = new Table();
+    var name;
+    var id;
+    var node;
+    var node1;
+    var relation;
+    var group;
+    var groupName;
+    var parts;
+    var propName;
+    var propCont;
+
+    var nodePropertiesNames = [];
+    var relationPropertiesNames = [];
+    var groupsPropertiesNames = [];
+
+    for(i = 0; lines[i] != null; i++) {
+      var bits = objectPattern.exec(lines[i]);
+      if(bits != null) {
+        switch(bits[1]) {
+          case "NODE":
+            id = bits[2];
+            name = lines[i + 1].substr(0, 5) == "name:" ? lines[i + 1].substr(5).trim() : "";
+            name = name.replace(/\\n/g, '\n').replace(/\\'/g, "'");
+            node = new Node(id, name);
+            network.addNode(node);
+            j = i + 1;
+            while(j < lines.length && lines[j].indexOf(":") != -1) {
+              parts = lines[j].split(":");
+              propName = parts[0];
+              propCont = parts.slice(1).join(":");
+              if(propName != "name") {
+                propCont = propCont.trim();
+                node[propName] = String(Number(propCont)) == propCont ? Number(propCont) : propCont;
+                if(typeof node[propName] == "string") node[propName] = node[propName].replace(/\\n/g, '\n').replace(/\\'/g, "'");
+                if(nodePropertiesNames.indexOf(propName) == -1) nodePropertiesNames.push(propName);
+              }
+              j++;
+            }
+            if(node.color != null) {
+              if(/.+,.+,.+/.test(node.color)) node.color = 'rgb(' + node.color + ')';
+            }
+            if(node.group != null) {
+              group = groups.getFirstElementByPropertyValue("name", node.group);
+              if(group == null) {
+                group = new NodeList();
+                group.name = node.group;
+                group.name = group.name.replace(/\\n/g, '\n').replace(/\\'/g, "'");
+                groups.push(group);
+              }
+              group.addNode(node);
+              //node.group = group;
+            }
+            break;
+          case "RELATION":
+            var ids = bits[2].replace(/\s/g, "").split(",");
+            //var ids = bits[2].split(",");
+            node = network.nodeList.getNodeById(ids[0]);
+            node1 = network.nodeList.getNodeById(ids[1]);
+            if(node != null && node1 != null) {
+              relation = new Relation(node.id + "_" + node1.id, node.id + "_" + node1.id, node, node1);
+              network.addRelation(relation);
+              j = i + 1;
+              while(j < lines.length && lines[j].indexOf(":") != -1) {
+                parts = lines[j].split(":");
+                propName = parts[0];
+                propCont = parts.slice(1).join(":").trim();
+                if(propName != "name") {
+                  propCont = propCont.trim();
+                  relation[propName] = String(Number(propCont)) == propCont ? Number(propCont) : propCont;
+                  if(typeof relation[propName] == "string") relation[propName] = relation[propName].replace(/\\n/g, '\n').replace(/\\'/g, "'");
+                  if(relationPropertiesNames.indexOf(propName) == -1) relationPropertiesNames.push(propName);
+                }
+                j++;
+              }
+            }
+            if(relation != null && relation.color != null) {
+              relation.color = 'rgb(' + relation.color + ')';
+            }
+            break;
+          case "GROUP":
+            groupName = lines[i].substr(5).trim();
+
+            group = groups.getFirstElementByPropertyValue("name", groupName);
+            if(group == null) {
+              group = new NodeList();
+              group.name = groupName;
+              groups.push(group);
+            }
+            j = i + 1;
+            while(j < lines.length && lines[j].indexOf(":") != -1) {
+              parts = lines[j].split(":");
+              if(parts[0] != "name") {
+                parts[1] = parts[1].trim();
+                group[parts[0]] = String(Number(parts[1])) == parts[1] ? Number(parts[1]) : parts[1];
+                if(groupsPropertiesNames.indexOf(parts[0]) == -1) groupsPropertiesNames.push(parts[0]);
+              }
+              j++;
+            }
+
+            if(/.+,.+,.+/.test(group.color)) group.color = 'rgb(' + group.color + ')';
+
+            break;
+        }
+      }
+    }
+
+    for(i = 0; groups[i] != null; i++) {
+      group = groups[i];
+      if(group.color == null) group.color = ColorListGenerators._HARDCODED_CATEGORICAL_COLORS[i % ColorListGenerators._HARDCODED_CATEGORICAL_COLORS.length];
+      for(j = 0; group[j] != null; j++) {
+        node = group[j];
+        if(node.color == null) node.color = group.color;
+      }
+    }
+
+    network.groups = groups;
+
+
+
+    network.nodePropertiesNames = nodePropertiesNames;
+    network.relationPropertiesNames = relationPropertiesNames;
+    network.groupsPropertiesNames = groupsPropertiesNames;
+
+    return network;
+  };
+
+  /**
+   * encode SYM
+   * @param network
+   * @param groups
+   * @param nodesPropertiesNames
+   * @param relationsPropertiesNames
+   * @param groupsPropertiesNames
+   * @return {String}
+   */
+  NetworkEncodings.encodeSYM = function(network, groups, nodesPropertiesNames, relationsPropertiesNames, groupsPropertiesNames) {
+    nodesPropertiesNames = nodesPropertiesNames == null ? new StringList() : nodesPropertiesNames;
+    relationsPropertiesNames = relationsPropertiesNames == null ? new StringList() : relationsPropertiesNames;
+
+    var code = "";
+    var i;
+    var j;
+    var node;
+    var propertyName;
+    for(i = 0; network.nodeList[i] != null; i++) {
+      node = network.nodeList[i];
+      code += (i === 0 ? "" : "\n\n") + "NODE " + node.id;
+      if(node.name !== "") code += "\nname:" + (node.name).replace(/\n/g, "\\n");
+      for(j = 0; nodesPropertiesNames[j] != null; j++) {
+        propertyName = nodesPropertiesNames[j];
+        if(node[propertyName] != null) code += "\n" + propertyName + ":" + _processProperty(propertyName, node[propertyName]);
+      }
+    }
+
+    var relation;
+    for(i = 0; network.relationList[i] != null; i++) {
+      relation = network.relationList[i];
+      code += "\n\nRELATION " + relation.node0.id + ", " + relation.node1.id;
+      for(j = 0; relationsPropertiesNames[j] != null; j++) {
+        propertyName = relationsPropertiesNames[j];
+        if(relation[propertyName] != null) code += "\n" + propertyName + ":" + _processProperty(propertyName, relation[propertyName]);
+      }
+    }
+
+    if(groups == null) return code;
+
+    var group;
+    for(i = 0; groups[i] != null; i++) {
+      group = groups[i];
+      code += "\n\nGROUP " + group.name;
+      for(j = 0; groupsPropertiesNames[j] != null; j++) {
+        propertyName = groupsPropertiesNames[j];
+        if(group[propertyName] != null) code += "\n" + propertyName + ":" + _processProperty(propertyName, group[propertyName]);
+      }
+    }
+
+    //console.log("/////// encodeSYM\n"+code+"\n/////////");
+
+    return code;
+  };
+
+  function _processProperty(propName, propValue) { //TODO: use this in other encoders
+    switch(propName) {
+      case "color":
+        if(propValue.substr(0, 3) == "rgb") {
+          var rgb = ColorOperators.colorStringToRGB(propValue);
+          return rgb.join(',');
+        }
+        return propValue;
+    }
+    propValue = String(propValue).replace(/\n/g, "\\n");
+    return propValue;
+  }
+
+
+
+
+
+  /////////////////
+
+  //Also used by CSVToTable
+
+  /**
+   * replaceChomasInLine
+   *
+   * @ignore
+   */
+  NetworkEncodings.replaceChomasInLine = function(line, separator) {
+    var quoteBlocks = line.split("\"");
+    if(quoteBlocks.length < 2) return line;
+    var insideQuote;
+    var i;
+    var re;
+    separator = separator==null?",":separator;
+
+    switch(separator){
+      case ",":
+        re = /,/g;
+        break;
+      case ";":
+        re = /;/g;
+        break;
+    }
+
+    for(i = 0; quoteBlocks[i] != null; i++) {
+      insideQuote = i * 0.5 != Math.floor(i * 0.5);
+      if(insideQuote) {
+        quoteBlocks[i] = quoteBlocks[i].replace(re, "*CHOMA*");
+      }
+    }
+    line = StringList.fromArray(quoteBlocks).getConcatenated("");
+    return line;
+  };
+
+  /**
+   * _replaceSpacesInLine
+   *
+   * @ignore
+   */
+  NetworkEncodings._replaceSpacesInLine = function(line) {
+    var quoteBlocks = line.split("\"");
+    if(quoteBlocks.length < 2) return line;
+    var insideQuote;
+    var i;
+    for(i = 0; quoteBlocks[i] != null; i++) {
+      insideQuote = i * 0.5 != Math.floor(i * 0.5);
+      if(insideQuote) {
+        quoteBlocks[i] = quoteBlocks[i].replace(/ /g, "*SPACE*");
+      }
+    }
+    line = StringList.fromArray(quoteBlocks).getConcatenated("\"");
+    return line;
+  };
+
+
+
+
+
+
+
   //////////////NoteWork
 
   NetworkEncodings.nodeNameSeparators = ['|', ':', ' is ', ' are ', '.', ','];
@@ -11029,9 +11651,9 @@
         // if(colorSegments[nLineParagraph]==null) colorSegments[nLineParagraph]=[];
 
         // colorSegments[nLineParagraph].push({
-        // 	type:'relation_color',
-        // 	iStart:0,
-        // 	iEnd:line.length
+        //  type:'relation_color',
+        //  iStart:0,
+        //  iEnd:line.length
         // });
 
         if(lines) {
@@ -11414,632 +12036,6 @@
     });
 
     return code;
-  };
-
-
-
-
-
-  //////////////GDF
-
-  /**
-   * Creates Network from a GDF string representation.
-   *
-   * @param  {String} gdfCode GDF serialized Network representation.
-   * @return {Network}
-   * tags:decoder
-   */
-  NetworkEncodings.decodeGDF = function(gdfCode) {
-    if(gdfCode == null || gdfCode === "") return;
-
-    var network = new Network();
-    var lines = gdfCode.split("\n"); //TODO: split by ENTERS OUTSIDE QUOTEMARKS
-    if(lines.length === 0) return null;
-    var line;
-    var i;
-    var j;
-    var parts;
-
-    var nodesPropertiesNames = lines[0].substr(8).split(",");
-
-    var iEdges;
-
-    for(i = 1; lines[i] != null; i++) {
-      line = lines[i];
-      if(line.substr(0, 8) == "edgedef>") {
-        iEdges = i + 1;
-        break;
-      }
-      line = NetworkEncodings.replaceChomasInLine(line);
-      parts = line.split(",");
-      var node = new Node(String(parts[0]), String(parts[1]));
-      for(j = 0; (nodesPropertiesNames[j] != null && parts[j] != null); j++) {
-        if(nodesPropertiesNames[j] == "weight") {
-          node.weight = Number(parts[j]);
-        } else if(nodesPropertiesNames[j] == "x") {
-          node.x = Number(parts[j]);
-        } else if(nodesPropertiesNames[j] == "y") {
-          node.y = Number(parts[j]);
-        } else {
-          node[nodesPropertiesNames[j]] = parts[j].replace(/\*CHOMA\*/g, ",");
-        }
-      }
-      network.addNode(node);
-    }
-
-    var relationsPropertiesNames = lines[iEdges - 1].substr(8).split(",");
-
-    for(i = iEdges; lines[i] != null; i++) {
-      line = lines[i];
-      line = NetworkEncodings.replaceChomasInLine(line);
-      parts = line.split(",");
-      if(parts.length >= 2) {
-        var node0 = network.nodeList.getNodeById(String(parts[0]));
-        var node1 = network.nodeList.getNodeById(String(parts[1]));
-        if(node0 == null || node1 == null) {
-          console.log("NetworkEncodings.decodeGDF | [!] problems with nodes ids:", parts[0], parts[1], "at line", i);
-        } else {
-          var id = node0.id + "_" + node1.id + "_" + Math.floor(Math.random() * 999999);
-          var relation = new Relation(id, id, node0, node1);
-          for(j = 2; (relationsPropertiesNames[j] != null && parts[j] != null); j++) {
-            if(relationsPropertiesNames[j] == "weight") {
-              relation.weight = Number(parts[j]);
-            } else {
-              relation[relationsPropertiesNames[j]] = parts[j].replace(/\*CHOMA\*/g, ",");
-            }
-          }
-          network.addRelation(relation);
-        }
-      }
-
-    }
-
-    return network;
-  };
-
-  /**
-   * Encodes a network in GDF Format, more info on GDF
-   * format can be found from
-   * {@link https://gephi.org/users/supported-graph-formats/gml-format/|Gephi}.
-   *
-   * @param  {Network} network Network to encode.
-   * @param  {StringList} nodesPropertiesNames Names of nodes properties to be encoded.
-   * @param  {StringList} relationsPropertiesNames Names of relations properties to be encoded
-   * @return {String} GDF encoding of Network.
-   * tags:encoder
-   */
-  NetworkEncodings.encodeGDF = function(network, nodesPropertiesNames, relationsPropertiesNames) {
-    if(network == null) return;
-
-    nodesPropertiesNames = nodesPropertiesNames == null ? new StringList() : nodesPropertiesNames;
-    relationsPropertiesNames = relationsPropertiesNames == null ? new StringList() : relationsPropertiesNames;
-
-    var code = "nodedef>id" + (nodesPropertiesNames.length > 0 ? "," : "") + nodesPropertiesNames.join(",");
-    var i;
-    var j;
-    var node;
-    for(i = 0; network.nodeList[i] != null; i++) {
-      node = network.nodeList[i];
-      code += "\n" + node.id;
-      for(j = 0; nodesPropertiesNames[j] != null; j++) {
-
-        if(typeof node[nodesPropertiesNames[j]] == 'string') {
-          code += ",\"" + node[nodesPropertiesNames[j]] + "\"";
-        } else {
-          code += "," + node[nodesPropertiesNames[j]];
-        }
-      }
-    }
-
-    code += "\nedgedef>id0,id1" + (relationsPropertiesNames.length > 0 ? "," : "") + relationsPropertiesNames.join(",");
-    var relation;
-    for(i = 0; network.relationList[i] != null; i++) {
-      relation = network.relationList[i];
-      code += "\n" + relation.node0.id + "," + relation.node1.id;
-      for(j = 0; relationsPropertiesNames[j] != null; j++) {
-
-        if(typeof relation[relationsPropertiesNames[j]] == 'string') {
-          code += ",\"" + relation[relationsPropertiesNames[j]] + "\"";
-        } else {
-          code += "," + relation[relationsPropertiesNames[j]];
-        }
-      }
-    }
-
-    return code;
-  };
-
-
-  //////////////GML
-
-  /**
-   * Decodes a GML file into a new Network.
-   *
-   * @param  {String} gmlCode GML based representation of Network.
-   * @return {Network}
-   * tags:decoder
-   */
-  NetworkEncodings.decodeGML = function(gmlCode) {
-    if(gmlCode == null) return null;
-
-    gmlCode = gmlCode.substr(gmlCode.indexOf("[") + 1);
-
-    var network = new Network();
-
-    var firstEdgeIndex = gmlCode.search(/\bedge\b/);
-
-    var nodesPart = gmlCode.substr(0, firstEdgeIndex);
-    var edgesPart = gmlCode.substr(firstEdgeIndex);
-
-    var part = nodesPart;
-
-    var blocks = StringOperators.getParenthesisContents(part, true);
-
-    //console.log('blocks.length', blocks.length);
-
-    var graphicsBlock;
-    var lines;
-    var lineParts;
-
-    var indexG0;
-    var indexG1;
-
-    var node;
-    var i, j;
-
-    for(i = 0; blocks[i] != null; i++) {
-      blocks[i] = StringOperators.removeInitialRepeatedCharacter(blocks[i], "\n");
-      blocks[i] = StringOperators.removeInitialRepeatedCharacter(blocks[i], "\r");
-
-      indexG0 = blocks[i].indexOf('graphics');
-      if(indexG0 != -1) {
-        indexG1 = blocks[i].indexOf(']');
-        graphicsBlock = blocks[i].substring(indexG0, indexG1 + 1);
-        blocks[i] = blocks[i].substr(0, indexG0) + blocks[i].substr(indexG1 + 1);
-
-        graphicsBlock = StringOperators.getFirstParenthesisContent(graphicsBlock, true);
-        blocks[i] = blocks[i] + graphicsBlock;
-      }
-
-      lines = blocks[i].split('\n');
-
-      lines[0] = NetworkEncodings._cleanLineBeginning(lines[0]);
-
-      lineParts = lines[0].split(" ");
-
-      node = new Node(StringOperators.removeQuotes(lineParts[1]), StringOperators.removeQuotes(lineParts[1]));
-
-      network.addNode(node);
-
-      for(j = 1; lines[j] != null; j++) {
-        lines[j] = NetworkEncodings._cleanLineBeginning(lines[j]);
-        lines[j] = NetworkEncodings._replaceSpacesInLine(lines[j]);
-        if(lines[j] !== "") {
-          lineParts = lines[j].split(" ");
-          if(lineParts[0] == 'label') lineParts[0] = 'name';
-          node[lineParts[0]] = (lineParts[1].charAt(0) == "\"") ? StringOperators.removeQuotes(lineParts[1]).replace(/\*SPACE\*/g, " ") : Number(lineParts[1]);
-        }
-      }
-    }
-
-    part = edgesPart;
-    blocks = StringOperators.getParenthesisContents(part, true);
-
-    var id0;
-    var id1;
-    var node0;
-    var node1;
-    var relation;
-    var nodes = network.nodeList;
-
-
-    for(i = 0; blocks[i] != null; i++) {
-      blocks[i] = StringOperators.removeInitialRepeatedCharacter(blocks[i], "\n");
-      blocks[i] = StringOperators.removeInitialRepeatedCharacter(blocks[i], "\r");
-
-      lines = blocks[i].split('\n');
-
-      id0 = null;
-      id1 = null;
-      relation = null;
-
-      for(j = 0; lines[j] != null; j++) {
-        lines[j] = NetworkEncodings._cleanLineBeginning(lines[j]);
-        if(lines[j] !== "") {
-          lineParts = lines[j].split(" ");
-          if(lineParts[0] == 'source') id0 = StringOperators.removeQuotes(lineParts[1]);
-          if(lineParts[0] == 'target') id1 = StringOperators.removeQuotes(lineParts[1]);
-
-          if(relation == null) {
-            if(id0 != null && id1 != null) {
-              node0 = nodes.getNodeById(id0);
-              node1 = nodes.getNodeById(id1);
-              if(node0 != null && node1 != null) {
-                relation = new Relation(id0 + " " + id1, '', node0, node1);
-                network.addRelation(relation);
-              }
-            }
-          } else {
-            if(lineParts[0] == 'value') lineParts[0] = 'weight';
-            relation[lineParts[0]] = (lineParts[1].charAt(0) == "\"") ? StringOperators.removeQuotes(lineParts[1]) : Number(lineParts[1]);
-          }
-        }
-
-      }
-
-    }
-
-    return network;
-  };
-
-  /**
-   * _cleanLineBeginning
-   *
-   * @ignore
-   */
-  NetworkEncodings._cleanLineBeginning = function(string) {
-    string = StringOperators.removeInitialRepeatedCharacter(string, "\n");
-    string = StringOperators.removeInitialRepeatedCharacter(string, "\r");
-    string = StringOperators.removeInitialRepeatedCharacter(string, " ");
-    string = StringOperators.removeInitialRepeatedCharacter(string, "	");
-    return string;
-  };
-
-
-  /**
-   * Encodes a network into GDF format.
-   *
-   * @param  {Network} network The Network to encode.
-   *
-   * @param  {StringList} nodesPropertiesNames Names of Node properties to encode.
-   * @param  {StringList} relationsPropertiesNames Names of Relation properties to encode.
-   * @param {Boolean} idsAsInts If true, then the index of the Node is used as an ID.
-   * GDF strong specification requires ids for nodes being int numbers.
-   * @return {String} GDF string.
-   * tags:encoder
-   */
-  NetworkEncodings.encodeGML = function(network, nodesPropertiesNames, relationsPropertiesNames, idsAsInts) {
-    if(network == null) return;
-
-    idsAsInts = idsAsInts == null ? true : idsAsInts;
-
-    nodesPropertiesNames = nodesPropertiesNames == null ? new StringList() : nodesPropertiesNames;
-    relationsPropertiesNames = relationsPropertiesNames == null ? new StringList() : relationsPropertiesNames;
-
-    var code = "graph\n[";
-    var ident = "	";
-    var i;
-    var j;
-    var node;
-    var isString;
-    var value;
-    for(i = 0; network.nodeList[i] != null; i++) {
-      node = network.nodeList[i];
-      code += "\n" + ident + "node\n" + ident + "[";
-      ident = "		";
-      if(idsAsInts) {
-        code += "\n" + ident + "id " + i;
-      } else {
-        code += "\n" + ident + "id \"" + node.id + "\"";
-      }
-      if(node.name !== '') code += "\n" + ident + "label \"" + node.name + "\"";
-      for(j = 0; nodesPropertiesNames[j] != null; j++) {
-        value = node[nodesPropertiesNames[j]];
-        if(value == null) continue;
-        if(value.getMonth) value = DateOperators.dateToString(value);
-        isString = (typeof value == 'string');
-        if(isString) value = value.replace(/\n/g, "\\n").replace(/\"/g, "'");
-        code += "\n" + ident + nodesPropertiesNames[j] + " " + (isString ? "\"" + value + "\"" : value);
-      }
-      ident = "	";
-      code += "\n" + ident + "]";
-    }
-
-    var relation;
-    for(i = 0; network.relationList[i] != null; i++) {
-      relation = network.relationList[i];
-      code += "\n" + ident + "edge\n" + ident + "[";
-      ident = "		";
-      if(idsAsInts) {
-        code += "\n" + ident + "source " + network.nodeList.indexOf(relation.node0);
-        code += "\n" + ident + "target " + network.nodeList.indexOf(relation.node1);
-      } else {
-        code += "\n" + ident + "source \"" + relation.node0.id + "\"";
-        code += "\n" + ident + "target \"" + relation.node1.id + "\"";
-      }
-      for(j = 0; relationsPropertiesNames[j] != null; j++) {
-        value = relation[relationsPropertiesNames[j]];
-        if(value == null) continue;
-        if(value.getMonth) value = DateOperators.dateToString(value);
-        isString = (typeof value == 'string');
-        if(isString) value = value.replace(/\n/g, "\\n").replace(/\"|“|”/g, "'");
-        code += "\n" + ident + relationsPropertiesNames[j] + " " + (isString ? "\"" + value + "\"" : value);
-      }
-      ident = "	";
-      code += "\n" + ident + "]";
-    }
-
-    code += "\n]";
-    return code;
-  };
-
-
-
-
-
-  //////////////SYM
-
-  /**
-   * decodeSYM
-   *
-   * @param symCode
-   * @return {Network}
-   */
-  NetworkEncodings.decodeSYM = function(symCode) {
-    //console.log("/////// decodeSYM\n"+symCode+"\n/////////");
-    var i;
-    var j;
-
-    var lines = StringOperators.splitByEnter(symCode);
-    lines = lines == null ? [] : lines;
-
-    var objectPattern = /((?:NODE|RELATION)|GROUP)\s*([A-Za-z0-9_,\s]*)/;
-
-    var network = new Network();
-    var groups = new Table();
-    var name;
-    var id;
-    var node;
-    var node1;
-    var relation;
-    var group;
-    var groupName;
-    var parts;
-    var propName;
-    var propCont;
-
-    var nodePropertiesNames = [];
-    var relationPropertiesNames = [];
-    var groupsPropertiesNames = [];
-
-    for(i = 0; lines[i] != null; i++) {
-      var bits = objectPattern.exec(lines[i]);
-      if(bits != null) {
-        switch(bits[1]) {
-          case "NODE":
-            id = bits[2];
-            name = lines[i + 1].substr(0, 5) == "name:" ? lines[i + 1].substr(5).trim() : "";
-            name = name.replace(/\\n/g, '\n').replace(/\\'/g, "'");
-            node = new Node(id, name);
-            network.addNode(node);
-            j = i + 1;
-            while(j < lines.length && lines[j].indexOf(":") != -1) {
-              parts = lines[j].split(":");
-              propName = parts[0];
-              propCont = parts.slice(1).join(":");
-              if(propName != "name") {
-                propCont = propCont.trim();
-                node[propName] = String(Number(propCont)) == propCont ? Number(propCont) : propCont;
-                if(typeof node[propName] == "string") node[propName] = node[propName].replace(/\\n/g, '\n').replace(/\\'/g, "'");
-                if(nodePropertiesNames.indexOf(propName) == -1) nodePropertiesNames.push(propName);
-              }
-              j++;
-            }
-            if(node.color != null) {
-              if(/.+,.+,.+/.test(node.color)) node.color = 'rgb(' + node.color + ')';
-            }
-            if(node.group != null) {
-              group = groups.getFirstElementByPropertyValue("name", node.group);
-              if(group == null) {
-                group = new NodeList();
-                group.name = node.group;
-                group.name = group.name.replace(/\\n/g, '\n').replace(/\\'/g, "'");
-                groups.push(group);
-              }
-              group.addNode(node);
-              //node.group = group;
-            }
-            break;
-          case "RELATION":
-            var ids = bits[2].replace(/\s/g, "").split(",");
-            //var ids = bits[2].split(",");
-            node = network.nodeList.getNodeById(ids[0]);
-            node1 = network.nodeList.getNodeById(ids[1]);
-            if(node != null && node1 != null) {
-              relation = new Relation(node.id + "_" + node1.id, node.id + "_" + node1.id, node, node1);
-              network.addRelation(relation);
-              j = i + 1;
-              while(j < lines.length && lines[j].indexOf(":") != -1) {
-                parts = lines[j].split(":");
-                propName = parts[0];
-                propCont = parts.slice(1).join(":").trim();
-                if(propName != "name") {
-                  propCont = propCont.trim();
-                  relation[propName] = String(Number(propCont)) == propCont ? Number(propCont) : propCont;
-                  if(typeof relation[propName] == "string") relation[propName] = relation[propName].replace(/\\n/g, '\n').replace(/\\'/g, "'");
-                  if(relationPropertiesNames.indexOf(propName) == -1) relationPropertiesNames.push(propName);
-                }
-                j++;
-              }
-            }
-            if(relation != null && relation.color != null) {
-              relation.color = 'rgb(' + relation.color + ')';
-            }
-            break;
-          case "GROUP":
-            groupName = lines[i].substr(5).trim();
-
-            group = groups.getFirstElementByPropertyValue("name", groupName);
-            if(group == null) {
-              group = new NodeList();
-              group.name = groupName;
-              groups.push(group);
-            }
-            j = i + 1;
-            while(j < lines.length && lines[j].indexOf(":") != -1) {
-              parts = lines[j].split(":");
-              if(parts[0] != "name") {
-                parts[1] = parts[1].trim();
-                group[parts[0]] = String(Number(parts[1])) == parts[1] ? Number(parts[1]) : parts[1];
-                if(groupsPropertiesNames.indexOf(parts[0]) == -1) groupsPropertiesNames.push(parts[0]);
-              }
-              j++;
-            }
-
-            if(/.+,.+,.+/.test(group.color)) group.color = 'rgb(' + group.color + ')';
-
-            break;
-        }
-      }
-    }
-
-    for(i = 0; groups[i] != null; i++) {
-      group = groups[i];
-      if(group.color == null) group.color = ColorListGenerators._HARDCODED_CATEGORICAL_COLORS[i % ColorListGenerators._HARDCODED_CATEGORICAL_COLORS.length];
-      for(j = 0; group[j] != null; j++) {
-        node = group[j];
-        if(node.color == null) node.color = group.color;
-      }
-    }
-
-    network.groups = groups;
-
-
-
-    network.nodePropertiesNames = nodePropertiesNames;
-    network.relationPropertiesNames = relationPropertiesNames;
-    network.groupsPropertiesNames = groupsPropertiesNames;
-
-    return network;
-  };
-
-  /**
-   * encodeSYM
-   *
-   * @param network
-   * @param groups
-   * @param nodesPropertiesNames
-   * @param relationsPropertiesNames
-   * @param groupsPropertiesNames
-   * @return {String}
-   */
-  NetworkEncodings.encodeSYM = function(network, groups, nodesPropertiesNames, relationsPropertiesNames, groupsPropertiesNames) {
-    nodesPropertiesNames = nodesPropertiesNames == null ? new StringList() : nodesPropertiesNames;
-    relationsPropertiesNames = relationsPropertiesNames == null ? new StringList() : relationsPropertiesNames;
-
-    var code = "";
-    var i;
-    var j;
-    var node;
-    var propertyName;
-    for(i = 0; network.nodeList[i] != null; i++) {
-      node = network.nodeList[i];
-      code += (i === 0 ? "" : "\n\n") + "NODE " + node.id;
-      if(node.name !== "") code += "\nname:" + (node.name).replace(/\n/g, "\\n");
-      for(j = 0; nodesPropertiesNames[j] != null; j++) {
-        propertyName = nodesPropertiesNames[j];
-        if(node[propertyName] != null) code += "\n" + propertyName + ":" + _processProperty(propertyName, node[propertyName]);
-      }
-    }
-
-    var relation;
-    for(i = 0; network.relationList[i] != null; i++) {
-      relation = network.relationList[i];
-      code += "\n\nRELATION " + relation.node0.id + ", " + relation.node1.id;
-      for(j = 0; relationsPropertiesNames[j] != null; j++) {
-        propertyName = relationsPropertiesNames[j];
-        if(relation[propertyName] != null) code += "\n" + propertyName + ":" + _processProperty(propertyName, relation[propertyName]);
-      }
-    }
-
-    if(groups == null) return code;
-
-    var group;
-    for(i = 0; groups[i] != null; i++) {
-      group = groups[i];
-      code += "\n\nGROUP " + group.name;
-      for(j = 0; groupsPropertiesNames[j] != null; j++) {
-        propertyName = groupsPropertiesNames[j];
-        if(group[propertyName] != null) code += "\n" + propertyName + ":" + _processProperty(propertyName, group[propertyName]);
-      }
-    }
-
-    //console.log("/////// encodeSYM\n"+code+"\n/////////");
-
-    return code;
-  };
-
-  function _processProperty(propName, propValue) { //TODO: use this in other encoders
-    switch(propName) {
-      case "color":
-        if(propValue.substr(0, 3) == "rgb") {
-          var rgb = ColorOperators.colorStringToRGB(propValue);
-          return rgb.join(',');
-        }
-        return propValue;
-    }
-    propValue = String(propValue).replace(/\n/g, "\\n");
-    return propValue;
-  }
-
-
-
-
-
-  /////////////////
-
-  //Also used by CSVToTable
-
-  /**
-   * replaceChomasInLine
-   *
-   * @ignore
-   */
-  NetworkEncodings.replaceChomasInLine = function(line, separator) {
-    var quoteBlocks = line.split("\"");
-    if(quoteBlocks.length < 2) return line;
-    var insideQuote;
-    var i;
-    var re;
-    separator = separator==null?",":separator;
-
-    switch(separator){
-      case ",":
-        re = /,/g;
-        break;
-      case ";":
-        re = /;/g;
-        break;
-    }
-
-    for(i = 0; quoteBlocks[i] != null; i++) {
-      insideQuote = i * 0.5 != Math.floor(i * 0.5);
-      if(insideQuote) {
-        quoteBlocks[i] = quoteBlocks[i].replace(re, "*CHOMA*");
-      }
-    }
-    line = StringList.fromArray(quoteBlocks).getConcatenated("");
-    return line;
-  };
-
-  /**
-   * _replaceSpacesInLine
-   *
-   * @ignore
-   */
-  NetworkEncodings._replaceSpacesInLine = function(line) {
-    var quoteBlocks = line.split("\"");
-    if(quoteBlocks.length < 2) return line;
-    var insideQuote;
-    var i;
-    for(i = 0; quoteBlocks[i] != null; i++) {
-      insideQuote = i * 0.5 != Math.floor(i * 0.5);
-      if(insideQuote) {
-        quoteBlocks[i] = quoteBlocks[i].replace(/ /g, "*SPACE*");
-      }
-    }
-    line = StringList.fromArray(quoteBlocks).getConcatenated("\"");
-    return line;
   };
 
   //data models info
@@ -17549,7 +17545,7 @@
   };
 
   /**
-   * filter the rows of a table
+   * filter the rows of a table by a criteria defined by an operator applied to all lists or a selected list
    * @param  {Table} table Table.
    * @param  {String} operator "=c"(default, exact match for numbers, contains for strings), "==", "<", "<=", ">", ">=", "!=", "contains", "between"
    * @param  {Object} value to compare against, can be String or Number
@@ -19840,7 +19836,7 @@
 
     if(returnIndexesMode==2 || returnIndexesMode==5){
       colors = new ColorList();
-      meanNumber.name = "mean color";
+      colors.name = "mean color";
       var catColors = ColorListGenerators.createDefaultCategoricalColorList(k);
       for(i=0; i<k; i++){
         cluster = clusters[i];
@@ -20462,6 +20458,56 @@
    * @category networks
    */
   function NetworkConversions() {}
+  /**
+   * Builds the adjacent matrix of a network.
+   * @param {Network}
+   *
+   * @param {Boolean} useIds use nodes ids (default), or nodes names as labels
+   * @param {Boolean} includeLabelsList (default: false) first list is labels (nodes ids or names)
+   * @param {Number} countMode 0:count number of relations<br>1:add relations weights
+   * @return {Table} if labels are not added the result is a NumberTable
+   * tags:conversion
+   */
+  NetworkConversions.NetworkToTable = function(network, useIds, includeLabelsList, countMode){
+    if(network==null) return;
+
+    useIds = useIds==null?true:useIds;
+    countMode = countMode==null?0:countMode;
+
+    var table = includeLabelsList?new Table():new NumberTable();
+    var labels = useIds?network.nodeList.getIds():network.nodeList.getNames();
+    labels.name = "node names";
+    if(includeLabelsList) table[0] = labels;
+
+    var list;
+    var nNodes = network.nodeList.length;
+    var nRelations = network.relationList.length;
+    var i;
+    var relation;
+    var indexesDictionary = {};
+
+    var indexOffset = includeLabelsList?1:0;
+
+    for(i=0; i<nNodes; i++){
+      list = ListGenerators.createListWithSameElement(nNodes, 0);
+      list.name = labels[i];
+      table.push(list);
+      indexesDictionary[network.nodeList[i].id] = i;
+    }
+
+    for(i=0; i<nRelations; i++){
+      relation = network.relationList[i];
+      if(countMode===0){
+        table[indexesDictionary[relation.node0.id]+indexOffset][indexesDictionary[relation.node1.id]]++;
+      } else {
+        table[indexesDictionary[relation.node0.id]+indexOffset][indexesDictionary[relation.node1.id]]+=relation.weight;
+      }
+    }
+
+    return table;
+  };
+
+
   /**
    * Builds a Network based on a two columns Table, creating relations on co-occurrences, or a square NumberTable read as an adjacentMatrix.
    * @param {Table} table table with at least two columns (categories that will generate the nodes)
@@ -23826,7 +23872,7 @@
    * Adds centrality properties to the network nodes. Nodes with no incoming connections have a score of zero. This method is transformative;
    *
    * @param {Network} network
-   * @param {Number} mode centralities to add<br>0:eigen vector eigenvectorCentrality<br>1:betweenness betweennessCentrality<br>10:all
+   * @param {Number} mode centralities to add<br>0:eigen vector eigenvectorCentrality (default)<br>1:betweenness betweennessCentrality (adds betweennessCentralityDegreeRatio)<br>10:all
    * @param {Boolean} bNormalized=true (default), scale so maximum centrality is 1
    * @param {Boolean} bReversed=true (default), use outgoing relations
    * @return {Network}
@@ -23912,7 +23958,7 @@
   };
 
   /**
-   * Adds betweennessCentrality as a property to the network nodes.
+   * Adds betweennessCentrality as a property to the network nodes (adds also betweennessCentralityDegreeRatio)
    *
    * @param {Network} network
    * @param {Boolean} bNormalized=true (default), scale so maximum betweennessCentrality is 1
@@ -24014,6 +24060,7 @@
     for(var id in b){
       var node = network.nodeList.getNodeById(id);
       node.betweennessCentrality = b[id];
+      node.betweennessCentralityDegreeRatio = node.betweennessCentrality/(node.nodeList.length+0.001);
     }
     return network;
   };
@@ -24141,8 +24188,8 @@
   /**
    * Build a random network based on words co-occurrences in a list of texts, each text has an associated node
    * @param {StringList} nNodes number of nodes
-
-   * @param {Number} threshold minimum cosine similarity value to create a relation
+   *
+   * @param {Number} threshold minimum cosine similarity value to create a relation (default 0.7)
    * @param {StringList} titles optional names for nodes
    * @param {StringList|Number} stopWords optional list of words to overlook in analysis (if stopWords is 1 predefined english stopwords StringOperators.STOP_WORDS will be used)
    * @return {Network} network of texts, nodes will have extra parameters text (with original texts) and freqTable (table with words and frequencies)
@@ -26994,12 +27041,10 @@
   //
 
   /**
-   * Creates a clipping circle with the given dimensions
-   *
+   * Creates a clipping circle (mask) with the given dimensions; apply cliping, draw, and finish with graphics.restore()
    * @param  {Number} x x coordinate of the circle's center
    * @param  {Number} y y coordinate of the circle's center
    * @param  {Number} r radius of circle
-   *
    * @see {@link https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/clip|Clip}
    */
   Graphics.prototype.clipCircle = function(x, y, r) {
@@ -27011,13 +27056,11 @@
   };
 
   /**
-   * Creates a clipping rectangle with the given dimensions
-   *
+   * Creates a clipping rectangle (mask) with the given dimensions; apply cliping, draw, and finish with graphics.restore()
    * @param  {Number} x x coordinate of top left corner
    * @param  {Number} y y coordinate of top left corner
    * @param  {Number} w width of rect
    * @param  {Number} h height of rect
-   *
    * @see {@link https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/clip|Clip}
    */
   Graphics.prototype.clipRectangle = function(x, y, w, h) {
@@ -27032,7 +27075,6 @@
 
   /**
    * Saves the entire state of the canvas by pushing the current state onto a stack.
-   *
    * @see {@link https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/save|Save}
    */
   Graphics.prototype.save = function() {
@@ -27041,7 +27083,6 @@
 
   /**
    * Turns the path currently being built into the current clipping path.
-   *
    * @see {@link https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/clip|Clip}
    */
   Graphics.prototype.clip = function() {
@@ -27052,7 +27093,6 @@
    * Restores the most recently saved canvas state by popping the top entry
    * in the drawing state stack. If there is no saved state,
    * this method does nothing.
-   *
    * @see {@link https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/restore|Restore}
    */
   Graphics.prototype.restore = function() {
@@ -29540,7 +29580,7 @@
   function Engine3D(configuration) {
     configuration = configuration == null ? {} : configuration;
     this.lens = configuration.lens == null ? 300 : configuration.lens;
-    
+
     this._freeRotation = false;
 
     this.setBasis(new Polygon3D(new Point3D(1, 0, 0), new Point3D(0, 1, 0), new Point3D(0, 0, 1)));
@@ -32149,6 +32189,10 @@
       
       //frame.memory.focusFrame = TreeDraw._expandRect(frame.memory.nodeSelected._outRectangle);
       frame.memory.focusFrame = frame.memory.nodeSelected._outRectangle.clone();
+      frame.memory.focusFrame.x+=1;
+      frame.memory.focusFrame.y+=1;
+      frame.memory.focusFrame.width-=2;
+      frame.memory.focusFrame.height-=2;
 
       if(changeInTree){
         //console.log('----->kx…');
@@ -32322,7 +32366,9 @@
 
       graphics.setStroke('black', 0.2);
 
-      tree.nodeList.forEach(function(node, i) {
+      //tree.nodeList.forEach(function(node, i) {
+      for(i=0; i<nNodes; i++){
+        node = tree.nodeList[i];
 
         rect = new Rectangle(tx(node._outRectangle.x), ty(node._outRectangle.y), node._outRectangle.width * kx, node._outRectangle.height * ky);
 
@@ -32365,7 +32411,7 @@
             }
           }
         }
-      });
+      };
 
       if(captureImage) {
         //c.l('captureImage');
@@ -32390,7 +32436,16 @@
         graphics.sRect(x, y, Math.floor(rect.width), Math.floor(rect.height));
 
         if(graphics.MOUSE_UP_FAST) {
-          frame.memory.focusFrame = overNode==tree.nodeList[0]?overNode._outRectangle.clone():TreeDraw._expandRect(overNode._outRectangle);
+          if(overNode==tree.nodeList[0]){
+            frame.memory.focusFrame = overNode._outRectangle.clone();
+            frame.memory.focusFrame.x+=1;
+            frame.memory.focusFrame.y+=1;
+            frame.memory.focusFrame.width-=2;
+            frame.memory.focusFrame.height-=2;
+          } else {
+            frame.memory.focusFrame = TreeDraw._expandRect(overNode._outRectangle);
+          }
+
           //frame.memory.focusFrame = TreeDraw._expandRect(overNode._outRectangle);
           frame.memory.nodeSelected = overNode;
 
