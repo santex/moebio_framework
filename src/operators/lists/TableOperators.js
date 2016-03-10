@@ -82,7 +82,7 @@ TableOperators.getSubTable = function(table, x, y, width, height) {
 };
 
 /**
- * filter the rows of a table
+ * filter the rows of a table by a criteria defined by an operator applied to all lists or a selected list
  * @param  {Table} table Table.
  * @param  {String} operator "=c"(default, exact match for numbers, contains for strings), "==", "<", "<=", ">", ">=", "!=", "contains", "between"
  * @param  {Object} value to compare against, can be String or Number
