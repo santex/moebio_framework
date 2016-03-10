@@ -1526,7 +1526,7 @@ NetworkOperators._getAdjacencyMap = function(network,bDirected,bReversed,bStocha
  * Adds centrality properties to the network nodes. Nodes with no incoming connections have a score of zero. This method is transformative;
  *
  * @param {Network} network
- * @param {Number} mode centralities to add<br>0:eigen vector eigenvectorCentrality<br>1:betweenness betweennessCentrality<br>10:all
+ * @param {Number} mode centralities to add<br>0:eigen vector eigenvectorCentrality (default)<br>1:betweenness betweennessCentrality (adds betweennessCentralityDegreeRatio)<br>10:all
  * @param {Boolean} bNormalized=true (default), scale so maximum centrality is 1
  * @param {Boolean} bReversed=true (default), use outgoing relations
  * @return {Network}
@@ -1612,7 +1612,7 @@ NetworkOperators.addEigenvectorCentralityToNodes = function(network, bNormalized
 };
 
 /**
- * Adds betweennessCentrality as a property to the network nodes.
+ * Adds betweennessCentrality as a property to the network nodes (adds also betweennessCentralityDegreeRatio)
  *
  * @param {Network} network
  * @param {Boolean} bNormalized=true (default), scale so maximum betweennessCentrality is 1
@@ -1714,6 +1714,7 @@ NetworkOperators.addBetweennessCentralityToNodes = function(network, bNormalized
   for(var id in b){
     var node = network.nodeList.getNodeById(id);
     node.betweennessCentrality = b[id];
+    node.betweennessCentralityDegreeRatio = node.betweennessCentrality/(node.nodeList.length+0.001);
   }
   return network;
 };
