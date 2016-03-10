@@ -17547,9 +17547,9 @@
   /**
    * filter the rows of a table by a criteria defined by an operator applied to all lists or a selected list
    * @param  {Table} table Table.
-   * @param  {String} operator "=c"(default, exact match for numbers, contains for strings), "==", "<", "<=", ">", ">=", "!=", "contains", "between"
+   * @param  {String} operator "=c"(default, exact match for numbers, contains for strings), "==", "<", "<=", ">", ">=", "!=", "contains", "between", Function that returns a boolean
    * @param  {Object} value to compare against, can be String or Number
-   * @param  {Number} nList null(default) means check every column, otherwise column index to test
+   * @param  {Number} nList null(default) means check every column, otherwise column index to test. Can also be another List instance of same length as table.
    * @param  {Object} value2 only used for "between" operator
    * @param  {Boolean} bIgnoreCase for string compares, defaults to true
    * @return {Table}
@@ -17562,10 +17562,15 @@
     if(operator == '=') operator = '==';
     var nLKeep = new NumberList();
     var nRows = table.getListLength();
-    var r,c,val,bKeep;
+    var r,c,val,val0,bKeep;
     var cStart=0;
     var cEnd=table.length;
     var type = _typeOf(value);
+    var bExternalList = nList != null && nList.isList === true;
+    if(bExternalList && nList.length != nRows){
+      console.log('[TableOperators.getFilteredByValue] Error, List must have same length as table.');
+      return;
+    }
     if(type == 'string' && !isNaN(value) && value.trim() !== ''){
       type='number';
       value=Number(value);
@@ -17589,6 +17594,11 @@
       cStart=nList;
       cEnd=nList+1;
     }
+    if(bExternalList){
+      cStart=0;
+      cEnd=1;
+    }
+
     if(bIgnoreCase == null || (bIgnoreCase !== true && bIgnoreCase !== false) )
       bIgnoreCase = true;
     if(type == 'string' && bIgnoreCase){
@@ -17604,7 +17614,8 @@
       case "==":
         for(r=0; r<nRows; r++){
           for(c=cStart; c<cEnd; c++){
-            if(table[c][r] == value){
+            val0 = bExternalList ? nList[r] : table[c][r];
+            if(val0 == value){
               nLKeep.push(r);
               break;
             }
@@ -17614,7 +17625,8 @@
       case "==i":
         for(r=0; r<nRows; r++){
           for(c=cStart; c<cEnd; c++){
-            val = String(table[c][r]).toLowerCase();
+            val0 = bExternalList ? nList[r] : table[c][r];
+            val = String(val0).toLowerCase();
             if(val == value){
               nLKeep.push(r);
               break;
@@ -17626,7 +17638,8 @@
         for(r=0; r<nRows; r++){
           bKeep=true;
           for(c=cStart; c<cEnd; c++){
-            if(table[c][r] == value){
+            val0 = bExternalList ? nList[r] : table[c][r];
+            if(val0 == value){
               bKeep=false;
               break;
             }
@@ -17639,7 +17652,8 @@
         for(r=0; r<nRows; r++){
           bKeep=true;
           for(c=cStart; c<cEnd; c++){
-            val = String(table[c][r]).toLowerCase();
+            val0 = bExternalList ? nList[r] : table[c][r];
+            val = String(val0).toLowerCase();
             if(val == value){
               bKeep=false;
               break;
@@ -17652,7 +17666,8 @@
       case "contains":
         for(r=0; r<nRows; r++){
           for(c=cStart; c<cEnd; c++){
-            val = bIgnoreCase ? String(table[c][r]).toLowerCase() : String(table[c][r]);
+            val0 = bExternalList ? nList[r] : table[c][r];
+            val = bIgnoreCase ? String(val0).toLowerCase() : String(val0);
             if(val.indexOf(value) > -1){
               nLKeep.push(r);
               break;
@@ -17664,8 +17679,9 @@
       case "<=":
         for(r=0; r<nRows; r++){
           for(c=cStart; c<cEnd; c++){
-            if(type != _typeOf(table[c][r])) continue;
-            val = bIgnoreCase ? String(table[c][r]).toLowerCase() : String(table[c][r]);
+            val0 = bExternalList ? nList[r] : table[c][r];
+            if(type != _typeOf(val0)) continue;
+            val = bIgnoreCase ? String(val0).toLowerCase() : String(val0);
             if(val < value){
               nLKeep.push(r);
               break;
@@ -17681,8 +17697,9 @@
       case ">=":
         for(r=0; r<nRows; r++){
           for(c=cStart; c<cEnd; c++){
-            if(type != _typeOf(table[c][r])) continue;
-            val = bIgnoreCase ? String(table[c][r]).toLowerCase() : String(table[c][r]);
+            val0 = bExternalList ? nList[r] : table[c][r];
+            if(type != _typeOf(val0)) continue;
+            val = bIgnoreCase ? String(val0).toLowerCase() : String(val0);
             if(val > value){
               nLKeep.push(r);
               break;
@@ -17697,8 +17714,9 @@
       case "between":
         for(r=0; r<nRows; r++){
           for(c=cStart; c<cEnd; c++){
-            if(type != _typeOf(table[c][r])) continue;
-            val = bIgnoreCase ? String(table[c][r]).toLowerCase() : String(table[c][r]);
+            val0 = bExternalList ? nList[r] : table[c][r];
+            if(type != _typeOf(val0)) continue;
+            val = bIgnoreCase ? String(val0).toLowerCase() : String(val0);
             if(type == 'number')
               val = Number(val);
             if(value <= val && val <= value2){
@@ -17708,6 +17726,17 @@
           }
         }
         break;
+      default:
+        if(typeof(operator) == 'function'){
+          for(r=0; r<nRows; r++){
+            for(c=cStart; c<cEnd; c++){
+              if(operator.call(this,table[c][r], value, value2, nList, table, c, r, bIgnoreCase) ){
+                nLKeep.push(r);
+                break;
+              }
+            }
+          }
+        }
     }
     var newTable = table.getSubListsByIndexes(nLKeep);
     return newTable;
