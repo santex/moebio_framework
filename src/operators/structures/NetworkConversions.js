@@ -1,7 +1,10 @@
 import Network from "src/dataTypes/structures/networks/Network";
+import Table from "src/dataTypes/lists/Table";
+import NumberTable from "src/dataTypes/numeric/NumberTable";
 import Node from "src/dataTypes/structures/elements/Node";
 import Relation from "src/dataTypes/structures/elements/Relation";
 import NodeList from "src/dataTypes/structures/lists/NodeList";
+import ListGenerators from "src/operators/lists/ListGenerators";
 import { typeOf } from "src/tools/utils/code/ClassUtils";
 
 /**
@@ -12,6 +15,57 @@ import { typeOf } from "src/tools/utils/code/ClassUtils";
  */
 function NetworkConversions() {}
 export default NetworkConversions;
+
+
+/**
+ * Builds the adjacent matrix of a network.
+ * @param {Network}
+ *
+ * @param {Boolean} useIds use nodes ids (default), or nodes names as labels
+ * @param {Boolean} includeLabelsList (default: false) first list is labels (nodes ids or names)
+ * @param {Number} countMode 0:count number of relations<br>1:add relations weights
+ * @return {Table} if labels are not added the result is a NumberTable
+ * tags:conversion
+ */
+NetworkConversions.NetworkToTable = function(network, useIds, includeLabelsList, countMode){
+  if(network==null) return;
+
+  useIds = useIds==null?true:useIds;
+  countMode = countMode==null?0:countMode;
+
+  var table = includeLabelsList?new Table():new NumberTable();
+  var labels = useIds?network.nodeList.getIds():network.nodeList.getNames();
+  labels.name = "node names";
+  if(includeLabelsList) table[0] = labels;
+
+  var list;
+  var nNodes = network.nodeList.length;
+  var nRelations = network.relationList.length;
+  var i;
+  var relation;
+  var indexesDictionary = {};
+
+  var indexOffset = includeLabelsList?1:0;
+
+  for(i=0; i<nNodes; i++){
+    list = ListGenerators.createListWithSameElement(nNodes, 0);
+    list.name = labels[i];
+    table.push(list);
+    indexesDictionary[network.nodeList[i].id] = i;
+  }
+
+  for(i=0; i<nRelations; i++){
+    relation = network.relationList[i];
+    if(countMode===0){
+      table[indexesDictionary[relation.node0.id]+indexOffset][indexesDictionary[relation.node1.id]]++;
+    } else {
+      table[indexesDictionary[relation.node0.id]+indexOffset][indexesDictionary[relation.node1.id]]+=relation.weight;
+    }
+  }
+
+  return table;
+};
+
 
 /**
  * Builds a Network based on a two columns Table, creating relations on co-occurrences, or a square NumberTable read as an adjacentMatrix.
