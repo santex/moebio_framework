@@ -45,7 +45,6 @@ ColorListGenerators.createDefaultCategoricalColorList = function(nColors, alpha,
 /**
  * Creates a ColorList of categorical colors based on an input List. All entries with the same value will get the same color.
  * @param {List} the list containing categorical data with same length as given list
- * tags:generator
  */
 ColorListGenerators.colorsForCategoricalList = function(list){
   if(list==null) return;
