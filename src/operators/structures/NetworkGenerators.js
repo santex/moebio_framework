@@ -113,8 +113,8 @@ NetworkGenerators.createRandomNetwork = function(nNodes, pRelationOrNumberOfRela
 /**
  * Build a random network based on words co-occurrences in a list of texts, each text has an associated node
  * @param {StringList} nNodes number of nodes
-
- * @param {Number} threshold minimum cosine similarity value to create a relation
+ *
+ * @param {Number} threshold minimum cosine similarity value to create a relation (default 0.7)
  * @param {StringList} titles optional names for nodes
  * @param {StringList|Number} stopWords optional list of words to overlook in analysis (if stopWords is 1 predefined english stopwords StringOperators.STOP_WORDS will be used)
  * @return {Network} network of texts, nodes will have extra parameters text (with original texts) and freqTable (table with words and frequencies)
