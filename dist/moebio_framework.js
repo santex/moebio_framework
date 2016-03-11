@@ -20489,7 +20489,7 @@
   function NetworkConversions() {}
   /**
    * Builds the adjacent matrix of a network.
-   * @param {Network}
+   * @param {Network} network
    *
    * @param {Boolean} useIds use nodes ids (default), or nodes names as labels
    * @param {Boolean} includeLabelsList (default: false) first list is labels (nodes ids or names)
