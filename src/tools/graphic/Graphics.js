@@ -1645,7 +1645,7 @@ Graphics.prototype.clipCircle = function(x, y, r) {
  * @param  {Number} h height of rect
  * @see {@link https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/clip|Clip}
  */
-Graphics.prototype.clipRectangle = function(x, y, w, h) {
+Graphics.prototype.clipRect = function(x, y, w, h) {
   this.context.save();
   this.context.beginPath();
   this.context.moveTo(x, y);
