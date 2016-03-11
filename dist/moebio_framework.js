@@ -877,8 +877,6 @@
 
   /////// Universal matching
 
-
-
   /**
    * This method was partially obtained (and simplified) from a Class by Stoyan Stefanov: "A class to parse color values / @author Stoyan Stefanov <sstoo@gmail.com> / @link   http://www.phpied.com/rgb-color-parser-in-javascript/ / @license Use it if you like it"
    * @param {String} color_string color as a string (e.g. "red", "#0044ff", "rgb(130,20,100)")
@@ -27092,7 +27090,7 @@
    * @param  {Number} h height of rect
    * @see {@link https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/clip|Clip}
    */
-  Graphics.prototype.clipRectangle = function(x, y, w, h) {
+  Graphics.prototype.clipRect = function(x, y, w, h) {
     this.context.save();
     this.context.beginPath();
     this.context.moveTo(x, y);
@@ -31429,7 +31427,7 @@
       }
 
       graphics.context.save();
-      graphics.clipRectangle(frame.x, frame.y, frame.width, frame.height);
+      graphics.clipRect(frame.x, frame.y, frame.width, frame.height);
 
       over = IntervalTableDraw.drawCircularIntervalsFlowTable(frame, frame.memory.flowIntervals, frame.getCenter(), frame.memory.radius * frame.memory.zoom, frame.memory.r0, frame.memory.actualColorList, frame.memory.categories, true, frame.memory.angles, frame.memory.angle0);
       
@@ -32390,7 +32388,7 @@
         // setText('black', 12);
       } else {
         graphics.context.save();
-        graphics.clipRectangle(frame.x, frame.y, frame.width, frame.height);
+        graphics.clipRect(frame.x, frame.y, frame.width, frame.height);
       }
 
       graphics.setStroke('black', 0.2);
@@ -32429,7 +32427,7 @@
               exceedes = propTextSpace < 1; //(node._textWidth*textSize/12)>(rect.width-1.2*margTextX);
 
               if(exceedes) {
-                //clipRectangle(x+margTextX, y+margTextY,rect.width-2*margTextX, textSize*2);
+                //clipRect(x+margTextX, y+margTextY,rect.width-2*margTextX, textSize*2);
                 graphics.setText(textColor ? textColor : frame.memory.textsColorList[i], textSize * propTextSpace);
               } else {
                 graphics.setText(textColor ? textColor : frame.memory.textsColorList[i], textSize);
@@ -32689,7 +32687,7 @@
         // setText('black', 12);
       } else {
         graphics.context.save();
-        graphics.clipRectangle(frame.x, frame.y, frame.width, frame.height);
+        graphics.clipRect(frame.x, frame.y, frame.width, frame.height);
       }
 
       yLeaves = frame.y + hTree + gap;
@@ -32735,7 +32733,7 @@
             graphics.setText(tC, textSize);
             exceedes = true; //(node._textWidth*textSize/12)>(rect.width-1.2*margTextX);
             if(exceedes) {
-              graphics.clipRectangle(x, y - 17, rect.width, rect.height);
+              graphics.clipRect(x, y - 17, rect.width, rect.height);
             }
 
             //feature or P
