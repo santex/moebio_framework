@@ -877,6 +877,8 @@
 
   /////// Universal matching
 
+
+
   /**
    * This method was partially obtained (and simplified) from a Class by Stoyan Stefanov: "A class to parse color values / @author Stoyan Stefanov <sstoo@gmail.com> / @link   http://www.phpied.com/rgb-color-parser-in-javascript/ / @license Use it if you like it"
    * @param {String} color_string color as a string (e.g. "red", "#0044ff", "rgb(130,20,100)")
