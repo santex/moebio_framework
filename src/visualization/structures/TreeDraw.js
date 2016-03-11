@@ -334,7 +334,7 @@ TreeDraw.drawTreemap = function(frame, tree, colorList, weights, textColor, exte
       // setText('black', 12);
     } else {
       graphics.context.save();
-      graphics.clipRectangle(frame.x, frame.y, frame.width, frame.height);
+      graphics.clipRect(frame.x, frame.y, frame.width, frame.height);
     }
 
     graphics.setStroke('black', 0.2);
@@ -373,7 +373,7 @@ TreeDraw.drawTreemap = function(frame, tree, colorList, weights, textColor, exte
             exceedes = propTextSpace < 1; //(node._textWidth*textSize/12)>(rect.width-1.2*margTextX);
 
             if(exceedes) {
-              //clipRectangle(x+margTextX, y+margTextY,rect.width-2*margTextX, textSize*2);
+              //clipRect(x+margTextX, y+margTextY,rect.width-2*margTextX, textSize*2);
               graphics.setText(textColor ? textColor : frame.memory.textsColorList[i], textSize * propTextSpace);
             } else {
               graphics.setText(textColor ? textColor : frame.memory.textsColorList[i], textSize);
@@ -633,7 +633,7 @@ TreeDraw.drawDecisionTree = function(frame, tree, textColor, graphics) {
       // setText('black', 12);
     } else {
       graphics.context.save();
-      graphics.clipRectangle(frame.x, frame.y, frame.width, frame.height);
+      graphics.clipRect(frame.x, frame.y, frame.width, frame.height);
     }
 
     yLeaves = frame.y + hTree + gap;
@@ -679,7 +679,7 @@ TreeDraw.drawDecisionTree = function(frame, tree, textColor, graphics) {
           graphics.setText(tC, textSize);
           exceedes = true; //(node._textWidth*textSize/12)>(rect.width-1.2*margTextX);
           if(exceedes) {
-            graphics.clipRectangle(x, y - 17, rect.width, rect.height);
+            graphics.clipRect(x, y - 17, rect.width, rect.height);
           }
 
           //feature or P
