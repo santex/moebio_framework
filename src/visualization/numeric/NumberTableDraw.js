@@ -698,7 +698,7 @@ NumberTableDraw.drawCircularStreamgraph = function(frame, dataTable, normalized,
     }
 
     graphics.context.save();
-    graphics.clipRectangle(frame.x, frame.y, frame.width, frame.height);
+    graphics.clipRect(frame.x, frame.y, frame.width, frame.height);
 
     over = IntervalTableDraw.drawCircularIntervalsFlowTable(frame, frame.memory.flowIntervals, frame.getCenter(), frame.memory.radius * frame.memory.zoom, frame.memory.r0, frame.memory.actualColorList, frame.memory.categories, true, frame.memory.angles, frame.memory.angle0);
     
