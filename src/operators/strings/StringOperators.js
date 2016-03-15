@@ -30,14 +30,14 @@ StringOperators.STOP_WORDS = StringList.fromArray("t,s,mt,rt,re,m,http,amp,a,abl
 
 
 
-/**
- * splits a String by a character (entre by default)
- * @param  {String} string
- *
- * @param  {String} character
- * @return {StringList}
- * tags:deprecated
- */
+///**
+// * splits a String by a character (entre by default)
+// * @param  {String} string
+// *
+// * @param  {String} character
+// * @return {StringList}
+// * tags:deprecated
+// */
 // StringOperators.split = function(string, character) {
 //   if(character == null) return StringOperators.splitByEnter(string);
 //   return StringList.fromArray(string.split(character));
