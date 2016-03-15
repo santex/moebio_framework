@@ -9830,14 +9830,14 @@
 
 
 
-  /**
-   * splits a String by a character (entre by default)
-   * @param  {String} string
-   *
-   * @param  {String} character
-   * @return {StringList}
-   * tags:deprecated
-   */
+  ///**
+  // * splits a String by a character (entre by default)
+  // * @param  {String} string
+  // *
+  // * @param  {String} character
+  // * @return {StringList}
+  // * tags:deprecated
+  // */
   // StringOperators.split = function(string, character) {
   //   if(character == null) return StringOperators.splitByEnter(string);
   //   return StringList.fromArray(string.split(character));
@@ -16807,7 +16807,6 @@
    * @param {Boolean} weights are normalized
    * @param {Boolean} weights are sorted
    * @return {List} a list of Rectangles
-   * tags:
    */
   RectangleOperators.squarify = function(frame, weights, isNormalizedWeights, isSortedWeights) { //, funcionEvaluacionnWeights:Function=null):Array{
     if(weights == null) return;
@@ -19408,12 +19407,6 @@
       text += ident + "average length: <b>" + infoObject.averageLength + "</b>";
       text += ident + "all lengths: <b>" + infoObject.lengths.join(", ") + "</b>";
     }
-
-    //var names = table.getNames();
-    //var types = table.getTypes();
-    //var kinds = table.getKinds();
-
-    console.log('Table infoObject:', infoObject);
 
     text += "<hr>";
     infoObject.names.forEach(function(name, i){
@@ -30887,7 +30880,6 @@
    * @param  {NumberTable} numberTable with at least two numberLists
    * @param  {StringList} texts
    * @return {Object}
-   * tags:draw
    */
   NumberTableDraw.drawSlopeGraph = function(frame, numberTable, texts, graphics) {
     if(frame == null ||  numberTable == null || numberTable.type != "NumberTable") return; //todo:provisional, this is System's work
