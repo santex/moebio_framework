@@ -156,7 +156,6 @@ NumberTableDraw._drawCrossScatterPlot = function(x, y, color, graphics) {
  * @param  {NumberTable} numberTable with at least two numberLists
  * @param  {StringList} texts
  * @return {Object}
- * tags:draw
  */
 NumberTableDraw.drawSlopeGraph = function(frame, numberTable, texts, graphics) {
   if(frame == null ||  numberTable == null || numberTable.type != "NumberTable") return; //todo:provisional, this is System's work
