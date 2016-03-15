@@ -1946,12 +1946,6 @@ TableOperators.getReportHtml = function(table,level) {
     text += ident + "all lengths: <b>" + infoObject.lengths.join(", ") + "</b>";
   }
 
-  //var names = table.getNames();
-  //var types = table.getTypes();
-  //var kinds = table.getKinds();
-
-  console.log('Table infoObject:', infoObject);
-
   text += "<hr>";
   infoObject.names.forEach(function(name, i){
     text += ident + "<font style=\"font-size:10px\">" +i + ":</f><b>" + name + "</b> <font color=\""+getColorFromDataModelType(infoObject.types[i])+ "\">" + TYPES_SHORT_NAMES_DICTIONARY[infoObject.types[i]]+"</f>";
