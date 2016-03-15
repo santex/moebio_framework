@@ -190,7 +190,6 @@ RectangleOperators.packingRectangles = function(weights, packingMode, rectangle,
  * @param {Boolean} weights are normalized
  * @param {Boolean} weights are sorted
  * @return {List} a list of Rectangles
- * tags:
  */
 RectangleOperators.squarify = function(frame, weights, isNormalizedWeights, isSortedWeights) { //, funcionEvaluacionnWeights:Function=null):Array{
   if(weights == null) return;
