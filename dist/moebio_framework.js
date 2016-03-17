@@ -13550,7 +13550,7 @@
   TableEncodings.CSVtoTable = function(csvString, firstRowIsHeader, separator, valueForNulls, listsToStringList) {
     if(csvString==null) return null;
     valueForNulls = valueForNulls == null ? "" : valueForNulls;
-    listsToStringList = listsToStringList==null?true:listsToStringList;
+    listsToStringList = listsToStringList==null?false:listsToStringList;
 
     var i, j;
     var _firstRowIsHeader = firstRowIsHeader == null ? false : firstRowIsHeader;
@@ -17554,9 +17554,9 @@
    * @return {Table}
    * tags:filter
    */
-  TableOperators.getFilteredByValue = function(table, operator, value, nList, value2, bIgnoreCase){
+  TableOperators.filterTable = function(table, operator, value, nList, value2, bIgnoreCase){
     // input validation and defaults
-    if(table==null || table.length === 0 || value == null) return;
+    if(table==null || table.length === 0) return;
     if(operator==null) operator='=c';
     if(operator == '=') operator = '==';
     var nLKeep = new NumberList();
@@ -17566,11 +17566,15 @@
     var cEnd=table.length;
     var type = _typeOf(value);
     var bExternalList = nList != null && nList.isList === true;
+
     if(bExternalList && nList.length != nRows){
-      console.log('[TableOperators.getFilteredByValue] Error, List must have same length as table.');
+      console.log('[TableOperators.filterTable] Error, List must have same length as table.');
       return;
     }
-    if(type == 'string' && !isNaN(value) && value.trim() !== ''){
+
+    if(value==null){
+      type = 'Null';
+    } else if(type == 'string' && !isNaN(value) && value.trim() !== ''){
       type='number';
       value=Number(value);
     }
@@ -17609,6 +17613,10 @@
     if(operator == '!=' && bIgnoreCase)
       operator = '!=i';
     // row matching, not using RegExp because value can contain control characters
+
+    //console.log("[fT] operator:", operator);
+    //console.log("[fT] type:", type);
+
     switch(operator){
       case "==":
         for(r=0; r<nRows; r++){
@@ -17680,7 +17688,8 @@
           for(c=cStart; c<cEnd; c++){
             val0 = bExternalList ? nList[r] : table[c][r];
             if(type != _typeOf(val0)) continue;
-            val = bIgnoreCase ? String(val0).toLowerCase() : String(val0);
+            //val = bIgnoreCase ? String(val0).toLowerCase() : String(val0);
+            val =  (type == 'string')?( bIgnoreCase ? String(val0).toLowerCase() : String(val0) ):Number(val0);
             if(val < value){
               nLKeep.push(r);
               break;
@@ -17698,7 +17707,7 @@
           for(c=cStart; c<cEnd; c++){
             val0 = bExternalList ? nList[r] : table[c][r];
             if(type != _typeOf(val0)) continue;
-            val = bIgnoreCase ? String(val0).toLowerCase() : String(val0);
+            val =  (type == 'string')?( bIgnoreCase ? String(val0).toLowerCase() : String(val0) ):Number(val0);
             if(val > value){
               nLKeep.push(r);
               break;
@@ -17714,10 +17723,14 @@
         for(r=0; r<nRows; r++){
           for(c=cStart; c<cEnd; c++){
             val0 = bExternalList ? nList[r] : table[c][r];
-            if(type != _typeOf(val0)) continue;
-            val = bIgnoreCase ? String(val0).toLowerCase() : String(val0);
+            //if(type != typeOf(val0)) continue;
+
+            //val = bIgnoreCase ? String(val0).toLowerCase() : String(val0);
+            val =  (type == 'string')?( bIgnoreCase ? String(val0).toLowerCase() : String(val0) ):Number(val0);
+
             if(type == 'number')
               val = Number(val);
+
             if(value <= val && val <= value2){
               nLKeep.push(r);
               break;
