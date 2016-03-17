@@ -42,7 +42,7 @@ TableEncodings.TAB2 = String.fromCharCode(9);
 TableEncodings.CSVtoTable = function(csvString, firstRowIsHeader, separator, valueForNulls, listsToStringList) {
   if(csvString==null) return null;
   valueForNulls = valueForNulls == null ? "" : valueForNulls;
-  listsToStringList = listsToStringList==null?true:listsToStringList;
+  listsToStringList = listsToStringList==null?false:listsToStringList;
 
   var i, j;
   var _firstRowIsHeader = firstRowIsHeader == null ? false : firstRowIsHeader;
