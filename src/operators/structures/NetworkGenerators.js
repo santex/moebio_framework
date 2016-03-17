@@ -71,8 +71,8 @@ NetworkGenerators.createRandomNetwork = function(nNodes, pRelationOrNumberOfRela
       } else {
         pRelationOrNumberOfRelations = Math.min(pRelationOrNumberOfRelations, nNodes*(nNodes-1)*0.5);
         while(network.relationList.length<pRelationOrNumberOfRelations){
-          i = Math.floor(Math.random()*nNodes);
-          j = Math.floor(Math.random()*nNodes);
+          i = Math.floor(funcRandom()*nNodes);
+          j = Math.floor(funcRandom()*nNodes);
           if(i!=j && network.relationList.getNodeById(i + "_" + j)==null){
             network.addRelation(new Relation(i + "_" + j, i + "_" + j, network.nodeList[i], network.nodeList[j], randomRelationsWeights ? funcRandom() : 1));
           }
