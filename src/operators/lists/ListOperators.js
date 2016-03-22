@@ -1412,7 +1412,7 @@ ListOperators.getReportHtml = function(list, level, infoObject) { //TODO:complet
   //console.log('infoObject.entropy', infoObject.entropy);
 
   var ident = "<br>" + (level > 0 ? StringOperators.repeatString("&nbsp", level) : "");
-  var text =  level > 0 ? "" : "<b><font style=\"font-size:18px\">list report</f></b>";
+  var text =  level > 0 ? "" : "<b><font style=\"font-size:18px\">list report</font></b>";
 
   var length = list.length;
   var i, n;
@@ -1430,7 +1430,7 @@ ListOperators.getReportHtml = function(list, level, infoObject) { //TODO:complet
 
     if(infoObject.frequenciesTable[0].length < list.length){
       for(i = 0; infoObject.frequenciesTable[0][i] != null && i < 10; i++) {
-        text += ident + "  [<b>" + String(infoObject.frequenciesTable[0][i]) + "</b>]: <font style=\"font-size:10px\"><b><font color=\""+ColorOperators.colorStringToHEX(infoObject.categoricalColors[i])+"\">" + infoObject.frequenciesTable[1][i] + "</f></b></f>";
+        text += ident + "  [<b>" + String(infoObject.frequenciesTable[0][i]) + "</b>]: <font style=\"font-size:10px\"><b><font color=\""+ColorOperators.colorStringToHEX(infoObject.categoricalColors[i])+"\">" + infoObject.frequenciesTable[1][i] + "</font></b></font>";
       }
     }
 
@@ -1477,7 +1477,7 @@ ListOperators.getReportHtml = function(list, level, infoObject) { //TODO:complet
       text += ident;
       n = infoObject.shorten.length;
       for(i=0; i<n; i++){
-        text += "<font style=\"font-size:7px\"><font color=\""+ColorOperators.colorStringToHEX(ColorScales.grayToOrange(infoObject.shorten[i]))+"\">█</f></f>";
+        text += "<font style=\"font-size:7px\"><font color=\""+ColorOperators.colorStringToHEX(ColorScales.grayToOrange(infoObject.shorten[i]))+"\">█</font></font>";
       }
       break;
     case "StringList":
@@ -1492,7 +1492,7 @@ ListOperators.getReportHtml = function(list, level, infoObject) { //TODO:complet
 
       var bars = StringOperators.createsCategoricalColorsBlocksHtml(weights, 55, catColors);
       text += ident;
-      text += "<font style=\"font-size:7px\">"+bars+"</f>";
+      text += "<font style=\"font-size:7px\">"+bars+"</font>";
 
       break;
   }
