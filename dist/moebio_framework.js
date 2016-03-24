@@ -8389,7 +8389,7 @@
     //console.log('infoObject.entropy', infoObject.entropy);
 
     var ident = "<br>" + (level > 0 ? StringOperators.repeatString("&nbsp", level) : "");
-    var text =  level > 0 ? "" : "<b><font style=\"font-size:18px\">list report</f></b>";
+    var text =  level > 0 ? "" : "<b><font style=\"font-size:18px\">list report</font></b>";
 
     var length = list.length;
     var i, n;
@@ -8407,7 +8407,7 @@
 
       if(infoObject.frequenciesTable[0].length < list.length){
         for(i = 0; infoObject.frequenciesTable[0][i] != null && i < 10; i++) {
-          text += ident + "  [<b>" + String(infoObject.frequenciesTable[0][i]) + "</b>]: <font style=\"font-size:10px\"><b><font color=\""+ColorOperators.colorStringToHEX(infoObject.categoricalColors[i])+"\">" + infoObject.frequenciesTable[1][i] + "</f></b></f>";
+          text += ident + "  [<b>" + String(infoObject.frequenciesTable[0][i]) + "</b>]: <font style=\"font-size:10px\"><b><font color=\""+ColorOperators.colorStringToHEX(infoObject.categoricalColors[i])+"\">" + infoObject.frequenciesTable[1][i] + "</font></b></font>";
         }
       }
 
@@ -8454,7 +8454,7 @@
         text += ident;
         n = infoObject.shorten.length;
         for(i=0; i<n; i++){
-          text += "<font style=\"font-size:7px\"><font color=\""+ColorOperators.colorStringToHEX(ColorScales.grayToOrange(infoObject.shorten[i]))+"\">█</f></f>";
+          text += "<font style=\"font-size:7px\"><font color=\""+ColorOperators.colorStringToHEX(ColorScales.grayToOrange(infoObject.shorten[i]))+"\">█</font></font>";
         }
         break;
       case "StringList":
@@ -8469,7 +8469,7 @@
 
         var bars = StringOperators.createsCategoricalColorsBlocksHtml(weights, 55, catColors);
         text += ident;
-        text += "<font style=\"font-size:7px\">"+bars+"</f>";
+        text += "<font style=\"font-size:7px\">"+bars+"</font>";
 
         break;
     }
@@ -31692,20 +31692,20 @@
     var rMax = 0;
 
     switch(mode) {
-      case 0: //open triangle
-        px = frame.x;
-        py = frame.y;
+      case 0: //circle
+        px = 0;
+        py = 0;
+        center = frame.getCenter();
         break;
-      case 2: //rectangle
+      case 1: //rectangle
         var jump = 5;
         var nStep = 0;
         var nSteps = 1;
         var pc = new _Point();
         break;
-      case 1: //circle
-        px = 0;
-        py = 0;
-        center = frame.getCenter();
+      case 2: //open triangle
+        px = frame.x;
+        py = frame.y;
         break;
     }
 
@@ -31713,7 +31713,7 @@
     var h;
     var prop = frame.width / frame.height;
 
-    for(var i = 0; stringList[i] != null; i++) {
+    for(var i = 0; i<stringList.length; i++) {
       textSizes[i] = roundSizes ? Math.round(normWeights[i] * 12) * dL : normWeights[i] * 12 * dL;
 
       //DrawTexts.setContextTextProperties('black', textSizes[i], graphics.getFontFamily(), null, null, 'bold');
@@ -31728,7 +31728,7 @@
       h = textSizes[i];
 
       switch(mode) {
-        case 0: //open triangle
+        case 2: //open triangle
           while(StringListVisOperators._pointInRectangles(rectanglesPlaced, px, py, w, h, margin)) {
             px += dL;
             py -= dL;
@@ -31738,7 +31738,7 @@
             }
           }
           break;
-        case 1: //circle
+        case 0: //circle
           if(i === 0) {
             px = center.x - w * 0.5;
             py = center.y - h * 0.5;
@@ -31754,8 +31754,9 @@
             }
             rMax = Math.max(rMax, prop * r + w * 0.5);
           }
+          
           break;
-        case 2: //rectangle
+        case 1: //rectangle
           if(i === 0) {
             pc = center.clone();
             px = pc.x - w * 0.5;
@@ -31790,10 +31791,10 @@
       rectanglesPlaced.push(rectangles[i]);
     }
 
-    if(mode == 1 || mode == 2) {
+    if(mode == 1 || mode === 0) {
       var rectangle;
       prop = 0.5 * frame.width / rMax;
-      for(i = 0; rectangles[i] != null; i++) {
+      for(i = 0; i<rectangles.length; i++) {
         rectangle = rectangles[i];
         rectangle.x = center.x + (rectangle.x - center.x) * prop;
         rectangle.y = center.y + (rectangle.y - center.y) * prop;
