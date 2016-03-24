@@ -140,20 +140,20 @@ StringListVisOperators.tagCloudRectangles = function(frame, stringList, weights,
   var rMax = 0;
 
   switch(mode) {
-    case 0: //open triangle
-      px = frame.x;
-      py = frame.y;
+    case 0: //circle
+      px = 0;
+      py = 0;
+      center = frame.getCenter();
       break;
-    case 2: //rectangle
+    case 1: //rectangle
       var jump = 5;
       var nStep = 0;
       var nSteps = 1;
       var pc = new Point();
       break;
-    case 1: //circle
-      px = 0;
-      py = 0;
-      center = frame.getCenter();
+    case 2: //open triangle
+      px = frame.x;
+      py = frame.y;
       break;
   }
 
@@ -161,7 +161,7 @@ StringListVisOperators.tagCloudRectangles = function(frame, stringList, weights,
   var h;
   var prop = frame.width / frame.height;
 
-  for(var i = 0; stringList[i] != null; i++) {
+  for(var i = 0; i<stringList.length; i++) {
     textSizes[i] = roundSizes ? Math.round(normWeights[i] * 12) * dL : normWeights[i] * 12 * dL;
 
     //DrawTexts.setContextTextProperties('black', textSizes[i], graphics.getFontFamily(), null, null, 'bold');
@@ -176,7 +176,7 @@ StringListVisOperators.tagCloudRectangles = function(frame, stringList, weights,
     h = textSizes[i];
 
     switch(mode) {
-      case 0: //open triangle
+      case 2: //open triangle
         while(StringListVisOperators._pointInRectangles(rectanglesPlaced, px, py, w, h, margin)) {
           px += dL;
           py -= dL;
@@ -186,7 +186,7 @@ StringListVisOperators.tagCloudRectangles = function(frame, stringList, weights,
           }
         }
         break;
-      case 1: //circle
+      case 0: //circle
         if(i === 0) {
           px = center.x - w * 0.5;
           py = center.y - h * 0.5;
@@ -202,8 +202,9 @@ StringListVisOperators.tagCloudRectangles = function(frame, stringList, weights,
           }
           rMax = Math.max(rMax, prop * r + w * 0.5);
         }
+        
         break;
-      case 2: //rectangle
+      case 1: //rectangle
         if(i === 0) {
           pc = center.clone();
           px = pc.x - w * 0.5;
@@ -238,10 +239,10 @@ StringListVisOperators.tagCloudRectangles = function(frame, stringList, weights,
     rectanglesPlaced.push(rectangles[i]);
   }
 
-  if(mode == 1 || mode == 2) {
+  if(mode == 1 || mode === 0) {
     var rectangle;
     prop = 0.5 * frame.width / rMax;
-    for(i = 0; rectangles[i] != null; i++) {
+    for(i = 0; i<rectangles.length; i++) {
       rectangle = rectangles[i];
       rectangle.x = center.x + (rectangle.x - center.x) * prop;
       rectangle.y = center.y + (rectangle.y - center.y) * prop;
