@@ -4894,12 +4894,14 @@
     }
     if(headersAsFirstList){
       var sLHeaders = new StringList();
+      var iInit  = firstListAsHeaders?1:0;
       l = this.length;
-      for(i = 0; i<l; i++){
+      for(i = iInit; i<l; i++){
         sLHeaders.push(this[i].name);
       }
       table._splice(0,0,sLHeaders);
       table = table.getImproved();
+      if(firstListAsHeaders) sLHeaders.name = this[0].name;
     }
 
     return table;
@@ -14210,6 +14212,13 @@
     this._update();
   };
 
+
+  /**
+   * scales arrival frame from point (expressed in arrival coordinates)
+   * @param {Number} dS ampunt of scale, typically a number close to 1
+   * @param  {Number} x horizontal coordinate of center of scaling.
+   * @return {Number} new X value.
+   */
   Axis2D.prototype.scale = function(dS, x, y){
     this.arrivalFrame = this.arrivalFrame.expand(dS, new _Point(x, y));
     this._update();
@@ -17883,7 +17892,7 @@
    * @param {Boolean} firstListAsHeaders removes first list of the table and uses it as names for the lists on the transposed table (default=false)
    * @param {Boolean} headersAsFirstList adds a new first list made from the headers of original table (default=false)
    * @return {Table}
-   * tags:matrixes
+   * tags:
    */
   TableOperators.transpose = function(table, firstListAsHeaders, headersAsFirstList) {
     if(table == null) return null;
@@ -25648,6 +25657,8 @@
       this._listeners["touchmove"] = [];
     }
 
+    this.context.fillStyle = 'black';
+
     // Call the user provided init function.
     this.init();
 
@@ -27612,7 +27623,6 @@
     this.context.stroke();
   };
 
-
   /**
    * @todo write docs
    */
@@ -27662,6 +27672,9 @@
   //
   // Ported from Draw.js TODO - organize these appropriately.
   //
+
+
+
 
 
   /**
@@ -31702,6 +31715,7 @@
         var nStep = 0;
         var nSteps = 1;
         var pc = new _Point();
+        center = frame.getCenter();
         break;
       case 2: //open triangle
         px = frame.x;
