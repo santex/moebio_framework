@@ -195,6 +195,8 @@ Graphics.prototype._initialize = function(autoStart) {
     this._listeners["touchmove"] = [];
   }
 
+  this.context.fillStyle = 'black';
+
   // Call the user provided init function.
   this.init();
 
@@ -2159,7 +2161,6 @@ Graphics.prototype.fsLinesInFrame = function(axis2D, numberListX, numberListY){
   this.context.stroke();
 };
 
-
 /**
  * @todo write docs
  */
@@ -2209,6 +2210,9 @@ Graphics.prototype.drawGridY = function(axis2D, dY, xLabel, stepsLabel){
 //
 // Ported from Draw.js TODO - organize these appropriately.
 //
+
+
+
 
 
 /**
