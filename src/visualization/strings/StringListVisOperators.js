@@ -150,6 +150,7 @@ StringListVisOperators.tagCloudRectangles = function(frame, stringList, weights,
       var nStep = 0;
       var nSteps = 1;
       var pc = new Point();
+      center = frame.getCenter();
       break;
     case 2: //open triangle
       px = frame.x;
