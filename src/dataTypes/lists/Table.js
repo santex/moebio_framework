@@ -313,12 +313,14 @@ Table.prototype.getTransposed = function(firstListAsHeaders, headersAsFirstList)
   }
   if(headersAsFirstList){
     var sLHeaders = new StringList();
+    var iInit  = firstListAsHeaders?1:0;
     l = this.length;
-    for(i = 0; i<l; i++){
+    for(i = iInit; i<l; i++){
       sLHeaders.push(this[i].name);
     }
     table._splice(0,0,sLHeaders);
     table = table.getImproved();
+    if(firstListAsHeaders) sLHeaders.name = this[0].name;
   }
 
   return table;
