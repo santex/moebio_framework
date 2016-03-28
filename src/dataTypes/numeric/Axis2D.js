@@ -139,7 +139,17 @@ Axis2D.prototype.move = function(dx, dy){
   this._update();
 };
 
+
+/**
+ * scales arrival frame from point (expressed in arrival coordinates)
+ * @param {Number} dS ampunt of scale, typically a number close to 1
+ *
+ * @param  {Number} x horizontal coordinate of center for scaling, in terms of arrival frame (by default: center of arrival frame)
+ * @param  {Number} y vertical coordinate of center for scaling, in terms of arrival frame (by default: center of arrival frame)
+ */
 Axis2D.prototype.scale = function(dS, x, y){
+  x = x==null?(this.arrivalFrame.x + 0.5*this.arrivalFrame.width);
+  y = y==null?(this.arrivalFrame.y + 0.5*this.arrivalFrame.height);
   this.arrivalFrame = this.arrivalFrame.expand(dS, new Point(x, y));
   this._update();
 };
