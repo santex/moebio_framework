@@ -421,7 +421,7 @@ TableOperators.getRandomRows = function(table, f, avoidRepetitions) {
  * @param {Boolean} firstListAsHeaders removes first list of the table and uses it as names for the lists on the transposed table (default=false)
  * @param {Boolean} headersAsFirstList adds a new first list made from the headers of original table (default=false)
  * @return {Table}
- * tags:matrixes
+ * tags:
  */
 TableOperators.transpose = function(table, firstListAsHeaders, headersAsFirstList) {
   if(table == null) return null;
