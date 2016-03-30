@@ -422,6 +422,7 @@ List.prototype.getSubListByType = function(type) {
 
 /**
  * returns all elements in indexes.
+ *
  * @param {NumberList} indexes
  * @return {List}
  * tags:filter
