@@ -148,8 +148,8 @@ Axis2D.prototype.move = function(dx, dy){
  * @param  {Number} y vertical coordinate of center for scaling, in terms of arrival frame (by default: center of arrival frame)
  */
 Axis2D.prototype.scale = function(dS, x, y){
-  x = x==null?(this.arrivalFrame.x + 0.5*this.arrivalFrame.width);
-  y = y==null?(this.arrivalFrame.y + 0.5*this.arrivalFrame.height);
+  x = x==null?(this.arrivalFrame.x + 0.5*this.arrivalFrame.width):x;
+  y = y==null?(this.arrivalFrame.y + 0.5*this.arrivalFrame.height):y;
   this.arrivalFrame = this.arrivalFrame.expand(dS, new Point(x, y));
   this._update();
 };
