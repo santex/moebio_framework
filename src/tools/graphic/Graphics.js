@@ -392,8 +392,7 @@ Graphics.prototype._adjustCanvas = function(dimensions) {
  * Starts or restarts the draw cycle at the current cycleInterval
  * @ignore
  */
-Graphics.prototype._startCycle = function() {
-  this.cycleActive = true;
+Graphics.prototype._startCycle = function() { this.cycleActive = true;
   if(this._cycleInterval === 0) {
     // Call the cycle only once function
     setTimeout(this._onCycle.bind(this), 10);
@@ -408,6 +407,7 @@ Graphics.prototype._startCycle = function() {
  * @ignore
  */
 Graphics.prototype._stopCycle = function(callback) {
+
   clearInterval(this._setIntervalId);
   this.cycleActive = false;
   this._setIntervalId = undefined;
@@ -425,6 +425,7 @@ Graphics.prototype._stopCycle = function(callback) {
  * @param  {Number} time time in milliseconds to run the cycle function before stopping ot. if 0 it starts and endless cycle, if 1 it executes the cycle once
  */
 Graphics.prototype.cycleFor = function(time) {
+
   if(time===0){
     if(this._setIntervalId) clearTimeout(this._setTimeOutId);
     this._startCycle();
@@ -608,6 +609,7 @@ Graphics.prototype.stop = function() {
  *                       continue to run
  */
 Graphics.prototype.cycleOnMouseMovement = function(time) {
+
   var self = this;
 
   if(this.cycleOnMouseMovementListener){
@@ -615,6 +617,7 @@ Graphics.prototype.cycleOnMouseMovement = function(time) {
     this.canvas.removeEventListener('mousewheel', this.cycleOnMouseMovementListener, false);
     this.canvas.removeEventListener('mousemove', this.cycleOnMouseMovementListener, false);
     this.canvas.removeEventListener('mousedown', this.cycleOnMouseMovementListener, false);
+
     if(this.IS_TOUCH){
       this.canvas.removeEventListener("touchstart", this.cycleOnMouseMovementListener, false);
       this.canvas.removeEventListener("touchend", this.cycleOnMouseMovementListener, false);
@@ -624,7 +627,7 @@ Graphics.prototype.cycleOnMouseMovement = function(time) {
 
   if(time>1){
     this.cycleOnMouseMovementListener = function(){
-      self.cycleFor(time);
+   self.cycleFor(time);
     };
 
     this.canvas.addEventListener('mousemove', this.cycleOnMouseMovementListener, false);
@@ -638,8 +641,10 @@ Graphics.prototype.cycleOnMouseMovement = function(time) {
       this.canvas.addEventListener("touchmove", this.cycleOnMouseMovementListener, false);
     }
 
-    self.cycleFor(time);
+    //self.cycleFor(time);
   }
+
+  self.cycleFor(time);
 };
 
 /**
