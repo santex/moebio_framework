@@ -1513,6 +1513,7 @@
 
   /**
    * returns all elements in indexes.
+   *
    * @param {NumberList} indexes
    * @return {List}
    * tags:filter
@@ -14216,10 +14217,13 @@
   /**
    * scales arrival frame from point (expressed in arrival coordinates)
    * @param {Number} dS ampunt of scale, typically a number close to 1
-   * @param  {Number} x horizontal coordinate of center of scaling.
-   * @return {Number} new X value.
+   *
+   * @param  {Number} x horizontal coordinate of center for scaling, in terms of arrival frame (by default: center of arrival frame)
+   * @param  {Number} y vertical coordinate of center for scaling, in terms of arrival frame (by default: center of arrival frame)
    */
   Axis2D.prototype.scale = function(dS, x, y){
+    x = x==null?(this.arrivalFrame.x + 0.5*this.arrivalFrame.width):x;
+    y = y==null?(this.arrivalFrame.y + 0.5*this.arrivalFrame.height):y;
     this.arrivalFrame = this.arrivalFrame.expand(dS, new _Point(x, y));
     this._update();
   };
@@ -25854,8 +25858,7 @@
    * Starts or restarts the draw cycle at the current cycleInterval
    * @ignore
    */
-  Graphics.prototype._startCycle = function() {
-    this.cycleActive = true;
+  Graphics.prototype._startCycle = function() { this.cycleActive = true;
     if(this._cycleInterval === 0) {
       // Call the cycle only once function
       setTimeout(this._onCycle.bind(this), 10);
@@ -25870,6 +25873,7 @@
    * @ignore
    */
   Graphics.prototype._stopCycle = function(callback) {
+
     clearInterval(this._setIntervalId);
     this.cycleActive = false;
     this._setIntervalId = undefined;
@@ -25887,6 +25891,7 @@
    * @param  {Number} time time in milliseconds to run the cycle function before stopping ot. if 0 it starts and endless cycle, if 1 it executes the cycle once
    */
   Graphics.prototype.cycleFor = function(time) {
+
     if(time===0){
       if(this._setIntervalId) clearTimeout(this._setTimeOutId);
       this._startCycle();
@@ -26070,6 +26075,7 @@
    *                       continue to run
    */
   Graphics.prototype.cycleOnMouseMovement = function(time) {
+
     var self = this;
 
     if(this.cycleOnMouseMovementListener){
@@ -26077,6 +26083,7 @@
       this.canvas.removeEventListener('mousewheel', this.cycleOnMouseMovementListener, false);
       this.canvas.removeEventListener('mousemove', this.cycleOnMouseMovementListener, false);
       this.canvas.removeEventListener('mousedown', this.cycleOnMouseMovementListener, false);
+
       if(this.IS_TOUCH){
         this.canvas.removeEventListener("touchstart", this.cycleOnMouseMovementListener, false);
         this.canvas.removeEventListener("touchend", this.cycleOnMouseMovementListener, false);
@@ -26086,7 +26093,7 @@
 
     if(time>1){
       this.cycleOnMouseMovementListener = function(){
-        self.cycleFor(time);
+     self.cycleFor(time);
       };
 
       this.canvas.addEventListener('mousemove', this.cycleOnMouseMovementListener, false);
@@ -26100,8 +26107,10 @@
         this.canvas.addEventListener("touchmove", this.cycleOnMouseMovementListener, false);
       }
 
-      self.cycleFor(time);
+      //self.cycleFor(time);
     }
+
+    self.cycleFor(time);
   };
 
   /**
