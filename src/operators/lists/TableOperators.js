@@ -112,6 +112,7 @@ TableOperators.filterTable = function(table, operator, value, nList, value2, bIg
 
   if(value==null){
     type = 'Null';
+    value = '';
   } else if(type == 'string' && !isNaN(value) && value.trim() !== ''){
     type='number';
     value=Number(value);
@@ -160,6 +161,7 @@ TableOperators.filterTable = function(table, operator, value, nList, value2, bIg
       for(r=0; r<nRows; r++){
         for(c=cStart; c<cEnd; c++){
           val0 = bExternalList ? nList[r] : table[c][r];
+          if(val0 == null) val0 = '';
           if(val0 == value){
             nLKeep.push(r);
             break;
@@ -171,7 +173,7 @@ TableOperators.filterTable = function(table, operator, value, nList, value2, bIg
       for(r=0; r<nRows; r++){
         for(c=cStart; c<cEnd; c++){
           val0 = bExternalList ? nList[r] : table[c][r];
-          val = String(val0).toLowerCase();
+          val = val0 == null ? '' : String(val0).toLowerCase();
           if(val == value){
             nLKeep.push(r);
             break;
@@ -184,6 +186,7 @@ TableOperators.filterTable = function(table, operator, value, nList, value2, bIg
         bKeep=true;
         for(c=cStart; c<cEnd; c++){
           val0 = bExternalList ? nList[r] : table[c][r];
+          if(val0 == null) val0 = '';
           if(val0 == value){
             bKeep=false;
             break;
@@ -198,7 +201,7 @@ TableOperators.filterTable = function(table, operator, value, nList, value2, bIg
         bKeep=true;
         for(c=cStart; c<cEnd; c++){
           val0 = bExternalList ? nList[r] : table[c][r];
-          val = String(val0).toLowerCase();
+          val = val0 == null ? '' : String(val0).toLowerCase();
           if(val == value){
             bKeep=false;
             break;
