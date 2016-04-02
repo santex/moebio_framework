@@ -89,6 +89,7 @@ List.fromArray = function(array) {
   array.indexesOfElements = List.prototype.indexesOfElements;
   array.indexOfByPropertyValue = List.prototype.indexOfByPropertyValue;
   array.getFirstElementByName = List.prototype.getFirstElementByName;
+  array.getElementByName = List.prototype.getElementByName;
   array.getElementsByNames = List.prototype.getElementsByNames;
   array.getFirstElementByPropertyValue = List.prototype.getFirstElementByPropertyValue;
   array.add = List.prototype.add;
@@ -117,6 +118,9 @@ List.fromArray = function(array) {
   array.getSubListByType = List.prototype.getSubListByType;
   array.getFilteredByPropertyValue = List.prototype.getFilteredByPropertyValue;
   array.getFilteredByBooleanList = List.prototype.getFilteredByBooleanList;
+
+  array.toStringList = List.prototype.toStringList;
+  array.toNumberList = List.prototype.toNumberList;
 
   array.clone = List.prototype.clone;
   array.toString = List.prototype.toString;
@@ -1080,14 +1084,26 @@ List.prototype.indexesOfElements = function(elements) {
 };
 
 /**
- * Returns the first element (or index) of an element in the with a given name.
- *
+ * [!] deprectated, use getElementByName.
  * @param  {String} name of element
  * @param  {Boolean} returnIndex if true returns the index of element (false by default)
- * @return {List}
- * tags: filter
+ * @return {Object}
+ * tags: deprecated
  */
 List.prototype.getFirstElementByName = function(name, returnIndex) {
+  return this.getElementByName(name, returnIndex);
+};
+
+/**
+ * Returns the first element (or index) in the list with the given name
+ * @param  {String} name of element
+ * @param  {Boolean} returnIndex if true returns the index of element (false by default)
+ * @return {Object}
+ * tags: filter
+ */
+List.prototype.getElementByName = function(name, returnIndex) {
+  if(name==null) return null;
+
   var l = this.length;
   for(var i = 0; i<l; i++) {
     if(this[i].name == name) return returnIndex ? i : this[i];
@@ -1179,6 +1195,7 @@ List.prototype.getFilteredByBooleanList = function(booleanList) {
   }
   return newList.getImproved();
 };
+
 
 /**
  * Filters a list by the values of a property on its elements, and a type of comparison (equal by default).
@@ -1345,7 +1362,6 @@ List.prototype.getWithoutElements = function(list) {//TODO: more efficiency with
 /**
  * Returns subset of List where true is returned from
  * given function that is executed on each element in the List.
- *
  * @param {Function} func Function to run on each element.
  * If the function returns true, the element is maintained in the
  * returned List.
@@ -1392,6 +1408,47 @@ List.prototype.concat = function() {
     }
   }
   return List.fromArray(this._concat.apply(this, arguments)).getImproved();
+};
+
+
+/**
+ * Converts the List into a NumberList
+ * @return {NumberList}
+ * tags:conversion
+ */
+List.prototype.toNumberList = function() {
+  var numberList = new NumberList();
+  var l = this.length;
+  var i;
+
+  numberList.name = this.name;
+
+  for(i = 0; i<l; i++) {
+    numberList[i] = Number(this[i]);
+  }
+  return numberList;
+};
+
+/**
+ * Converts the List into a StringList
+ * @return {StringList}
+ * tags:conversion
+ */
+List.prototype.toStringList = function() {
+  var l = this.length;
+  var i;
+  var stringList = new StringList();
+
+  stringList.name = this.name;
+  for(i = 0; i<l; i++) {
+    stringList[i] = String(this[i]);
+    // if(typeof this[i] == 'number') {
+    //   stringList[i] = String(this[i]);
+    // } else {
+    //   stringList[i] = this[i].toString();
+    // }
+  }
+  return stringList;
 };
 
 
