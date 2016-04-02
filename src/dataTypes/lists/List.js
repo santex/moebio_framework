@@ -547,13 +547,14 @@ List.prototype.getWithoutRepetitions = function() {
  * @param  {Number} nCategories number of diferent elemenets in the resulting list
  *
  * @param  {Object} othersElement to be placed instead of the less common elements ("other" by default)
+ * @param  {NumberList} nLWeights to use for weighting importance of each element. If not specified then simple frequency is used.
  * @return {List} simplified list
  * tags:
  */
-List.prototype.getSimplified = function(nCategories, othersElement) {
+List.prototype.getSimplified = function(nCategories, othersElement, nLWeights) {
   if(!nCategories) return;
 
-  var freqTable = this.getFrequenciesTable();
+  var freqTable = this.getFrequenciesTable(true,false,false,nLWeights);
   var frequencyIndexesDictionary = ListOperators.getSingleIndexDictionaryForList(freqTable[0]);
   var i;
   var l = this.length;
@@ -607,14 +608,15 @@ List.prototype.countOccurrences = function() { //TODO: more efficient
 /**
  * returns a table with a list of non repeated elements and a list with the numbers of occurrences for each one.
  *
- * @param  {Boolean} sortListsByOccurrences if true both lists in the table will be sorted by number of occurences (most frequent on top), true by default
+ * @param {Boolean} sortListsByOccurrences if true both lists in the table will be sorted by number of occurences (most frequent on top), true by default
  * @param {Boolean} addWeightsNormalizedToSum adds a 3rd list with weights normalized to sum (convenient to proportion visualizations)
  * @param {Boolean} addCategoricalColors adds a list of categorical colors
+ * @param {NumberList} nLWeights to use for weighting importance of each element. If not specified then simple frequency is used.
  * @return {Table} Table containing a List of non-repeated elements and a NumberList of the frequency of each element.
  * tags:count
  * previous_name:getElementsRepetitionCount
  */
-List.prototype.getFrequenciesTable = function(sortListsByOccurrences, addWeightsNormalizedToSum, addCategoricalColors) {
+List.prototype.getFrequenciesTable = function(sortListsByOccurrences, addWeightsNormalizedToSum, addCategoricalColors,nLWeights) {
   sortListsByOccurrences = sortListsByOccurrences == null?true:sortListsByOccurrences;
 
   var table = new Table();
@@ -638,7 +640,10 @@ List.prototype.getFrequenciesTable = function(sortListsByOccurrences, addWeights
       numberList[index] = 0;
       table._indexesDictionary[this[i]]= index;
     }
-    numberList[index]++;
+    if(nLWeights && i < nLWeights.length)
+      numberList[index]+= nLWeights[i];
+    else
+      numberList[index]++;
   }
 
   if(sortListsByOccurrences){
