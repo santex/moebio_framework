@@ -1,5 +1,6 @@
 import List from "src/dataTypes/lists/List";
 import Interval from "src/dataTypes/numeric/Interval";
+import NumberList from "src/dataTypes/numeric/NumberList";
 
 IntervalList.prototype = new List();
 IntervalList.prototype.constructor = IntervalList;
@@ -26,9 +27,11 @@ function IntervalList() {
   }
   var array = List.apply(this, args);
   array = IntervalList.fromArray(array);
+
   return array;
 }
 export default IntervalList;
+
 
 /**
  * Creates a new IntervalList from a raw array of intervals.
@@ -38,25 +41,29 @@ export default IntervalList;
  */
 IntervalList.fromArray = function(array) {
   var result = List.fromArray(array);
-  var l = result.length;
+  //var l = result.length;
 
-	for(var i = 0; i < l; i++) {
-	  result[i] = result[i];
-	}
+	// for(var i = 0; i < l; i++) {
+	//   result[i] = result[i];
+	// }
 
   result.type = "IntervalList";
+
+  result.getInterval = IntervalList.prototype.getInterval;
+  result.getAmplitudes = IntervalList.prototype.getAmplitudes;
 
   return result;
 };
 
-/**
- * Builds an Interval with min and max value from the NumberList
- *
- * @return {Interval} with starting value as the min of the NumberList
- * and ending value as the max.
+
+ /**
+ * builds an Interval with min and max value from the NumberList
+ * @return {Interval}
+ * tags:
  */
 IntervalList.prototype.getInterval = function() {
   if(this.length === 0) return null;
+
   var max = Math.max(this[0].x, this[0].y);
   var min = Math.min(this[0].x, this[0].y);
   var l = this.length;
@@ -68,3 +75,24 @@ IntervalList.prototype.getInterval = function() {
   var interval = new Interval(min, max);
   return interval;
 };
+
+/**
+ * return the Intervals amplitudes
+ * @return {NumberList}
+ * tags:
+ */
+IntervalList.prototype.getAmplitudes = function() {
+  if(this.length === 0) return null;
+
+  var i;
+  var numberList = new NumberList();
+
+  for(i=0; i<this.length; i++){
+    numberList[i] = this[i].getAmplitude();
+  }
+
+  return numberList;
+};
+
+
+

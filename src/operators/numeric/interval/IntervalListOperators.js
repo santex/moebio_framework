@@ -1,4 +1,6 @@
 import List from "src/dataTypes/lists/List";
+import Interval from "src/dataTypes/numeric/Interval";
+import IntervalList from "src/dataTypes/numeric/IntervalList";
 
 /**
  * @classdesc Provides a set of tools that work with Interval Lists.
@@ -29,4 +31,20 @@ IntervalListOperators.scaleIntervals = function(intervalList, value) {
   }
 
   return newIntervalList;
+};
+
+
+
+IntervalListOperators.numberListsToIntervalList = function(numberList0, numberList1) {
+  if(numberList0==null || numberList1==null) return;
+
+  var l = Math.min(numberList0.length, numberList1.length);
+  var i;
+  var intervalList = new IntervalList();
+
+  for(i=0; i<l; i++){
+    intervalList.push(new Interval(numberList0[i], numberList1[i]));
+  }
+
+  return intervalList;
 };
