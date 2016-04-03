@@ -8350,7 +8350,7 @@
       infoObject.categoricalColors = infoObject.frequenciesTable[3];
       
 
-      if(list.type=="StringList" && infoObject.numberDifferentElements/list.length>0.8){
+      if((list.type=="StringList" || list.type=="List")&& infoObject.numberDifferentElements/list.length>0.8){
         //if 80% of texts are different, they aren't reckoned as categories
         infoObject.kind = "texts";
       } else if(list.type!="NumberList"){// ||  (list.type=="NumberList" && infoObject.numberDifferentElements/list.length<0.8) ){
