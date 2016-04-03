@@ -20690,9 +20690,6 @@
     console.log(table.type);
     console.log(table.type == "NumberTable", table.length > 2, table.length==table[0].length);
 
-
-    //NumberTable
-
     if(table.type == "NumberTable" && table.length > 2  && table.length==table[0].length){
       nElements = table.length;
 
@@ -20717,7 +20714,6 @@
       return network;
     }
 
-    //
 
     //trace("••••••• createNetworkFromPairsTable", table);
     if(allowMultipleRelations == null) allowMultipleRelations = false;
