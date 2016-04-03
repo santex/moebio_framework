@@ -226,7 +226,7 @@ StringListOperators.countStringsOccurrencesOnTexts = function(strings, texts, as
  * builds a table with a list of occurrent words and numberLists for occurrences in each string
  * @param  {StringList} texts
  *
- * @param {Number} weightsMode weights mode<br>0: words count (default)<br>1: words count normalized to sum (a single word weights add up 1)<br>2:tf-idf simple (term frequency - inverse document frequency), divides number of occurrences in string by total number of texts the word occurs (see: https://en.wikipedia.org/wiki/Tf%E2%80%93idf)<br>3:tf-idf classic (idf = log(N/nt))
+ * @param {Number} weightsMode weights mode<br>0: words count (default)<br>1: words count normalized to sum (a single word weights add up 1)<br>2:tf-idf simple (term frequency - inverse document frequency), divides number of occurrences in string by total number of texts the word occurs (see: https://en.wikipedia.org/wiki/Tf%E2%80%93idf)<br>3:tf-idf classic (idf = log(N/nt))<br>4:tf-df (term frequency * document frequency) words that are both common in a text and in the corpus get high score
  * @param {StringList} stopWords words to be excluded from the list (if value is 1, stopwords will be default english stopwrods at StringOperators.STOP_WORDS)
  * @param {Boolean} includeLinks
  * @param {Number} wordsLimitPerString number of words extracted per string
@@ -249,7 +249,7 @@ StringListOperators.getWordsInTextsOccurrencesTable = function(texts, weightsMod
   wordsLimitPerString = wordsLimitPerString || 500;
   totalWordsLimit = totalWordsLimit || 1000;
   var normalize = weightsMode==1;
-  var tfidf = weightsMode==2 || weightsMode==3;
+  var tfidf = weightsMode==2 || weightsMode==3 || weightsMode==4;
   sortByTotalWeight = (sortByTotalWeight || true);
   minSizeWords = minSizeWords == null ? 3 : minSizeWords;
 
@@ -306,11 +306,19 @@ StringListOperators.getWordsInTextsOccurrencesTable = function(texts, weightsMod
             totalList[j] += occurrencesInText[j];
           }
         }
-      } else {
+      } else if(weightsMode==3){
         for(i=1; i<matrix.length; i++){
           occurrencesInText = matrix[i];
           for(j=0; j<occurrencesInText.length; j++){
             occurrencesInText[j] *= Math.log(nTexts/idf[j]);
+            totalList[j] += occurrencesInText[j];
+          }
+        }
+      } else if(weightsMode==4){
+        for(i=1; i<matrix.length; i++){
+          occurrencesInText = matrix[i];
+          for(j=0; j<occurrencesInText.length; j++){
+            occurrencesInText[j] *= idf[j];
             totalList[j] += occurrencesInText[j];
           }
         }
