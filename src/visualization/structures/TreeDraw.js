@@ -118,9 +118,14 @@ TreeDraw.drawTreemap = function(frame, tree, colorList, weights, textColor, exte
     nLeaves = leaves.length;
 
     if(weights == null) {
+
+      var weightProperty = tree.nodeList[0].weight==null?"descentWeight":"weight";
+
+      console.log('•••••••••••••••••••••••••••••••••••••••••••••••••••••••••••• weightProperty:['+weightProperty+']');
+
       //tree.nodeList.forEach(function(node) {
       for(i=0; i<nNodes; i++){
-        tree.nodeList[i]._treeMapWeight = tree.nodeList[i].descentWeight;
+        tree.nodeList[i]._treeMapWeight = tree.nodeList[i][weightProperty];//.descentWeight;
       }
       //});
     } else {
