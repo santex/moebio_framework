@@ -1180,6 +1180,7 @@
     array.indexesOfElements = List.prototype.indexesOfElements;
     array.indexOfByPropertyValue = List.prototype.indexOfByPropertyValue;
     array.getFirstElementByName = List.prototype.getFirstElementByName;
+    array.getElementByName = List.prototype.getElementByName;
     array.getElementsByNames = List.prototype.getElementsByNames;
     array.getFirstElementByPropertyValue = List.prototype.getFirstElementByPropertyValue;
     array.add = List.prototype.add;
@@ -1208,6 +1209,9 @@
     array.getSubListByType = List.prototype.getSubListByType;
     array.getFilteredByPropertyValue = List.prototype.getFilteredByPropertyValue;
     array.getFilteredByBooleanList = List.prototype.getFilteredByBooleanList;
+
+    array.toStringList = List.prototype.toStringList;
+    array.toNumberList = List.prototype.toNumberList;
 
     array.clone = List.prototype.clone;
     array.toString = List.prototype.toString;
@@ -2176,14 +2180,26 @@
   };
 
   /**
-   * Returns the first element (or index) of an element in the with a given name.
-   *
+   * [!] deprectated, use getElementByName.
    * @param  {String} name of element
    * @param  {Boolean} returnIndex if true returns the index of element (false by default)
-   * @return {List}
-   * tags: filter
+   * @return {Object}
+   * tags: deprecated
    */
   List.prototype.getFirstElementByName = function(name, returnIndex) {
+    return this.getElementByName(name, returnIndex);
+  };
+
+  /**
+   * Returns the first element (or index) in the list with the given name
+   * @param  {String} name of element
+   * @param  {Boolean} returnIndex if true returns the index of element (false by default)
+   * @return {Object}
+   * tags: filter
+   */
+  List.prototype.getElementByName = function(name, returnIndex) {
+    if(name==null) return null;
+
     var l = this.length;
     for(var i = 0; i<l; i++) {
       if(this[i].name == name) return returnIndex ? i : this[i];
@@ -2275,6 +2291,7 @@
     }
     return newList.getImproved();
   };
+
 
   /**
    * Filters a list by the values of a property on its elements, and a type of comparison (equal by default).
@@ -2441,7 +2458,6 @@
   /**
    * Returns subset of List where true is returned from
    * given function that is executed on each element in the List.
-   *
    * @param {Function} func Function to run on each element.
    * If the function returns true, the element is maintained in the
    * returned List.
@@ -2488,6 +2504,47 @@
       }
     }
     return List.fromArray(this._concat.apply(this, arguments)).getImproved();
+  };
+
+
+  /**
+   * Converts the List into a NumberList
+   * @return {NumberList}
+   * tags:conversion
+   */
+  List.prototype.toNumberList = function() {
+    var numberList = new NumberList();
+    var l = this.length;
+    var i;
+
+    numberList.name = this.name;
+
+    for(i = 0; i<l; i++) {
+      numberList[i] = Number(this[i]);
+    }
+    return numberList;
+  };
+
+  /**
+   * Converts the List into a StringList
+   * @return {StringList}
+   * tags:conversion
+   */
+  List.prototype.toStringList = function() {
+    var l = this.length;
+    var i;
+    var stringList = new StringList();
+
+    stringList.name = this.name;
+    for(i = 0; i<l; i++) {
+      stringList[i] = String(this[i]);
+      // if(typeof this[i] == 'number') {
+      //   stringList[i] = String(this[i]);
+      // } else {
+      //   stringList[i] = this[i].toString();
+      // }
+    }
+    return stringList;
   };
 
 
@@ -4064,7 +4121,7 @@
   /**
    * get a numberList of time (milliseconds) values
    * @return {NumberList}
-   * tags:conversor
+   * tags:conversion
    */
   DateList.prototype.getTimes = function() {
     var i;
@@ -5419,7 +5476,7 @@
   /**
    * prefix and sufix can be string or a StringList
    */
-  StringList.prototype.getSurrounded = function(prefix, sufix) {
+  StringList.prototype.getSurrounded = function(prefix, sufix) {//to be deprecated
     var newStringList = new StringList();
     newStringList.name = this.name;
     var i;
@@ -6749,49 +6806,49 @@
   function ListConversions() {}
   /**
    * Converts the List into a NumberList.
-   *
    * @param  {List} list
    * @return {NumberList}
-   * tags:conversion
+   * tags:deprecated
    */
   ListConversions.toNumberList = function(list) {
     if(list==null) return;
+    return list.toNumberList();
 
-    var numberList = new NumberList();
-    var l = list.length;
-    var i;
+    // var numberList = new NumberList();
+    // var l = list.length;
+    // var i;
 
-    numberList.name = list.name;
-    for(i = 0; i<l; i++) {
-      numberList[i] = Number(list[i]);
-    }
-    return numberList;
+    // numberList.name = list.name;
+    // for(i = 0; i<l; i++) {
+    //   numberList[i] = Number(list[i]);
+    // }
+    // return numberList;
   };
 
   /**
    * Converts the List into a StringList.
-   *
    * @param  {List} list
    * @return {StringList}
-   * tags:conversion
+   * tags:deprecated
    */
   ListConversions.toStringList = function(list) {
     if(list==null) return;
+    return list.toStringList();
 
-    var l = list.length;
-    var i;
-    var stringList = new StringList();
+    // var l = list.length;
+    // var i;
+    // var stringList = new StringList();
 
-    stringList.name = list.name;
-    for(i = 0; i<l; i++) {
-      stringList[i] = String(list[i]);
-      // if(typeof list[i] == 'number') {
-      //   stringList[i] = String(list[i]);
-      // } else {
-      //   stringList[i] = list[i].toString();
-      // }
-    }
-    return stringList;
+    // stringList.name = list.name;
+    // for(i = 0; i<l; i++) {
+    //   stringList[i] = String(list[i]);
+    //   // if(typeof list[i] == 'number') {
+    //   //   stringList[i] = String(list[i]);
+    //   // } else {
+    //   //   stringList[i] = list[i].toString();
+    //   // }
+    // }
+    // return stringList;
   };
 
   /**
@@ -13485,6 +13542,7 @@
     }
     var array = List.apply(this, args);
     array = IntervalList.fromArray(array);
+
     return array;
   }
   /**
@@ -13495,25 +13553,29 @@
    */
   IntervalList.fromArray = function(array) {
     var result = List.fromArray(array);
-    var l = result.length;
+    //var l = result.length;
 
-  	for(var i = 0; i < l; i++) {
-  	  result[i] = result[i];
-  	}
+  	// for(var i = 0; i < l; i++) {
+  	//   result[i] = result[i];
+  	// }
 
     result.type = "IntervalList";
+
+    result.getInterval = IntervalList.prototype.getInterval;
+    result.getAmplitudes = IntervalList.prototype.getAmplitudes;
 
     return result;
   };
 
-  /**
-   * Builds an Interval with min and max value from the NumberList
-   *
-   * @return {Interval} with starting value as the min of the NumberList
-   * and ending value as the max.
+
+   /**
+   * builds an Interval with min and max value from the NumberList
+   * @return {Interval}
+   * tags:
    */
   IntervalList.prototype.getInterval = function() {
     if(this.length === 0) return null;
+
     var max = Math.max(this[0].x, this[0].y);
     var min = Math.min(this[0].x, this[0].y);
     var l = this.length;
@@ -13524,6 +13586,24 @@
     }
     var interval = new Interval(min, max);
     return interval;
+  };
+
+  /**
+   * return the Intervals amplitudes
+   * @return {NumberList}
+   * tags:
+   */
+  IntervalList.prototype.getAmplitudes = function() {
+    if(this.length === 0) return null;
+
+    var i;
+    var numberList = new NumberList();
+
+    for(i=0; i<this.length; i++){
+      numberList[i] = this[i].getAmplitude();
+    }
+
+    return numberList;
   };
 
   /**
@@ -20438,6 +20518,22 @@
     return newIntervalList;
   };
 
+
+
+  IntervalListOperators.numberListsToIntervalList = function(numberList0, numberList1) {
+    if(numberList0==null || numberList1==null) return;
+
+    var l = Math.min(numberList0.length, numberList1.length);
+    var i;
+    var intervalList = new IntervalList();
+
+    for(i=0; i<l; i++){
+      intervalList.push(new Interval(numberList0[i], numberList1[i]));
+    }
+
+    return intervalList;
+  };
+
   /**
    * @classdesc Provides a set of tools that work with {@link Table|Tables} of
    * Intervals.
@@ -20594,6 +20690,9 @@
     console.log(table.type);
     console.log(table.type == "NumberTable", table.length > 2, table.length==table[0].length);
 
+
+    //NumberTable
+
     if(table.type == "NumberTable" && table.length > 2  && table.length==table[0].length){
       nElements = table.length;
 
@@ -20618,6 +20717,7 @@
       return network;
     }
 
+    //
 
     //trace("••••••• createNetworkFromPairsTable", table);
     if(allowMultipleRelations == null) allowMultipleRelations = false;
@@ -21898,7 +21998,7 @@
    * builds a table with a list of occurrent words and numberLists for occurrences in each string
    * @param  {StringList} texts
    *
-   * @param {Number} weightsMode weights mode<br>0: words count (default)<br>1: words count normalized to sum (a single word weights add up 1)<br>2:tf-idf simple (term frequency - inverse document frequency), divides number of occurrences in string by total number of texts the word occurs (see: https://en.wikipedia.org/wiki/Tf%E2%80%93idf)<br>3:tf-idf classic (idf = log(N/nt))
+   * @param {Number} weightsMode weights mode<br>0: words count (default)<br>1: words count normalized to sum (a single word weights add up 1)<br>2:tf-idf simple (term frequency - inverse document frequency), divides number of occurrences in string by total number of texts the word occurs (see: https://en.wikipedia.org/wiki/Tf%E2%80%93idf)<br>3:tf-idf classic (idf = log(N/nt))<br>4:tf-df (term frequency * document frequency) words that are both common in a text and in the corpus get high score
    * @param {StringList} stopWords words to be excluded from the list (if value is 1, stopwords will be default english stopwrods at StringOperators.STOP_WORDS)
    * @param {Boolean} includeLinks
    * @param {Number} wordsLimitPerString number of words extracted per string
@@ -21921,7 +22021,7 @@
     wordsLimitPerString = wordsLimitPerString || 500;
     totalWordsLimit = totalWordsLimit || 1000;
     var normalize = weightsMode==1;
-    var tfidf = weightsMode==2 || weightsMode==3;
+    var tfidf = weightsMode==2 || weightsMode==3 || weightsMode==4;
     sortByTotalWeight = (sortByTotalWeight || true);
     minSizeWords = minSizeWords == null ? 3 : minSizeWords;
 
@@ -21978,11 +22078,19 @@
               totalList[j] += occurrencesInText[j];
             }
           }
-        } else {
+        } else if(weightsMode==3){
           for(i=1; i<matrix.length; i++){
             occurrencesInText = matrix[i];
             for(j=0; j<occurrencesInText.length; j++){
               occurrencesInText[j] *= Math.log(nTexts/idf[j]);
+              totalList[j] += occurrencesInText[j];
+            }
+          }
+        } else if(weightsMode==4){
+          for(i=1; i<matrix.length; i++){
+            occurrencesInText = matrix[i];
+            for(j=0; j<occurrencesInText.length; j++){
+              occurrencesInText[j] *= idf[j];
               totalList[j] += occurrencesInText[j];
             }
           }
@@ -32211,9 +32319,14 @@
       nLeaves = leaves.length;
 
       if(weights == null) {
+
+        var weightProperty = tree.nodeList[0].weight==null?"descentWeight":"weight";
+
+        console.log('•••••••••••••••••••••••••••••••••••••••••••••••••••••••••••• weightProperty:['+weightProperty+']');
+
         //tree.nodeList.forEach(function(node) {
         for(i=0; i<nNodes; i++){
-          tree.nodeList[i]._treeMapWeight = tree.nodeList[i].descentWeight;
+          tree.nodeList[i]._treeMapWeight = tree.nodeList[i][weightProperty];//.descentWeight;
         }
         //});
       } else {
