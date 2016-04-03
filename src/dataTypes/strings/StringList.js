@@ -99,7 +99,7 @@ StringList.prototype.append = function(sufix, after) {
 /**
  * prefix and sufix can be string or a StringList
  */
-StringList.prototype.getSurrounded = function(prefix, sufix) {
+StringList.prototype.getSurrounded = function(prefix, sufix) {//to be deprecated
   var newStringList = new StringList();
   newStringList.name = this.name;
   var i;

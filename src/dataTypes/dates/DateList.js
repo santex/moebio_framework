@@ -54,7 +54,7 @@ DateList.fromArray = function(array, forceToDate) {
 /**
  * get a numberList of time (milliseconds) values
  * @return {NumberList}
- * tags:conversor
+ * tags:conversion
  */
 DateList.prototype.getTimes = function() {
   var i;
