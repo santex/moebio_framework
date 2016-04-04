@@ -606,7 +606,7 @@ List.prototype.countElement = function(element) {
 
 /**
  * returns a NumberList of same size as list with number of occurrences for each element.
- * @return {numberList}
+ * @return {NumberList}
  * tags:count
  */
 List.prototype.countOccurrences = function() { //TODO: more efficient
