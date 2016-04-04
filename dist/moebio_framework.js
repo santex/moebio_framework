@@ -1205,7 +1205,8 @@
     array.getSortedRandom = List.prototype.getSortedRandom;
     //filter:
     array.getSubList = List.prototype.getSubList;
-    array.getSubListByIndexes = List.prototype.getSubListByIndexes;
+    array.getSubListByIndexes = List.prototype.getSubListByIndexes;//deprecated
+    array.getElements = List.prototype.getElements;
     array.getSubListByType = List.prototype.getSubListByType;
     array.getFilteredByPropertyValue = List.prototype.getFilteredByPropertyValue;
     array.getFilteredByBooleanList = List.prototype.getFilteredByBooleanList;
@@ -1515,14 +1516,27 @@
     return newList.getImproved();
   };
 
+
+
   /**
    * returns all elements in indexes.
-   *
+   * @param {NumberList} indexes
+   * @return {List}
+   * tags:deprecated
+   * replaceBy:getElements
+   */
+  List.prototype.getSubListByIndexes = function() {
+    return this.getElements.apply(this, arguments);
+  };
+
+
+  /**
+   * returns all elements in indexes.
    * @param {NumberList} indexes
    * @return {List}
    * tags:filter
    */
-  List.prototype.getSubListByIndexes = function() { //TODO: merge with getSubList
+  List.prototype.getElements = function() { //TODO: merge with getSubList
     if(this.length < 1) return this;
     var indexes;
     if(_typeOf(arguments[0]) == 'number') {
@@ -22432,10 +22446,11 @@
    * @param {Table} table
    *
    * @param {String} fatherName name of father node
+   * @param {Boolean} colorsOnLeaves
    * @return {Tree}
    * tags:conversion
    */
-  TreeConversions.TableToTree = function(table, fatherName)  {
+  TreeConversions.TableToTree = function(table, fatherName, colorsOnLeaves)  {
     if(table == null) return;
 
     fatherName = fatherName == null ? "father" : fatherName;
@@ -22451,15 +22466,17 @@
     var nElements = table[0].length;
     var i, j;
     var list, element;
+    var leavesColorsDictionary;
 
-    //var nodesDictionary = {};
+    if(colorsOnLeaves){
+      leavesColorsDictionary = ColorListGenerators.createCategoricalColorListForList(table[nLists-1])[4].value;
+    }
 
     for(i=0; i<nLists; i++){
       list = table[i];
       if(list.length!=nElements) return null;
       
       for(j=0; j<nElements; j++){
-        //console.log('------------------j:', j);
         element = list[j];
         
         id = TreeConversions._getId(table, i, j);
@@ -22467,26 +22484,16 @@
         if(node == null) {
           node = new Node(id, String(element));
 
-          //console.log('\n');
-          //console.log(node);
-          //nodesDictionary[ (i+"**"+j) ] = node;
-          //console.log('+++['+ (i+"**"+j)+']');//'   -->', nodesDictionary[ (i+"**"+j) ]);
+          if( colorsOnLeaves && i==(nLists-1) ) {
+            
+            node.color = leavesColorsDictionary[element];
+          }
 
           if(i === 0) {
             tree.addNodeToTree(node, father);
           } else {
             
-            //parent = nodesDictionary[ ((i-1)+"**"+j) ];// tree.nodeList.getNodeById(TreeConversions._getId(table, i - 1, j)); //<----why it doesn't work??
             parent = tree.nodeList.getNodeById(TreeConversions._getId(table, i - 1, j));
-            
-            // if(parent==null) {
-            //   console.log('<<<['+ ((i-1)+"**"+j)+']' );
-            //   console.log('nodesDictionary:', nodesDictionary);
-            //   console.log(tree.nodeList);
-            //   return;
-            // } else {
-            //   console.log('√');
-            // }
 
             tree.addNodeToTree(node, parent);
           }
@@ -32296,6 +32303,8 @@
     var leaves;
     var nLeaves;
 
+    console.log('change', change);
+
     if(change) {
       var changeInTree = frame.memory==null || frame.memory.tree!=tree;
       //console.log('changeInTree', changeInTree);
@@ -32331,8 +32340,6 @@
       if(weights == null) {
 
         var weightProperty = tree.nodeList[0].weight==null?"descentWeight":"weight";
-
-        console.log('•••••••••••••••••••••••••••••••••••••••••••••••••••••••••••• weightProperty:['+weightProperty+']');
 
         //tree.nodeList.forEach(function(node) {
         for(i=0; i<nNodes; i++){
@@ -32400,10 +32407,20 @@
       //});
     }
 
-    if(frame.memory.colorList != colorList || frame.memory.colorList == null) {
+    //var changeInColor = 
+
+    if(frame.memory.colorList != colorList || frame.memory.actualColorList == null) {
+      if(leaves==null) leaves = tree.getLeaves();
+      
       frame.memory.nFLastChange = graphics.nF;
       frame.memory.image = null;
-      frame.memory.actualColorList = colorList == null ? ColorListGenerators.createCategoricalColors(0, tree.nLevels, ColorScales.grayToOrange, 0.1) : colorList;
+      if(colorList!=null){
+        frame.memory.actualColorList = colorList;
+      } else if(leaves[0].color!=null){
+        frame.memory.actualColorList = leaves.getPropertyValues('color');
+      } else {
+        frame.memory.actualColorList = colorList == null ? ColorListGenerators.createCategoricalColors(0, tree.nLevels, ColorScales.grayToOrange, 0.1) : colorList;
+      }
       frame.memory.nodesColorList = new ColorList();
       if(textColor == null) frame.memory.textsColorList = new ColorList();
 
