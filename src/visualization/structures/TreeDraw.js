@@ -85,6 +85,8 @@ TreeDraw.drawTreemap = function(frame, tree, colorList, weights, textColor, exte
   var leaves;
   var nLeaves;
 
+  console.log('change', change);
+
   if(change) {
     var changeInTree = frame.memory==null || frame.memory.tree!=tree;
     //console.log('changeInTree', changeInTree);
@@ -120,8 +122,6 @@ TreeDraw.drawTreemap = function(frame, tree, colorList, weights, textColor, exte
     if(weights == null) {
 
       var weightProperty = tree.nodeList[0].weight==null?"descentWeight":"weight";
-
-      console.log('•••••••••••••••••••••••••••••••••••••••••••••••••••••••••••• weightProperty:['+weightProperty+']');
 
       //tree.nodeList.forEach(function(node) {
       for(i=0; i<nNodes; i++){
@@ -189,10 +189,20 @@ TreeDraw.drawTreemap = function(frame, tree, colorList, weights, textColor, exte
     //});
   }
 
-  if(frame.memory.colorList != colorList || frame.memory.colorList == null) {
+  //var changeInColor = 
+
+  if(frame.memory.colorList != colorList || frame.memory.actualColorList == null) {
+    if(leaves==null) leaves = tree.getLeaves();
+    
     frame.memory.nFLastChange = graphics.nF;
     frame.memory.image = null;
-    frame.memory.actualColorList = colorList == null ? ColorListGenerators.createCategoricalColors(0, tree.nLevels, ColorScales.grayToOrange, 0.1) : colorList;
+    if(colorList!=null){
+      frame.memory.actualColorList = colorList;
+    } else if(leaves[0].color!=null){
+      frame.memory.actualColorList = leaves.getPropertyValues('color');
+    } else {
+      frame.memory.actualColorList = colorList == null ? ColorListGenerators.createCategoricalColors(0, tree.nLevels, ColorScales.grayToOrange, 0.1) : colorList;
+    }
     frame.memory.nodesColorList = new ColorList();
     if(textColor == null) frame.memory.textsColorList = new ColorList();
 
