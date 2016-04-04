@@ -38,16 +38,73 @@ function Table() {
   var args = [];
   var i;
   var nArgs = arguments.length;
+  var tableName;
 
-  for(i = 0; i < nArgs; i++) {
-    args[i] = new List(arguments[i]);
+  if (nArgs == 1) {
+    // ARRAY check if the argument is an array.
+    if ( Array.isArray(arguments[0]) ) {
+      // and check if it is a two dimensional array. If so treat the inner elements of the nested array as it they were the arguments
+      if ( Array.isArray(arguments[0][0]) )
+        args = fetchTableArray(arguments[0].length, arguments[0]);
+      else
+        args = fetchTableArray(nArgs, arguments);
+    }
+    // NUMBER if the argument is a number, create a Table with that number of empty Lists
+    else if ( typeof arguments[0] == 'number' ){
+      for (var i=0; i<arguments[0]; i++) {
+        args.push( new List() );
+      }
+    }
+    // STRING if the argument is a String. create an empty Table with a name
+    else if ( typeof arguments[0] == 'string' ){
+      tableName = arguments[0];
+    }
+    // OTHER everything else is placed inside a List and then pushed to the new Table
+    else {
+      args[i] = new List(arguments[i]);
+    }
+
+  } // with more than one arguments create an array to parse it as a Table
+  else {
+
+    args = fetchTableArray(nArgs, arguments);
+
   }
 
   var array = List.apply(this, args);
   array = Table.fromArray(array);
+  if (tableName) array.name = tableName;
 
   return array;
 }
+/* Receives the number of arguments, and the arguments to create the array
+ * that later will become in the returned Table */
+function fetchTableArray(nArgs, argmnts) {
+  var _args = [];
+
+  for(var i = 0; i < nArgs; i++) {
+    // LIST check if the argument is a moebio_framework list
+    if (argmnts[i]["isList"]) {
+      _args[i] = argmnts[i].clone(); //If so, cloned it
+    }
+    // ARRAY check if is an array. If so, make a copy of it
+    else if ( Array.isArray(argmnts[i]) ) {
+      _args[i] = argmnts[i].slice();
+    }
+    // STRING check if the argument is a string, If so create a List using the string as name
+    else if ( typeof argmnts[0] == 'string' ) {
+      var L = new List();
+      L.name = argmnts[0];
+      _args[i] = L;
+    }
+    // OTHER everything else is placed inside a List and then pushed to the new Table
+    else {
+      _args[i] = new List(argmnts[i]);
+    }
+  }
+  return _args.slice();
+}
+
 export default Table;
 
 /**
@@ -298,7 +355,7 @@ Table.prototype.getTransposed = function(firstListAsHeaders, headersAsFirstList)
   }
 
   nElements = tableToTranspose[0].length;
-  
+
   if(this.type != "NumberTable"){
     for(j = 0; j<nElements; j++) {
       table[j] = table[j].getImproved();
