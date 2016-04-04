@@ -94,7 +94,7 @@ TableOperators.getSubTable = function(table, x, y, width, height) {
  */
 TableOperators.filterTable = function(table, operator, value, nList, value2, bIgnoreCase){
   // input validation and defaults
-  if(table==null || table.length === 0) return;
+  if(table==null || table.length === 0 || table[0]==null) return;
   if(operator==null) operator='=c';
   if(operator == '=') operator = '==';
   var nLKeep = new NumberList();
