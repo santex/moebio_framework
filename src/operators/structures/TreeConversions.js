@@ -1,6 +1,7 @@
 import Tree from "src/dataTypes/structures/networks/Tree";
 import Node from "src/dataTypes/structures/elements/Node";
 import NumberList from "src/dataTypes/numeric/NumberList";
+import ColorListGenerators from "src/operators/graphic/ColorListGenerators";
 
 /**
  * @classdesc Tools to convert Trees to other data types
@@ -18,10 +19,11 @@ export default TreeConversions;
  * @param {Table} table
  *
  * @param {String} fatherName name of father node
+ * @param {Boolean} colorsOnLeaves
  * @return {Tree}
  * tags:conversion
  */
-TreeConversions.TableToTree = function(table, fatherName)  {
+TreeConversions.TableToTree = function(table, fatherName, colorsOnLeaves)  {
   if(table == null) return;
 
   fatherName = fatherName == null ? "father" : fatherName;
@@ -37,15 +39,17 @@ TreeConversions.TableToTree = function(table, fatherName)  {
   var nElements = table[0].length;
   var i, j;
   var list, element;
+  var leavesColorsDictionary;
 
-  //var nodesDictionary = {};
+  if(colorsOnLeaves){
+    leavesColorsDictionary = ColorListGenerators.createCategoricalColorListForList(table[nLists-1])[4].value;
+  }
 
   for(i=0; i<nLists; i++){
     list = table[i];
     if(list.length!=nElements) return null;
     
     for(j=0; j<nElements; j++){
-      //console.log('------------------j:', j);
       element = list[j];
       
       id = TreeConversions._getId(table, i, j);
@@ -53,26 +57,16 @@ TreeConversions.TableToTree = function(table, fatherName)  {
       if(node == null) {
         node = new Node(id, String(element));
 
-        //console.log('\n');
-        //console.log(node);
-        //nodesDictionary[ (i+"**"+j) ] = node;
-        //console.log('+++['+ (i+"**"+j)+']');//'   -->', nodesDictionary[ (i+"**"+j) ]);
+        if( colorsOnLeaves && i==(nLists-1) ) {
+          
+          node.color = leavesColorsDictionary[element];
+        }
 
         if(i === 0) {
           tree.addNodeToTree(node, father);
         } else {
           
-          //parent = nodesDictionary[ ((i-1)+"**"+j) ];// tree.nodeList.getNodeById(TreeConversions._getId(table, i - 1, j)); //<----why it doesn't work??
           parent = tree.nodeList.getNodeById(TreeConversions._getId(table, i - 1, j));
-          
-          // if(parent==null) {
-          //   console.log('<<<['+ ((i-1)+"**"+j)+']' );
-          //   console.log('nodesDictionary:', nodesDictionary);
-          //   console.log(tree.nodeList);
-          //   return;
-          // } else {
-          //   console.log('√');
-          // }
 
           tree.addNodeToTree(node, parent);
         }
