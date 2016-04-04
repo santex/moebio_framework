@@ -114,7 +114,8 @@ List.fromArray = function(array) {
   array.getSortedRandom = List.prototype.getSortedRandom;
   //filter:
   array.getSubList = List.prototype.getSubList;
-  array.getSubListByIndexes = List.prototype.getSubListByIndexes;
+  array.getSubListByIndexes = List.prototype.getSubListByIndexes;//deprecated
+  array.getElements = List.prototype.getElements;
   array.getSubListByType = List.prototype.getSubListByType;
   array.getFilteredByPropertyValue = List.prototype.getFilteredByPropertyValue;
   array.getFilteredByBooleanList = List.prototype.getFilteredByBooleanList;
@@ -424,14 +425,27 @@ List.prototype.getSubListByType = function(type) {
   return newList.getImproved();
 };
 
+
+
 /**
  * returns all elements in indexes.
- *
+ * @param {NumberList} indexes
+ * @return {List}
+ * tags:deprecated
+ * replaceBy:getElements
+ */
+List.prototype.getSubListByIndexes = function() {
+  return this.getElements.apply(this, arguments);
+};
+
+
+/**
+ * returns all elements in indexes.
  * @param {NumberList} indexes
  * @return {List}
  * tags:filter
  */
-List.prototype.getSubListByIndexes = function() { //TODO: merge with getSubList
+List.prototype.getElements = function() { //TODO: merge with getSubList
   if(this.length < 1) return this;
   var indexes;
   if(typeOf(arguments[0]) == 'number') {
