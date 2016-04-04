@@ -1308,9 +1308,23 @@ ListOperators.buildInformationObject = function(list){
     infoObject.categoricalColors = infoObject.frequenciesTable[3];
     
 
-    if((list.type=="StringList" || list.type=="List")&& infoObject.numberDifferentElements/list.length>0.8){
+    if(list.type=="StringList" && infoObject.numberDifferentElements/list.length>0.8){
       //if 80% of texts are different, they aren't reckoned as categories
       infoObject.kind = "texts";
+    } else if(list.type=="List"){
+      // Count number of category-like unique items and look at ratio
+      var iCategoryLike=0;
+      for(i=0; i<infoObject.frequenciesTable[0].length; i++){
+        val=infoObject.frequenciesTable[0][i];
+        if(isNaN(parseFloat(val)) || !isFinite(val))
+          iCategoryLike++; // string
+        else if(Math.floor(val) == val && val < 1000)
+          iCategoryLike++; // simple integer less than 1000
+      }
+      if(iCategoryLike/infoObject.numberDifferentElements>0.8)
+        infoObject.kind = "categories";
+      else
+        infoObject.kind = "texts";
     } else if(list.type!="NumberList"){// ||  (list.type=="NumberList" && infoObject.numberDifferentElements/list.length<0.8) ){
       infoObject.kind = "categories";
     } else if(list.type=="NumberList"){
