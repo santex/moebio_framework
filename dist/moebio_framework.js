@@ -19685,6 +19685,61 @@
   };
 
   /**
+  * Concatenate all the rows of each table into one final table.
+  * If necessary all the columns within each table are padded to the same length with ''
+  * @param {Table} table0
+  * @param {Table} table1
+  * 
+  * @param {Table} table2
+  * @param {Table} table3
+  * @param {Table} table4
+  * @param {Table} table5
+  * @return {Table}
+  * tags: data
+  */
+  TableOperators.concatRows = function() {
+    if(arguments == null || arguments.length === 0 ||  arguments[0] == null) return null;
+    if(arguments.length == 1) return arguments[0];
+
+    var i,j,tab1,tabResult,namePrev;
+    // find maximum number of cols
+    var maxCols=0;
+    for(i = 0; i<arguments.length; i++) {
+      maxCols = Math.max(maxCols,arguments[i].length);
+      if(!arguments[i].isTable){
+        console.log('TableOperators.concatRows arguments must be tables.');
+        return null;
+      }
+    }
+
+    for(i = 0; i<arguments.length; i++) {
+      tab1 = arguments[i];
+      var nLLengths = tab1.getLengths();
+      var maxLen = nLLengths.getMax();
+      var minLen = nLLengths.getMin();
+      if(maxLen != minLen){
+        // complete the table so all cols have same length
+        tab1 = TableOperators.completeTable(tab1,maxLen,'');
+      }
+      while(tab1.length < maxCols){
+        tab1.push(ListGenerators.createListWithSameElement(maxLen,'',''));
+      }
+      if(i == 0)
+        tabResult = tab1.clone();
+      else{
+        // concat each list
+        for(j = 0; j<tabResult.length; j++){
+          namePrev = tabResult[j].name; // concat loses name
+          tabResult[j] = tabResult[j].concat(tab1[j]);
+          tabResult[j].name = namePrev != '' ? namePrev : tab1[j].name;
+        }
+      }
+    }
+
+    return tabResult;
+  };
+
+  /**
    * @classdesc Tools to convert Tables to other data types
    *
    * @namespace
