@@ -2117,6 +2117,7 @@ TableOperators.concatRows = function() {
   // find maximum number of cols
   var maxCols=0;
   for(i = 0; i<arguments.length; i++) {
+    if(arguments[i] == null) continue;
     maxCols = Math.max(maxCols,arguments[i].length);
     if(!arguments[i].isTable){
       console.log('TableOperators.concatRows arguments must be tables.');
@@ -2125,6 +2126,7 @@ TableOperators.concatRows = function() {
   }
 
   for(i = 0; i<arguments.length; i++) {
+    if(arguments[i] == null) continue;
     tab1 = arguments[i];
     var nLLengths = tab1.getLengths();
     var maxLen = nLLengths.getMax();
