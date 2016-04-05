@@ -52,13 +52,12 @@ function NumberTable() {
     }
   }
   else if ( arguments.length > 1) {
-    // arguments as numbers will be a NumberTable with 1 NumberList
+    // arguments as numbers will be a NumberTable with one NumberList for each number
     if( typeof args[0] == 'number' ) {
-        var arr=[];
         for (var i=0; i<args.length; i++) {
-            arr.push(args[i]);
+            var arr=[args[i]];
+            array.push(arr);
         }
-        array.push(arr);
     }
     // for arguments other than numbers. turns the arguments into an array
     else {
@@ -196,7 +195,7 @@ NumberTable.prototype.getMinValues = function() {
 
   var mins = new NumberList();
   var i;
-  
+
   for(i = 0; this[i] != null; i++) {
     mins[i] = this[i].getMin();
   }
