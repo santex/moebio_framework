@@ -62,7 +62,7 @@ Table.prototype.constructor = Table;
      }
      // OTHER everything else is placed inside a List and then pushed to the new Table
      else {
-       args[i] = new List(arguments[i]);
+        args.push( new List(arguments[0]) );
      }
 
    } // with more than one arguments create an array to parse it as a Table
