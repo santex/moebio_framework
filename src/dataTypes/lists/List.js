@@ -130,6 +130,7 @@ List.fromArray = function(array) {
   array.getWithoutElementAtIndex = List.prototype.getWithoutElementAtIndex;
   array.getWithoutElement = List.prototype.getWithoutElement;
   array.getWithoutElements = List.prototype.getWithoutElements;
+  array.getWithoutElements = List.prototype.getWithoutElements;
   array.getWithoutElementsAtIndexes = List.prototype.getWithoutElementsAtIndexes;
   array.getFilteredByFunction = List.prototype.getFilteredByFunction;
   array._concat = Array.prototype.concat;
@@ -1271,8 +1272,12 @@ List.prototype.applyFunction = function(func) {
 };
 
 
-//filtering
-
+/**
+ * Removes an element and returns a new list.
+ * @param  {NumberList} indexes of elements to remove
+ * @return {List}
+ * tags:filter
+ */
 List.prototype.getWithoutElementsAtIndexes = function(indexes) {
   var i;
   var newList;
@@ -1293,7 +1298,6 @@ List.prototype.getWithoutElementsAtIndexes = function(indexes) {
 
 /**
  * Removes an element and returns a new list.
- *
  * @param  {Number} index of element to remove
  * @return {List}
  * tags:filter
