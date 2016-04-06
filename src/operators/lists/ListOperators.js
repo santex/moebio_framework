@@ -308,8 +308,11 @@ ListOperators.getIndexesTable = function(list){
   indexesTable[1] = new NumberTable();
   var indexesDictionary = {};
   var indexOnTable;
+  var element;
+  var i;
 
-  list.forEach(function(element, i){
+  for(i=0; i<list.length; i++){
+    element = list[i];
     indexOnTable = indexesDictionary[element];
     if(indexOnTable==null){
       indexesTable[0].push(element);
@@ -318,7 +321,18 @@ ListOperators.getIndexesTable = function(list){
     } else {
       indexesTable[1][indexOnTable].push(i);
     }
-  });
+  }
+
+  // list.forEach(function(element, i){
+  //   indexOnTable = indexesDictionary[element];
+  //   if(indexOnTable==null){
+  //     indexesTable[0].push(element);
+  //     indexesTable[1].push(new NumberList(i));
+  //     indexesDictionary[element]=indexesTable[0].length-1;
+  //   } else {
+  //     indexesTable[1][indexOnTable].push(i);
+  //   }
+  // });
 
   indexesTable[0] = indexesTable[0].getImproved();
 
