@@ -549,564 +549,207 @@
     return newNode;
   };
 
+  _Point.prototype = new DataModel();
+  _Point.prototype.constructor = _Point;
+
   /**
-   * @classdesc Provides a set of tools that work with Colors.
+   * @classdesc Represents a 2D point in space.
    *
-   * @namespace
-   * @category colors
+   * @description Creates a new Point
+   * @param {Number} x
+   * @param {Number} y
+   * @constructor
+   * @category geometry
    */
-  function ColorOperators() {}
-  // TODO: create Color struture to be used instead of arrays [255, 100,0] ?
-
+  function _Point(x, y) {
+    DataModel.apply(this, arguments);
+    this.type = "Point";
+    this.x = Number(x) || 0;
+    this.y = Number(y) || 0;
+  }
   /**
-   * return a color between color0 and color1
-   * 0 -> color0
-   * 1 -> color1
-   * @param {String} color0
-   * @param {String} color1
-   * @param value between 0 and 1 (to obtain color between color0 and color1)
-   * @return {String} interpolated color
-   *
-   */
-  ColorOperators.interpolateColors = function(color0, color1, value) {
-    var result = ColorOperators.interpolateColorsRGB(ColorOperators.colorStringToRGB(color0), ColorOperators.colorStringToRGB(color1), value);
-    return 'rgb('+Math.floor(result[0])+','+Math.floor(result[1])+','+Math.floor(result[2])+')';
-  };
-
-
-  /**
-   * return a color between color0 and color1
-   * 0 -> color0
-   * 1 -> color1
-   * @param {Array} color0 RGB
-   * @param {Array} color1 RGB
-   * @param value between 0 and 1 (to obtain values between color0 and color1)
-   * @return {Array} interpolated RGB color
-   *
-   */
-  ColorOperators.interpolateColorsRGB = function(color0, color1, value) {
-    var s = 1 - value;
-    return [Math.floor(s * color0[0] + value * color1[0]), Math.floor(s * color0[1] + value * color1[1]), Math.floor(s * color0[2] + value * color1[2])];
+  * Returns the {@link https://en.wikipedia.org/wiki/Norm_(mathematics)#Euclidean_norm|Euclidean norm} of the Point.
+  */
+  _Point.prototype.getNorm = function() {
+    return Math.sqrt(Math.pow(this.x, 2) + Math.pow(this.y, 2));
   };
 
   /**
-   * converts an hexadecimal color to RGB
-   * @param {String} an hexadecimal color string
-   * @return {Array} returns an RGB color Array
-   *
-   */
-  ColorOperators.HEXtoRGB = function(hexColor) {
-    return [parseInt(hexColor.substr(1, 2), 16), parseInt(hexColor.substr(3, 2), 16), parseInt(hexColor.substr(5, 2), 16)];
-  };
-
-
-  /**
-   * Converts RGB values to a hexadecimal color string.
-   * @param {Number} red R value.
-   * @param {Number} green G value.
-   * @param {Number} blue B value.
-   * @return {String} hexadecimal representation of the colors.
-   */
-  ColorOperators.RGBtoHEX = function(red, green, blue) {
-    return "#" + ColorOperators.toHex(Math.floor(red)) + ColorOperators.toHex(Math.floor(green)) + ColorOperators.toHex(Math.floor(blue));
+  * Returns a Number between -π and π representing the angle theta of the Point.
+  * Uses {@link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/atan2|atan2}.
+  * @return {Number} Angle of Point.
+  */
+  _Point.prototype.getAngle = function() {
+    return Math.atan2(this.y, this.x);
   };
 
   /**
-   * @todo write docs
-   */
-  ColorOperators.RGBArrayToString = function(array) {
-    return 'rgb(' + array[0] + ',' + array[1] + ',' + array[2] + ')';
+  * Returns a new Point scaled by the input factor k. If k is a Number, the x and y
+  * are scaled by that number. If k is a Point, then the x and y of the two points
+  * are multiplied.
+  * @param {Number|Point} k Factor to scale by.
+  * @return {Point} New scaled Point.
+  */
+  _Point.prototype.factor = function(k) {
+    if(k >= 0 || k < 0) return new _Point(this.x * k, this.y * k);
+    if(k.type != null && k.type == 'Point') return new _Point(this.x * k.x, this.y * k.y);
   };
 
   /**
-   * @todo write docs
-   */
-  ColorOperators.colorStringToHEX = function(color_string) {
-    var rgb = ColorOperators.colorStringToRGB(color_string);
-    return ColorOperators.RGBtoHEX(rgb[0], rgb[1], rgb[2]);
-  };
-
-
-  /**
-   * @todo write docs
-   */
-  ColorOperators.numberToHex = function(number) {
-    var hex = number.toString(16);
-    while(hex.length < 2) hex = "0" + hex;
-    return hex;
+  * Normalize x and y values of the point by the Point's Euclidean Norm.
+  * @return {Point} Normalized Point.
+  */
+  _Point.prototype.normalize = function() {
+    var norm = Math.sqrt(Math.pow(this.x, 2) + Math.pow(this.y, 2));
+    return new _Point(this.x / norm, this.y / norm);
   };
 
   /**
-   * @todo write docs
-   */
-  ColorOperators.uinttoRGB = function(color) {
-    var rgbColor = new Array(color >> 16, (color >> 8) - ((color >> 16) << 8), color - ((color >> 8) << 8));
-    return rgbColor;
+  * Normalize x and y values of the point by the Point's Euclidean Norm and then
+  * scale them by the input factor k.
+  * @param {Number} k Factor to scale by.
+  * @return {Point} Normalized Point.
+  */
+  _Point.prototype.normalizeToValue = function(k) {
+    var factor = k / Math.sqrt(Math.pow(this.x, 2) + Math.pow(this.y, 2));
+    return new _Point(this.x * factor, this.y * factor);
   };
 
   /**
-   * @todo write docs
-   */
-  ColorOperators.uinttoHEX = function(color) {
-    var rgbColor = ColorOperators.uinttoRGB(color);
-    var hexColor = ColorOperators.RGBToHEX(rgbColor[0], rgbColor[1], rgbColor[2]);
-    return hexColor;
+  * Subtracts given Point from this Point.
+  * @param {Point} point The point to subtract
+  * @return {Point} New subtracted Point.
+  */
+  _Point.prototype.subtract = function(point) {
+    return new _Point(this.x - point.x, this.y - point.y);
   };
 
   /**
-   * @todo write docs
-   */
-  ColorOperators.RGBtouint = function(red, green, blue) {
-    return Number(red) << 16 | Number(green) << 8 | Number(blue);
+  * Adds given Point to this Point.
+  * @param {Point} point The point to add
+  * @return {Point} New added Point.
+  */
+  _Point.prototype.add = function(point) {
+    return new _Point(point.x + this.x, point.y + this.y);
   };
 
   /**
-   * @todo write docs
-   */
-  ColorOperators.HEXtouint = function(hexColor) {
-    var colorArray = ColorOperators.HEXtoRGB(hexColor);
-    var color = ColorOperators.RGBtouint(colorArray[0], colorArray[1], colorArray[2]);
-    return color;
+  * Adds x and y values to this Point
+  * @param {Number} x X value to add
+  * @param {Number} y Y value to add
+  * @return {Point} New Point with added values.
+  */
+  _Point.prototype.addCoordinates = function(x, y) {
+    return new _Point(x + this.x, y + this.y);
   };
 
   /**
-   * @todo write docs
-   */
-  ColorOperators.grayByLevel = function(level) {
-    level = Math.floor(level * 255);
-    return 'rgb(' + level + ',' + level + ',' + level + ')';
+  * Provides the Euclidean distance between this Point and another Point.
+  * @param {Point} point The point to provide distance to.
+  * @return {Number} Distance between two points.
+  */
+  _Point.prototype.distanceToPoint = function(point) {
+    return Math.sqrt(Math.pow(this.x - point.x, 2) + Math.pow(this.y - point.y, 2));
   };
 
   /**
-   * converts an hexadecimal color to HSV
-   * @param {String} an hexadecimal color string
-   * @return {Array} returns an HSV color Array
-   *
-   */
-  ColorOperators.HEXtoHSV = function(hexColor) {
-    var rgb = ColorOperators.HEXtoRGB(hexColor);
-    return ColorOperators.RGBtoHSV(rgb[0], rgb[1], rgb[2]);
-  };
-
-
-  /**
-   * @todo write docs
-   */
-  ColorOperators.HSVtoHEX = function(hue, saturation, value) {
-    var rgb = ColorOperators.HSVtoRGB(hue, saturation, value);
-    return ColorOperators.RGBtoHEX(rgb[0], rgb[1], rgb[2]);
+  * Provides a Euclidean-like distance without square-rooting the result
+  * between this Point and another Point.
+  * @param {Point} point The point to provide distance to.
+  * @return {Number} Distance squared between two points.
+  */
+  _Point.prototype.distanceToPointSquared = function(point) {
+    return Math.pow(this.x - point.x, 2) + Math.pow(this.y - point.y, 2);
   };
 
   /**
-   * @todo write docs
-   */
-  ColorOperators.HSLtoHEX = function(hue, saturation, light) {
-    var rgb = ColorOperators.HSLtoRGB(hue, saturation, light);
-    return ColorOperators.RGBtoHEX(rgb[0], rgb[1], rgb[2]);
+  * Returns a Number between -π and π representing the angle theta between this Point
+  * and another Point
+  * Uses {@link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/atan2|atan2}.
+  * @param {Point} point The point to provide angle from.
+  * @return {Number} Angle of Point.
+  */
+  _Point.prototype.angleToPoint = function(point) {
+    return Math.atan2(point.y - this.y, point.x - this.x);
   };
 
   /**
-   * converts an RGB color to HSV
-   * @param {Array} a RGB color array
-   * @return {Array} returns a HSV color array
-   * H in [0,360], S in [0,1], V in [0,1]
-   */
-  ColorOperators.RGBtoHSV = function(r, g, b) {
-      var h;
-      var s;
-      var v;
-      var min = Math.min(Math.min(r, g), b);
-      var max = Math.max(Math.max(r, g), b);
-      v = max / 255;
-      var delta = max - min;
-      if(delta === 0) return new Array(0, 0, r / 255);
-      if(max !== 0) {
-        s = delta / max;
-      } else {
-        s = 0;
-        h = -1;
-        return new Array(h, s, v);
-      }
-      if(r == max) {
-        h = (g - b) / delta;
-      } else if(g == max) {
-        h = 2 + (b - r) / delta;
-      } else {
-        h = 4 + (r - g) / delta;
-      }
-      h *= 60;
-      if(h < 0) h += 360;
-      return new Array(h, s, v);
-    };
-
-  /**
-   * converts an HSV color to RGB
-   * @param {Array} a HSV color array
-   * @return {Array} returns a RGB color array
-   */
-  ColorOperators.HSVtoRGB = function(hue, saturation, value) {
-    hue = hue ? hue : 0;
-    saturation = saturation ? saturation : 0;
-    value = value ? value : 0;
-    var r;
-    var g;
-    var b;
-    //
-    var i;
-    var f;
-    var p;
-    var q;
-    var t;
-    if(saturation === 0) {
-      r = g = b = value;
-      return [Math.floor(r * 255), Math.floor(g * 255), Math.floor(b * 255)];
-    }
-    hue /= 60;
-    i = Math.floor(hue);
-    f = hue - i;
-    p = value * (1 - saturation);
-    q = value * (1 - saturation * f);
-    t = value * (1 - saturation * (1 - f));
-    switch(i) {
-      case 0:
-        r = value;
-        g = t;
-        b = p;
-        break;
-      case 1:
-        r = q;
-        g = value;
-        b = p;
-        break;
-      case 2:
-        r = p;
-        g = value;
-        b = t;
-        break;
-      case 3:
-        r = p;
-        g = q;
-        b = value;
-        break;
-      case 4:
-        r = t;
-        g = p;
-        b = value;
-        break;
-      default:
-        r = value;
-        g = p;
-        b = q;
-        break;
-    }
-    return new Array(Math.floor(r * 255), Math.floor(g * 255), Math.floor(b * 255));
+  * Creates a new Point who's x and y values are added to by the factor multiplied
+  *  by the difference between the current Point and the provided Point.
+  * @param {Point} point Point to find difference between current point of
+  * @return {Point} Expanded Point.
+  */
+  _Point.prototype.expandFromPoint = function(point, factor) {
+    return new _Point(point.x + factor * (this.x - point.x), point.y + factor * (this.y - point.y));
   };
 
   /**
-   * Converts an HSL color value to RGB. Conversion formula
-   * adapted from http://en.wikipedia.org/wiki/HSL_color_space.
-   * Assumes hue is contained in the interval [0,360) and saturation and l are contained in the set [0, 1]
-   */
-  ColorOperators.HSLtoRGB = function(hue, saturation, light) {
-    var r, g, b;
-
-    function hue2rgb(p, q, t) {
-      if(t < 0) t += 1;
-      if(t > 1) t -= 1;
-      if(t < 1 / 6) return p + (q - p) * 6 * t;
-      if(t < 1 / 2) return q;
-      if(t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
-      return p;
-    }
-
-    if(saturation === 0) {
-      r = g = b = light; // achromatic
-    } else {
-      var q = light < 0.5 ? light * (1 + saturation) : light + saturation - light * saturation;
-      var p = 2 * light - q;
-      r = hue2rgb(p, q, (hue / 360) + 1 / 3);
-      g = hue2rgb(p, q, hue / 360);
-      b = hue2rgb(p, q, (hue / 360) - 1 / 3);
-    }
-
-    return [Math.floor(r * 255), Math.floor(g * 255), Math.floor(b * 255)];
+  * Creates a new Point who's x and y values are multiplied by the difference
+  * between the current Point and the provided Point. The factor value is added
+  * to both x and y of this new Point.
+  * @param {Point} point Point to find difference between current point of
+  * @return {Point} Expanded Point.
+  */
+  _Point.prototype.interpolate = function(point, t) {
+    return new _Point((1 - t) * this.x + t * point.x, (1 - t) * this.y + t * point.y);
   };
 
   /**
-   * @todo write docs
-   */
-  ColorOperators.invertColorRGB = function(r, g, b) {
-    return [255 - r, 255 - g, 255 - b];
+  * Crosses the x and y values.
+  * Returns the value of this Point's x multiplied by the provided Point's y value,
+  * subtracted by the provided Point's y value multiplied by this Point's x value.
+  * @param {Point} point Point to cross
+  * @return {Number} Crossed value.
+  */
+  _Point.prototype.cross = function(point) {
+    return this.x * point.y - this.y * point.x;
   };
 
   /**
-   * @todo write docs
-   */
-  ColorOperators.addAlpha = function(color, alpha) {
-    //var rgb = color.substr(0,3)=='rgb'?ColorOperators.colorStringToRGB(color):ColorOperators.HEXtoRGB(color);
-    var rgb = ColorOperators.colorStringToRGB(color);
-    if(rgb == null) return 'black';
-    return 'rgba(' + rgb[0] + ',' + rgb[1] + ',' + rgb[2] + ',' + alpha + ')';
+  * Calculates the dot product between two points.
+  * @param {Point} point Point to compute dot product with
+  * @return {Number} Dot Product
+  */
+  _Point.prototype.dot = function(point) {
+    return this.x * point.x + this.y * point.y;
   };
 
   /**
-   * @todo write docs
-   */
-  ColorOperators.invertColor = function(color) {
-    var rgb = ColorOperators.colorStringToRGB(color);
-    rgb = ColorOperators.invertColorRGB(rgb[0], rgb[1], rgb[2]);
-    return ColorOperators.RGBtoHEX(rgb[0], rgb[1], rgb[2]);
+  * Rotates a Point around a given center
+  * @param {Number} angle Amount to rotate by
+  * @param {Number} center to rotate around. If not provided, rotate around 0,0
+  * @return {Point} New Point the result of this Point rotated by angle around center.
+  */
+  _Point.prototype.getRotated = function(angle, center) {
+    center = center == null ? new _Point() : center;
+
+    return new _Point(Math.cos(angle) * (this.x - center.x) - Math.sin(angle) * (this.y - center.y) + center.x, Math.sin(angle) * (this.x - center.x) + Math.cos(angle) * (this.y - center.y) + center.y);
   };
 
   /**
-   * @todo write docs
-   */
-  ColorOperators.toHex = function(number) {
-    var hex = number.toString(16);
-    while(hex.length < 2) hex = "0" + hex;
-    return hex;
+  * Copies this Point.
+  * @return {Point} Copy of this point
+  */
+  _Point.prototype.clone = function() {
+    return new _Point(this.x, this.y);
   };
 
   /**
-   * @todo write docs
-   */
-  ColorOperators.getRandomColor = function() {
-    return 'rgb(' + String(Math.floor(Math.random() * 256)) + ',' + String(Math.floor(Math.random() * 256)) + ',' + String(Math.floor(Math.random() * 256)) + ')';
+  * Provides a string representation of the Point.
+  * @return {String} string output
+  */
+  _Point.prototype.toString = function() {
+    return "(x=" + this.x + ", y=" + this.y + ")";
   };
 
-
-  /////// Universal matching
-
-
-
   /**
-   * This method was partially obtained (and simplified) from a Class by Stoyan Stefanov: "A class to parse color values / @author Stoyan Stefanov <sstoo@gmail.com> / @link   http://www.phpied.com/rgb-color-parser-in-javascript/ / @license Use it if you like it"
-   * @param {String} color_string color as a string (e.g. "red", "#0044ff", "rgb(130,20,100)")
-   * @return {Array} rgb array
-   * tags:
-   */
-  ColorOperators.colorStringToRGB = function(color_string) {
-    //c.log('color_string:['+color_string+']');
-
-    // strip any leading #
-    if(color_string.charAt(0) == '#') { // remove # if any
-      color_string = color_string.substr(1, 6);
-      //c.log('-> color_string:['+color_string+']');
-    }
-
-    color_string = color_string.replace(/ /g, '');
-    color_string = color_string.toLowerCase();
-
-    // before getting into regexps, try simple matches
-    // and overwrite the input
-    var simple_colors = {
-      aliceblue: 'f0f8ff',
-      antiquewhite: 'faebd7',
-      aqua: '00ffff',
-      aquamarine: '7fffd4',
-      azure: 'f0ffff',
-      beige: 'f5f5dc',
-      bisque: 'ffe4c4',
-      black: '000000',
-      blanchedalmond: 'ffebcd',
-      blue: '0000ff',
-      blueviolet: '8a2be2',
-      brown: 'a52a2a',
-      burlywood: 'deb887',
-      cadetblue: '5f9ea0',
-      chartreuse: '7fff00',
-      chocolate: 'd2691e',
-      coral: 'ff7f50',
-      cornflowerblue: '6495ed',
-      cornsilk: 'fff8dc',
-      crimson: 'dc143c',
-      cyan: '00ffff',
-      darkblue: '00008b',
-      darkcyan: '008b8b',
-      darkgoldenrod: 'b8860b',
-      darkgray: 'a9a9a9',
-      darkgreen: '006400',
-      darkkhaki: 'bdb76b',
-      darkmagenta: '8b008b',
-      darkolivegreen: '556b2f',
-      darkorange: 'ff8c00',
-      darkorchid: '9932cc',
-      darkred: '8b0000',
-      darksalmon: 'e9967a',
-      darkseagreen: '8fbc8f',
-      darkslateblue: '483d8b',
-      darkslategray: '2f4f4f',
-      darkturquoise: '00ced1',
-      darkviolet: '9400d3',
-      deeppink: 'ff1493',
-      deepskyblue: '00bfff',
-      dimgray: '696969',
-      dodgerblue: '1e90ff',
-      feldspar: 'd19275',
-      firebrick: 'b22222',
-      floralwhite: 'fffaf0',
-      forestgreen: '228b22',
-      fuchsia: 'ff00ff',
-      gainsboro: 'dcdcdc',
-      ghostwhite: 'f8f8ff',
-      gold: 'ffd700',
-      goldenrod: 'daa520',
-      gray: '808080',
-      green: '008000',
-      greenyellow: 'adff2f',
-      honeydew: 'f0fff0',
-      hotpink: 'ff69b4',
-      indianred: 'cd5c5c',
-      indigo: '4b0082',
-      ivory: 'fffff0',
-      khaki: 'f0e68c',
-      lavender: 'e6e6fa',
-      lavenderblush: 'fff0f5',
-      lawngreen: '7cfc00',
-      lemonchiffon: 'fffacd',
-      lightblue: 'add8e6',
-      lightcoral: 'f08080',
-      lightcyan: 'e0ffff',
-      lightgoldenrodyellow: 'fafad2',
-      lightgrey: 'd3d3d3',
-      lightgreen: '90ee90',
-      lightpink: 'ffb6c1',
-      lightsalmon: 'ffa07a',
-      lightseagreen: '20b2aa',
-      lightskyblue: '87cefa',
-      lightslateblue: '8470ff',
-      lightslategray: '778899',
-      lightsteelblue: 'b0c4de',
-      lightyellow: 'ffffe0',
-      lime: '00ff00',
-      limegreen: '32cd32',
-      linen: 'faf0e6',
-      magenta: 'ff00ff',
-      maroon: '800000',
-      mediumaquamarine: '66cdaa',
-      mediumblue: '0000cd',
-      mediumorchid: 'ba55d3',
-      mediumpurple: '9370d8',
-      mediumseagreen: '3cb371',
-      mediumslateblue: '7b68ee',
-      mediumspringgreen: '00fa9a',
-      mediumturquoise: '48d1cc',
-      mediumvioletred: 'c71585',
-      midnightblue: '191970',
-      mintcream: 'f5fffa',
-      mistyrose: 'ffe4e1',
-      moccasin: 'ffe4b5',
-      navajowhite: 'ffdead',
-      navy: '000080',
-      oldlace: 'fdf5e6',
-      olive: '808000',
-      olivedrab: '6b8e23',
-      orange: 'ffa500',
-      orangered: 'ff4500',
-      orchid: 'da70d6',
-      palegoldenrod: 'eee8aa',
-      palegreen: '98fb98',
-      paleturquoise: 'afeeee',
-      palevioletred: 'd87093',
-      papayawhip: 'ffefd5',
-      peachpuff: 'ffdab9',
-      peru: 'cd853f',
-      pink: 'ffc0cb',
-      plum: 'dda0dd',
-      powderblue: 'b0e0e6',
-      purple: '800080',
-      red: 'ff0000',
-      rosybrown: 'bc8f8f',
-      royalblue: '4169e1',
-      saddlebrown: '8b4513',
-      salmon: 'fa8072',
-      sandybrown: 'f4a460',
-      seagreen: '2e8b57',
-      seashell: 'fff5ee',
-      sienna: 'a0522d',
-      silver: 'c0c0c0',
-      skyblue: '87ceeb',
-      slateblue: '6a5acd',
-      slategray: '708090',
-      snow: 'fffafa',
-      springgreen: '00ff7f',
-      steelblue: '4682b4',
-      tan: 'd2b48c',
-      teal: '008080',
-      thistle: 'd8bfd8',
-      tomato: 'ff6347',
-      turquoise: '40e0d0',
-      violet: 'ee82ee',
-      violetred: 'd02090',
-      wheat: 'f5deb3',
-      white: 'ffffff',
-      whitesmoke: 'f5f5f5',
-      yellow: 'ffff00',
-      yellowgreen: '9acd32'
-    };
-
-    if(simple_colors[color_string] != null) color_string = simple_colors[color_string];
-
-
-    // array of color definition objects
-    var color_defs = [
-    {
-      re: /^rgb\((\d{1,3}),\s*(\d{1,3}),\s*(\d{1,3})\)$/,
-      //example: ['rgb(123, 234, 45)', 'rgb(255,234,245)'],
-      process: function(bits) {
-        return [
-          parseInt(bits[1]),
-          parseInt(bits[2]),
-          parseInt(bits[3])
-        ];
-      }
-    },
-    {
-      re: /^rgba\((\d{1,3}),\s*(\d{1,3}),\s*(\d{1,3}),[\.0123456789]+\)$/,
-      //example: ['rgb(123, 234, 45)', 'rgb(255,234,245)', 'rgba(200,100,120,0.3)'],
-      process: function(bits) {
-        return [
-          parseInt(bits[1]),
-          parseInt(bits[2]),
-          parseInt(bits[3])
-        ];
-      }
-    },
-    {
-      re: /^(\w{2})(\w{2})(\w{2})$/,
-      //example: ['#00ff00', '336699'],
-      process: function(bits) {
-        return [
-          parseInt(bits[1], 16),
-          parseInt(bits[2], 16),
-          parseInt(bits[3], 16)
-        ];
-      }
-    },
-    {
-      re: /^(\w{1})(\w{1})(\w{1})$/,
-      //example: ['#fb0', 'f0f'],
-      process: function(bits) {
-        return [
-          parseInt(bits[1] + bits[1], 16),
-          parseInt(bits[2] + bits[2], 16),
-          parseInt(bits[3] + bits[3], 16)
-        ];
-      }
-    }];
-
-    // search through the definitions to find a match
-    for(var i = 0; i < color_defs.length; i++) {
-      var re = color_defs[i].re;
-      var processor = color_defs[i].process;
-      var bits = re.exec(color_string);
-      if(bits) {
-        return processor(bits);
-      }
-
-    }
-
-    return null;
+  * Deletes Point.
+  */
+  _Point.prototype.destroy = function() {
+    delete this.type;
+    delete this.name;
+    delete this.x;
+    delete this.y;
   };
 
   List.prototype = new DataModel();
@@ -1220,6 +863,7 @@
     array.applyFunction = List.prototype.applyFunction;
     array.getWithoutElementAtIndex = List.prototype.getWithoutElementAtIndex;
     array.getWithoutElement = List.prototype.getWithoutElement;
+    array.getWithoutElements = List.prototype.getWithoutElements;
     array.getWithoutElements = List.prototype.getWithoutElements;
     array.getWithoutElementsAtIndexes = List.prototype.getWithoutElementsAtIndexes;
     array.getFilteredByFunction = List.prototype.getFilteredByFunction;
@@ -2362,8 +2006,12 @@
   };
 
 
-  //filtering
-
+  /**
+   * Removes an element and returns a new list.
+   * @param  {NumberList} indexes of elements to remove
+   * @return {List}
+   * tags:filter
+   */
   List.prototype.getWithoutElementsAtIndexes = function(indexes) {
     var i;
     var newList;
@@ -2384,7 +2032,6 @@
 
   /**
    * Removes an element and returns a new list.
-   *
    * @param  {Number} index of element to remove
    * @return {List}
    * tags:filter
@@ -2683,581 +2330,6 @@
     for(var i = 0; i<l; i++) {
       delete this[i];
     }
-  };
-
-  ColorList.prototype = new List();
-  ColorList.prototype.constructor = ColorList;
-
-  /**
-   * @classdesc A {@link List} for storing Colors.
-   *
-   * Additional functions that work on ColorList can be found in:
-   * <ul>
-   *  <li>Operators:   {@link ColorListOperators}</li>
-   *  <li>Generators: {@link ColorListGenerators}</li>
-   * </ul>
-   *
-   * @description Creates a new ColorList.
-   * @constructor
-   * @category colors
-   */
-  function ColorList() {
-    var args = [];
-    var i;
-    var lArgs = arguments.length;
-    for(i = 0; i < lArgs; i++) {
-      args[i] = arguments[i];
-    }
-    var array = List.apply(this, args);
-    array = ColorList.fromArray(array);
-
-    return array;
-  }
-  /**
-   * Creates a new ColorList from a raw array of values
-   *
-   * @param {String[]} array Array of hex or other color values
-   * @return {ColorList} New ColorList.
-   */
-  ColorList.fromArray = function(array) {
-    var result = List.fromArray(array);
-    result.type = "ColorList";
-    result.getRgbArrays = ColorList.prototype.getRgbArrays;
-    result.getInterpolated = ColorList.prototype.getInterpolated;
-    result.getMix = ColorList.prototype.getMix;
-    result.getInverted = ColorList.prototype.getInverted;
-    result.addAlpha = ColorList.prototype.addAlpha;
-    return result;
-  };
-
-  /**
-   * returns an arrays of rgb values, each stored in an array ([rr,gg,bb])
-   * @return {array} Array of array of RGB values.
-   * tags:
-   */
-  ColorList.prototype.getRgbArrays = function() {
-    var rgbArrays = new List();
-    var l = this.length;
-
-    for(var i = 0; i<l; i++) {
-      rgbArrays[i] = ColorOperators.colorStringToRGB(this[i]);
-    }
-
-    return rgbArrays;
-  };
-
-  /**
-   * interpolates colors with a given color and measure
-   *
-   * @param  {String} color to be interpolated with
-   * @param  {Number} value intenisty of interpolation [0,1]
-   * @return {ColorList}
-   * tags:
-   */
-  ColorList.prototype.getInterpolated = function(color, value) {
-    var newColorList = new ColorList();
-    var l = this.length;
-
-    for(var i = 0; i<l; i++) {
-      newColorList[i] = ColorOperators.interpolateColors(this[i], color, value);
-    }
-
-    newColorList.name = this.name;
-    return newColorList;
-  };
-
-  ColorList.prototype.getMix = function() {
-    var result = [0,0,0];
-    var rgb;
-    var n = this.length;
-    var i;
-    for(i=0; i<n; i++){
-      rgb = ColorOperators.colorStringToRGB(this[i]);
-      result[0]+=rgb[0];
-      result[1]+=rgb[1];
-      result[2]+=rgb[2];
-    }
-    return 'rgb('+Math.floor(result[0]/n)+','+Math.floor(result[1]/n)+','+Math.floor(result[2]/n)+')';
-  };
-
-  /**
-   * inverts all colors
-   * @return {ColorList}
-   * tags:
-   */
-  ColorList.prototype.getInverted = function() {
-    var newColorList = new ColorList();
-    var l = this.length;
-
-    for(var i = 0; i<l; i++) {
-      newColorList[i] = ColorOperators.invertColor(this[i]);
-    }
-
-    newColorList.name = this.name;
-    return newColorList;
-  };
-
-  /**
-   * adds alpha value to all colores
-   * @param {Number} alpha alpha value in [0,1]
-   * @return {ColorList}
-   * tags:
-   */
-  ColorList.prototype.addAlpha = function(alpha) {
-    var newColorList = new ColorList();
-    var l = this.length;
-
-    for(var i = 0; i<l; i++) {
-      newColorList[i] = ColorOperators.addAlpha(this[i], alpha);
-    }
-
-    newColorList.name = this.name;
-    return newColorList;
-  };
-
-  _Point.prototype = new DataModel();
-  _Point.prototype.constructor = _Point;
-
-  /**
-   * @classdesc Represents a 2D point in space.
-   *
-   * @description Creates a new Point
-   * @param {Number} x
-   * @param {Number} y
-   * @constructor
-   * @category geometry
-   */
-  function _Point(x, y) {
-    DataModel.apply(this, arguments);
-    this.type = "Point";
-    this.x = Number(x) || 0;
-    this.y = Number(y) || 0;
-  }
-  /**
-  * Returns the {@link https://en.wikipedia.org/wiki/Norm_(mathematics)#Euclidean_norm|Euclidean norm} of the Point.
-  */
-  _Point.prototype.getNorm = function() {
-    return Math.sqrt(Math.pow(this.x, 2) + Math.pow(this.y, 2));
-  };
-
-  /**
-  * Returns a Number between -π and π representing the angle theta of the Point.
-  * Uses {@link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/atan2|atan2}.
-  * @return {Number} Angle of Point.
-  */
-  _Point.prototype.getAngle = function() {
-    return Math.atan2(this.y, this.x);
-  };
-
-  /**
-  * Returns a new Point scaled by the input factor k. If k is a Number, the x and y
-  * are scaled by that number. If k is a Point, then the x and y of the two points
-  * are multiplied.
-  * @param {Number|Point} k Factor to scale by.
-  * @return {Point} New scaled Point.
-  */
-  _Point.prototype.factor = function(k) {
-    if(k >= 0 || k < 0) return new _Point(this.x * k, this.y * k);
-    if(k.type != null && k.type == 'Point') return new _Point(this.x * k.x, this.y * k.y);
-  };
-
-  /**
-  * Normalize x and y values of the point by the Point's Euclidean Norm.
-  * @return {Point} Normalized Point.
-  */
-  _Point.prototype.normalize = function() {
-    var norm = Math.sqrt(Math.pow(this.x, 2) + Math.pow(this.y, 2));
-    return new _Point(this.x / norm, this.y / norm);
-  };
-
-  /**
-  * Normalize x and y values of the point by the Point's Euclidean Norm and then
-  * scale them by the input factor k.
-  * @param {Number} k Factor to scale by.
-  * @return {Point} Normalized Point.
-  */
-  _Point.prototype.normalizeToValue = function(k) {
-    var factor = k / Math.sqrt(Math.pow(this.x, 2) + Math.pow(this.y, 2));
-    return new _Point(this.x * factor, this.y * factor);
-  };
-
-  /**
-  * Subtracts given Point from this Point.
-  * @param {Point} point The point to subtract
-  * @return {Point} New subtracted Point.
-  */
-  _Point.prototype.subtract = function(point) {
-    return new _Point(this.x - point.x, this.y - point.y);
-  };
-
-  /**
-  * Adds given Point to this Point.
-  * @param {Point} point The point to add
-  * @return {Point} New added Point.
-  */
-  _Point.prototype.add = function(point) {
-    return new _Point(point.x + this.x, point.y + this.y);
-  };
-
-  /**
-  * Adds x and y values to this Point
-  * @param {Number} x X value to add
-  * @param {Number} y Y value to add
-  * @return {Point} New Point with added values.
-  */
-  _Point.prototype.addCoordinates = function(x, y) {
-    return new _Point(x + this.x, y + this.y);
-  };
-
-  /**
-  * Provides the Euclidean distance between this Point and another Point.
-  * @param {Point} point The point to provide distance to.
-  * @return {Number} Distance between two points.
-  */
-  _Point.prototype.distanceToPoint = function(point) {
-    return Math.sqrt(Math.pow(this.x - point.x, 2) + Math.pow(this.y - point.y, 2));
-  };
-
-  /**
-  * Provides a Euclidean-like distance without square-rooting the result
-  * between this Point and another Point.
-  * @param {Point} point The point to provide distance to.
-  * @return {Number} Distance squared between two points.
-  */
-  _Point.prototype.distanceToPointSquared = function(point) {
-    return Math.pow(this.x - point.x, 2) + Math.pow(this.y - point.y, 2);
-  };
-
-  /**
-  * Returns a Number between -π and π representing the angle theta between this Point
-  * and another Point
-  * Uses {@link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/atan2|atan2}.
-  * @param {Point} point The point to provide angle from.
-  * @return {Number} Angle of Point.
-  */
-  _Point.prototype.angleToPoint = function(point) {
-    return Math.atan2(point.y - this.y, point.x - this.x);
-  };
-
-  /**
-  * Creates a new Point who's x and y values are added to by the factor multiplied
-  *  by the difference between the current Point and the provided Point.
-  * @param {Point} point Point to find difference between current point of
-  * @return {Point} Expanded Point.
-  */
-  _Point.prototype.expandFromPoint = function(point, factor) {
-    return new _Point(point.x + factor * (this.x - point.x), point.y + factor * (this.y - point.y));
-  };
-
-  /**
-  * Creates a new Point who's x and y values are multiplied by the difference
-  * between the current Point and the provided Point. The factor value is added
-  * to both x and y of this new Point.
-  * @param {Point} point Point to find difference between current point of
-  * @return {Point} Expanded Point.
-  */
-  _Point.prototype.interpolate = function(point, t) {
-    return new _Point((1 - t) * this.x + t * point.x, (1 - t) * this.y + t * point.y);
-  };
-
-  /**
-  * Crosses the x and y values.
-  * Returns the value of this Point's x multiplied by the provided Point's y value,
-  * subtracted by the provided Point's y value multiplied by this Point's x value.
-  * @param {Point} point Point to cross
-  * @return {Number} Crossed value.
-  */
-  _Point.prototype.cross = function(point) {
-    return this.x * point.y - this.y * point.x;
-  };
-
-  /**
-  * Calculates the dot product between two points.
-  * @param {Point} point Point to compute dot product with
-  * @return {Number} Dot Product
-  */
-  _Point.prototype.dot = function(point) {
-    return this.x * point.x + this.y * point.y;
-  };
-
-  /**
-  * Rotates a Point around a given center
-  * @param {Number} angle Amount to rotate by
-  * @param {Number} center to rotate around. If not provided, rotate around 0,0
-  * @return {Point} New Point the result of this Point rotated by angle around center.
-  */
-  _Point.prototype.getRotated = function(angle, center) {
-    center = center == null ? new _Point() : center;
-
-    return new _Point(Math.cos(angle) * (this.x - center.x) - Math.sin(angle) * (this.y - center.y) + center.x, Math.sin(angle) * (this.x - center.x) + Math.cos(angle) * (this.y - center.y) + center.y);
-  };
-
-  /**
-  * Copies this Point.
-  * @return {Point} Copy of this point
-  */
-  _Point.prototype.clone = function() {
-    return new _Point(this.x, this.y);
-  };
-
-  /**
-  * Provides a string representation of the Point.
-  * @return {String} string output
-  */
-  _Point.prototype.toString = function() {
-    return "(x=" + this.x + ", y=" + this.y + ")";
-  };
-
-  /**
-  * Deletes Point.
-  */
-  _Point.prototype.destroy = function() {
-    delete this.type;
-    delete this.name;
-    delete this.x;
-    delete this.y;
-  };
-
-  Interval.prototype = new _Point();
-  Interval.prototype.constructor = Interval;
-
-  /**
-   * @classdesc Provide reasoning around numeric intervals.
-   * Intervals have a start and end value.
-   *
-   * @constructor
-   * @param {Number} x Interval's start value.
-   * @param {Number} y Interval's end value.
-   * @description Creates a new Interval.
-   * @category numbers
-   */
-  function Interval(x, y) {
-    DataModel.apply(this, arguments);
-    this.x = Number(x);
-    this.y = Number(y);
-    this.type = "Interval";
-  }
-  /**
-   * Finds the minimum value of the Interval.
-   *
-   * @return {Number} the minimum value in the interval
-   */
-  Interval.prototype.getMin = function() {
-    return Math.min(this.x, this.y);
-  };
-
-  /**
-   * Finds the maximum value of the Interval.
-   *
-   * @return {Number} the max value in the interval
-   */
-  Interval.prototype.getMax = function() {
-    return Math.max(this.x, this.y);
-  };
-
-  /**
-   * Finds the range between the min and max of the Interval.
-   *
-   * @return {Number} the absolute difference between the starting and ending values.
-   */
-  Interval.prototype.getAmplitude = function() {
-    return Math.abs(this.y - this.x);
-  };
-
-  /**
-   * Finds the range between the min and max of the Interval.
-   * If the starting value of the Interval is less then the ending value,
-   * this will return a negative value.
-   *
-   * @return {Number} the difference between the starting and ending values.
-   */
-  Interval.prototype.getSignedAmplitude = function() {
-    return this.y - this.x;
-  };
-
-  /**
-   * Returns the middle value between the min and max of the Interval.
-   *
-   * @return {Number} the difference between the starting and ending values.
-  */
-  Interval.prototype.getMiddle = function() {
-    return (this.x + this.y)*0.5;
-  };
-
-  /**
-   * Returns a random value within the min and max of the Interval.
-   *
-   * @return {Number} A random value.
-  */
-  Interval.prototype.getRandom = function() {
-    return this.x + (this.y - this.x)*Math.random();
-  };
-
-  /**
-   * Returns 1 if end value is greater then start value, and -1 if that is reversed.
-   * If min and max values are equal, returns 0.
-   *
-   * @return {Number} The sign of the Interval.
-  */
-  Interval.prototype.getSign = function() {
-    if(this.x == this.y) return 0;
-    return Math.abs(this.y - this.x)/(this.y - this.x);
-  };
-
-  /**
-   * Returns a new Interval with its start and stop values scaled by the input value.
-   *
-   * @param {Number} value Value to scale Interval by.
-   * @return {Interval} The scaled Interval.
-   */
-  Interval.prototype.getScaled = function(value) {
-    var midAmp = 0.5 * (this.y - this.x);
-    var middle = (this.x + this.y) * 0.5;
-    return new Interval(middle - midAmp * value, middle + midAmp * value);
-  };
-
-  /**
-   * Returns a new Interval with its start and stop values scaled by the input value,
-   * but first pulling out a given proportion of the Interval to Scale.
-   *
-   * @param {Number} value Value to scale Interval by.
-   * @param {Number} proportion of Interval to keep in scaling.
-   * @return {Interval} The scaled Interval.
-  */
-  Interval.prototype.getScaledFromProportion = function(value, proportion) {
-    var antiP = 1 - proportion;
-    var amp0 = proportion * (this.y - this.x);
-    var amp1 = antiP * (this.y - this.x);
-    var middle = antiP * this.x + proportion * this.y;
-    return new Interval(middle - amp0 * value, middle + amp1 * value);
-  };
-
-  /**
-  * Adds provided value to the start and stop values of the Interval.
-  * Returns the new Interval
-  * @param {Number} Number to add to each side of the Interval.
-  * @return {Interval} New added Interval.
-  */
-  Interval.prototype.add = function(value) {
-    return new Interval(this.x + value, this.y + value);
-  };
-
-  /**
-  * Swap start and stop values of this Interval.
-  */
-  Interval.prototype.invert = function() {
-    var swap = this.x;
-    this.x = this.y;
-    this.y = swap;
-  };
-
-  /**
-   * Returns a value in interval range
-   * 0 -> min
-   * 1 -> max
-   * @param value between 0 and 1 (to obtain values between min and max)
-   *
-   */
-  Interval.prototype.getInterpolatedValue = function(value) {
-    //TODO: should this be unsigned amplitude?
-    return value * Number(this.getSignedAmplitude()) + this.x;
-  };
-
-  /**
-  * Returns a value between 0 and 1 representing the normalized input value in the Interval.
-  * @param {Number} value Number to inverse interpolate.
-  * @return {Number} Inverse interpolation of input for this Interval.
-  */
-  Interval.prototype.getInverseInterpolatedValue = function(value) {
-    return(value - this.x) / this.getSignedAmplitude();
-  };
-
-  /**
-  * Interpolates each value in a given NumberList and provides a new NumberList
-  * containing the interpolated values.
-  *
-  * @param {NumberList}  numberList NumberList to interpolate.
-  * @return {NumberList} NumberList of interpolated values.
-  */
-  Interval.prototype.getInterpolatedValues = function(numberList) {
-    var newNumberList = new NumberList();
-    var nElements = numberList.length;
-    for(var i = 0; i < nElements; i++) {
-      newNumberList[i] = this.getInterpolatedValue(numberList[i]);
-    }
-    return newNumberList;
-  };
-
-  /**
-  * Inverse Interpolate each value in a given NumberList and provides a new NumberList
-  * containing these values.
-  *
-  * @param {NumberList}  numberList NumberList to inverse interpolate.
-  * @return {NumberList} NumberList of inverse interpolated values.
-  */
-  Interval.prototype.getInverseInterpolatedValues = function(numberList) {
-    var newNumberList = new NumberList();
-    var nElements = numberList.length;
-    for(var i = 0; i < nElements; i++) {
-      newNumberList.push(this.getInverseInterpolatedValue(numberList[i]));
-    }
-    return newNumberList;
-  };
-
-  /**
-  * @todo write docs
-  */
-  Interval.prototype.intersect = function(interval) {
-    return new Interval(Math.max(this.x, interval.x), Math.min(this.y, interval.y));
-  };
-
-  /**
-  * @todo write docs
-  */
-  Interval.prototype.unite = function(interval) {
-    return new Interval(Math.min(this.x, interval.x), Math.max(this.y, interval.y));
-  };
-
-  /**
-   * Create a new interval with the same proporties values
-   *
-   * @return {Interval} Copied Interval.
-   */
-  Interval.prototype.clone = function() {
-    var newInterval = new Interval(this.x, this.y);
-    newInterval.name = name;
-    return newInterval;
-  };
-
-  /**
-   * Indicates if a number is included in the Interval.
-   *
-   * @param value Number to test.
-   * @return {Boolean} True if the value is inside the Interval.
-   */
-  Interval.prototype.contains = function(value) {
-    if(this.y > this.x) return value >= this.x && value <= this.y;
-    return value >= this.y && value <= this.y;
-  };
-
-  /**
-   * Indicates if provided interval contains the same values.
-   *
-   * @param interval Interval to compare with.
-   * @return {Boolean} true if the are the same.
-   */
-  Interval.prototype.isEquivalent = function(interval) {
-    return this.x == interval.x && this.y == interval.y;
-  };
-
-  /**
-   * Provides a String representation of the Interval.
-   *
-   * @return {String} String representation.
-   *
-   */
-  Interval.prototype.toString = function() {
-    return "Interval[x:" + this.x + "| y:" + this.y + "| amplitude:" + this.getAmplitude() + "]";
   };
 
   NumberList.prototype = new List();
@@ -4084,6 +3156,1027 @@
   // NumberList.prototype.slice = function() {
   //   return NumberList.fromArray(this._slice.apply(this, arguments), false);
   // };
+
+  Interval.prototype = new _Point();
+  Interval.prototype.constructor = Interval;
+
+  /**
+   * @classdesc Provide reasoning around numeric intervals.
+   * Intervals have a start and end value.
+   *
+   * @constructor
+   * @param {Number} x Interval's start value.
+   * @param {Number} y Interval's end value.
+   * @description Creates a new Interval.
+   * @category numbers
+   */
+  function Interval(x, y) {
+    DataModel.apply(this, arguments);
+    this.x = Number(x);
+    this.y = Number(y);
+    this.type = "Interval";
+  }
+  /**
+   * Finds the minimum value of the Interval.
+   *
+   * @return {Number} the minimum value in the interval
+   */
+  Interval.prototype.getMin = function() {
+    return Math.min(this.x, this.y);
+  };
+
+  /**
+   * Finds the maximum value of the Interval.
+   *
+   * @return {Number} the max value in the interval
+   */
+  Interval.prototype.getMax = function() {
+    return Math.max(this.x, this.y);
+  };
+
+  /**
+   * Finds the range between the min and max of the Interval.
+   *
+   * @return {Number} the absolute difference between the starting and ending values.
+   */
+  Interval.prototype.getAmplitude = function() {
+    return Math.abs(this.y - this.x);
+  };
+
+  /**
+   * Finds the range between the min and max of the Interval.
+   * If the starting value of the Interval is less then the ending value,
+   * this will return a negative value.
+   *
+   * @return {Number} the difference between the starting and ending values.
+   */
+  Interval.prototype.getSignedAmplitude = function() {
+    return this.y - this.x;
+  };
+
+  /**
+   * Returns the middle value between the min and max of the Interval.
+   *
+   * @return {Number} the difference between the starting and ending values.
+  */
+  Interval.prototype.getMiddle = function() {
+    return (this.x + this.y)*0.5;
+  };
+
+  /**
+   * Returns a random value within the min and max of the Interval.
+   *
+   * @return {Number} A random value.
+  */
+  Interval.prototype.getRandom = function() {
+    return this.x + (this.y - this.x)*Math.random();
+  };
+
+  /**
+   * Returns 1 if end value is greater then start value, and -1 if that is reversed.
+   * If min and max values are equal, returns 0.
+   *
+   * @return {Number} The sign of the Interval.
+  */
+  Interval.prototype.getSign = function() {
+    if(this.x == this.y) return 0;
+    return Math.abs(this.y - this.x)/(this.y - this.x);
+  };
+
+  /**
+   * Returns a new Interval with its start and stop values scaled by the input value.
+   *
+   * @param {Number} value Value to scale Interval by.
+   * @return {Interval} The scaled Interval.
+   */
+  Interval.prototype.getScaled = function(value) {
+    var midAmp = 0.5 * (this.y - this.x);
+    var middle = (this.x + this.y) * 0.5;
+    return new Interval(middle - midAmp * value, middle + midAmp * value);
+  };
+
+  /**
+   * Returns a new Interval with its start and stop values scaled by the input value,
+   * but first pulling out a given proportion of the Interval to Scale.
+   *
+   * @param {Number} value Value to scale Interval by.
+   * @param {Number} proportion of Interval to keep in scaling.
+   * @return {Interval} The scaled Interval.
+  */
+  Interval.prototype.getScaledFromProportion = function(value, proportion) {
+    var antiP = 1 - proportion;
+    var amp0 = proportion * (this.y - this.x);
+    var amp1 = antiP * (this.y - this.x);
+    var middle = antiP * this.x + proportion * this.y;
+    return new Interval(middle - amp0 * value, middle + amp1 * value);
+  };
+
+  /**
+  * Adds provided value to the start and stop values of the Interval.
+  * Returns the new Interval
+  * @param {Number} Number to add to each side of the Interval.
+  * @return {Interval} New added Interval.
+  */
+  Interval.prototype.add = function(value) {
+    return new Interval(this.x + value, this.y + value);
+  };
+
+  /**
+  * Swap start and stop values of this Interval.
+  */
+  Interval.prototype.invert = function() {
+    var swap = this.x;
+    this.x = this.y;
+    this.y = swap;
+  };
+
+  /**
+   * Returns a value in interval range
+   * 0 -> min
+   * 1 -> max
+   * @param value between 0 and 1 (to obtain values between min and max)
+   *
+   */
+  Interval.prototype.getInterpolatedValue = function(value) {
+    //TODO: should this be unsigned amplitude?
+    return value * Number(this.getSignedAmplitude()) + this.x;
+  };
+
+  /**
+  * Returns a value between 0 and 1 representing the normalized input value in the Interval.
+  * @param {Number} value Number to inverse interpolate.
+  * @return {Number} Inverse interpolation of input for this Interval.
+  */
+  Interval.prototype.getInverseInterpolatedValue = function(value) {
+    return(value - this.x) / this.getSignedAmplitude();
+  };
+
+  /**
+  * Interpolates each value in a given NumberList and provides a new NumberList
+  * containing the interpolated values.
+  *
+  * @param {NumberList}  numberList NumberList to interpolate.
+  * @return {NumberList} NumberList of interpolated values.
+  */
+  Interval.prototype.getInterpolatedValues = function(numberList) {
+    var newNumberList = new NumberList();
+    var nElements = numberList.length;
+    for(var i = 0; i < nElements; i++) {
+      newNumberList[i] = this.getInterpolatedValue(numberList[i]);
+    }
+    return newNumberList;
+  };
+
+  /**
+  * Inverse Interpolate each value in a given NumberList and provides a new NumberList
+  * containing these values.
+  *
+  * @param {NumberList}  numberList NumberList to inverse interpolate.
+  * @return {NumberList} NumberList of inverse interpolated values.
+  */
+  Interval.prototype.getInverseInterpolatedValues = function(numberList) {
+    var newNumberList = new NumberList();
+    var nElements = numberList.length;
+    for(var i = 0; i < nElements; i++) {
+      newNumberList.push(this.getInverseInterpolatedValue(numberList[i]));
+    }
+    return newNumberList;
+  };
+
+  /**
+  * @todo write docs
+  */
+  Interval.prototype.intersect = function(interval) {
+    return new Interval(Math.max(this.x, interval.x), Math.min(this.y, interval.y));
+  };
+
+  /**
+  * @todo write docs
+  */
+  Interval.prototype.unite = function(interval) {
+    return new Interval(Math.min(this.x, interval.x), Math.max(this.y, interval.y));
+  };
+
+  /**
+   * Create a new interval with the same proporties values
+   *
+   * @return {Interval} Copied Interval.
+   */
+  Interval.prototype.clone = function() {
+    var newInterval = new Interval(this.x, this.y);
+    newInterval.name = name;
+    return newInterval;
+  };
+
+  /**
+   * Indicates if a number is included in the Interval.
+   *
+   * @param value Number to test.
+   * @return {Boolean} True if the value is inside the Interval.
+   */
+  Interval.prototype.contains = function(value) {
+    if(this.y > this.x) return value >= this.x && value <= this.y;
+    return value >= this.y && value <= this.y;
+  };
+
+  /**
+   * Indicates if provided interval contains the same values.
+   *
+   * @param interval Interval to compare with.
+   * @return {Boolean} true if the are the same.
+   */
+  Interval.prototype.isEquivalent = function(interval) {
+    return this.x == interval.x && this.y == interval.y;
+  };
+
+  /**
+   * Provides a String representation of the Interval.
+   *
+   * @return {String} String representation.
+   *
+   */
+  Interval.prototype.toString = function() {
+    return "Interval[x:" + this.x + "| y:" + this.y + "| amplitude:" + this.getAmplitude() + "]";
+  };
+
+  IntervalList.prototype = new List();
+  IntervalList.prototype.constructor = IntervalList;
+
+  /**
+   * @classdesc List structure for Intervals. Provides basic data type for
+   * storing and working with intervals in a List.
+   *
+   * Additional functions that work on IntervalList can be found in:
+   * <ul>
+   *  <li>Operators:   {@link IntervalListOperators}</li>
+   * </ul>
+   *
+   * @constructor
+   * @description Creates a new IntervalList.
+   * @category numbers
+   */
+  function IntervalList() {
+    var args = [];
+    var l = arguments.length;
+
+    for(var i = 0; i < l; i++) {
+      args[i] = arguments[i];
+    }
+    var array = List.apply(this, args);
+    array = IntervalList.fromArray(array);
+
+    return array;
+  }
+  /**
+   * Creates a new IntervalList from a raw array of intervals.
+   *
+   * @param {Interval[]} array The array of numbers to create the list from.
+   * @return {IntervalList} New IntervalList containing values in array
+   */
+  IntervalList.fromArray = function(array) {
+    var result = List.fromArray(array);
+    //var l = result.length;
+
+  	// for(var i = 0; i < l; i++) {
+  	//   result[i] = result[i];
+  	// }
+
+    result.type = "IntervalList";
+
+    result.getInterval = IntervalList.prototype.getInterval;
+    result.getAmplitudes = IntervalList.prototype.getAmplitudes;
+
+    return result;
+  };
+
+
+   /**
+   * builds an Interval with min and max value from the NumberList
+   * @return {Interval}
+   * tags:
+   */
+  IntervalList.prototype.getInterval = function() {
+    if(this.length === 0) return null;
+
+    var max = Math.max(this[0].x, this[0].y);
+    var min = Math.min(this[0].x, this[0].y);
+    var l = this.length;
+    var i;
+    for(i = 1; i<l; i++) {
+      max = Math.max(max, this[i].x, this[i].y);
+      min = Math.min(min, this[i].x, this[i].y);
+    }
+    var interval = new Interval(min, max);
+    return interval;
+  };
+
+  /**
+   * return the Intervals amplitudes
+   * @return {NumberList}
+   * tags:
+   */
+  IntervalList.prototype.getAmplitudes = function() {
+    if(this.length === 0) return null;
+
+    var i;
+    var numberList = new NumberList();
+
+    for(i=0; i<this.length; i++){
+      numberList[i] = this[i].getAmplitude();
+    }
+
+    return numberList;
+  };
+
+  /**
+   * @classdesc Provides a set of tools that work with Colors.
+   *
+   * @namespace
+   * @category colors
+   */
+  function ColorOperators() {}
+  // TODO: create Color struture to be used instead of arrays [255, 100,0] ?
+
+  /**
+   * return a color between color0 and color1
+   * 0 -> color0
+   * 1 -> color1
+   * @param {String} color0
+   * @param {String} color1
+   * @param value between 0 and 1 (to obtain color between color0 and color1)
+   * @return {String} interpolated color
+   *
+   */
+  ColorOperators.interpolateColors = function(color0, color1, value) {
+    var result = ColorOperators.interpolateColorsRGB(ColorOperators.colorStringToRGB(color0), ColorOperators.colorStringToRGB(color1), value);
+    return 'rgb('+Math.floor(result[0])+','+Math.floor(result[1])+','+Math.floor(result[2])+')';
+  };
+
+
+  /**
+   * return a color between color0 and color1
+   * 0 -> color0
+   * 1 -> color1
+   * @param {Array} color0 RGB
+   * @param {Array} color1 RGB
+   * @param value between 0 and 1 (to obtain values between color0 and color1)
+   * @return {Array} interpolated RGB color
+   *
+   */
+  ColorOperators.interpolateColorsRGB = function(color0, color1, value) {
+    var s = 1 - value;
+    return [Math.floor(s * color0[0] + value * color1[0]), Math.floor(s * color0[1] + value * color1[1]), Math.floor(s * color0[2] + value * color1[2])];
+  };
+
+  /**
+   * converts an hexadecimal color to RGB
+   * @param {String} an hexadecimal color string
+   * @return {Array} returns an RGB color Array
+   *
+   */
+  ColorOperators.HEXtoRGB = function(hexColor) {
+    return [parseInt(hexColor.substr(1, 2), 16), parseInt(hexColor.substr(3, 2), 16), parseInt(hexColor.substr(5, 2), 16)];
+  };
+
+
+  /**
+   * Converts RGB values to a hexadecimal color string.
+   * @param {Number} red R value.
+   * @param {Number} green G value.
+   * @param {Number} blue B value.
+   * @return {String} hexadecimal representation of the colors.
+   */
+  ColorOperators.RGBtoHEX = function(red, green, blue) {
+    return "#" + ColorOperators.toHex(Math.floor(red)) + ColorOperators.toHex(Math.floor(green)) + ColorOperators.toHex(Math.floor(blue));
+  };
+
+  /**
+   * @todo write docs
+   */
+  ColorOperators.RGBArrayToString = function(array) {
+    return 'rgb(' + array[0] + ',' + array[1] + ',' + array[2] + ')';
+  };
+
+  /**
+   * @todo write docs
+   */
+  ColorOperators.colorStringToHEX = function(color_string) {
+    var rgb = ColorOperators.colorStringToRGB(color_string);
+    return ColorOperators.RGBtoHEX(rgb[0], rgb[1], rgb[2]);
+  };
+
+
+  /**
+   * @todo write docs
+   */
+  ColorOperators.numberToHex = function(number) {
+    var hex = number.toString(16);
+    while(hex.length < 2) hex = "0" + hex;
+    return hex;
+  };
+
+  /**
+   * @todo write docs
+   */
+  ColorOperators.uinttoRGB = function(color) {
+    var rgbColor = new Array(color >> 16, (color >> 8) - ((color >> 16) << 8), color - ((color >> 8) << 8));
+    return rgbColor;
+  };
+
+  /**
+   * @todo write docs
+   */
+  ColorOperators.uinttoHEX = function(color) {
+    var rgbColor = ColorOperators.uinttoRGB(color);
+    var hexColor = ColorOperators.RGBToHEX(rgbColor[0], rgbColor[1], rgbColor[2]);
+    return hexColor;
+  };
+
+  /**
+   * @todo write docs
+   */
+  ColorOperators.RGBtouint = function(red, green, blue) {
+    return Number(red) << 16 | Number(green) << 8 | Number(blue);
+  };
+
+  /**
+   * @todo write docs
+   */
+  ColorOperators.HEXtouint = function(hexColor) {
+    var colorArray = ColorOperators.HEXtoRGB(hexColor);
+    var color = ColorOperators.RGBtouint(colorArray[0], colorArray[1], colorArray[2]);
+    return color;
+  };
+
+  /**
+   * @todo write docs
+   */
+  ColorOperators.grayByLevel = function(level) {
+    level = Math.floor(level * 255);
+    return 'rgb(' + level + ',' + level + ',' + level + ')';
+  };
+
+  /**
+   * converts an hexadecimal color to HSV
+   * @param {String} an hexadecimal color string
+   * @return {Array} returns an HSV color Array
+   *
+   */
+  ColorOperators.HEXtoHSV = function(hexColor) {
+    var rgb = ColorOperators.HEXtoRGB(hexColor);
+    return ColorOperators.RGBtoHSV(rgb[0], rgb[1], rgb[2]);
+  };
+
+
+  /**
+   * @todo write docs
+   */
+  ColorOperators.HSVtoHEX = function(hue, saturation, value) {
+    var rgb = ColorOperators.HSVtoRGB(hue, saturation, value);
+    return ColorOperators.RGBtoHEX(rgb[0], rgb[1], rgb[2]);
+  };
+
+  /**
+   * @todo write docs
+   */
+  ColorOperators.HSLtoHEX = function(hue, saturation, light) {
+    var rgb = ColorOperators.HSLtoRGB(hue, saturation, light);
+    return ColorOperators.RGBtoHEX(rgb[0], rgb[1], rgb[2]);
+  };
+
+  /**
+   * converts an RGB color to HSV
+   * @param {Array} a RGB color array
+   * @return {Array} returns a HSV color array
+   * H in [0,360], S in [0,1], V in [0,1]
+   */
+  ColorOperators.RGBtoHSV = function(r, g, b) {
+      var h;
+      var s;
+      var v;
+      var min = Math.min(Math.min(r, g), b);
+      var max = Math.max(Math.max(r, g), b);
+      v = max / 255;
+      var delta = max - min;
+      if(delta === 0) return new Array(0, 0, r / 255);
+      if(max !== 0) {
+        s = delta / max;
+      } else {
+        s = 0;
+        h = -1;
+        return new Array(h, s, v);
+      }
+      if(r == max) {
+        h = (g - b) / delta;
+      } else if(g == max) {
+        h = 2 + (b - r) / delta;
+      } else {
+        h = 4 + (r - g) / delta;
+      }
+      h *= 60;
+      if(h < 0) h += 360;
+      return new Array(h, s, v);
+    };
+
+  /**
+   * converts an HSV color to RGB
+   * @param {Array} a HSV color array
+   * @return {Array} returns a RGB color array
+   */
+  ColorOperators.HSVtoRGB = function(hue, saturation, value) {
+    hue = hue ? hue : 0;
+    saturation = saturation ? saturation : 0;
+    value = value ? value : 0;
+    var r;
+    var g;
+    var b;
+    //
+    var i;
+    var f;
+    var p;
+    var q;
+    var t;
+    if(saturation === 0) {
+      r = g = b = value;
+      return [Math.floor(r * 255), Math.floor(g * 255), Math.floor(b * 255)];
+    }
+    hue /= 60;
+    i = Math.floor(hue);
+    f = hue - i;
+    p = value * (1 - saturation);
+    q = value * (1 - saturation * f);
+    t = value * (1 - saturation * (1 - f));
+    switch(i) {
+      case 0:
+        r = value;
+        g = t;
+        b = p;
+        break;
+      case 1:
+        r = q;
+        g = value;
+        b = p;
+        break;
+      case 2:
+        r = p;
+        g = value;
+        b = t;
+        break;
+      case 3:
+        r = p;
+        g = q;
+        b = value;
+        break;
+      case 4:
+        r = t;
+        g = p;
+        b = value;
+        break;
+      default:
+        r = value;
+        g = p;
+        b = q;
+        break;
+    }
+    return new Array(Math.floor(r * 255), Math.floor(g * 255), Math.floor(b * 255));
+  };
+
+  /**
+   * Converts an HSL color value to RGB. Conversion formula
+   * adapted from http://en.wikipedia.org/wiki/HSL_color_space.
+   * Assumes hue is contained in the interval [0,360) and saturation and l are contained in the set [0, 1]
+   */
+  ColorOperators.HSLtoRGB = function(hue, saturation, light) {
+    var r, g, b;
+
+    function hue2rgb(p, q, t) {
+      if(t < 0) t += 1;
+      if(t > 1) t -= 1;
+      if(t < 1 / 6) return p + (q - p) * 6 * t;
+      if(t < 1 / 2) return q;
+      if(t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
+      return p;
+    }
+
+    if(saturation === 0) {
+      r = g = b = light; // achromatic
+    } else {
+      var q = light < 0.5 ? light * (1 + saturation) : light + saturation - light * saturation;
+      var p = 2 * light - q;
+      r = hue2rgb(p, q, (hue / 360) + 1 / 3);
+      g = hue2rgb(p, q, hue / 360);
+      b = hue2rgb(p, q, (hue / 360) - 1 / 3);
+    }
+
+    return [Math.floor(r * 255), Math.floor(g * 255), Math.floor(b * 255)];
+  };
+
+  /**
+   * @todo write docs
+   */
+  ColorOperators.invertColorRGB = function(r, g, b) {
+    return [255 - r, 255 - g, 255 - b];
+  };
+
+  /**
+   * @todo write docs
+   */
+  ColorOperators.addAlpha = function(color, alpha) {
+    //var rgb = color.substr(0,3)=='rgb'?ColorOperators.colorStringToRGB(color):ColorOperators.HEXtoRGB(color);
+    var rgb = ColorOperators.colorStringToRGB(color);
+    if(rgb == null) return 'black';
+    return 'rgba(' + rgb[0] + ',' + rgb[1] + ',' + rgb[2] + ',' + alpha + ')';
+  };
+
+  /**
+   * @todo write docs
+   */
+  ColorOperators.invertColor = function(color) {
+    var rgb = ColorOperators.colorStringToRGB(color);
+    rgb = ColorOperators.invertColorRGB(rgb[0], rgb[1], rgb[2]);
+    return ColorOperators.RGBtoHEX(rgb[0], rgb[1], rgb[2]);
+  };
+
+  /**
+   * @todo write docs
+   */
+  ColorOperators.toHex = function(number) {
+    var hex = number.toString(16);
+    while(hex.length < 2) hex = "0" + hex;
+    return hex;
+  };
+
+  /**
+   * @todo write docs
+   */
+  ColorOperators.getRandomColor = function() {
+    return 'rgb(' + String(Math.floor(Math.random() * 256)) + ',' + String(Math.floor(Math.random() * 256)) + ',' + String(Math.floor(Math.random() * 256)) + ')';
+  };
+
+
+  /////// Universal matching
+
+
+
+  /**
+   * This method was partially obtained (and simplified) from a Class by Stoyan Stefanov: "A class to parse color values / @author Stoyan Stefanov <sstoo@gmail.com> / @link   http://www.phpied.com/rgb-color-parser-in-javascript/ / @license Use it if you like it"
+   * @param {String} color_string color as a string (e.g. "red", "#0044ff", "rgb(130,20,100)")
+   * @return {Array} rgb array
+   * tags:
+   */
+  ColorOperators.colorStringToRGB = function(color_string) {
+    //c.log('color_string:['+color_string+']');
+
+    // strip any leading #
+    if(color_string.charAt(0) == '#') { // remove # if any
+      color_string = color_string.substr(1, 6);
+      //c.log('-> color_string:['+color_string+']');
+    }
+
+    color_string = color_string.replace(/ /g, '');
+    color_string = color_string.toLowerCase();
+
+    // before getting into regexps, try simple matches
+    // and overwrite the input
+    var simple_colors = {
+      aliceblue: 'f0f8ff',
+      antiquewhite: 'faebd7',
+      aqua: '00ffff',
+      aquamarine: '7fffd4',
+      azure: 'f0ffff',
+      beige: 'f5f5dc',
+      bisque: 'ffe4c4',
+      black: '000000',
+      blanchedalmond: 'ffebcd',
+      blue: '0000ff',
+      blueviolet: '8a2be2',
+      brown: 'a52a2a',
+      burlywood: 'deb887',
+      cadetblue: '5f9ea0',
+      chartreuse: '7fff00',
+      chocolate: 'd2691e',
+      coral: 'ff7f50',
+      cornflowerblue: '6495ed',
+      cornsilk: 'fff8dc',
+      crimson: 'dc143c',
+      cyan: '00ffff',
+      darkblue: '00008b',
+      darkcyan: '008b8b',
+      darkgoldenrod: 'b8860b',
+      darkgray: 'a9a9a9',
+      darkgreen: '006400',
+      darkkhaki: 'bdb76b',
+      darkmagenta: '8b008b',
+      darkolivegreen: '556b2f',
+      darkorange: 'ff8c00',
+      darkorchid: '9932cc',
+      darkred: '8b0000',
+      darksalmon: 'e9967a',
+      darkseagreen: '8fbc8f',
+      darkslateblue: '483d8b',
+      darkslategray: '2f4f4f',
+      darkturquoise: '00ced1',
+      darkviolet: '9400d3',
+      deeppink: 'ff1493',
+      deepskyblue: '00bfff',
+      dimgray: '696969',
+      dodgerblue: '1e90ff',
+      feldspar: 'd19275',
+      firebrick: 'b22222',
+      floralwhite: 'fffaf0',
+      forestgreen: '228b22',
+      fuchsia: 'ff00ff',
+      gainsboro: 'dcdcdc',
+      ghostwhite: 'f8f8ff',
+      gold: 'ffd700',
+      goldenrod: 'daa520',
+      gray: '808080',
+      green: '008000',
+      greenyellow: 'adff2f',
+      honeydew: 'f0fff0',
+      hotpink: 'ff69b4',
+      indianred: 'cd5c5c',
+      indigo: '4b0082',
+      ivory: 'fffff0',
+      khaki: 'f0e68c',
+      lavender: 'e6e6fa',
+      lavenderblush: 'fff0f5',
+      lawngreen: '7cfc00',
+      lemonchiffon: 'fffacd',
+      lightblue: 'add8e6',
+      lightcoral: 'f08080',
+      lightcyan: 'e0ffff',
+      lightgoldenrodyellow: 'fafad2',
+      lightgrey: 'd3d3d3',
+      lightgreen: '90ee90',
+      lightpink: 'ffb6c1',
+      lightsalmon: 'ffa07a',
+      lightseagreen: '20b2aa',
+      lightskyblue: '87cefa',
+      lightslateblue: '8470ff',
+      lightslategray: '778899',
+      lightsteelblue: 'b0c4de',
+      lightyellow: 'ffffe0',
+      lime: '00ff00',
+      limegreen: '32cd32',
+      linen: 'faf0e6',
+      magenta: 'ff00ff',
+      maroon: '800000',
+      mediumaquamarine: '66cdaa',
+      mediumblue: '0000cd',
+      mediumorchid: 'ba55d3',
+      mediumpurple: '9370d8',
+      mediumseagreen: '3cb371',
+      mediumslateblue: '7b68ee',
+      mediumspringgreen: '00fa9a',
+      mediumturquoise: '48d1cc',
+      mediumvioletred: 'c71585',
+      midnightblue: '191970',
+      mintcream: 'f5fffa',
+      mistyrose: 'ffe4e1',
+      moccasin: 'ffe4b5',
+      navajowhite: 'ffdead',
+      navy: '000080',
+      oldlace: 'fdf5e6',
+      olive: '808000',
+      olivedrab: '6b8e23',
+      orange: 'ffa500',
+      orangered: 'ff4500',
+      orchid: 'da70d6',
+      palegoldenrod: 'eee8aa',
+      palegreen: '98fb98',
+      paleturquoise: 'afeeee',
+      palevioletred: 'd87093',
+      papayawhip: 'ffefd5',
+      peachpuff: 'ffdab9',
+      peru: 'cd853f',
+      pink: 'ffc0cb',
+      plum: 'dda0dd',
+      powderblue: 'b0e0e6',
+      purple: '800080',
+      red: 'ff0000',
+      rosybrown: 'bc8f8f',
+      royalblue: '4169e1',
+      saddlebrown: '8b4513',
+      salmon: 'fa8072',
+      sandybrown: 'f4a460',
+      seagreen: '2e8b57',
+      seashell: 'fff5ee',
+      sienna: 'a0522d',
+      silver: 'c0c0c0',
+      skyblue: '87ceeb',
+      slateblue: '6a5acd',
+      slategray: '708090',
+      snow: 'fffafa',
+      springgreen: '00ff7f',
+      steelblue: '4682b4',
+      tan: 'd2b48c',
+      teal: '008080',
+      thistle: 'd8bfd8',
+      tomato: 'ff6347',
+      turquoise: '40e0d0',
+      violet: 'ee82ee',
+      violetred: 'd02090',
+      wheat: 'f5deb3',
+      white: 'ffffff',
+      whitesmoke: 'f5f5f5',
+      yellow: 'ffff00',
+      yellowgreen: '9acd32'
+    };
+
+    if(simple_colors[color_string] != null) color_string = simple_colors[color_string];
+
+
+    // array of color definition objects
+    var color_defs = [
+    {
+      re: /^rgb\((\d{1,3}),\s*(\d{1,3}),\s*(\d{1,3})\)$/,
+      //example: ['rgb(123, 234, 45)', 'rgb(255,234,245)'],
+      process: function(bits) {
+        return [
+          parseInt(bits[1]),
+          parseInt(bits[2]),
+          parseInt(bits[3])
+        ];
+      }
+    },
+    {
+      re: /^rgba\((\d{1,3}),\s*(\d{1,3}),\s*(\d{1,3}),[\.0123456789]+\)$/,
+      //example: ['rgb(123, 234, 45)', 'rgb(255,234,245)', 'rgba(200,100,120,0.3)'],
+      process: function(bits) {
+        return [
+          parseInt(bits[1]),
+          parseInt(bits[2]),
+          parseInt(bits[3])
+        ];
+      }
+    },
+    {
+      re: /^(\w{2})(\w{2})(\w{2})$/,
+      //example: ['#00ff00', '336699'],
+      process: function(bits) {
+        return [
+          parseInt(bits[1], 16),
+          parseInt(bits[2], 16),
+          parseInt(bits[3], 16)
+        ];
+      }
+    },
+    {
+      re: /^(\w{1})(\w{1})(\w{1})$/,
+      //example: ['#fb0', 'f0f'],
+      process: function(bits) {
+        return [
+          parseInt(bits[1] + bits[1], 16),
+          parseInt(bits[2] + bits[2], 16),
+          parseInt(bits[3] + bits[3], 16)
+        ];
+      }
+    }];
+
+    // search through the definitions to find a match
+    for(var i = 0; i < color_defs.length; i++) {
+      var re = color_defs[i].re;
+      var processor = color_defs[i].process;
+      var bits = re.exec(color_string);
+      if(bits) {
+        return processor(bits);
+      }
+
+    }
+
+    return null;
+  };
+
+  ColorList.prototype = new List();
+  ColorList.prototype.constructor = ColorList;
+
+  /**
+   * @classdesc A {@link List} for storing Colors.
+   *
+   * Additional functions that work on ColorList can be found in:
+   * <ul>
+   *  <li>Operators:   {@link ColorListOperators}</li>
+   *  <li>Generators: {@link ColorListGenerators}</li>
+   * </ul>
+   *
+   * @description Creates a new ColorList.
+   * @constructor
+   * @category colors
+   */
+  function ColorList() {
+    var args = [];
+    var i;
+    var lArgs = arguments.length;
+    for(i = 0; i < lArgs; i++) {
+      args[i] = arguments[i];
+    }
+    var array = List.apply(this, args);
+    array = ColorList.fromArray(array);
+
+    return array;
+  }
+  /**
+   * Creates a new ColorList from a raw array of values
+   *
+   * @param {String[]} array Array of hex or other color values
+   * @return {ColorList} New ColorList.
+   */
+  ColorList.fromArray = function(array) {
+    var result = List.fromArray(array);
+    result.type = "ColorList";
+    result.getRgbArrays = ColorList.prototype.getRgbArrays;
+    result.getInterpolated = ColorList.prototype.getInterpolated;
+    result.getMix = ColorList.prototype.getMix;
+    result.getInverted = ColorList.prototype.getInverted;
+    result.addAlpha = ColorList.prototype.addAlpha;
+    return result;
+  };
+
+  /**
+   * returns an arrays of rgb values, each stored in an array ([rr,gg,bb])
+   * @return {array} Array of array of RGB values.
+   * tags:
+   */
+  ColorList.prototype.getRgbArrays = function() {
+    var rgbArrays = new List();
+    var l = this.length;
+
+    for(var i = 0; i<l; i++) {
+      rgbArrays[i] = ColorOperators.colorStringToRGB(this[i]);
+    }
+
+    return rgbArrays;
+  };
+
+  /**
+   * interpolates colors with a given color and measure
+   *
+   * @param  {String} color to be interpolated with
+   * @param  {Number} value intenisty of interpolation [0,1]
+   * @return {ColorList}
+   * tags:
+   */
+  ColorList.prototype.getInterpolated = function(color, value) {
+    var newColorList = new ColorList();
+    var l = this.length;
+
+    for(var i = 0; i<l; i++) {
+      newColorList[i] = ColorOperators.interpolateColors(this[i], color, value);
+    }
+
+    newColorList.name = this.name;
+    return newColorList;
+  };
+
+  ColorList.prototype.getMix = function() {
+    var result = [0,0,0];
+    var rgb;
+    var n = this.length;
+    var i;
+    for(i=0; i<n; i++){
+      rgb = ColorOperators.colorStringToRGB(this[i]);
+      result[0]+=rgb[0];
+      result[1]+=rgb[1];
+      result[2]+=rgb[2];
+    }
+    return 'rgb('+Math.floor(result[0]/n)+','+Math.floor(result[1]/n)+','+Math.floor(result[2]/n)+')';
+  };
+
+  /**
+   * inverts all colors
+   * @return {ColorList}
+   * tags:
+   */
+  ColorList.prototype.getInverted = function() {
+    var newColorList = new ColorList();
+    var l = this.length;
+
+    for(var i = 0; i<l; i++) {
+      newColorList[i] = ColorOperators.invertColor(this[i]);
+    }
+
+    newColorList.name = this.name;
+    return newColorList;
+  };
+
+  /**
+   * adds alpha value to all colores
+   * @param {Number} alpha alpha value in [0,1]
+   * @return {ColorList}
+   * tags:
+   */
+  ColorList.prototype.addAlpha = function(alpha) {
+    var newColorList = new ColorList();
+    var l = this.length;
+
+    for(var i = 0; i<l; i++) {
+      newColorList[i] = ColorOperators.addAlpha(this[i], alpha);
+    }
+
+    newColorList.name = this.name;
+    return newColorList;
+  };
 
   DateList.prototype = new List();
   DateList.prototype.constructor = DateList;
@@ -7364,8 +7457,11 @@
     indexesTable[1] = new NumberTable();
     var indexesDictionary = {};
     var indexOnTable;
+    var element;
+    var i;
 
-    list.forEach(function(element, i){
+    for(i=0; i<list.length; i++){
+      element = list[i];
       indexOnTable = indexesDictionary[element];
       if(indexOnTable==null){
         indexesTable[0].push(element);
@@ -7374,7 +7470,18 @@
       } else {
         indexesTable[1][indexOnTable].push(i);
       }
-    });
+    }
+
+    // list.forEach(function(element, i){
+    //   indexOnTable = indexesDictionary[element];
+    //   if(indexOnTable==null){
+    //     indexesTable[0].push(element);
+    //     indexesTable[1].push(new NumberList(i));
+    //     indexesDictionary[element]=indexesTable[0].length-1;
+    //   } else {
+    //     indexesTable[1][indexOnTable].push(i);
+    //   }
+    // });
 
     indexesTable[0] = indexesTable[0].getImproved();
 
@@ -7822,7 +7929,7 @@
    *
    * @param  {List} aggregatorList aggregator list that typically contains several repeated elements
    * @param  {List} toAggregateList list of elements that will be aggregated
-   * @param  {Number} mode aggregation modes:<br>0:first element<br>1:count (default)<br>2:sum<br>3:average<br>4:min<br>5:max<br>6:standard deviation<br>7:enlist (creates a list of elements)<br>8:last element<br>9:most common element<br>10:random element<br>11:indexes<br>12:count non repeated elements<br>13:enlist non repeated elements<br>14:concat elements (for strings, uses ', ' as separator)<br>15:concat non-repeated elements<br>16:frequencies tables
+   * @param  {Number} mode aggregation modes:<br>0:first element<br>1:count (default)<br>2:sum<br>3:average<br>4:min<br>5:max<br>6:standard deviation<br>7:enlist (creates a list of elements)<br>8:last element<br>9:most common element<br>10:random element<br>11:indexes<br>12:count non repeated elements<br>13:enlist non repeated elements<br>14:concat elements (for strings, uses ', ' as separator)<br>15:concat non-repeated elements<br>16:frequencies tables<br>17:concat (for strings, no separator)
    * @param  {Table} indexesTable optional already calculated table of indexes of elements on the aggregator list (if not provided, the method calculates it)
    * @return {Table} contains a list with non repeated elements on the first list, and the aggregated elements on a second list
    * tags:
@@ -8002,15 +8109,17 @@
         }
         table[1] = table[1].getImproved();
         return table;
-      case 14://concat string
+      case 14://concat string ", "
+      case 17://concat string
+        var sep = mode==14?", ":"";
         table[1] = new StringList();
         elementsTable = ListOperators.aggregateList(aggregatorList, toAggregateList, 7, indexesTable);
         for(i=0;i<elementsTable[1].length;i++){
           elements = elementsTable[1][i];
-          table[1].push( elements.join(', ') );
+          table[1].push( elements.join(sep) );
         }
         return table;
-      case 15://concat string non repeated
+      case 15://concat with "," string non repeated
         table[1] = new StringList();
         elementsTable = ListOperators.aggregateList(aggregatorList, toAggregateList, 7, indexesTable);
         //elementsTable[1].forEach(function(elements){
@@ -13155,7 +13264,7 @@
   // Provides a lookup table for instantiate classes.
   // This is used in the instantiate function to simplify the logic
   // around the creation of these classes.
-  var typeDict = {
+  var _typeDict = {
     List: List,
     Table: Table,
     StringList: StringList,
@@ -13166,7 +13275,8 @@
     Polygon: _Polygon,
     Polygon3D: Polygon3D,
     DateList: DateList,
-    ColorList: ColorList
+    ColorList: ColorList,
+    IntervalList: IntervalList
   };
 
   /*
@@ -13234,7 +13344,8 @@
       case 'PolygonList':
       case 'DateList':
       case 'ColorList':
-        return typeDict[className].apply(new typeDict[className](), args);
+      case 'IntervalList':
+        return _typeDict[className].apply(new _typeDict[className](), args);
       case null:
       case undefined:
       case 'undefined':
@@ -13544,95 +13655,6 @@
   // }
   // return t;
   // }
-
-  IntervalList.prototype = new List();
-  IntervalList.prototype.constructor = IntervalList;
-
-  /**
-   * @classdesc List structure for Intervals. Provides basic data type for
-   * storing and working with intervals in a List.
-   *
-   * Additional functions that work on IntervalList can be found in:
-   * <ul>
-   *  <li>Operators:   {@link IntervalListOperators}</li>
-   * </ul>
-   *
-   * @constructor
-   * @description Creates a new IntervalList.
-   * @category numbers
-   */
-  function IntervalList() {
-    var args = [];
-    var l = arguments.length;
-
-    for(var i = 0; i < l; i++) {
-      args[i] = arguments[i];
-    }
-    var array = List.apply(this, args);
-    array = IntervalList.fromArray(array);
-
-    return array;
-  }
-  /**
-   * Creates a new IntervalList from a raw array of intervals.
-   *
-   * @param {Interval[]} array The array of numbers to create the list from.
-   * @return {IntervalList} New IntervalList containing values in array
-   */
-  IntervalList.fromArray = function(array) {
-    var result = List.fromArray(array);
-    //var l = result.length;
-
-  	// for(var i = 0; i < l; i++) {
-  	//   result[i] = result[i];
-  	// }
-
-    result.type = "IntervalList";
-
-    result.getInterval = IntervalList.prototype.getInterval;
-    result.getAmplitudes = IntervalList.prototype.getAmplitudes;
-
-    return result;
-  };
-
-
-   /**
-   * builds an Interval with min and max value from the NumberList
-   * @return {Interval}
-   * tags:
-   */
-  IntervalList.prototype.getInterval = function() {
-    if(this.length === 0) return null;
-
-    var max = Math.max(this[0].x, this[0].y);
-    var min = Math.min(this[0].x, this[0].y);
-    var l = this.length;
-    var i;
-    for(i = 1; i<l; i++) {
-      max = Math.max(max, this[i].x, this[i].y);
-      min = Math.min(min, this[i].x, this[i].y);
-    }
-    var interval = new Interval(min, max);
-    return interval;
-  };
-
-  /**
-   * return the Intervals amplitudes
-   * @return {NumberList}
-   * tags:
-   */
-  IntervalList.prototype.getAmplitudes = function() {
-    if(this.length === 0) return null;
-
-    var i;
-    var numberList = new NumberList();
-
-    for(i=0; i<this.length; i++){
-      numberList[i] = this[i].getAmplitude();
-    }
-
-    return numberList;
-  };
 
   /**
    * @classdesc Table Encodings
@@ -18148,18 +18170,91 @@
   /**
    * aggregates lists from a table, using one of the list of the table as the aggregation list, and based on different modes for each list
    * @param  {Table} table containing the aggregation list and lists to be aggregated
-   * @param  {Number} indexAggregationList index of the aggregation list on the table
-   * @param  {NumberList} indexesListsToAggregate indexs of the lists to be aggregated; typically it also contains the index of the aggregation list at the beginning, to be aggregated using mode 0 (first element) thus resulting as the list of non repeated elements
-   * @param  {NumberList} modes list of modes of aggregation, these are the options:<br>0:first element<br>1:count (default)<br>2:sum<br>3:average<br>4:min<br>5:max<br>6:standard deviation<br>7:enlist (creates a list of elements)<br>8:last element<br>9:most common element<br>10:random element<br>11:indexes<br>12:count non repeated elements<br>13:enlist non repeated elements<br>14:concat elements (string)<br>15:concat non-repeated elements<br>16:frequencies tables
+   * @param  {NumberList|Number} indexAggregationList index (Number) or indexes (NumberList) of the aggregation lists on the table
+   * @param  {NumberList} indexesListsToAggregate indexes of the lists to be aggregated; typically it also contains the index of the aggregation list at the beginning (or indexes of several lists), to be aggregated using mode 0 (first element) thus resulting as the list of non repeated elements
+   * @param  {NumberList} modes list of modes of aggregation, these are the options:<br>0:first element<br>1:count (default)<br>2:sum<br>3:average<br>4:min<br>5:max<br>6:standard deviation<br>7:enlist (creates a list of elements)<br>8:last element<br>9:most common element<br>10:random element<br>11:indexes<br>12:count non repeated elements<br>13:enlist non repeated elements<br>14:concat elements (for strings, uses ', ' as separator)<br>15:concat non-repeated elements<br>16:frequencies tables<br>17:concat (for strings, no separator)
    *
    * @param {StringList} newListsNames optional names for generated lists
    * @return {Table} aggregated table
    * tags:
    */
   TableOperators.aggregateTable = function(table, indexAggregationList, indexesListsToAggregate, modes, newListsNames){
+
     indexAggregationList = indexAggregationList||0;
 
     if(table==null || !table.length ||  table.length<indexAggregationList || indexesListsToAggregate==null || !indexesListsToAggregate.length || modes==null) return;
+
+
+    if(indexAggregationList["length"]!=null){
+
+      if(indexAggregationList.length==0){
+        indexAggregationList = indexAggregationList[0];
+      } else {//multiple aggregation
+        console.log("\n\n________________________________________aggregateTable multiple");
+        var toAggregate = table.getElements(indexAggregationList);
+        var typesToAggregate = toAggregate.getTypes();
+        console.log('typesToAggregate', typesToAggregate);
+        var text;
+        var j;
+        var textsList = new StringList();
+        var JOIN_CHARS = "*__*";
+        l = toAggregate[0].length;
+        for(i=0; i<l; i++){
+          text = toAggregate[0][i];
+          for(j=1; j<toAggregate.length; j++){
+            text+=JOIN_CHARS+toAggregate[j][i];
+          }
+          textsList[i] = text;
+        }
+
+        //---> fix this
+        newTable = new Table.fromArray( [textsList].concat(table.getElements(indexesListsToAggregate.getWithoutElements(indexAggregationList))) );
+
+        console.log('newTable', newTable); newTable = newTable.clone();
+
+        var newIndexesListsToAggregate = new NumberList();
+        var newModes = new NumberList();
+        newIndexesListsToAggregate[0] = 0;
+        newModes[0] = 0;
+        for(i=indexAggregationList.length; i<indexesListsToAggregate.length; i++){
+          newIndexesListsToAggregate.push(i-indexAggregationList.length+1);
+          newModes.push(modes[i]);
+        }
+
+        console.log("newIndexesListsToAggregate", newIndexesListsToAggregate);
+        console.log("newModes", newModes);
+
+        newTable = TableOperators.aggregateTable(newTable, 0, newIndexesListsToAggregate, newModes, newListsNames);
+
+        console.log('newTable', newTable);
+        console.log('newTable[0]', newTable[0]);
+
+
+        var aggregationTable = new Table();
+        var parts;
+
+        for(j=0; j<indexAggregationList.length; j++){
+            aggregationTable[j] = instantiate(typesToAggregate[j]);
+        }
+
+        l = newTable[0].length;
+        
+        for(i=0; i<l; i++){
+          text = newTable[0][i];
+          console.log("text:["+text+"]");
+          parts = text.split(JOIN_CHARS);
+          for(j=0; j<indexAggregationList.length; j++){
+
+            aggregationTable[j][i] = typesToAggregate[j]=="NumberList"?Number(parts[j]):parts[j];
+            
+          }
+        }
+        
+        return Table.fromArray(aggregationTable.concat(newTable.getSubList(1))).getImproved();
+      }
+    }
+
+
 
     var aggregatorList = table[indexAggregationList];
     var indexesTable = ListOperators.getIndexesTable(aggregatorList);
@@ -24564,7 +24659,6 @@
       for(j=i+1; j<n; j++){
         node1 = network.nodeList[j];
         w = weightFunction(list[i], list[j]);
-        if(Math.random()<0.0001) console.log(i,j,w);
         if(w > threshold) {
           if(weightMode>0) w -= threshold;
           if(weightMode==2) w /= (1-threshold);
