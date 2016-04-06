@@ -560,18 +560,91 @@ TableOperators.sortListsByNumberList = function(table, numberList, descending) {
 /**
  * aggregates lists from a table, using one of the list of the table as the aggregation list, and based on different modes for each list
  * @param  {Table} table containing the aggregation list and lists to be aggregated
- * @param  {Number} indexAggregationList index of the aggregation list on the table
- * @param  {NumberList} indexesListsToAggregate indexs of the lists to be aggregated; typically it also contains the index of the aggregation list at the beginning, to be aggregated using mode 0 (first element) thus resulting as the list of non repeated elements
- * @param  {NumberList} modes list of modes of aggregation, these are the options:<br>0:first element<br>1:count (default)<br>2:sum<br>3:average<br>4:min<br>5:max<br>6:standard deviation<br>7:enlist (creates a list of elements)<br>8:last element<br>9:most common element<br>10:random element<br>11:indexes<br>12:count non repeated elements<br>13:enlist non repeated elements<br>14:concat elements (string)<br>15:concat non-repeated elements<br>16:frequencies tables
+ * @param  {NumberList|Number} indexAggregationList index (Number) or indexes (NumberList) of the aggregation lists on the table
+ * @param  {NumberList} indexesListsToAggregate indexes of the lists to be aggregated; typically it also contains the index of the aggregation list at the beginning (or indexes of several lists), to be aggregated using mode 0 (first element) thus resulting as the list of non repeated elements
+ * @param  {NumberList} modes list of modes of aggregation, these are the options:<br>0:first element<br>1:count (default)<br>2:sum<br>3:average<br>4:min<br>5:max<br>6:standard deviation<br>7:enlist (creates a list of elements)<br>8:last element<br>9:most common element<br>10:random element<br>11:indexes<br>12:count non repeated elements<br>13:enlist non repeated elements<br>14:concat elements (for strings, uses ', ' as separator)<br>15:concat non-repeated elements<br>16:frequencies tables<br>17:concat (for strings, no separator)
  *
  * @param {StringList} newListsNames optional names for generated lists
  * @return {Table} aggregated table
  * tags:
  */
 TableOperators.aggregateTable = function(table, indexAggregationList, indexesListsToAggregate, modes, newListsNames){
+
   indexAggregationList = indexAggregationList||0;
 
   if(table==null || !table.length ||  table.length<indexAggregationList || indexesListsToAggregate==null || !indexesListsToAggregate.length || modes==null) return;
+
+
+  if(indexAggregationList["length"]!=null){
+
+    if(indexAggregationList.length==0){
+      indexAggregationList = indexAggregationList[0];
+    } else {//multiple aggregation
+      console.log("\n\n________________________________________aggregateTable multiple");
+      var toAggregate = table.getElements(indexAggregationList);
+      var typesToAggregate = toAggregate.getTypes();
+      console.log('typesToAggregate', typesToAggregate);
+      var text;
+      var j;
+      var textsList = new StringList();
+      var JOIN_CHARS = "*__*";
+      l = toAggregate[0].length;
+      for(i=0; i<l; i++){
+        text = toAggregate[0][i];
+        for(j=1; j<toAggregate.length; j++){
+          text+=JOIN_CHARS+toAggregate[j][i];
+        }
+        textsList[i] = text;
+      }
+
+      //---> fix this
+      newTable = new Table.fromArray( [textsList].concat(table.getElements(indexesListsToAggregate.getWithoutElements(indexAggregationList))) );
+
+      console.log('newTable', newTable); newTable = newTable.clone();
+
+      var newIndexesListsToAggregate = new NumberList();
+      var newModes = new NumberList();
+      newIndexesListsToAggregate[0] = 0;
+      newModes[0] = 0;
+      for(i=indexAggregationList.length; i<indexesListsToAggregate.length; i++){
+        newIndexesListsToAggregate.push(i-indexAggregationList.length+1);
+        newModes.push(modes[i]);
+      }
+
+      console.log("newIndexesListsToAggregate", newIndexesListsToAggregate);
+      console.log("newModes", newModes);
+
+      newTable = TableOperators.aggregateTable(newTable, 0, newIndexesListsToAggregate, newModes, newListsNames);
+
+      console.log('newTable', newTable);
+      console.log('newTable[0]', newTable[0]);
+
+
+      var aggregationTable = new Table();
+      var parts;
+
+      for(j=0; j<indexAggregationList.length; j++){
+          aggregationTable[j] = instantiate(typesToAggregate[j]);
+      }
+
+      l = newTable[0].length;
+      
+      for(i=0; i<l; i++){
+        text = newTable[0][i];
+        console.log("text:["+text+"]");
+        parts = text.split(JOIN_CHARS);
+        for(j=0; j<indexAggregationList.length; j++){
+
+          aggregationTable[j][i] = typesToAggregate[j]=="NumberList"?Number(parts[j]):parts[j];
+          
+        }
+      }
+      
+      return Table.fromArray(aggregationTable.concat(newTable.getSubList(1))).getImproved();
+    }
+  }
+
+
 
   var aggregatorList = table[indexAggregationList];
   var indexesTable = ListOperators.getIndexesTable(aggregatorList);
