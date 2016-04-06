@@ -766,7 +766,7 @@ ListOperators.jaccardDistance = function(list0, list1) {
  *
  * @param  {List} aggregatorList aggregator list that typically contains several repeated elements
  * @param  {List} toAggregateList list of elements that will be aggregated
- * @param  {Number} mode aggregation modes:<br>0:first element<br>1:count (default)<br>2:sum<br>3:average<br>4:min<br>5:max<br>6:standard deviation<br>7:enlist (creates a list of elements)<br>8:last element<br>9:most common element<br>10:random element<br>11:indexes<br>12:count non repeated elements<br>13:enlist non repeated elements<br>14:concat elements (for strings, uses ', ' as separator)<br>15:concat non-repeated elements<br>16:frequencies tables
+ * @param  {Number} mode aggregation modes:<br>0:first element<br>1:count (default)<br>2:sum<br>3:average<br>4:min<br>5:max<br>6:standard deviation<br>7:enlist (creates a list of elements)<br>8:last element<br>9:most common element<br>10:random element<br>11:indexes<br>12:count non repeated elements<br>13:enlist non repeated elements<br>14:concat elements (for strings, uses ', ' as separator)<br>15:concat non-repeated elements<br>16:frequencies tables<br>17:concat (for strings, no separator)
  * @param  {Table} indexesTable optional already calculated table of indexes of elements on the aggregator list (if not provided, the method calculates it)
  * @return {Table} contains a list with non repeated elements on the first list, and the aggregated elements on a second list
  * tags:
@@ -946,15 +946,17 @@ ListOperators.aggregateList = function(aggregatorList, toAggregateList, mode, in
       }
       table[1] = table[1].getImproved();
       return table;
-    case 14://concat string
+    case 14://concat string ", "
+    case 17://concat string
+      var sep = mode==14?", ":"";
       table[1] = new StringList();
       elementsTable = ListOperators.aggregateList(aggregatorList, toAggregateList, 7, indexesTable);
       for(i=0;i<elementsTable[1].length;i++){
         elements = elementsTable[1][i];
-        table[1].push( elements.join(', ') );
+        table[1].push( elements.join(sep) );
       }
       return table;
-    case 15://concat string non repeated
+    case 15://concat with "," string non repeated
       table[1] = new StringList();
       elementsTable = ListOperators.aggregateList(aggregatorList, toAggregateList, 7, indexesTable);
       //elementsTable[1].forEach(function(elements){
