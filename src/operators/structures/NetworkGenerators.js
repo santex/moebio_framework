@@ -251,7 +251,6 @@ NetworkGenerators.createNetworkFromListAndFunction = function(list, weightFuncti
     for(j=i+1; j<n; j++){
       node1 = network.nodeList[j];
       w = weightFunction(list[i], list[j]);
-      if(Math.random()<0.0001) console.log(i,j,w);
       if(w > threshold) {
         if(weightMode>0) w -= threshold;
         if(weightMode==2) w /= (1-threshold);
