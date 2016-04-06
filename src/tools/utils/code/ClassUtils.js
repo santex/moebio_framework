@@ -4,6 +4,7 @@ import Polygon3D from "src/dataTypes/geometry/Polygon3D";
 import List from "src/dataTypes/lists/List";
 import Table from "src/dataTypes/lists/Table";
 import NumberList from "src/dataTypes/numeric/NumberList";
+import IntervalList from "src/dataTypes/numeric/IntervalList";
 import StringList from "src/dataTypes/strings/StringList";
 import NumberTable from "src/dataTypes/numeric/NumberTable";
 import RelationList from "src/dataTypes/structures/lists/RelationList";
@@ -16,7 +17,7 @@ import { dataModelsInfo } from "src/Global";
 // Provides a lookup table for instantiate classes.
 // This is used in the instantiate function to simplify the logic
 // around the creation of these classes.
-var typeDict = {
+var _typeDict = {
   List: List,
   Table: Table,
   StringList: StringList,
@@ -27,7 +28,8 @@ var typeDict = {
   Polygon: Polygon,
   Polygon3D: Polygon3D,
   DateList: DateList,
-  ColorList: ColorList
+  ColorList: ColorList,
+  IntervalList: IntervalList
 };
 
 Date.prototype.getType = function() {
@@ -100,7 +102,8 @@ export function instantiate(className, args) {
     case 'PolygonList':
     case 'DateList':
     case 'ColorList':
-      return typeDict[className].apply(new typeDict[className](), args);
+    case 'IntervalList':
+      return _typeDict[className].apply(new _typeDict[className](), args);
     case null:
     case undefined:
     case 'undefined':
