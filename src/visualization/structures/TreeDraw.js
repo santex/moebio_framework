@@ -85,8 +85,6 @@ TreeDraw.drawTreemap = function(frame, tree, colorList, weights, textColor, exte
   var leaves;
   var nLeaves;
 
-  console.log('change', change);
-
   if(change) {
     var changeInTree = frame.memory==null || frame.memory.tree!=tree;
     //console.log('changeInTree', changeInTree);
