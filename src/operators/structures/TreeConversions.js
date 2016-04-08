@@ -26,6 +26,12 @@ export default TreeConversions;
 TreeConversions.TableToTree = function(table, fatherName, colorsOnLeaves)  {
   if(table == null) return;
 
+  if(table.length===0){
+    throw new Error("Table has no Lists");
+  } else if(table.length===1){
+    throw new Error("Table has only one list, unsufficient to assemble a Tree");
+  }
+
   fatherName = fatherName == null ? "father" : fatherName;
 
   var tree = new Tree();
