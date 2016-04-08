@@ -7472,17 +7472,6 @@
       }
     }
 
-    // list.forEach(function(element, i){
-    //   indexOnTable = indexesDictionary[element];
-    //   if(indexOnTable==null){
-    //     indexesTable[0].push(element);
-    //     indexesTable[1].push(new NumberList(i));
-    //     indexesDictionary[element]=indexesTable[0].length-1;
-    //   } else {
-    //     indexesTable[1][indexOnTable].push(i);
-    //   }
-    // });
-
     indexesTable[0] = indexesTable[0].getImproved();
 
     return indexesTable;
@@ -10933,6 +10922,17 @@
     return matrix[b.length][a.length];
   };
 
+
+  StringOperators.isARelativePathUrl = function(string){
+    if(string==null) return null;
+
+    var cases = ["http://", "https://", "fttp://", "fttps://"];
+    for(var i=0; i<cases.length; i++){
+      if(string.indexOf(cases[i])===0) return true;
+    }
+    return false;
+  };
+
   /**
    * @classdesc Provides a set of tools that work with Dates.
    *
@@ -13689,6 +13689,16 @@
     if(csvString==null) return null;
     valueForNulls = valueForNulls == null ? "" : valueForNulls;
     listsToStringList = listsToStringList==null?false:listsToStringList;
+
+    if(csvString.indexOf("\n")==-1 && csvString.indexOf(",")==-1 && csvString.indexOf(";")==-1 ){
+
+      if(csvString.indexOf("http:/")===0 || csvString.indexOf("https:/")===0 || csvString.indexOf("fttp:/")===0 || csvString.indexOf("fttps:/")===0){
+        throw new Error("The provided string seems to be a url, not a csv<br><br>Use <b>CSVLoader</b> to upload and decode csv files");
+      } else {
+        throw new Error("the provided string doesn't seem to be a csv, it contains no enters or chomas");
+      }
+
+    }
 
     var i, j;
     var _firstRowIsHeader = firstRowIsHeader == null ? false : firstRowIsHeader;
@@ -22604,6 +22614,12 @@
    */
   TreeConversions.TableToTree = function(table, fatherName, colorsOnLeaves)  {
     if(table == null) return;
+
+    if(table.length===0){
+      throw new Error("Table has no Lists");
+    } else if(table.length===1){
+      throw new Error("Table has only one list, unsufficient to assemble a Tree");
+    }
 
     fatherName = fatherName == null ? "father" : fatherName;
 
@@ -32453,8 +32469,6 @@
     var i;
     var leaves;
     var nLeaves;
-
-    console.log('change', change);
 
     if(change) {
       var changeInTree = frame.memory==null || frame.memory.tree!=tree;
