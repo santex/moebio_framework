@@ -44,6 +44,16 @@ TableEncodings.CSVtoTable = function(csvString, firstRowIsHeader, separator, val
   valueForNulls = valueForNulls == null ? "" : valueForNulls;
   listsToStringList = listsToStringList==null?false:listsToStringList;
 
+  if(csvString.indexOf("\n")==-1 && csvString.indexOf(",")==-1 && csvString.indexOf(";")==-1 ){
+
+    if(csvString.indexOf("http:/")===0 || csvString.indexOf("https:/")===0 || csvString.indexOf("fttp:/")===0 || csvString.indexOf("fttps:/")===0){
+      throw new Error("The provided string seems to be a url, not a csv<br><br>Use <b>CSVLoader</b> to upload and decode csv files");
+    } else {
+      throw new Error("the provided string doesn't seem to be a csv, it contains no enters or chomas");
+    }
+
+  }
+
   var i, j;
   var _firstRowIsHeader = firstRowIsHeader == null ? false : firstRowIsHeader;
 
