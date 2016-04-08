@@ -10923,13 +10923,14 @@
   };
 
 
-  StringOperators.isARelativePathUrl = function(string){
+  StringOperators.isAbsoluteUrl = function(string){
     if(string==null) return null;
 
     var cases = ["http://", "https://", "fttp://", "fttps://"];
     for(var i=0; i<cases.length; i++){
       if(string.indexOf(cases[i])===0) return true;
     }
+
     return false;
   };
 
