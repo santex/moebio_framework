@@ -64,6 +64,8 @@ Table.fromArray = function(array) {
   //assign methods to array:
   result.applyFunction = Table.prototype.applyFunction;
   result.getRow = Table.prototype.getRow;
+  result.getColumn = Table.prototype.getColumn;
+  result.getColumns = Table.prototype.getColumns;
   result.getRows = Table.prototype.getRows;
   result.getLengths = Table.prototype.getLengths;
   result.getListLength = Table.prototype.getListLength;
@@ -127,6 +129,85 @@ Table.prototype.getRow = function(index) {
   }
   return list.getImproved();
 };
+
+/**
+ * returns a list from the Table, optionally slicing the list by providing initial and final indexes (notice that this method, except for the slicing, is equivalent to getElement because a Table is a List whose elements are Lists)
+ * @param  {Number|String} indexOrName index or name of column to extract
+ * @param {Number} row0 initial index (included)
+ * @param {Number} row1 final index (included)
+ * @return {List}
+ * tags:filter
+ */
+Table.prototype.getColumn = function(indexOrName, row0, row1) {
+
+  var i;
+  var found;
+
+  if(typeOf(indexOrName)=='string'){
+    indexOrName = indexOrName.trim();
+    found = false;
+    for(i=0; i<this.length; i++){
+      if(this[i].name==indexOrName){
+        found = true;
+        indexOrName = i;
+        break;
+      }
+    }
+    if(!found) return null;
+  }
+
+  indexOrName = indexOrName == null ? 0 : indexOrName % this.length;
+
+  var list = this[indexOrName];
+
+  if(row0==null && row1==null) return list;
+
+  var l = list.length;
+
+  if(row0==null) row0=0;
+  if(row1==null) row1=l-1;
+
+  row1 = Math.min(row1, l-1);
+
+  var newList = new List();
+
+  for(i = row0; i <= row1; i++) {
+    newList.push(list[i]);
+  }
+  return newList.getImproved();
+};
+
+/**
+ * returns some lists from the Table, optionally slicing the list by providing initial and final indexes (notice that this method, except for the slicing, is equivalent to getElement because a Table is a List whose elements are Lists)
+ * @param  {NumberList|StringList} indexesOrNames index or name of column to extract
+ *
+ * @param {Number} row0 initial index (included)
+ * @param {Number} row1 final index (included)
+ * @param {Boolean} emptyListIfNotFound true:adds an empty List if not found<br>false: doesn't add any List and the resulting Table could have less elements than indexes or names provided
+ * @return {Table}
+ * tags:filter
+ */
+Table.prototype.getColumns = function(indexesOrNames, row0, row1, emptyListIfNotFound) {
+  if(indexesOrNames==null) return;
+
+  var newTable = new Table();
+  var l = indexesOrNames.length;
+  var i;
+  var list;
+
+  for(i=0; i<l; i++){
+    list = this.getColumn(indexesOrNames[i], row0, row1);
+
+    if(list==null){
+      if(emptyListIfNotFound) newTable.push(new List());
+    } else {
+      newTable.push(list);
+    }
+  }
+
+  return newTable.getImproved();
+};
+
 
 /**
  * Returns the length a column of the Table.
