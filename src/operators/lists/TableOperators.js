@@ -2139,6 +2139,7 @@ TableOperators.getReportObject = function() {}; //TODO
 
 /**
 * takes a table and simplifies its lists, numberLists will be simplified using quantiles values (using getNumbersSimplified) and other lists reducing the number of different elements (using getSimplified)
+* the number of different values per List is reduced (maximum nCategorires) and by all efects they can be used as categorical
 * specially useful to build simpe decision trees using TableOperators.buildDecisionTree
 * @param {Table} table to be simplified
 * 
