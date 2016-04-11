@@ -34,7 +34,13 @@ IntervalListOperators.scaleIntervals = function(intervalList, value) {
 };
 
 
-
+/**
+ * returns a IntervalList from two NumberLists
+ * @param  {NumberList} numberList0 first numberList
+ * @param  {NumberList} numberList1 second numberList
+ * @return {IntervalList}
+ * tags:
+ */
 IntervalListOperators.numberListsToIntervalList = function(numberList0, numberList1) {
   if(numberList0==null || numberList1==null) return;
 
