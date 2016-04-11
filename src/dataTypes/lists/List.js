@@ -441,58 +441,86 @@ List.prototype.getSubListByIndexes = function() {
 
 
 /**
- * returns all elements in indexes.
- * @param {NumberList} indexes
+ * returns a list with elements in indexes. or found by names.
+ * @param {NumberList|StringList} indexesOrNames list of indexes or list of names
+ *
+ * @param {Boolean} nullIfNotFound true:adds a null if not found<br>false: doesn't add any element and the resulting List could have less elements than indexes or names provided
  * @return {List}
  * tags:filter
  */
-List.prototype.getElements = function() { //TODO: merge with getSubList
-  if(this.length < 1) return this;
-  var indexes;
-  if(typeOf(arguments[0]) == 'number') {
-    indexes = arguments;
-  } else {
-    indexes = arguments[0];
-  }
+List.prototype.getElements = function(indexesOrNames, nullIfNotFound) {
+  if(indexesOrNames==null) return;
 
-  if(indexes == null) {
-    return;
-  }
-
-  var newList;
-  var type = this.type;
-  if(type == 'List') {
-    newList = new List();
-  } else {
-    newList = instantiate(typeOf(this));
-  }
-
-  newList.name = this.name;
-  if(indexes.length === 0) {
-    return newList;
-  }
-  var nElements = this.length;
-  var nPositions = indexes.length;
+  var newList = new List();
+  var l = indexesOrNames.length;
   var i;
+  var list;
 
-  if(type=="NodeList"){
-    for(i = 0; i < nPositions; i++) {
-      if(indexes[i] < nElements) {
-        newList.addNode(this[(indexes[i] + this.length) % this.length]);
-      }
-    }
-  } else {
-    for(i = 0; i < nPositions; i++) {
-      if(indexes[i] < nElements) {
-        newList.push(this[(indexes[i] + this.length) % this.length]);
-      }
+  var name = typeOf(indexesOrNames)=='StringList';
+
+  console.log("_name:"+name);
+
+  for(i=0; i<l; i++){
+    list = name?this.getElementByName(indexesOrNames[i]):this[indexesOrNames[i]];
+
+    if(list==null){
+      if(nullIfNotFound) newList.push(null);
+    } else {
+      newList.push(list);
     }
   }
 
-  if(type == 'List' || type == 'Table') {
-    return newList.getImproved();
-  }
-  return newList;
+  return newList.getImproved();
+
+
+
+
+  // if(this.length < 1) return this;
+  // var indexes;
+  // if(typeOf(arguments[0]) == 'number') {
+  //   indexes = arguments;
+  // } else {
+  //   indexes = arguments[0];
+  // }
+
+  // if(indexes == null) {
+  //   return;
+  // }
+
+  // var newList;
+  // var type = this.type;
+  // if(type == 'List') {
+  //   newList = new List();
+  // } else {
+  //   newList = instantiate(typeOf(this));
+  // }
+
+  // newList.name = this.name;
+  // if(indexes.length === 0) {
+  //   return newList;
+  // }
+  // var nElements = this.length;
+  // var nPositions = indexes.length;
+  // var i;
+
+  // if(type=="NodeList"){
+  //   for(i = 0; i < nPositions; i++) {
+  //     if(indexes[i] < nElements) {
+  //       newList.addNode(this[(indexes[i] + this.length) % this.length]);
+  //     }
+  //   }
+  // } else {
+  //   for(i = 0; i < nPositions; i++) {
+  //     if(indexes[i] < nElements) {
+  //       newList.push(this[(indexes[i] + this.length) % this.length]);
+  //     }
+  //   }
+  // }
+
+  // if(type == 'List' || type == 'Table') {
+  //   return newList.getImproved();
+  // }
+  // return newList;
 };
 
 /**
