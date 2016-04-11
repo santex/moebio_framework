@@ -59,7 +59,6 @@ IntervalList.fromArray = function(array) {
  /**
  * builds an Interval with min and max value from the NumberList
  * @return {Interval}
- * tags:
  */
 IntervalList.prototype.getInterval = function() {
   if(this.length === 0) return null;
