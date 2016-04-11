@@ -28,14 +28,28 @@ export default ListOperators;
  * gets an element in a specified position from a List
  * @param  {List} list
  *
- * @param  {Number} index
+ * @param  {Number|String} indexOrName position or name of element
  * @return {Object}
  * tags:
  */
-ListOperators.getElement = function(list, index) {
+ListOperators.getElement = function(list, indexOrName) {
   if(list == null) return null;
-  index = index == null ? 0 : index % list.length;
-  return list[index];
+
+  if(typeOf(indexOrName)=='string'){
+    indexOrName = indexOrName.trim();
+    var found = false;
+    for(var i=0; i<list.length; i++){
+      if(list[i]["name"]==indexOrName){
+        found = true;
+        indexOrName = i;
+        break;
+      }
+    }
+    if(!found) return null;
+  }
+
+  indexOrName = indexOrName == null ? 0 : indexOrName % list.length;
+  return list[indexOrName];
 };
 
 /**
