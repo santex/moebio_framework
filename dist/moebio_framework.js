@@ -1175,58 +1175,86 @@
 
 
   /**
-   * returns all elements in indexes.
-   * @param {NumberList} indexes
+   * returns a list with elements in indexes. or found by names.
+   * @param {NumberList|StringList} indexesOrNames list of indexes or list of names
+   *
+   * @param {Boolean} nullIfNotFound true:adds a null if not found<br>false: doesn't add any element and the resulting List could have less elements than indexes or names provided
    * @return {List}
    * tags:filter
    */
-  List.prototype.getElements = function() { //TODO: merge with getSubList
-    if(this.length < 1) return this;
-    var indexes;
-    if(_typeOf(arguments[0]) == 'number') {
-      indexes = arguments;
-    } else {
-      indexes = arguments[0];
-    }
+  List.prototype.getElements = function(indexesOrNames, nullIfNotFound) {
+    if(indexesOrNames==null) return;
 
-    if(indexes == null) {
-      return;
-    }
-
-    var newList;
-    var type = this.type;
-    if(type == 'List') {
-      newList = new List();
-    } else {
-      newList = instantiate(_typeOf(this));
-    }
-
-    newList.name = this.name;
-    if(indexes.length === 0) {
-      return newList;
-    }
-    var nElements = this.length;
-    var nPositions = indexes.length;
+    var newList = new List();
+    var l = indexesOrNames.length;
     var i;
+    var list;
 
-    if(type=="NodeList"){
-      for(i = 0; i < nPositions; i++) {
-        if(indexes[i] < nElements) {
-          newList.addNode(this[(indexes[i] + this.length) % this.length]);
-        }
-      }
-    } else {
-      for(i = 0; i < nPositions; i++) {
-        if(indexes[i] < nElements) {
-          newList.push(this[(indexes[i] + this.length) % this.length]);
-        }
+    var name = _typeOf(indexesOrNames)=='StringList';
+
+    console.log("_name:"+name);
+
+    for(i=0; i<l; i++){
+      list = name?this.getElementByName(indexesOrNames[i]):this[indexesOrNames[i]];
+
+      if(list==null){
+        if(nullIfNotFound) newList.push(null);
+      } else {
+        newList.push(list);
       }
     }
 
-    if(type == 'List' || type == 'Table') {
-      return newList.getImproved();
-    }
-    return newList;
+    return newList.getImproved();
+
+
+
+
+    // if(this.length < 1) return this;
+    // var indexes;
+    // if(typeOf(arguments[0]) == 'number') {
+    //   indexes = arguments;
+    // } else {
+    //   indexes = arguments[0];
+    // }
+
+    // if(indexes == null) {
+    //   return;
+    // }
+
+    // var newList;
+    // var type = this.type;
+    // if(type == 'List') {
+    //   newList = new List();
+    // } else {
+    //   newList = instantiate(typeOf(this));
+    // }
+
+    // newList.name = this.name;
+    // if(indexes.length === 0) {
+    //   return newList;
+    // }
+    // var nElements = this.length;
+    // var nPositions = indexes.length;
+    // var i;
+
+    // if(type=="NodeList"){
+    //   for(i = 0; i < nPositions; i++) {
+    //     if(indexes[i] < nElements) {
+    //       newList.addNode(this[(indexes[i] + this.length) % this.length]);
+    //     }
+    //   }
+    // } else {
+    //   for(i = 0; i < nPositions; i++) {
+    //     if(indexes[i] < nElements) {
+    //       newList.push(this[(indexes[i] + this.length) % this.length]);
+    //     }
+    //   }
+    // }
+
+    // if(type == 'List' || type == 'Table') {
+    //   return newList.getImproved();
+    // }
+    // return newList;
   };
 
   /**
@@ -3453,7 +3481,6 @@
    /**
    * builds an Interval with min and max value from the NumberList
    * @return {Interval}
-   * tags:
    */
   IntervalList.prototype.getInterval = function() {
     if(this.length === 0) return null;
@@ -4815,6 +4842,8 @@
     //assign methods to array:
     result.applyFunction = Table.prototype.applyFunction;
     result.getRow = Table.prototype.getRow;
+    result.getColumn = Table.prototype.getColumn;
+    result.getColumns = Table.prototype.getColumns;
     result.getRows = Table.prototype.getRows;
     result.getLengths = Table.prototype.getLengths;
     result.getListLength = Table.prototype.getListLength;
@@ -4878,6 +4907,85 @@
     }
     return list.getImproved();
   };
+
+  /**
+   * returns a list from the Table, optionally slicing the list by providing initial and final indexes (notice that this method, except for the slicing, is equivalent to getElement because a Table is a List whose elements are Lists)
+   * @param  {Number|String} indexOrName index or name of column to extract
+   * @param {Number} row0 initial index (included)
+   * @param {Number} row1 final index (included)
+   * @return {List}
+   * tags:filter
+   */
+  Table.prototype.getColumn = function(indexOrName, row0, row1) {
+
+    var i;
+    var found;
+
+    if(_typeOf(indexOrName)=='string'){
+      indexOrName = indexOrName.trim();
+      found = false;
+      for(i=0; i<this.length; i++){
+        if(this[i].name==indexOrName){
+          found = true;
+          indexOrName = i;
+          break;
+        }
+      }
+      if(!found) return null;
+    }
+
+    indexOrName = indexOrName == null ? 0 : indexOrName % this.length;
+
+    var list = this[indexOrName];
+
+    if(row0==null && row1==null) return list;
+
+    var l = list.length;
+
+    if(row0==null) row0=0;
+    if(row1==null) row1=l-1;
+
+    row1 = Math.min(row1, l-1);
+
+    var newList = new List();
+
+    for(i = row0; i <= row1; i++) {
+      newList.push(list[i]);
+    }
+    return newList.getImproved();
+  };
+
+  /**
+   * returns some lists from the Table, optionally slicing the list by providing initial and final indexes (notice that this method, except for the slicing, is equivalent to getElement because a Table is a List whose elements are Lists)
+   * @param  {NumberList|StringList} indexesOrNames index or name of column to extract
+   *
+   * @param {Number} row0 initial index (included)
+   * @param {Number} row1 final index (included)
+   * @param {Boolean} emptyListIfNotFound true:adds an empty List if not found<br>false: doesn't add any List and the resulting Table could have less elements than indexes or names provided
+   * @return {Table}
+   * tags:filter
+   */
+  Table.prototype.getColumns = function(indexesOrNames, row0, row1, emptyListIfNotFound) {
+    if(indexesOrNames==null) return;
+
+    var newTable = new Table();
+    var l = indexesOrNames.length;
+    var i;
+    var list;
+
+    for(i=0; i<l; i++){
+      list = this.getColumn(indexesOrNames[i], row0, row1);
+
+      if(list==null){
+        if(emptyListIfNotFound) newTable.push(new List());
+      } else {
+        newTable.push(list);
+      }
+    }
+
+    return newTable.getImproved();
+  };
+
 
   /**
    * Returns the length a column of the Table.
@@ -7177,14 +7285,28 @@
    * gets an element in a specified position from a List
    * @param  {List} list
    *
-   * @param  {Number} index
+   * @param  {Number|String} indexOrName position or name of element
    * @return {Object}
    * tags:
    */
-  ListOperators.getElement = function(list, index) {
+  ListOperators.getElement = function(list, indexOrName) {
     if(list == null) return null;
-    index = index == null ? 0 : index % list.length;
-    return list[index];
+
+    if(_typeOf(indexOrName)=='string'){
+      indexOrName = indexOrName.trim();
+      var found = false;
+      for(var i=0; i<list.length; i++){
+        if(list[i]["name"]==indexOrName){
+          found = true;
+          indexOrName = i;
+          break;
+        }
+      }
+      if(!found) return null;
+    }
+
+    indexOrName = indexOrName == null ? 0 : indexOrName % list.length;
+    return list[indexOrName];
   };
 
   /**
@@ -19760,6 +19882,7 @@
 
   /**
   * takes a table and simplifies its lists, numberLists will be simplified using quantiles values (using getNumbersSimplified) and other lists reducing the number of different elements (using getSimplified)
+  * the number of different values per List is reduced (maximum nCategorires) and by all efects they can be used as categorical
   * specially useful to build simpe decision trees using TableOperators.buildDecisionTree
   * @param {Table} table to be simplified
   * 
@@ -20710,7 +20833,13 @@
   };
 
 
-
+  /**
+   * returns a IntervalList from two NumberLists
+   * @param  {NumberList} numberList0 first numberList
+   * @param  {NumberList} numberList1 second numberList
+   * @return {IntervalList}
+   * tags:
+   */
   IntervalListOperators.numberListsToIntervalList = function(numberList0, numberList1) {
     if(numberList0==null || numberList1==null) return;
 
