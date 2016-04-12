@@ -41,9 +41,11 @@ TableEncodings.TAB2 = String.fromCharCode(9);
  */
 TableEncodings.CSVtoTable = function(csvString, firstRowIsHeader, separator, valueForNulls, listsToStringList) {
   if(csvString==null) return null;
-  valueForNulls = valueForNulls == null ? "" : valueForNulls;
-  listsToStringList = listsToStringList==null?false:listsToStringList;
+  
 
+  //valueForNulls = valueForNulls == null ? "" : valueForNulls;
+  listsToStringList = listsToStringList==null?false:listsToStringList;
+  
   if(csvString.indexOf("\n")==-1 && csvString.indexOf(",")==-1 && csvString.indexOf(";")==-1 ){
 
     if(csvString.indexOf("http:/")===0 || csvString.indexOf("https:/")===0 || csvString.indexOf("fttp:/")===0 || csvString.indexOf("fttps:/")===0){
@@ -113,14 +115,15 @@ TableEncodings.CSVtoTable = function(csvString, firstRowIsHeader, separator, val
 
       cellContent = cellContent === '' ? valueForNulls : cellContent;
 
-      cellContent = String(cellContent);
-
-      numberCandidate = Number(cellContent.replace(',', '.'));
-
-      element = (numberCandidate || (numberCandidate === 0 && cellContent !== '')) ? numberCandidate : cellContent;
-
-      if(typeof element == 'string') element = TableEncodings._removeQuotes(element);
-
+      if(cellContent!=null) {
+        cellContent = String(cellContent);
+        numberCandidate = Number(cellContent.replace(',', '.'));
+        element = (numberCandidate || (numberCandidate === 0 && cellContent !== '')) ? numberCandidate : cellContent;
+        if(typeof element == 'string') element = TableEncodings._removeQuotes(element);
+      } else {
+        element = null;
+      }
+      
       table[j][actualIndex] = element;
     }
   }
