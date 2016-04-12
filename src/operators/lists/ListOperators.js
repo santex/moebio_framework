@@ -35,7 +35,7 @@ export default ListOperators;
 ListOperators.getElement = function(list, indexOrName) {
   if(list == null) return null;
 
-  if(typeOf(indexOrName)=='string'){
+  if(typeof indexOrName =='string'){
     indexOrName = indexOrName.trim();
     var found = false;
     for(var i=0; i<list.length; i++){
@@ -192,6 +192,166 @@ ListOperators.replaceElement = function(list, elementToSearch, elementToPlace){
     newList[i] = (list[i]==elementToSearch)?elementToPlace:list[i];
   }
   return newList.getImproved();
+};
+
+/**
+ * replaces all nulls in a list
+ * @param  {List} list
+ * @param  {Number} mode of replacement<br>0:replace by element<br>1:by previous non-null element<br>2:by next non-null element<br>3:average (if all non-null elements are numbers)<br>4:local average, average of previous and next non-null values (if numbers)<br>5:interpolate numbers (if all non-null elements are numbers)
+ * @param  {Object} element element that will replace nulls
+ * @return {List}
+ * tags:
+ */
+ListOperators.replaceNullsInList = function(list, mode, element){
+  if(list==null || mode==null) return;
+
+  if(mode===0 && element==null){
+    throw new Error("when mode is 0, must provide a non-null element to replace nulls");
+  }
+
+  var n = list.length;
+  var i;
+  var average = 0;
+  var nNumbers = 0;
+  var previous;
+  var next;
+  var factor;
+  var newList = new List();
+  var i0, i1;
+
+  switch(mode){
+    case 3://average
+      for(i=0; i<n; i++){
+        if(typeof list[i] == 'number'){
+          average+=list[i];
+          nNumbers++;
+        }
+      }
+      element = average/nNumbers;
+    case 0://element
+      for(i=0; i<n; i++){
+        newList[i] = list[i]==null?element:list[i];
+      }
+      break;
+    case 1://previous
+      for(i=0; i<n; i++){
+        if(list[i]!=null) {
+          previous = list[i];
+          break;
+        }
+      }
+      for(i=0; i<n; i++){
+        if(list[i]==null){
+          newList[i] = previous;
+        } else {
+          newList[i] = previous = list[i];
+        }
+      }
+      break;
+    case 2://next
+      for(i=n-1; i>=0; i--){
+        if(list[i]!=null) {
+          next = list[i];
+          break;
+        }
+      }
+      for(i=n-1; i>=0; i--){
+        if(list[i]==null){
+          newList[i] = next;
+        } else {
+          newList[i] = next = list[i];
+        }
+      }
+      break;
+    case 4://local average
+      i0 = 0;
+      for(i=0; i<n; i++){
+        if(list[i]!=null) {
+          i1 = i;
+          newList[i] = element = list[i];
+          break;
+        }
+      }
+      
+      if(element==null) return list;
+
+      if(i==n) i1=n;
+
+      while(i0<n){
+        for(i=i0; i<i1; i++){
+          newList[i] = element;
+        }
+        for(i=i1; i<n; i++){
+          if(list[i]==null){
+            i0 = i;
+            break;
+          } else {
+            newList[i] = list[i];
+          }
+        }
+        if(i==n) {
+          i0=i1=n;
+        } else {
+          for(i=i0; i<n; i++){
+            if(list[i]!=null){
+              i1 = i;
+              break;
+            }
+          }
+          if(i==n) i1=n;
+        }
+        if(i0>=0) {
+          element = i1==n?list[i0-1]:(list[i0-1]+list[i1])*0.5;
+        }
+      }
+      break;
+    case 5://interpolation
+      i0 = 0;
+      for(i=0; i<n; i++){
+        if(list[i]!=null) {
+          i1 = i;
+          newList[i] = previous = next = list[i];
+          break;
+        }
+      }
+
+      if(previous==null) return list;
+
+      if(i==n) i1=n;
+
+      while(i0<n){
+        factor = (next - previous)/(1+i1-i0);
+        for(i=i0; i<i1; i++){
+          newList[i] = previous + (i-i0+1)*factor;
+        }
+        for(i=i1; i<n; i++){
+          if(list[i]==null){
+            i0 = i;
+            break;
+          } else {
+            newList[i] = list[i];
+          }
+        }
+        if(i==n) {
+          i0=i1=n;
+        } else {
+          for(i=i0; i<n; i++){
+            if(list[i]!=null){
+              i1 = i;
+              break;
+            }
+          }
+          if(i==n) i1=n;
+        }
+        if(i0>0) previous = list[i0-1];
+        next = i1==n?previous:list[i1];
+      }
+      break;
+  }
+
+  newList.name = list.name;
+  return newList.getImproved();
+
 };
 
 /**
