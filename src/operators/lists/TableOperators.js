@@ -431,6 +431,63 @@ TableOperators.transpose = function(table, firstListAsHeaders, headersAsFirstLis
   return table.getTransposed(firstListAsHeaders, headersAsFirstList);
 };
 
+
+
+/**
+ * replaces null values present in any of the lists of the table, and using different criteria for lists with nulls and numbers, and lists with nulls and other objects (typically strings)
+ * @param {Table} table to be transformed
+ * @param {Number} modeForNumbers when finding a null, or a sequence of nulls, between two numbers<br>0:replace by provided number<br>1:by previous non-null element<br>2:by next non-null element<br>3:average (if all non-null elements are numbers)<br>4:local average, average of previous and next non-null values (if numbers)<br>5:interpolate numbers (if all non-null elements are numbers)
+ * @param {Number} modeForNotnumbers when finding a null, or a sequence of nulls, between two strings<br>0:replace by provided element<br>1:by previous non-null element<br>2:by next non-null element
+ *
+ * @param {Number} number to be used to replace nulls in lists with nulls and numbers
+ * @param {Object} element to be used to replace nulls in list with nulls and other non-numerical elements
+ * @return {Table}
+ * tags:
+ */
+TableOperators.replaceNullsInTable = function(table, modeForNumbers, modeForNotnumbers, number, element){
+  if(table==null || modeForNumbers==null || modeForNotnumbers==null) return;
+
+  var nLists = table.length;
+  var l;
+  var i, j;
+  var list, newList;
+  var notNumeric;
+  var containsNull;
+
+  var newTable = new Table();
+
+  for(i=0; i<nLists; i++){
+    list = table[i];
+    l = list.length;
+    notNumeric = false;
+    containsNull = false;
+    for(j=0; j<l; j++){
+      if(list[j]==null){
+        containsNull=true;
+      } else if(typeof list[j] != "number"){
+        notNumeric = true;
+        if(containsNull) break;
+      }
+    }
+
+    if(containsNull){
+      if(notNumeric){
+        newList = ListOperators.replaceNullsInList(list, modeForNotnumbers, element);
+      } else {
+        newList = ListOperators.replaceNullsInList(list, modeForNumbers, number);
+      }
+      newTable[i] = newList;
+    } else {
+      newTable[i] = list;
+    }
+
+  }
+
+  return newTable.getImproved();
+
+};
+
+
 /**
  * divides the instances of a table in two tables: the training table and the test table
  * @param  {Table} table
