@@ -133,6 +133,7 @@ Table.prototype.getRow = function(index) {
 /**
  * returns a list from the Table, optionally slicing the list by providing initial and final indexes (notice that this method, except for the slicing, is equivalent to getElement because a Table is a List whose elements are Lists)
  * @param  {Number|String} indexOrName index or name of column to extract
+ *
  * @param {Number} row0 initial index (included)
  * @param {Number} row1 final index (included)
  * @return {List}
@@ -143,7 +144,7 @@ Table.prototype.getColumn = function(indexOrName, row0, row1) {
   var i;
   var found;
 
-  if(typeOf(indexOrName)=='string'){
+  if(typeof indexOrName =='string'){
     indexOrName = indexOrName.trim();
     found = false;
     for(i=0; i<this.length; i++){
