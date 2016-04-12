@@ -205,23 +205,51 @@ List.prototype.getImproved = function() {
   }
 
   var l = this.length;
+  var containsNulls = false;
+  var allLists = true;
+  var i;
+
   if(newList == null ||  newList == "") {//do not change newList == null
-    var allLists = true;
-    var i;
+    
     for(i = 0; i<l; i++) {
+      if(this[i]==null) containsNulls = true;
       if(this[i]==null || !(this[i].isList)) {
         allLists = false;
         break;
       }
     }
-    if(allLists) newList = Table.fromArray(this, false);
+    if(allLists){
+      newList = Table.fromArray(this, false);
+    }
   }
+
 
   if(newList != null) {
     newList.name = this.name;
-    return newList;
+    //return newList;
+  } else {
+    newList = this;
   }
-  return this;
+
+  if(allLists){
+    for(i = 0; i<l; i++) {
+      if(newList[i]==null || newList[i].containsNulls){
+        containsNulls = true;
+        break;
+      }
+    }
+  } else if(!containsNulls){
+    for(i = 0; i<l; i++) {
+      if(newList[i]==null){
+        containsNulls = true;
+        break;
+      }
+    }
+  }
+
+  newList.containsNulls = containsNulls;
+
+  return newList;
 };
 
 /**
