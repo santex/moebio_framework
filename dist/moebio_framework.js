@@ -19039,7 +19039,7 @@
    * @todo finish docs
    */
   TableOperators.completeTable = function(table, nRows, value) {
-    value = value == null ? 0 : value;
+    value = value === undefined ? 0 : value;
 
     var newTable = new Table();
     newTable.name = table.name;
@@ -19950,10 +19950,10 @@
       var minLen = nLLengths.getMin();
       if(maxLen != minLen){
         // complete the table so all cols have same length
-        tab1 = TableOperators.completeTable(tab1,maxLen,'');
+        tab1 = TableOperators.completeTable(tab1,maxLen,null);
       }
       while(tab1.length < maxCols){
-        tab1.push(ListGenerators.createListWithSameElement(maxLen,'',''));
+        tab1.push(ListGenerators.createListWithSameElement(maxLen,null,''));
       }
       if(i == 0)
         tabResult = tab1.clone();
