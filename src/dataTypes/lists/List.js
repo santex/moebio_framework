@@ -480,6 +480,7 @@ List.prototype.getElements = function(indexesOrNames, nullIfNotFound) {
   if(indexesOrNames==null) return;
 
   var newList = new List();
+  newList.name = this.name;
   var l = indexesOrNames.length;
   var i;
   var list;
