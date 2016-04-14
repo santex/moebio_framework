@@ -170,14 +170,12 @@ NumberListOperators.pearsonProductMomentCorrelation = function(numberList0, numb
  * Returns a NumberList normalized to the sum.
  *
  * @param  {NumberList} numberlist NumberList to Normalize.
- * @param {Number} factor Optional multiplier to modify the normalized values by.
- * Defaults to 1.
- * @param {Number} sum Optional sum to normalize to.
- * If not provided, sum will be calculated automatically.
- * @return {NumberList} New NumberList of values normalized to the sum.
+ * @param {Number} factor Optional multiplier to modify the normalized values by. Defaults to 1.
+ * @param {Number} sum Optional sum to normalize to. If not provided, sum will be calculated automatically.
+ * @return {NumberList} new NumberList of values normalized to the sum.
  * tags:
  */
-NumberListOperators.normalizedToSum = function(numberlist, factor, sum) {
+NumberListOperators.normalizeToSum = function(numberlist, factor, sum) {
   if(numberlist==null) return;
   
   factor = factor == null ? 1 : factor;
@@ -195,6 +193,19 @@ NumberListOperators.normalizedToSum = function(numberlist, factor, sum) {
 };
 
 /**
+ * @param  {NumberList}
+ * @param {Number}
+ * @param {Number}
+ * @return {NumberList}
+ * tags:deprecated
+ * replaceBy:normalizeToSum
+ */
+NumberListOperators.normalizedToSum = function(numberlist, factor, sum) {
+  return NumberListOperators.normalizeToSum(numberlist, factor, sum);
+};
+
+
+/**
  * Returns a NumberList normalized to min-max interval.
  *
  * @param  {NumberList} numberlist NumberList to Normalize.
@@ -205,32 +216,30 @@ NumberListOperators.normalizedToSum = function(numberlist, factor, sum) {
  */
 NumberListOperators.normalized = function(numberlist, factor) {//@todo: remove
   if(numberlist==null) return;
+  return numbeList.getNormalized();
 
-  
+  // if(numberlist.length === 0) return null;
 
-  if(numberlist.length === 0) return null;
-
-  var i;
-  var interval = numberlist.getInterval();
-  var a = interval.getAmplitude();
-  var newNumberList = new NumberList();
-  factor = factor == null ? 1 : factor;
-  factor/=a;
-  for(i = 0; i < numberlist.length; i++) {
-    newNumberList.push( factor*(numberlist[i] - interval.x) );
-  }
-  newNumberList.name = numberlist.name;
-  return newNumberList;
+  // var i;
+  // var interval = numberlist.getInterval();
+  // var a = interval.getAmplitude();
+  // var newNumberList = new NumberList();
+  // factor = factor == null ? 1 : factor;
+  // factor/=a;
+  // for(i = 0; i < numberlist.length; i++) {
+  //   newNumberList.push( factor*(numberlist[i] - interval.x) );
+  // }
+  // newNumberList.name = numberlist.name;
+  // return newNumberList;
 };
 
 /**
  * Returns a NumberList normalized to z-scores (mean of 0, stdev of 1).
- *
  * @param  {NumberList} numberlist NumberList to Normalize.
  * @return {NumberList}
  * tags:statistics
  */
-NumberListOperators.normalizedByZScore = function(numberlist) {
+NumberListOperators.normalizeByZScore = function(numberlist) {
   if(numberlist==null) return;
   if(numberlist.length === 0) return null;
 
@@ -249,13 +258,13 @@ NumberListOperators.normalizedByZScore = function(numberlist) {
 
 /**
  * Returns a NumberList normalized to Max.
- *
  * @param  {NumberList} numberlist NumberList to Normalize.
+ *
  * @param {Number} factor Optional multiplier to modify the normalized values by. Defaults to 1.
  * @return {NumberList}
  * tags:
  */
-NumberListOperators.normalizedToMax = function(numberlist, factor) {
+NumberListOperators.normalizeToMax = function(numberlist, factor) {
   if(numberlist==null) return;
   
   factor = factor == null ? 1 : factor;
@@ -278,7 +287,6 @@ NumberListOperators.normalizedToMax = function(numberlist, factor) {
 
 /**
  * Returns a NumberList normalized to Max.
- *
  * @param  {NumberList} numberlist NumberList to Normalize.
  * @param {Number} factor Optional multiplier to modify the normalized values by. Defaults to 1.
  * @return {NumberList}
@@ -304,7 +312,7 @@ NumberListOperators.normalizeToInterval = function(numberlist, interval) {
 
 
 /**
- * generates a new numberList of desired size smaller than original, with elements claculated as averages of neighbors
+ * generates a new numberList of desired size (smaller than original), with elements claculated as averages of neighbors
  * @param  {NumberList} numberList
  * @param  {Number} newLength length of returned numberList
  * @return {NumberList}
@@ -337,24 +345,26 @@ NumberListOperators.shorten = function(numberList, newLength) {
  * simplifies a numer list, by keeping the nCategories-1 most common values, and replacing the others with an "other" element
  * this method reduces the number of different values contained in the list, converting it into a categorical list
  * @param  {NumberList} numberList NumberList to shorten
- * @param  {Number} method simplification method:<b>0:significant digits<br>1:quantiles (value will be min value in percentile)<br>2:orders of magnitude
  *
+ * @param  {Number} method simplification method:<b>0:significant digits (default)<br>1:quantiles (value will be min value in percentile)<br>2:orders of magnitude
  * @param  {Number} param different meaning according to choosen method:<br>0:number of significant digits<br>1:number of quantiles<br>2:no need of param
  * @return {NumberList} simplified list
  * tags:
  */
-NumberListOperators.simplify = function(numberlist, method, param) {
+NumberListOperators.simplify = function(numberList, method, param) {
+  if(numberList==null) return;
+
   method = method||0;
   param = param||0;
 
   var newList = new NumberList();
-  newList.name = numberlist.name;
+  newList.name = numberList.name;
 
 
   switch(method){
     case 0:
       var power = Math.pow(10, param);
-      numberlist.forEach(function(val){
+      numberList.forEach(function(val){
         newList.push(Math.floor(val/power)*power);
       });
       break;
