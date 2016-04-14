@@ -64,6 +64,7 @@ NumberList.fromArray = function(array, forceToNumber) {
   result.getSum = NumberList.prototype.getSum;
   result.getProduct = NumberList.prototype.getProduct;
   result.getInterval = NumberList.prototype.getInterval;
+  result.getIntervalWithAverage = NumberList.prototype.getIntervalWithAverage;
   result.getNumbersSimplified = NumberList.prototype.getNumbersSimplified;
 
   //statistics
@@ -201,7 +202,6 @@ NumberList.prototype.getProduct = function() {
 
 /**
  * Builds an Interval with min and max value from the NumberList
- *
  * @return {Interval} with starting value as the min of the NumberList
  * and ending value as the max.
  */
@@ -216,6 +216,28 @@ NumberList.prototype.getInterval = function() {
     min = Math.min(min, this[i]);
   }
   var interval = new Interval(min, max);
+  return interval;
+};
+
+/**
+ * Builds an Interval with min and max value from the NumberList, with an average property added
+ * @return {Interval} with starting value as the min of the NumberList
+ * and ending value as the max.
+ */
+NumberList.prototype.getIntervalWithAverage = function() {
+  if(this.length === 0) return null;
+  var max = this[0];
+  var min = this[0];
+  var average = this[0];
+  var l = this.length;
+  var i;
+  for(i = 1; i<l; i++) {
+    max = Math.max(max, this[i]);
+    min = Math.min(min, this[i]);
+    average+=this[i];
+  }
+  var interval = new Interval(min, max);
+  interval.average = average/l;
   return interval;
 };
 
