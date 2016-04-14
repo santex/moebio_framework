@@ -1186,6 +1186,7 @@
     if(indexesOrNames==null) return;
 
     var newList = new List();
+    newList.name = this.name;
     var l = indexesOrNames.length;
     var i;
     var list;
@@ -18259,6 +18260,7 @@
     for(var i = 0; table[i] != null; i++) {
       list = table[i];
       newList = instantiateWithSameType(list);
+      newList.name = list.name;
       for(var j = 0; indexes[j] != null; j++) {
         newList[j] = list[indexes[j]];
       }

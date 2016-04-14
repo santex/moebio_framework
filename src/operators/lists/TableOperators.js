@@ -516,6 +516,7 @@ TableOperators.getSubListsByIndexes = function(table, indexes) {
   for(var i = 0; table[i] != null; i++) {
     list = table[i];
     newList = instantiateWithSameType(list);
+    newList.name = list.name;
     for(var j = 0; indexes[j] != null; j++) {
       newList[j] = list[indexes[j]];
     }
