@@ -723,7 +723,7 @@ List.prototype.getFrequenciesTable = function(sortListsByOccurrences, addWeights
     table._indexesDictionary = null;
   }
 
-  if(addWeightsNormalizedToSum) table[2] = NumberListOperators.normalizedToSum(table[1]);
+  if(addWeightsNormalizedToSum) table[2] = NumberListOperators.normalizeToSum(table[1]);
   if(addCategoricalColors){
     var colors = new ColorList();
     l = table[0].length;
