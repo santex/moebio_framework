@@ -203,7 +203,7 @@ RectangleOperators.squarify = function(frame, weights, isNormalizedWeights, isSo
   if(isNormalizedWeights) {
     newWeightList = weights; // new NumberList(arregloPesos);
   } else {
-    newWeightList = NumberListOperators.normalizedToSum(weights);
+    newWeightList = NumberListOperators.normalizeToSum(weights);
   }
 
   var newPositions;
