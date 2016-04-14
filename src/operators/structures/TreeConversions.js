@@ -30,6 +30,10 @@ TreeConversions.TableToTree = function(table, fatherName, colorsOnLeaves)  {
     throw new Error("Table has no Lists");
   } else if(table.length===1){
     throw new Error("Table has only one list, unsufficient to assemble a Tree");
+  } else if(table[0]===null){
+    throw new Error("table[0] is null");
+  } else if(table.containsNulls){
+    throw new Error("table contains nulls");
   }
 
   fatherName = fatherName == null ? "father" : fatherName;
