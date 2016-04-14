@@ -608,7 +608,7 @@ ListOperators.getRankings = function(list, ascendant, randomSortingForEqualEleme
   for(i=0;i<l; i++){
     rankings[indexes[i]] = i;
   }
-  rankings.name = 'rankings';
+  rankings.name = list.name;
 
   return rankings;
 };
