@@ -214,6 +214,7 @@ TreeDraw.drawTreemap = function(frame, tree, colorList, weights, textColor, exte
     } else if(frame.memory.actualColorList.length == frame.memory.leaves.length) {
       
       leaves = frame.memory.leaves;
+      nLeaves = leaves.length;
 
       for(i=0; i<nLeaves; i++){
         node = leaves[i];
@@ -256,8 +257,9 @@ TreeDraw.drawTreemap = function(frame, tree, colorList, weights, textColor, exte
         node._rgb[2] = Math.floor(node._rgb[2] / sumWeights);//node.toNodeList.length);
         //console.log('new node._rgb', node._rgb.join(','));
       };
-      assignColor(tree.nodeList[0]);
-      //tree.nodeList.forEach(function(node, i) {
+
+      assignColor(tree.nodeList[0]);//recursive
+      
       for(i=0; i<nNodes; i++){
         node = tree.nodeList[i];
         if(node._rgb && node._rgbF == null) node._rgbF = [node._rgb[0], node._rgb[1], node._rgb[2]];
@@ -330,21 +332,7 @@ TreeDraw.drawTreemap = function(frame, tree, colorList, weights, textColor, exte
     graphics.drawImage(frame.memory.image, frame.x, frame.y, frame.width, frame.height);
   } else {
     if(captureImage) {
-      // TODO refactor this to not reassign context
-      // var newCanvas = document.createElement("canvas");
-      // newCanvas.width = frame.width;
-      // newCanvas.height = frame.height;
-      // var newContext = newCanvas.getContext("2d");
-      // newContext.clearRect(0, 0, frame.width, frame.height);
-      // var mainContext = context;
-      // context = newContext;
-      // var prevFx = frame.x;
-      // var prevFy = frame.y;
-      // frame.x = 0;
-      // frame.y = 0;
-      // setFill('white');
-      // fRect(0, 0, frame.width, frame.height);
-      // setText('black', 12);
+      //OLD VERSION
     } else {
       graphics.context.save();
       graphics.clipRect(frame.x, frame.y, frame.width, frame.height);
@@ -362,6 +350,8 @@ TreeDraw.drawTreemap = function(frame, tree, colorList, weights, textColor, exte
 
         x = Math.round(frame.x + rect.x) + 0.5;
         y = Math.round(frame.y + rect.y) + 0.5;
+
+
 
         if(node._rgbF) {
           node._rgbF[0] = 0.95 * node._rgbF[0] + 0.05 * node._rgb[0];
@@ -400,14 +390,7 @@ TreeDraw.drawTreemap = function(frame, tree, colorList, weights, textColor, exte
     };
 
     if(captureImage) {
-      //c.l('captureImage');
-      // TODO refactor this to not reassign context
-      // context = mainContext;
-      // frame.memory.image = new Image();
-      // frame.memory.image.src = newCanvas.toDataURL();
-      // frame.x = prevFx;
-      // frame.y = prevFy;
-      // drawImage(frame.memory.image, frame.x, frame.y, frame.width, frame.height);
+      //OLD VERSION
     }
   }
 
@@ -928,7 +911,7 @@ TreeDraw._horizontalRectanglesDecision = function(rect, weights) {
   var rects = new List();
   var x0 = rect.x;
   var w;
-  var newWeights = NumberListOperators.normalizedToSum(weights);
+  var newWeights = NumberListOperators.normalizeToSum(weights);
 
   newWeights.forEach(function(weight) {
     w = weight * rect.width;
