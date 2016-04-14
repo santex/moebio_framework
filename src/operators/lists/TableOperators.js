@@ -83,9 +83,10 @@ TableOperators.getSubTable = function(table, x, y, width, height) {
 
 /**
  * filter the rows of a table by a criteria defined by an operator applied to all lists or a selected list
- * @param  {Table} table Table.
+ * @param  {Table} table Table
  * @param  {String} operator "=c"(default, exact match for numbers, contains for strings), "==", "<", "<=", ">", ">=", "!=", "contains", "between", Function that returns a boolean
  * @param  {Object} value to compare against, can be String or Number
+ *
  * @param  {Number} nList null(default) means check every column, otherwise column index to test. Can also be another List instance of same length as table.
  * @param  {Object} value2 only used for "between" operator
  * @param  {Boolean} bIgnoreCase for string compares, defaults to true
@@ -106,8 +107,7 @@ TableOperators.filterTable = function(table, operator, value, nList, value2, bIg
   var bExternalList = nList != null && nList.isList === true;
 
   if(bExternalList && nList.length != nRows){
-    console.log('[TableOperators.filterTable] Error, List must have same length as table.');
-    return;
+    throw new Error('selected List (in nList position) must have same length as table');
   }
 
   if(value==null){
@@ -615,9 +615,9 @@ TableOperators.sortListsByNumberList = function(table, numberList, descending) {
 
 
 /**
- * aggregates lists from a table, using one of the list of the table as the aggregation list, and based on different modes for each list
+ * aggregates lists from a table, using one or several of the lists of the table as the aggregation lists, and based on different aggregation modes for each list to aggregate
  * @param  {Table} table containing the aggregation list and lists to be aggregated
- * @param  {NumberList|Number} indexAggregationList index (Number) or indexes (NumberList) of the aggregation lists on the table
+ * @param  {Number|NumberList} indexAggregationList index (Number) or indexes (NumberList) of the aggregation lists on the table
  * @param  {NumberList} indexesListsToAggregate indexes of the lists to be aggregated; typically it also contains the index of the aggregation list at the beginning (or indexes of several lists), to be aggregated using mode 0 (first element) thus resulting as the list of non repeated elements
  * @param  {NumberList} modes list of modes of aggregation, these are the options:<br>0:first element<br>1:count (default)<br>2:sum<br>3:average<br>4:min<br>5:max<br>6:standard deviation<br>7:enlist (creates a list of elements)<br>8:last element<br>9:most common element<br>10:random element<br>11:indexes<br>12:count non repeated elements<br>13:enlist non repeated elements<br>14:concat elements (for strings, uses ', ' as separator)<br>15:concat non-repeated elements<br>16:frequencies tables<br>17:concat (for strings, no separator)
  *
@@ -637,7 +637,6 @@ TableOperators.aggregateTable = function(table, indexAggregationList, indexesLis
     if(indexAggregationList.length==0){
       indexAggregationList = indexAggregationList[0];
     } else {//multiple aggregation
-      console.log("\n\n________________________________________aggregateTable multiple");
       var toAggregate = table.getElements(indexAggregationList);
       var typesToAggregate = toAggregate.getTypes();
       console.log('typesToAggregate', typesToAggregate);
@@ -657,8 +656,6 @@ TableOperators.aggregateTable = function(table, indexAggregationList, indexesLis
       //---> fix this
       newTable = new Table.fromArray( [textsList].concat(table.getElements(indexesListsToAggregate.getWithoutElements(indexAggregationList))) );
 
-      console.log('newTable', newTable); newTable = newTable.clone();
-
       var newIndexesListsToAggregate = new NumberList();
       var newModes = new NumberList();
       newIndexesListsToAggregate[0] = 0;
@@ -668,14 +665,7 @@ TableOperators.aggregateTable = function(table, indexAggregationList, indexesLis
         newModes.push(modes[i]);
       }
 
-      console.log("newIndexesListsToAggregate", newIndexesListsToAggregate);
-      console.log("newModes", newModes);
-
       newTable = TableOperators.aggregateTable(newTable, 0, newIndexesListsToAggregate, newModes, newListsNames);
-
-      console.log('newTable', newTable);
-      console.log('newTable[0]', newTable[0]);
-
 
       var aggregationTable = new Table();
       var parts;
@@ -688,7 +678,6 @@ TableOperators.aggregateTable = function(table, indexAggregationList, indexesLis
       
       for(i=0; i<l; i++){
         text = newTable[0][i];
-        console.log("text:["+text+"]");
         parts = text.split(JOIN_CHARS);
         for(j=0; j<indexAggregationList.length; j++){
 
@@ -1824,6 +1813,24 @@ TableOperators._decisionTreeGenerateColorsMixture = function(ctxt, width, height
       ctxt.fillRect(x, y, 1, 1);
     }
   }
+};
+
+/**
+ * return true if all lists from table have same length, false otherwise
+ * @param  {Table} table
+ * @return {Boolean}
+ */
+TableOperators.allListsSameLength = function(table){
+  if(table==null) return null;
+
+  var l = table.length;
+  var length = table[0].length;
+  var i;
+  for(i=1; i<l; i++){
+    if(table[i].length!=length) return false;
+  }
+
+  return true;
 };
 
 /**
