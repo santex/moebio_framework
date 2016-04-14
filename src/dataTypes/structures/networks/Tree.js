@@ -78,8 +78,13 @@ Tree.prototype.addFather = function(node, child) {
  * tags:
  */
 Tree.prototype.getNodesByLevel = function(level) {
+  level = level===0?0:level;
+
   var newNodeList = new NodeList();
-  for(var i = 0; this.nodeList[i] != null; i++) {
+  newNodeList.name = "level_"+level;
+  var l = this.nodeList.length;
+  var i;
+  for(i = 0; i<l; i++) {
     if(this.nodeList[i].level == level) newNodeList.addNode(this.nodeList[i]);
   }
   return newNodeList;
@@ -94,6 +99,8 @@ Tree.prototype.getNodesByLevel = function(level) {
  */
 Tree.prototype.getLeaves = function(node) {
   var leaves = new NodeList();
+  var i, l;
+  leaves.name = "leaves";
   if(node) {
     if(node.toNodeList.length === 0) {
       leaves.addNode(node);
@@ -103,14 +110,27 @@ Tree.prototype.getLeaves = function(node) {
       if(candidate.toNodeList.length === 0) {
         leaves.addNode(candidate);
       } else {
-        candidate.toNodeList.forEach(addLeaves);
+        l = candidate.toNodeList.length;
+        for(i=0; i<l; i++){
+          addLeaves(candidate.toNodeList[i]);
+        }
+        //candidate.toNodeList.forEach(addLeaves);
       }
     };
-    node.toNodeList.forEach(addLeaves);
+    l = node.toNodeList.length;
+    for(i=0; i<l; i++){
+      addLeaves(node.toNodeList[i]);
+    }
+    //node.toNodeList.forEach(addLeaves);
   } else {
-    this.nodeList.forEach(function(candidate) {
-      if(candidate.toNodeList.length === 0) leaves.addNode(candidate);
-    });
+    l = this.nodeList.length;
+    for(i=0; i<l; i++){
+      if(this.nodeList[i].toNodeList.length === 0) leaves.addNode(this.nodeList[i]);
+    }
+
+    // this.nodeList.forEach(function(candidate) {
+    //   if(candidate.toNodeList.length === 0) leaves.addNode(candidate);
+    // });
   }
   return leaves;
 };
