@@ -16,7 +16,7 @@ CircleDraw.circlesCloud = function(weights, frame, margin) {
 
   margin = margin == null ? 0 : margin;
 
-  var normWeights = NumberListOperators.normalizedToMax(weights).sqrt();
+  var normWeights = NumberListOperators.normalizeToMax(weights).sqrt();
   var circlesPlaced = new Polygon3D();
 
   var a = 0;

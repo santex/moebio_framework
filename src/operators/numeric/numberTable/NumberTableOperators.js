@@ -77,7 +77,7 @@ NumberTableOperators.normalizeListsToMax = function(numbertable, factorValue) {
   var i;
   for(i = 0; i<l; i++) {
     numberlist = numbertable[i];
-    newTable[i] = NumberListOperators.normalizedToMax(numberlist, factorValue);
+    newTable[i] = NumberListOperators.normalizeToMax(numberlist, factorValue);
   }
   newTable.name = numbertable.name;
   return newTable;
@@ -94,7 +94,7 @@ NumberTableOperators.normalizeListsToSum = function(numbertable) {
   var i;
   for(i = 0; i<l; i++) {
     numberlist = numbertable[i];
-    newTable[i] = NumberListOperators.normalizedToSum(numberlist);
+    newTable[i] = NumberListOperators.normalizeToSum(numberlist);
   }
   newTable.name = numbertable.name;
   return newTable;

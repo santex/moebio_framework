@@ -343,7 +343,7 @@ StringListOperators.getWordsInTextsOccurrencesTable = function(texts, weightsMod
   if(normalize) {
     matrix.forEach(function(occurrences, i) {
       if(i === 0) return;
-      matrix[i] = NumberListOperators.normalizedToSum(matrix[i]);
+      matrix[i] = NumberListOperators.normalizeToSum(matrix[i]);
     });
   }
 

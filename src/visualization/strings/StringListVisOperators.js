@@ -37,7 +37,7 @@ StringListVisOperators.simpleTagCloud = function(stringList, weights, frame, fon
   var K = 20;
   var i0Line;
 
-  var normWeigths = NumberListOperators.normalizedToMax(weights);
+  var normWeigths = NumberListOperators.normalizeToMax(weights);
 
   var sizes;
   var positions;
@@ -120,7 +120,7 @@ StringListVisOperators.tagCloudRectangles = function(frame, stringList, weights,
 
   if(graphics==null) graphics=frame.graphics;
 
-  var normWeights = NumberListOperators.normalizedToMax(weights.sqrt());
+  var normWeights = NumberListOperators.normalizeToMax(weights.sqrt());
 
   var roundSizes = mode === 0;
 

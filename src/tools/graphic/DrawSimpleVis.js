@@ -32,7 +32,7 @@ DrawSimpleVis.drawSimpleBarChart = function(context, numberList, frame, colors) 
   var dX = frame.width / numberList.length;
 
   var bottom = frame.getBottom();
-  var normalizedNumberList = NumberListOperators.normalizedToMax(numberList, frame.height);
+  var normalizedNumberList = NumberListOperators.normalizeToMax(numberList, frame.height);
 
   var i;
   for(i = 0; numberList[i] != null; i++) {

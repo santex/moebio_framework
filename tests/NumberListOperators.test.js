@@ -21,7 +21,7 @@ describe("NumberListOperators", function() {
 
   it("should normalize to sum", function(){
     var nl1 = new mo.NumberList(2,4,4);
-    var normNl = mo.NumberListOperators.normalizedToSum(nl1);
+    var normNl = mo.NumberListOperators.normalizeToSum(nl1);
     expect(normNl[0]).toBe(1/5);
     expect(normNl[1]).toBe(2/5);
     expect(normNl[2]).toBe(2/5);
@@ -37,7 +37,7 @@ describe("NumberListOperators", function() {
 
   it("should normalize to max", function(){
     var nl1 = new mo.NumberList(0,5,10);
-    var normNl = mo.NumberListOperators.normalizedToMax(nl1);
+    var normNl = mo.NumberListOperators.normalizeToMax(nl1);
     expect(normNl[0]).toBe(0);
     expect(normNl[1]).toBe(1/2);
     expect(normNl[2]).toBe(1);

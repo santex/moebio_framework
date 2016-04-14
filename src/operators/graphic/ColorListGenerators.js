@@ -150,7 +150,7 @@ ColorListGenerators.createColorListFromNumberList = function(numberList, colorSc
 
   switch(mode) {
     case 0: //0 to max
-      newNumberList = NumberListOperators.normalizedToMax(numberList);
+      newNumberList = NumberListOperators.normalizeToMax(numberList);
       break;
     case 1: //min to max
       break;

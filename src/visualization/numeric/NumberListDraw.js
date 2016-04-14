@@ -30,7 +30,7 @@ NumberListDraw.drawSimpleGraph = function(frame, numberList, margin, xValues, gr
       zero: null
     };
     if(frame.memory.minmax.x > 0 && frame.memory.minmax.y > 0) {
-      frame.memory.normalizedList = NumberListOperators.normalizedToMax(numberList);
+      frame.memory.normalizedList = NumberListOperators.normalizeToMax(numberList);
     } else {
       frame.memory.normalizedList =  NumberListOperators.normalized(numberList);
       frame.memory.zero = -frame.memory.minmax.x / frame.memory.minmax.getAmplitude();

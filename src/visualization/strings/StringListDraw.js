@@ -36,7 +36,7 @@ StringListDraw.simpleTagCloud = function(stringList, weights, frame, font, inter
   var K = 20;
   var i0Line;
 
-  var normWeigths = NumberListOperators.normalizedToMax(weights);
+  var normWeigths = NumberListOperators.normalizeToMax(weights);
 
   var sizes;
   var positions;
@@ -115,7 +115,7 @@ StringListDraw.tagCloudRectangles = function(stringList, weights, frame, mode, m
   mode = mode == null ? 0 : mode;
   margin = margin == null ? 0 : margin;
 
-  var normWeights = NumberListOperators.normalizedToMax(weights.sqrt());
+  var normWeights = NumberListOperators.normalizeToMax(weights.sqrt());
 
   var roundSizes = (mode === 0);
 
