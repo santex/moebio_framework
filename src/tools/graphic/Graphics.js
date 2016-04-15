@@ -100,6 +100,7 @@ Graphics.prototype._initialize = function(autoStart) {
   this.DY_MOUSE_PRESSED=0; //vertical movement of cursor in last frame
   this.MOUSE_MOVED = false; //boolean that indicates wether the mouse moved in the last frame / STATE
   this.T_MOUSE_PRESSED = 0; //time in milliseconds of mouse being pressed, useful for sutained pressure detection
+  this.SHIFT_PRESSED = false; //true if SHIFT key is pressed
   this.IS_TOUCH = (('ontouchstart' in window) || (navigator.msMaxTouchPoints > 0));
 
   this.cursorStyle = 'auto';
@@ -286,6 +287,13 @@ Graphics.prototype._onMouseOrKeyBoard = function(e) {
       break;
     case "mouseleave":
       this.MOUSE_IN_DOCUMENT = false;
+      this.SHIFT_PRESSED = false;
+      break;
+    case "keydown":
+      this.SHIFT_PRESSED = e.shiftKey;
+      break;
+    case "keyup":
+      this.SHIFT_PRESSED = false;
       break;
 
     //"gesturestart"
@@ -615,8 +623,10 @@ Graphics.prototype.cycleOnMouseMovement = function(time) {
   if(this.cycleOnMouseMovementListener){
     this.canvas.removeEventListener('mousemove', this.cycleOnMouseMovementListener, false);
     this.canvas.removeEventListener('mousewheel', this.cycleOnMouseMovementListener, false);
-    this.canvas.removeEventListener('mousemove', this.cycleOnMouseMovementListener, false);
+    //this.canvas.removeEventListener('mousemove', this.cycleOnMouseMovementListener, false);
     this.canvas.removeEventListener('mousedown', this.cycleOnMouseMovementListener, false);
+    this.canvas.removeEventListener('keydown', this.cycleOnMouseMovementListener, false);
+    this.canvas.removeEventListener('keyup', this.cycleOnMouseMovementListener, false);
 
     if(this.IS_TOUCH){
       this.canvas.removeEventListener("touchstart", this.cycleOnMouseMovementListener, false);
@@ -632,8 +642,10 @@ Graphics.prototype.cycleOnMouseMovement = function(time) {
 
     this.canvas.addEventListener('mousemove', this.cycleOnMouseMovementListener, false);
     this.canvas.addEventListener('mousewheel', this.cycleOnMouseMovementListener, false);
-    this.canvas.addEventListener('mousemove', this.cycleOnMouseMovementListener, false);
+    //this.canvas.addEventListener('mousemove', this.cycleOnMouseMovementListener, false);
     this.canvas.addEventListener('mousedown', this.cycleOnMouseMovementListener, false);
+    this.canvas.addEventListener('keydown', this.cycleOnMouseMovementListener, false);
+    this.canvas.addEventListener('keyup', this.cycleOnMouseMovementListener, false);
 
     if(this.IS_TOUCH){
       this.canvas.addEventListener("touchstart", this.cycleOnMouseMovementListener, false);
