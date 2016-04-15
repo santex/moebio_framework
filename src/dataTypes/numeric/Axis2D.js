@@ -121,7 +121,7 @@ Axis2D.prototype.inverseProject = function(point) {
  * @return {Number} new X value.
  */
 Axis2D.prototype.inverseProjectX = function(x) {
-  return(x - this.arrivalFrame.x) / this.pW + this.departureFrame.x;
+  return (x - this.arrivalFrame.x) / this.pW + this.departureFrame.x;
 };
 
 /**
@@ -152,6 +152,34 @@ Axis2D.prototype.scale = function(dS, x, y){
   y = y==null?(this.arrivalFrame.y + 0.5*this.arrivalFrame.height):y;
   this.arrivalFrame = this.arrivalFrame.expand(dS, new Point(x, y));
   this._update();
+};
+
+
+/**
+ * modifies arrivalFrame to fit a departure frame into an arrival frame
+ * @param {Number} dS ampunt of scale, typically a number close to 1
+ *
+ * @param  {Number} x horizontal coordinate of center for scaling, in terms of arrival frame (by default: center of arrival frame)
+ * @param  {Number} y vertical coordinate of center for scaling, in terms of arrival frame (by default: center of arrival frame)
+ */
+Axis2D.prototype.arrivalFrameTofitFrames = function(frameOnDepartue, frameOnArrival){
+  var x0 = frameOnArrival.x;
+  var x1 = frameOnArrival.x + frameOnArrival.width;
+  var px = (frameOnDepartue.x - this.departureFrame.x)/this.departureFrame.width;
+  var qx = (frameOnDepartue.x+frameOnDepartue.width - this.departureFrame.x)/this.departureFrame.width;
+
+  var y0 = frameOnArrival.y;
+  var y1 = frameOnArrival.y + frameOnArrival.height;
+  var py = (frameOnDepartue.y - this.departureFrame.y)/this.departureFrame.height;
+  var qy = (frameOnDepartue.y+frameOnDepartue.height - this.departureFrame.y)/this.departureFrame.height;
+
+  var W = (x0-x1)/(px-qx);
+  var X = x0 - (W*px);
+  
+  var H = (y0-y1)/(py-qy);
+  var Y = y0 - (H*py);
+
+  return new Rectangle(X, Y, W, H);
 };
 
 /**
