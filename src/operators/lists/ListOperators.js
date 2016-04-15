@@ -25,31 +25,10 @@ export default ListOperators;
 
 
 /**
- * gets an element in a specified position from a List
- * @param  {List} list
- *
- * @param  {Number|String} indexOrName position or name of element
- * @return {Object}
- * tags:
+ * deprecated
  */
-ListOperators.getElement = function(list, indexOrName) {
-  if(list == null) return null;
-
-  if(typeof indexOrName =='string'){
-    indexOrName = indexOrName.trim();
-    var found = false;
-    for(var i=0; i<list.length; i++){
-      if(list[i]["name"]==indexOrName){
-        found = true;
-        indexOrName = i;
-        break;
-      }
-    }
-    if(!found) return null;
-  }
-
-  indexOrName = indexOrName == null ? 0 : indexOrName % list.length;
-  return list[indexOrName];
+ListOperators.getElement = function(list, indexOrName){
+  return list.getElement(indexOrName);
 };
 
 /**
@@ -198,7 +177,7 @@ ListOperators.replaceElement = function(list, elementToSearch, elementToPlace){
  * replaces all nulls in a list
  * @param  {List} list
  * @param  {Number} mode of replacement<br>0:replace by element<br>1:by previous non-null element<br>2:by next non-null element<br>3:average (if all non-null elements are numbers)<br>4:local average, average of previous and next non-null values (if numbers)<br>5:interpolate numbers (if all non-null elements are numbers)
- * @param  {Object} element element that will replace nulls
+ * @param  {Object} element that will replace nulls
  * @return {List}
  * tags:
  */

@@ -68,6 +68,8 @@ List.fromArray = function(array) {
   array._constructor = List;
 
   array.getImproved = List.prototype.getImproved;
+  array.getElement = List.prototype.getElement;
+  array.getElements = List.prototype.getElements;
   array.isEquivalent = List.prototype.isEquivalent;
   //array.getLength = List.prototype.getLength;
   array.getTypeOfElements = List.prototype.getTypeOfElements; //TODO: redundant?
@@ -115,7 +117,6 @@ List.fromArray = function(array) {
   //filter:
   array.getSubList = List.prototype.getSubList;
   array.getSubListByIndexes = List.prototype.getSubListByIndexes;//deprecated
-  array.getElements = List.prototype.getElements;
   array.getSubListByType = List.prototype.getSubListByType;
   array.getFilteredByPropertyValue = List.prototype.getFilteredByPropertyValue;
   array.getFilteredByBooleanList = List.prototype.getFilteredByBooleanList;
@@ -250,6 +251,64 @@ List.prototype.getImproved = function() {
   newList.containsNulls = containsNulls;
 
   return newList;
+};
+
+/**
+ * extracts an element from the list
+ * @param {Number|String} position or name of the element
+ * @return {Object}
+ * tags:
+ */
+List.prototype.getElement = function(indexOrName) {//@todo: make this efficient
+  if(typeof indexOrName =='string'){
+    indexOrName = indexOrName.trim();
+    var found = false;
+    for(var i=0; i<this.length; i++){
+      if(this[i]["name"]==indexOrName){
+        found = true;
+        indexOrName = i;
+        break;
+      }
+    }
+    if(!found) throw new Error("didn't find a list with name "+indexOrName);
+  } else {
+    indexOrName = indexOrName == null ? 0 : indexOrName;
+    if(indexOrName<0) indexOrName += this.length;
+  }
+  
+  return this[indexOrName];
+};
+
+/**
+ * returns a list with elements in indexes. or found by names.
+ * @param {NumberList|StringList} indexesOrNames list of indexes or list of names
+ *
+ * @param {Boolean} nullIfNotFound true:adds a null if not found<br>false: doesn't add any element and the resulting List could have less elements than indexes or names provided
+ * @return {List}
+ * tags:filter
+ */
+List.prototype.getElements = function(indexesOrNames, nullIfNotFound) {
+  if(indexesOrNames==null) return;
+
+  var newList = new List();
+  newList.name = this.name;
+  var l = indexesOrNames.length;
+  var i;
+  var list;
+
+  var name = typeOf(indexesOrNames)=='StringList';
+
+  for(i=0; i<l; i++){
+    list = name?this.getElementByName(indexesOrNames[i]):this[indexesOrNames[i]];
+
+    if(list==null){
+      if(nullIfNotFound) newList.push(null);
+    } else {
+      newList.push(list);
+    }
+  }
+
+  return newList.getImproved();
 };
 
 /**
@@ -388,9 +447,9 @@ List.prototype.getSubList = function() {
   if(arguments[0]==null) return;
 
   if(arguments[0].isList) {
-    return this.getSubListByIndexes(arguments[0]);
+    return this.getElements(arguments[0]);
   } else if(arguments.length > 2) {
-    return this.getSubListByIndexes(arguments);
+    return this.getElements(arguments);
   } else if(typeOf(arguments[0]) == 'number') {
     if(typeOf(arguments[1]) != null && typeOf(arguments[1]) == 'number') {
       interval = new Interval(arguments[0], arguments[1]);
@@ -467,90 +526,6 @@ List.prototype.getSubListByIndexes = function() {
   return this.getElements.apply(this, arguments);
 };
 
-
-/**
- * returns a list with elements in indexes. or found by names.
- * @param {NumberList|StringList} indexesOrNames list of indexes or list of names
- *
- * @param {Boolean} nullIfNotFound true:adds a null if not found<br>false: doesn't add any element and the resulting List could have less elements than indexes or names provided
- * @return {List}
- * tags:filter
- */
-List.prototype.getElements = function(indexesOrNames, nullIfNotFound) {
-  if(indexesOrNames==null) return;
-
-  var newList = new List();
-  newList.name = this.name;
-  var l = indexesOrNames.length;
-  var i;
-  var list;
-
-  var name = typeOf(indexesOrNames)=='StringList';
-
-  console.log("_name:"+name);
-
-  for(i=0; i<l; i++){
-    list = name?this.getElementByName(indexesOrNames[i]):this[indexesOrNames[i]];
-
-    if(list==null){
-      if(nullIfNotFound) newList.push(null);
-    } else {
-      newList.push(list);
-    }
-  }
-
-  return newList.getImproved();
-
-
-
-
-  // if(this.length < 1) return this;
-  // var indexes;
-  // if(typeOf(arguments[0]) == 'number') {
-  //   indexes = arguments;
-  // } else {
-  //   indexes = arguments[0];
-  // }
-
-  // if(indexes == null) {
-  //   return;
-  // }
-
-  // var newList;
-  // var type = this.type;
-  // if(type == 'List') {
-  //   newList = new List();
-  // } else {
-  //   newList = instantiate(typeOf(this));
-  // }
-
-  // newList.name = this.name;
-  // if(indexes.length === 0) {
-  //   return newList;
-  // }
-  // var nElements = this.length;
-  // var nPositions = indexes.length;
-  // var i;
-
-  // if(type=="NodeList"){
-  //   for(i = 0; i < nPositions; i++) {
-  //     if(indexes[i] < nElements) {
-  //       newList.addNode(this[(indexes[i] + this.length) % this.length]);
-  //     }
-  //   }
-  // } else {
-  //   for(i = 0; i < nPositions; i++) {
-  //     if(indexes[i] < nElements) {
-  //       newList.push(this[(indexes[i] + this.length) % this.length]);
-  //     }
-  //   }
-  // }
-
-  // if(type == 'List' || type == 'Table') {
-  //   return newList.getImproved();
-  // }
-  // return newList;
-};
 
 /**
  * getElementNumberOfOccurrences
