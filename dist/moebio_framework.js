@@ -10083,6 +10083,7 @@
     ];
   };
 
+
   /**
    * create a colorList based on a colorScale
    * @param  {Number} n number of colors
