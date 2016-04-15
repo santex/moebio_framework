@@ -939,23 +939,51 @@
     }
 
     var l = this.length;
+    var containsNulls = false;
+    var allLists = true;
+    var i;
+
     if(newList == null ||  newList == "") {//do not change newList == null
-      var allLists = true;
-      var i;
+      
       for(i = 0; i<l; i++) {
+        if(this[i]==null) containsNulls = true;
         if(this[i]==null || !(this[i].isList)) {
           allLists = false;
           break;
         }
       }
-      if(allLists) newList = Table.fromArray(this, false);
+      if(allLists){
+        newList = Table.fromArray(this, false);
+      }
     }
+
 
     if(newList != null) {
       newList.name = this.name;
-      return newList;
+      //return newList;
+    } else {
+      newList = this;
     }
-    return this;
+
+    if(allLists){
+      for(i = 0; i<l; i++) {
+        if(newList[i]==null || newList[i].containsNulls){
+          containsNulls = true;
+          break;
+        }
+      }
+    } else if(!containsNulls){
+      for(i = 0; i<l; i++) {
+        if(newList[i]==null){
+          containsNulls = true;
+          break;
+        }
+      }
+    }
+
+    newList.containsNulls = containsNulls;
+
+    return newList;
   };
 
   /**
@@ -1430,7 +1458,7 @@
       table._indexesDictionary = null;
     }
 
-    if(addWeightsNormalizedToSum) table[2] = NumberListOperators.normalizedToSum(table[1]);
+    if(addWeightsNormalizedToSum) table[2] = NumberListOperators.normalizeToSum(table[1]);
     if(addCategoricalColors){
       var colors = new ColorList();
       l = table[0].length;
@@ -2421,6 +2449,7 @@
     result.getSum = NumberList.prototype.getSum;
     result.getProduct = NumberList.prototype.getProduct;
     result.getInterval = NumberList.prototype.getInterval;
+    result.getIntervalWithAverage = NumberList.prototype.getIntervalWithAverage;
     result.getNumbersSimplified = NumberList.prototype.getNumbersSimplified;
 
     //statistics
@@ -2558,7 +2587,6 @@
 
   /**
    * Builds an Interval with min and max value from the NumberList
-   *
    * @return {Interval} with starting value as the min of the NumberList
    * and ending value as the max.
    */
@@ -2573,6 +2601,28 @@
       min = Math.min(min, this[i]);
     }
     var interval = new Interval(min, max);
+    return interval;
+  };
+
+  /**
+   * Builds an Interval with min and max value from the NumberList, with an average property added
+   * @return {Interval} with starting value as the min of the NumberList
+   * and ending value as the max.
+   */
+  NumberList.prototype.getIntervalWithAverage = function() {
+    if(this.length === 0) return null;
+    var max = this[0];
+    var min = this[0];
+    var average = this[0];
+    var l = this.length;
+    var i;
+    for(i = 1; i<l; i++) {
+      max = Math.max(max, this[i]);
+      min = Math.min(min, this[i]);
+      average+=this[i];
+    }
+    var interval = new Interval(min, max);
+    interval.average = average/l;
     return interval;
   };
 
@@ -4912,6 +4962,7 @@
   /**
    * returns a list from the Table, optionally slicing the list by providing initial and final indexes (notice that this method, except for the slicing, is equivalent to getElement because a Table is a List whose elements are Lists)
    * @param  {Number|String} indexOrName index or name of column to extract
+   *
    * @param {Number} row0 initial index (included)
    * @param {Number} row1 final index (included)
    * @return {List}
@@ -4922,7 +4973,7 @@
     var i;
     var found;
 
-    if(_typeOf(indexOrName)=='string'){
+    if(typeof indexOrName =='string'){
       indexOrName = indexOrName.trim();
       found = false;
       for(i=0; i<this.length; i++){
@@ -7293,7 +7344,7 @@
   ListOperators.getElement = function(list, indexOrName) {
     if(list == null) return null;
 
-    if(_typeOf(indexOrName)=='string'){
+    if(typeof indexOrName =='string'){
       indexOrName = indexOrName.trim();
       var found = false;
       for(var i=0; i<list.length; i++){
@@ -7450,6 +7501,166 @@
       newList[i] = (list[i]==elementToSearch)?elementToPlace:list[i];
     }
     return newList.getImproved();
+  };
+
+  /**
+   * replaces all nulls in a list
+   * @param  {List} list
+   * @param  {Number} mode of replacement<br>0:replace by element<br>1:by previous non-null element<br>2:by next non-null element<br>3:average (if all non-null elements are numbers)<br>4:local average, average of previous and next non-null values (if numbers)<br>5:interpolate numbers (if all non-null elements are numbers)
+   * @param  {Object} element element that will replace nulls
+   * @return {List}
+   * tags:
+   */
+  ListOperators.replaceNullsInList = function(list, mode, element){
+    if(list==null || mode==null) return;
+
+    if(mode===0 && element==null){
+      throw new Error("when mode is 0, must provide a non-null element to replace nulls");
+    }
+
+    var n = list.length;
+    var i;
+    var average = 0;
+    var nNumbers = 0;
+    var previous;
+    var next;
+    var factor;
+    var newList = new List();
+    var i0, i1;
+
+    switch(mode){
+      case 3://average
+        for(i=0; i<n; i++){
+          if(typeof list[i] == 'number'){
+            average+=list[i];
+            nNumbers++;
+          }
+        }
+        element = average/nNumbers;
+      case 0://element
+        for(i=0; i<n; i++){
+          newList[i] = list[i]==null?element:list[i];
+        }
+        break;
+      case 1://previous
+        for(i=0; i<n; i++){
+          if(list[i]!=null) {
+            previous = list[i];
+            break;
+          }
+        }
+        for(i=0; i<n; i++){
+          if(list[i]==null){
+            newList[i] = previous;
+          } else {
+            newList[i] = previous = list[i];
+          }
+        }
+        break;
+      case 2://next
+        for(i=n-1; i>=0; i--){
+          if(list[i]!=null) {
+            next = list[i];
+            break;
+          }
+        }
+        for(i=n-1; i>=0; i--){
+          if(list[i]==null){
+            newList[i] = next;
+          } else {
+            newList[i] = next = list[i];
+          }
+        }
+        break;
+      case 4://local average
+        i0 = 0;
+        for(i=0; i<n; i++){
+          if(list[i]!=null) {
+            i1 = i;
+            newList[i] = element = list[i];
+            break;
+          }
+        }
+        
+        if(element==null) return list;
+
+        if(i==n) i1=n;
+
+        while(i0<n){
+          for(i=i0; i<i1; i++){
+            newList[i] = element;
+          }
+          for(i=i1; i<n; i++){
+            if(list[i]==null){
+              i0 = i;
+              break;
+            } else {
+              newList[i] = list[i];
+            }
+          }
+          if(i==n) {
+            i0=i1=n;
+          } else {
+            for(i=i0; i<n; i++){
+              if(list[i]!=null){
+                i1 = i;
+                break;
+              }
+            }
+            if(i==n) i1=n;
+          }
+          if(i0>=0) {
+            element = i1==n?list[i0-1]:(list[i0-1]+list[i1])*0.5;
+          }
+        }
+        break;
+      case 5://interpolation
+        i0 = 0;
+        for(i=0; i<n; i++){
+          if(list[i]!=null) {
+            i1 = i;
+            newList[i] = previous = next = list[i];
+            break;
+          }
+        }
+
+        if(previous==null) return list;
+
+        if(i==n) i1=n;
+
+        while(i0<n){
+          factor = (next - previous)/(1+i1-i0);
+          for(i=i0; i<i1; i++){
+            newList[i] = previous + (i-i0+1)*factor;
+          }
+          for(i=i1; i<n; i++){
+            if(list[i]==null){
+              i0 = i;
+              break;
+            } else {
+              newList[i] = list[i];
+            }
+          }
+          if(i==n) {
+            i0=i1=n;
+          } else {
+            for(i=i0; i<n; i++){
+              if(list[i]!=null){
+                i1 = i;
+                break;
+              }
+            }
+            if(i==n) i1=n;
+          }
+          if(i0>0) previous = list[i0-1];
+          next = i1==n?previous:list[i1];
+        }
+        break;
+    }
+
+    newList.name = list.name;
+    return newList.getImproved();
+
   };
 
   /**
@@ -7706,7 +7917,7 @@
     for(i=0;i<l; i++){
       rankings[indexes[i]] = i;
     }
-    rankings.name = 'rankings';
+    rankings.name = list.name;
 
     return rankings;
   };
@@ -9212,14 +9423,12 @@
    * Returns a NumberList normalized to the sum.
    *
    * @param  {NumberList} numberlist NumberList to Normalize.
-   * @param {Number} factor Optional multiplier to modify the normalized values by.
-   * Defaults to 1.
-   * @param {Number} sum Optional sum to normalize to.
-   * If not provided, sum will be calculated automatically.
-   * @return {NumberList} New NumberList of values normalized to the sum.
+   * @param {Number} factor Optional multiplier to modify the normalized values by. Defaults to 1.
+   * @param {Number} sum Optional sum to normalize to. If not provided, sum will be calculated automatically.
+   * @return {NumberList} new NumberList of values normalized to the sum.
    * tags:
    */
-  NumberListOperators.normalizedToSum = function(numberlist, factor, sum) {
+  NumberListOperators.normalizeToSum = function(numberlist, factor, sum) {
     if(numberlist==null) return;
     
     factor = factor == null ? 1 : factor;
@@ -9237,6 +9446,19 @@
   };
 
   /**
+   * @param  {NumberList}
+   * @param {Number}
+   * @param {Number}
+   * @return {NumberList}
+   * tags:deprecated
+   * replaceBy:normalizeToSum
+   */
+  NumberListOperators.normalizedToSum = function(numberlist, factor, sum) {
+    return NumberListOperators.normalizeToSum(numberlist, factor, sum);
+  };
+
+
+  /**
    * Returns a NumberList normalized to min-max interval.
    *
    * @param  {NumberList} numberlist NumberList to Normalize.
@@ -9247,32 +9469,30 @@
    */
   NumberListOperators.normalized = function(numberlist, factor) {//@todo: remove
     if(numberlist==null) return;
+    return numbeList.getNormalized();
 
-    
+    // if(numberlist.length === 0) return null;
 
-    if(numberlist.length === 0) return null;
-
-    var i;
-    var interval = numberlist.getInterval();
-    var a = interval.getAmplitude();
-    var newNumberList = new NumberList();
-    factor = factor == null ? 1 : factor;
-    factor/=a;
-    for(i = 0; i < numberlist.length; i++) {
-      newNumberList.push( factor*(numberlist[i] - interval.x) );
-    }
-    newNumberList.name = numberlist.name;
-    return newNumberList;
+    // var i;
+    // var interval = numberlist.getInterval();
+    // var a = interval.getAmplitude();
+    // var newNumberList = new NumberList();
+    // factor = factor == null ? 1 : factor;
+    // factor/=a;
+    // for(i = 0; i < numberlist.length; i++) {
+    //   newNumberList.push( factor*(numberlist[i] - interval.x) );
+    // }
+    // newNumberList.name = numberlist.name;
+    // return newNumberList;
   };
 
   /**
    * Returns a NumberList normalized to z-scores (mean of 0, stdev of 1).
-   *
    * @param  {NumberList} numberlist NumberList to Normalize.
    * @return {NumberList}
    * tags:statistics
    */
-  NumberListOperators.normalizedByZScore = function(numberlist) {
+  NumberListOperators.normalizeByZScore = function(numberlist) {
     if(numberlist==null) return;
     if(numberlist.length === 0) return null;
 
@@ -9291,13 +9511,13 @@
 
   /**
    * Returns a NumberList normalized to Max.
-   *
    * @param  {NumberList} numberlist NumberList to Normalize.
+   *
    * @param {Number} factor Optional multiplier to modify the normalized values by. Defaults to 1.
    * @return {NumberList}
    * tags:
    */
-  NumberListOperators.normalizedToMax = function(numberlist, factor) {
+  NumberListOperators.normalizeToMax = function(numberlist, factor) {
     if(numberlist==null) return;
     
     factor = factor == null ? 1 : factor;
@@ -9320,7 +9540,6 @@
 
   /**
    * Returns a NumberList normalized to Max.
-   *
    * @param  {NumberList} numberlist NumberList to Normalize.
    * @param {Number} factor Optional multiplier to modify the normalized values by. Defaults to 1.
    * @return {NumberList}
@@ -9346,7 +9565,7 @@
 
 
   /**
-   * generates a new numberList of desired size smaller than original, with elements claculated as averages of neighbors
+   * generates a new numberList of desired size (smaller than original), with elements claculated as averages of neighbors
    * @param  {NumberList} numberList
    * @param  {Number} newLength length of returned numberList
    * @return {NumberList}
@@ -9379,24 +9598,26 @@
    * simplifies a numer list, by keeping the nCategories-1 most common values, and replacing the others with an "other" element
    * this method reduces the number of different values contained in the list, converting it into a categorical list
    * @param  {NumberList} numberList NumberList to shorten
-   * @param  {Number} method simplification method:<b>0:significant digits<br>1:quantiles (value will be min value in percentile)<br>2:orders of magnitude
    *
+   * @param  {Number} method simplification method:<b>0:significant digits (default)<br>1:quantiles (value will be min value in percentile)<br>2:orders of magnitude
    * @param  {Number} param different meaning according to choosen method:<br>0:number of significant digits<br>1:number of quantiles<br>2:no need of param
    * @return {NumberList} simplified list
    * tags:
    */
-  NumberListOperators.simplify = function(numberlist, method, param) {
+  NumberListOperators.simplify = function(numberList, method, param) {
+    if(numberList==null) return;
+
     method = method||0;
     param = param||0;
 
     var newList = new NumberList();
-    newList.name = numberlist.name;
+    newList.name = numberList.name;
 
 
     switch(method){
       case 0:
         var power = Math.pow(10, param);
-        numberlist.forEach(function(val){
+        numberList.forEach(function(val){
           newList.push(Math.floor(val/power)*power);
         });
         break;
@@ -9862,12 +10083,33 @@
     ];
   };
 
+  /**
+   * create a colorList based on a colorScale
+   * @param  {Number} n number of colors
+   *
+   * @param  {ColorScale} colorScale (grayToOrange by default)
+   * @return {ColorList}
+   * tags:generator
+   */
+  ColorListGenerators.createColorListFromColorScale = function(n, colorScale){
+    if(n==null) return;
+
+    var i;
+    colorScale = colorScale==null?ColorScales.grayToOrange:colorScale;
+
+    for(i=0; i<n; i++){
+      colorScale[i] = colorScale(i/(n+1));
+    }
+
+    return colorScale;
+  };
+
 
   /**
    * create a colorList based on a colorScale and values from a numberList (that will be normalized)
    * @param  {NumberList} numberList
    *
-   * @param  {ColorScale} colorScale
+   * @param  {ColorScale} colorScale (grayToOrange by default)
    * @param  {Number} mode 0:normalize numberList
    * @return {ColorList}
    * tags:generator
@@ -9884,7 +10126,7 @@
 
     switch(mode) {
       case 0: //0 to max
-        newNumberList = NumberListOperators.normalizedToMax(numberList);
+        newNumberList = NumberListOperators.normalizeToMax(numberList);
         break;
       case 1: //min to max
         break;
@@ -13811,9 +14053,11 @@
    */
   TableEncodings.CSVtoTable = function(csvString, firstRowIsHeader, separator, valueForNulls, listsToStringList) {
     if(csvString==null) return null;
-    valueForNulls = valueForNulls == null ? "" : valueForNulls;
-    listsToStringList = listsToStringList==null?false:listsToStringList;
+    
 
+    //valueForNulls = valueForNulls == null ? "" : valueForNulls;
+    listsToStringList = listsToStringList==null?false:listsToStringList;
+    
     if(csvString.indexOf("\n")==-1 && csvString.indexOf(",")==-1 && csvString.indexOf(";")==-1 ){
 
       if(csvString.indexOf("http:/")===0 || csvString.indexOf("https:/")===0 || csvString.indexOf("fttp:/")===0 || csvString.indexOf("fttps:/")===0){
@@ -13883,14 +14127,15 @@
 
         cellContent = cellContent === '' ? valueForNulls : cellContent;
 
-        cellContent = String(cellContent);
-
-        numberCandidate = Number(cellContent.replace(',', '.'));
-
-        element = (numberCandidate || (numberCandidate === 0 && cellContent !== '')) ? numberCandidate : cellContent;
-
-        if(typeof element == 'string') element = TableEncodings._removeQuotes(element);
-
+        if(cellContent!=null) {
+          cellContent = String(cellContent);
+          numberCandidate = Number(cellContent.replace(',', '.'));
+          element = (numberCandidate || (numberCandidate === 0 && cellContent !== '')) ? numberCandidate : cellContent;
+          if(typeof element == 'string') element = TableEncodings._removeQuotes(element);
+        } else {
+          element = null;
+        }
+        
         table[j][actualIndex] = element;
       }
     }
@@ -14464,7 +14709,7 @@
    * @return {Number} new X value.
    */
   Axis2D.prototype.inverseProjectX = function(x) {
-    return(x - this.arrivalFrame.x) / this.pW + this.departureFrame.x;
+    return (x - this.arrivalFrame.x) / this.pW + this.departureFrame.x;
   };
 
   /**
@@ -14495,6 +14740,34 @@
     y = y==null?(this.arrivalFrame.y + 0.5*this.arrivalFrame.height):y;
     this.arrivalFrame = this.arrivalFrame.expand(dS, new _Point(x, y));
     this._update();
+  };
+
+
+  /**
+   * modifies arrivalFrame to fit a departure frame into an arrival frame
+   * @param {Number} dS ampunt of scale, typically a number close to 1
+   *
+   * @param  {Number} x horizontal coordinate of center for scaling, in terms of arrival frame (by default: center of arrival frame)
+   * @param  {Number} y vertical coordinate of center for scaling, in terms of arrival frame (by default: center of arrival frame)
+   */
+  Axis2D.prototype.arrivalFrameTofitFrames = function(frameOnDepartue, frameOnArrival){
+    var x0 = frameOnArrival.x;
+    var x1 = frameOnArrival.x + frameOnArrival.width;
+    var px = (frameOnDepartue.x - this.departureFrame.x)/this.departureFrame.width;
+    var qx = (frameOnDepartue.x+frameOnDepartue.width - this.departureFrame.x)/this.departureFrame.width;
+
+    var y0 = frameOnArrival.y;
+    var y1 = frameOnArrival.y + frameOnArrival.height;
+    var py = (frameOnDepartue.y - this.departureFrame.y)/this.departureFrame.height;
+    var qy = (frameOnDepartue.y+frameOnDepartue.height - this.departureFrame.y)/this.departureFrame.height;
+
+    var W = (x0-x1)/(px-qx);
+    var X = x0 - (W*px);
+    
+    var H = (y0-y1)/(py-qy);
+    var Y = y0 - (H*py);
+
+    return new Rectangle(X, Y, W, H);
   };
 
   /**
@@ -14801,8 +15074,13 @@
    * tags:
    */
   Tree.prototype.getNodesByLevel = function(level) {
+    level = level===0?0:level;
+
     var newNodeList = new NodeList();
-    for(var i = 0; this.nodeList[i] != null; i++) {
+    newNodeList.name = "level_"+level;
+    var l = this.nodeList.length;
+    var i;
+    for(i = 0; i<l; i++) {
       if(this.nodeList[i].level == level) newNodeList.addNode(this.nodeList[i]);
     }
     return newNodeList;
@@ -14817,6 +15095,8 @@
    */
   Tree.prototype.getLeaves = function(node) {
     var leaves = new NodeList();
+    var i, l;
+    leaves.name = "leaves";
     if(node) {
       if(node.toNodeList.length === 0) {
         leaves.addNode(node);
@@ -14826,14 +15106,27 @@
         if(candidate.toNodeList.length === 0) {
           leaves.addNode(candidate);
         } else {
-          candidate.toNodeList.forEach(addLeaves);
+          l = candidate.toNodeList.length;
+          for(i=0; i<l; i++){
+            addLeaves(candidate.toNodeList[i]);
+          }
+          //candidate.toNodeList.forEach(addLeaves);
         }
       };
-      node.toNodeList.forEach(addLeaves);
+      l = node.toNodeList.length;
+      for(i=0; i<l; i++){
+        addLeaves(node.toNodeList[i]);
+      }
+      //node.toNodeList.forEach(addLeaves);
     } else {
-      this.nodeList.forEach(function(candidate) {
-        if(candidate.toNodeList.length === 0) leaves.addNode(candidate);
-      });
+      l = this.nodeList.length;
+      for(i=0; i<l; i++){
+        if(this.nodeList[i].toNodeList.length === 0) leaves.addNode(this.nodeList[i]);
+      }
+
+      // this.nodeList.forEach(function(candidate) {
+      //   if(candidate.toNodeList.length === 0) leaves.addNode(candidate);
+      // });
     }
     return leaves;
   };
@@ -17102,7 +17395,7 @@
     if(isNormalizedWeights) {
       newWeightList = weights; // new NumberList(arregloPesos);
     } else {
-      newWeightList = NumberListOperators.normalizedToSum(weights);
+      newWeightList = NumberListOperators.normalizeToSum(weights);
     }
 
     var newPositions;
@@ -17827,9 +18120,10 @@
 
   /**
    * filter the rows of a table by a criteria defined by an operator applied to all lists or a selected list
-   * @param  {Table} table Table.
+   * @param  {Table} table Table
    * @param  {String} operator "=c"(default, exact match for numbers, contains for strings), "==", "<", "<=", ">", ">=", "!=", "contains", "between", Function that returns a boolean
    * @param  {Object} value to compare against, can be String or Number
+   *
    * @param  {Number} nList null(default) means check every column, otherwise column index to test. Can also be another List instance of same length as table.
    * @param  {Object} value2 only used for "between" operator
    * @param  {Boolean} bIgnoreCase for string compares, defaults to true
@@ -17850,8 +18144,7 @@
     var bExternalList = nList != null && nList.isList === true;
 
     if(bExternalList && nList.length != nRows){
-      console.log('[TableOperators.filterTable] Error, List must have same length as table.');
-      return;
+      throw new Error('selected List (in nList position) must have same length as table');
     }
 
     if(value==null){
@@ -18175,6 +18468,63 @@
     return table.getTransposed(firstListAsHeaders, headersAsFirstList);
   };
 
+
+
+  /**
+   * replaces null values present in any of the lists of the table, and using different criteria for lists with nulls and numbers, and lists with nulls and other objects (typically strings)
+   * @param {Table} table to be transformed
+   * @param {Number} modeForNumbers when finding a null, or a sequence of nulls, between two numbers<br>0:replace by provided number<br>1:by previous non-null element<br>2:by next non-null element<br>3:average (if all non-null elements are numbers)<br>4:local average, average of previous and next non-null values (if numbers)<br>5:interpolate numbers (if all non-null elements are numbers)
+   * @param {Number} modeForNotnumbers when finding a null, or a sequence of nulls, between two strings<br>0:replace by provided element<br>1:by previous non-null element<br>2:by next non-null element
+   *
+   * @param {Number} number to be used to replace nulls in lists with nulls and numbers
+   * @param {Object} element to be used to replace nulls in list with nulls and other non-numerical elements
+   * @return {Table}
+   * tags:
+   */
+  TableOperators.replaceNullsInTable = function(table, modeForNumbers, modeForNotnumbers, number, element){
+    if(table==null || modeForNumbers==null || modeForNotnumbers==null) return;
+
+    var nLists = table.length;
+    var l;
+    var i, j;
+    var list, newList;
+    var notNumeric;
+    var containsNull;
+
+    var newTable = new Table();
+
+    for(i=0; i<nLists; i++){
+      list = table[i];
+      l = list.length;
+      notNumeric = false;
+      containsNull = false;
+      for(j=0; j<l; j++){
+        if(list[j]==null){
+          containsNull=true;
+        } else if(typeof list[j] != "number"){
+          notNumeric = true;
+          if(containsNull) break;
+        }
+      }
+
+      if(containsNull){
+        if(notNumeric){
+          newList = ListOperators.replaceNullsInList(list, modeForNotnumbers, element);
+        } else {
+          newList = ListOperators.replaceNullsInList(list, modeForNumbers, number);
+        }
+        newTable[i] = newList;
+      } else {
+        newTable[i] = list;
+      }
+
+    }
+
+    return newTable.getImproved();
+
+  };
+
+
   /**
    * divides the instances of a table in two tables: the training table and the test table
    * @param  {Table} table
@@ -18303,9 +18653,9 @@
 
 
   /**
-   * aggregates lists from a table, using one of the list of the table as the aggregation list, and based on different modes for each list
+   * aggregates lists from a table, using one or several of the lists of the table as the aggregation lists, and based on different aggregation modes for each list to aggregate
    * @param  {Table} table containing the aggregation list and lists to be aggregated
-   * @param  {NumberList|Number} indexAggregationList index (Number) or indexes (NumberList) of the aggregation lists on the table
+   * @param  {Number|NumberList} indexAggregationList index (Number) or indexes (NumberList) of the aggregation lists on the table
    * @param  {NumberList} indexesListsToAggregate indexes of the lists to be aggregated; typically it also contains the index of the aggregation list at the beginning (or indexes of several lists), to be aggregated using mode 0 (first element) thus resulting as the list of non repeated elements
    * @param  {NumberList} modes list of modes of aggregation, these are the options:<br>0:first element<br>1:count (default)<br>2:sum<br>3:average<br>4:min<br>5:max<br>6:standard deviation<br>7:enlist (creates a list of elements)<br>8:last element<br>9:most common element<br>10:random element<br>11:indexes<br>12:count non repeated elements<br>13:enlist non repeated elements<br>14:concat elements (for strings, uses ', ' as separator)<br>15:concat non-repeated elements<br>16:frequencies tables<br>17:concat (for strings, no separator)
    *
@@ -18325,7 +18675,6 @@
       if(indexAggregationList.length==0){
         indexAggregationList = indexAggregationList[0];
       } else {//multiple aggregation
-        console.log("\n\n________________________________________aggregateTable multiple");
         var toAggregate = table.getElements(indexAggregationList);
         var typesToAggregate = toAggregate.getTypes();
         console.log('typesToAggregate', typesToAggregate);
@@ -18345,8 +18694,6 @@
         //---> fix this
         newTable = new Table.fromArray( [textsList].concat(table.getElements(indexesListsToAggregate.getWithoutElements(indexAggregationList))) );
 
-        console.log('newTable', newTable); newTable = newTable.clone();
-
         var newIndexesListsToAggregate = new NumberList();
         var newModes = new NumberList();
         newIndexesListsToAggregate[0] = 0;
@@ -18356,14 +18703,7 @@
           newModes.push(modes[i]);
         }
 
-        console.log("newIndexesListsToAggregate", newIndexesListsToAggregate);
-        console.log("newModes", newModes);
-
         newTable = TableOperators.aggregateTable(newTable, 0, newIndexesListsToAggregate, newModes, newListsNames);
-
-        console.log('newTable', newTable);
-        console.log('newTable[0]', newTable[0]);
-
 
         var aggregationTable = new Table();
         var parts;
@@ -18376,7 +18716,6 @@
         
         for(i=0; i<l; i++){
           text = newTable[0][i];
-          console.log("text:["+text+"]");
           parts = text.split(JOIN_CHARS);
           for(j=0; j<indexAggregationList.length; j++){
 
@@ -19515,6 +19854,24 @@
   };
 
   /**
+   * return true if all lists from table have same length, false otherwise
+   * @param  {Table} table
+   * @return {Boolean}
+   */
+  TableOperators.allListsSameLength = function(table){
+    if(table==null) return null;
+
+    var l = table.length;
+    var length = table[0].length;
+    var i;
+    for(i=1; i<l; i++){
+      if(table[i].length!=length) return false;
+    }
+
+    return true;
+  };
+
+  /**
    * builds an object with statistical information about the table
    * @param  {Table} table
    * @return {Object}
@@ -20095,7 +20452,7 @@
     var i;
     for(i = 0; i<l; i++) {
       numberlist = numbertable[i];
-      newTable[i] = NumberListOperators.normalizedToMax(numberlist, factorValue);
+      newTable[i] = NumberListOperators.normalizeToMax(numberlist, factorValue);
     }
     newTable.name = numbertable.name;
     return newTable;
@@ -20112,7 +20469,7 @@
     var i;
     for(i = 0; i<l; i++) {
       numberlist = numbertable[i];
-      newTable[i] = NumberListOperators.normalizedToSum(numberlist);
+      newTable[i] = NumberListOperators.normalizeToSum(numberlist);
     }
     newTable.name = numbertable.name;
     return newTable;
@@ -22433,7 +22790,7 @@
     if(normalize) {
       matrix.forEach(function(occurrences, i) {
         if(i === 0) return;
-        matrix[i] = NumberListOperators.normalizedToSum(matrix[i]);
+        matrix[i] = NumberListOperators.normalizeToSum(matrix[i]);
       });
     }
 
@@ -22751,6 +23108,10 @@
       throw new Error("Table has no Lists");
     } else if(table.length===1){
       throw new Error("Table has only one list, unsufficient to assemble a Tree");
+    } else if(table[0]===null){
+      throw new Error("table[0] is null");
+    } else if(table.containsNulls){
+      throw new Error("table contains nulls");
     }
 
     fatherName = fatherName == null ? "father" : fatherName;
@@ -25334,7 +25695,7 @@
     var dX = frame.width / numberList.length;
 
     var bottom = frame.getBottom();
-    var normalizedNumberList = NumberListOperators.normalizedToMax(numberList, frame.height);
+    var normalizedNumberList = NumberListOperators.normalizeToMax(numberList, frame.height);
 
     var i;
     for(i = 0; numberList[i] != null; i++) {
@@ -25998,6 +26359,7 @@
     this.DY_MOUSE_PRESSED=0; //vertical movement of cursor in last frame
     this.MOUSE_MOVED = false; //boolean that indicates wether the mouse moved in the last frame / STATE
     this.T_MOUSE_PRESSED = 0; //time in milliseconds of mouse being pressed, useful for sutained pressure detection
+    this.SHIFT_PRESSED = false; //true if SHIFT key is pressed
     this.IS_TOUCH = (('ontouchstart' in window) || (navigator.msMaxTouchPoints > 0));
 
     this.cursorStyle = 'auto';
@@ -26184,6 +26546,13 @@
         break;
       case "mouseleave":
         this.MOUSE_IN_DOCUMENT = false;
+        this.SHIFT_PRESSED = false;
+        break;
+      case "keydown":
+        this.SHIFT_PRESSED = e.shiftKey;
+        break;
+      case "keyup":
+        this.SHIFT_PRESSED = false;
         break;
 
       //"gesturestart"
@@ -26513,8 +26882,10 @@
     if(this.cycleOnMouseMovementListener){
       this.canvas.removeEventListener('mousemove', this.cycleOnMouseMovementListener, false);
       this.canvas.removeEventListener('mousewheel', this.cycleOnMouseMovementListener, false);
-      this.canvas.removeEventListener('mousemove', this.cycleOnMouseMovementListener, false);
+      //this.canvas.removeEventListener('mousemove', this.cycleOnMouseMovementListener, false);
       this.canvas.removeEventListener('mousedown', this.cycleOnMouseMovementListener, false);
+      this.canvas.removeEventListener('keydown', this.cycleOnMouseMovementListener, false);
+      this.canvas.removeEventListener('keyup', this.cycleOnMouseMovementListener, false);
 
       if(this.IS_TOUCH){
         this.canvas.removeEventListener("touchstart", this.cycleOnMouseMovementListener, false);
@@ -26530,8 +26901,10 @@
 
       this.canvas.addEventListener('mousemove', this.cycleOnMouseMovementListener, false);
       this.canvas.addEventListener('mousewheel', this.cycleOnMouseMovementListener, false);
-      this.canvas.addEventListener('mousemove', this.cycleOnMouseMovementListener, false);
+      //this.canvas.addEventListener('mousemove', this.cycleOnMouseMovementListener, false);
       this.canvas.addEventListener('mousedown', this.cycleOnMouseMovementListener, false);
+      this.canvas.addEventListener('keydown', this.cycleOnMouseMovementListener, false);
+      this.canvas.addEventListener('keyup', this.cycleOnMouseMovementListener, false);
 
       if(this.IS_TOUCH){
         this.canvas.addEventListener("touchstart", this.cycleOnMouseMovementListener, false);
@@ -30396,7 +30769,7 @@
 
     margin = margin == null ? 0 : margin;
 
-    var normWeights = NumberListOperators.normalizedToMax(weights).sqrt();
+    var normWeights = NumberListOperators.normalizeToMax(weights).sqrt();
     var circlesPlaced = new Polygon3D();
 
     var a = 0;
@@ -30709,7 +31082,7 @@
         zero: null
       };
       if(frame.memory.minmax.x > 0 && frame.memory.minmax.y > 0) {
-        frame.memory.normalizedList = NumberListOperators.normalizedToMax(numberList);
+        frame.memory.normalizedList = NumberListOperators.normalizeToMax(numberList);
       } else {
         frame.memory.normalizedList =  NumberListOperators.normalized(numberList);
         frame.memory.zero = -frame.memory.minmax.x / frame.memory.minmax.getAmplitude();
@@ -32043,7 +32416,7 @@
     var K = 20;
     var i0Line;
 
-    var normWeigths = NumberListOperators.normalizedToMax(weights);
+    var normWeigths = NumberListOperators.normalizeToMax(weights);
 
     var sizes;
     var positions;
@@ -32126,7 +32499,7 @@
 
     if(graphics==null) graphics=frame.graphics;
 
-    var normWeights = NumberListOperators.normalizedToMax(weights.sqrt());
+    var normWeights = NumberListOperators.normalizeToMax(weights.sqrt());
 
     var roundSizes = mode === 0;
 
@@ -32306,7 +32679,7 @@
     var K = 20;
     var i0Line;
 
-    var normWeigths = NumberListOperators.normalizedToMax(weights);
+    var normWeigths = NumberListOperators.normalizeToMax(weights);
 
     var sizes;
     var positions;
@@ -32385,7 +32758,7 @@
     mode = mode == null ? 0 : mode;
     margin = margin == null ? 0 : margin;
 
-    var normWeights = NumberListOperators.normalizedToMax(weights.sqrt());
+    var normWeights = NumberListOperators.normalizeToMax(weights.sqrt());
 
     var roundSizes = (mode === 0);
 
@@ -32731,6 +33104,7 @@
       } else if(frame.memory.actualColorList.length == frame.memory.leaves.length) {
         
         leaves = frame.memory.leaves;
+        nLeaves = leaves.length;
 
         for(i=0; i<nLeaves; i++){
           node = leaves[i];
@@ -32773,8 +33147,9 @@
           node._rgb[2] = Math.floor(node._rgb[2] / sumWeights);//node.toNodeList.length);
           //console.log('new node._rgb', node._rgb.join(','));
         };
-        assignColor(tree.nodeList[0]);
-        //tree.nodeList.forEach(function(node, i) {
+
+        assignColor(tree.nodeList[0]);//recursive
+        
         for(i=0; i<nNodes; i++){
           node = tree.nodeList[i];
           if(node._rgb && node._rgbF == null) node._rgbF = [node._rgb[0], node._rgb[1], node._rgb[2]];
@@ -32847,21 +33222,7 @@
       graphics.drawImage(frame.memory.image, frame.x, frame.y, frame.width, frame.height);
     } else {
       if(captureImage) {
-        // TODO refactor this to not reassign context
-        // var newCanvas = document.createElement("canvas");
-        // newCanvas.width = frame.width;
-        // newCanvas.height = frame.height;
-        // var newContext = newCanvas.getContext("2d");
-        // newContext.clearRect(0, 0, frame.width, frame.height);
-        // var mainContext = context;
-        // context = newContext;
-        // var prevFx = frame.x;
-        // var prevFy = frame.y;
-        // frame.x = 0;
-        // frame.y = 0;
-        // setFill('white');
-        // fRect(0, 0, frame.width, frame.height);
-        // setText('black', 12);
+        //OLD VERSION
       } else {
         graphics.context.save();
         graphics.clipRect(frame.x, frame.y, frame.width, frame.height);
@@ -32879,6 +33240,8 @@
 
           x = Math.round(frame.x + rect.x) + 0.5;
           y = Math.round(frame.y + rect.y) + 0.5;
+
+
 
           if(node._rgbF) {
             node._rgbF[0] = 0.95 * node._rgbF[0] + 0.05 * node._rgb[0];
@@ -32917,14 +33280,7 @@
       };
 
       if(captureImage) {
-        //c.l('captureImage');
-        // TODO refactor this to not reassign context
-        // context = mainContext;
-        // frame.memory.image = new Image();
-        // frame.memory.image.src = newCanvas.toDataURL();
-        // frame.x = prevFx;
-        // frame.y = prevFy;
-        // drawImage(frame.memory.image, frame.x, frame.y, frame.width, frame.height);
+        //OLD VERSION
       }
     }
 
@@ -33445,7 +33801,7 @@
     var rects = new List();
     var x0 = rect.x;
     var w;
-    var newWeights = NumberListOperators.normalizedToSum(weights);
+    var newWeights = NumberListOperators.normalizeToSum(weights);
 
     newWeights.forEach(function(weight) {
       w = weight * rect.width;
