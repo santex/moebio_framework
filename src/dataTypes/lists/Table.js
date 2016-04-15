@@ -63,19 +63,19 @@ Table.fromArray = function(array) {
   result.type = "Table";
   //assign methods to array:
   result.applyFunction = Table.prototype.applyFunction;
-  result.getRow = Table.prototype.getRow;
   result.getColumn = Table.prototype.getColumn;
   result.getColumns = Table.prototype.getColumns;
+  result.getRow = Table.prototype.getRow;
   result.getRows = Table.prototype.getRows;
+  result.getCell = Table.prototype.getCell;
   result.getLengths = Table.prototype.getLengths;
   result.getListLength = Table.prototype.getListLength;
   result.sliceRows = Table.prototype.sliceRows;
-  result.getSubListsByIndexes = Table.prototype.getSubListsByIndexes;
+  result.getSubListsByIndexes = Table.prototype.getSubListsByIndexes; //deprecated
   result.getWithoutRow = Table.prototype.getWithoutRow;
   result.getWithoutRows = Table.prototype.getWithoutRows;
   result.getTransposed = Table.prototype.getTransposed;
-  result.getListsSortedByList = Table.prototype.getListsSortedByList;
-  result.sortListsByList = Table.prototype.sortListsByList;
+  result.getListsSortedByList = Table.prototype.getListsSortedByList; //change name to getWithColumnsSortedByList
   result.clone = Table.prototype.clone;
   result.cloneWithEmptyLists = Table.prototype.cloneWithEmptyLists;
   result.print = Table.prototype.print;
@@ -113,53 +113,55 @@ Table.prototype.applyFunction = function(func) {
   return newTable.getImproved();
 };
 
-/**
- * Returns a {@link List} with all the elements of a row.
- * @param  {Number} index Index of the row to get.
- * @return {List}
- * tags:filter
- */
-Table.prototype.getRow = function(index) {
-  var list = new List();
-  var i;
-  var l = this.length;
 
-  for(i = 0; i < l; i++) {
-    list[i] = this[i][index];
-  }
-  return list.getImproved();
-};
 
 /**
  * returns a list from the Table, optionally slicing the list by providing initial and final indexes (notice that this method, except for the slicing, is equivalent to getElement because a Table is a List whose elements are Lists)
- * @param  {Number|String} indexOrName index or name of column to extract
+ * @param  {Number|String} indexOrNameOfColumn index or name of column to extract
  *
  * @param {Number} row0 initial index (included)
  * @param {Number} row1 final index (included)
  * @return {List}
  * tags:filter
  */
-Table.prototype.getColumn = function(indexOrName, row0, row1) {
+Table.prototype.getColumn = function(indexOrNameOfColumn, row0, row1) {
 
   var i;
   var found;
 
-  if(typeof indexOrName =='string'){
-    indexOrName = indexOrName.trim();
+  if(typeof indexOrNameOfColumn =='string'){
+    indexOrNameOfColumn = indexOrNameOfColumn.trim();
     found = false;
     for(i=0; i<this.length; i++){
-      if(this[i].name==indexOrName){
+      if(this[i].name==indexOrNameOfColumn){
         found = true;
-        indexOrName = i;
+        indexOrNameOfColumn = i;
         break;
       }
     }
-    if(!found) return null;
+    if(!found) throw new Error("didn't find a list with name "+indexOrNameOfColumn);
+  } else {
+    indexOrNameOfColumn = indexOrNameOfColumn == null ? 0 : indexOrNameOfColumn;
+    if(indexOrNameOfColumn<0) indexOrNameOfColumn+=indexOrNameOfColumn.length;
   }
 
-  indexOrName = indexOrName == null ? 0 : indexOrName % this.length;
+  var list = this[indexOrNameOfColumn];
 
-  var list = this[indexOrName];
+  if(list==null){
+    if(typeof indexOrNameOfColumn == 'number'){
+      if(indexOrNameOfColumn>this.length){
+        throw new Error("provided indexElementInColumn bigger than list in indexOrNameOfColumn");
+      } else {
+        return null;
+      }
+    } else if(typeof indexOrNameOfColumn == 'string'){
+      
+    } else {
+      throw new Error("indexOrNameOfColumn should be a number or a string");
+    }
+  }
+
+  if(list==null) return null;
 
   if(row0==null && row1==null) return list;
 
@@ -209,17 +211,69 @@ Table.prototype.getColumns = function(indexesOrNames, row0, row1, emptyListIfNot
   return newTable.getImproved();
 };
 
+/**
+ * Returns a {@link List} with all the elements of a row.
+ * @param  {Number} index Index of the row to get.
+ * @return {List}
+ * tags:filter
+ */
+Table.prototype.getRow = function(index) {
+  index = index==null?0:index;
+  
+  var list = new List();
+  var i;
+  var l = this.length;
+
+  for(i = 0; i < l; i++) {
+    list[i] = this[i][index];
+  }
+  return list.getImproved();
+};
+
+/**
+ * returns a table with all lists filtered by indexes
+ * @param  {NumberList} indexes
+ * @return {Table}
+ * tags:filter
+ */
+Table.prototype.getRows = function(indexes) {
+  if(indexes==null) return;
+
+  var newTable = new Table();
+  var i;
+  var l = this.length;
+
+  for(i=0; i<l; i++){
+    newTable.push(this[i].getElements(indexes));
+  }
+
+  return newTable.getImproved();
+};
+
+/**
+ * extracts an element from some list in the table
+ *
+ * @param  {Number} indexOrNameOfColumn number of list (negative number accepted for counting from end downwards)
+ * @param  {Number} indexElementInColumn index of element in list (negative number accepted for counting from end downwards)
+ * @return {Object}
+ * tags:
+ */
+Table.prototype.getCell = function(indexOrNameOfColumn, indexElementInColumn) {
+  var list = this.getColumn(indexOrNameOfColumn);
+
+  return list.getElement(indexElementInColumn);
+};
+
 
 /**
  * Returns the length a column of the Table.
- * @param  {Number} index The Column to return its length.
- * Defaults to 0.
- * @return {Number} Length of column at given index.
+ * @param  {Number} indexOrNameOfColumn The Column to return its length (defaults)
+ * @return {Number} Length of column at given indexOrNameOfColumn.
  */
-Table.prototype.getListLength = function(index) {
-  index = index || 0;
-  if(index>=this.length) return;
-  return this[index].length;
+Table.prototype.getListLength = function(indexOrNameOfColumn) {
+  indexOrNameOfColumn = indexOrNameOfColumn || 0;
+  if(indexOrNameOfColumn>=this.length) return;
+  return this[indexOrNameOfColumn].length;
 };
 
 /**
@@ -264,30 +318,15 @@ Table.prototype.sliceRows = function(startIndex, endIndex) {
  * Filters the lists of the table by indexes (getRows).
  * @param  {NumberList} indexes
  * @return {Table}
- * tags:filter
+ * tags:deprecated
+ * replacedBy:getRows
  */
 Table.prototype.getSubListsByIndexes = function(indexes) {
-  var newTable = new Table();
-  var i;
-  var l = this.length;
-
-  for(i=0; i<l; i++){
-    newTable.push(this[i].getSubListByIndexes(indexes));
-  }
-  // this.forEach(function(list) {
-  //   newTable.push(list.getSubListByIndexes(indexes));
-  // });
-  return newTable.getImproved();
+  return this.getRows(indexes);
 };
 
 
-//deprecated
-/**
- * @ignore
- */
-Table.prototype.getRows = function(indexes) {
-  return Table.prototype.getSubListsByIndexes(indexes);
-};
+
 
 /**
  * Returns a new Table with the row at the given index removed.
@@ -329,6 +368,7 @@ Table.prototype.getWithoutRows = function(rowsIndexes) {// @todo improve efficie
 };
 
 
+
 /**
  * Sort Table's lists by a list
  * @param  {List|Number} listOrIndex List used to sort, or index of list in the table
@@ -344,7 +384,6 @@ Table.prototype.getListsSortedByList = function(listOrIndex, ascending) { //depr
   var l = this.length;
   var i;
 
-  //this.forEach(function(list) {
   for(i=0; i<l; i++){
     newTable.push(this[i].getSortedByList(sortinglist, ascending));
   }
@@ -412,7 +451,7 @@ Table.prototype.getTransposed = function(firstListAsHeaders, headersAsFirstList)
 /**
  * removes a row from the table.
  * @param {Number} index The row to remove.
- * @return {undefined}
+ * @return {Table}
  */
 Table.prototype.removeRow = function(index) {
   for(var i = 0; this[i] != null; i++) {
@@ -474,7 +513,6 @@ Table.prototype.destroy = function() {
 /**
  * Prints contents of Table to console.log.
  */
-
 Table.prototype.print = function() {
   console.log("///////////// <" + this.name + "////////////////////////////////////////////////////");
   console.log(TableEncodings.TableToCSV(this, null, true));
