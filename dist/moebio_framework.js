@@ -802,6 +802,8 @@
     array._constructor = List;
 
     array.getImproved = List.prototype.getImproved;
+    array.getElement = List.prototype.getElement;
+    array.getElements = List.prototype.getElements;
     array.isEquivalent = List.prototype.isEquivalent;
     //array.getLength = List.prototype.getLength;
     array.getTypeOfElements = List.prototype.getTypeOfElements; //TODO: redundant?
@@ -849,7 +851,6 @@
     //filter:
     array.getSubList = List.prototype.getSubList;
     array.getSubListByIndexes = List.prototype.getSubListByIndexes;//deprecated
-    array.getElements = List.prototype.getElements;
     array.getSubListByType = List.prototype.getSubListByType;
     array.getFilteredByPropertyValue = List.prototype.getFilteredByPropertyValue;
     array.getFilteredByBooleanList = List.prototype.getFilteredByBooleanList;
@@ -984,6 +985,64 @@
     newList.containsNulls = containsNulls;
 
     return newList;
+  };
+
+  /**
+   * extracts an element from the list
+   * @param {Number|String} position or name of the element
+   * @return {Object}
+   * tags:
+   */
+  List.prototype.getElement = function(indexOrName) {//@todo: make this efficient
+    if(typeof indexOrName =='string'){
+      indexOrName = indexOrName.trim();
+      var found = false;
+      for(var i=0; i<this.length; i++){
+        if(this[i]["name"]==indexOrName){
+          found = true;
+          indexOrName = i;
+          break;
+        }
+      }
+      if(!found) throw new Error("didn't find a list with name "+indexOrName);
+    } else {
+      indexOrName = indexOrName == null ? 0 : indexOrName;
+      if(indexOrName<0) indexOrName += this.length;
+    }
+    
+    return this[indexOrName];
+  };
+
+  /**
+   * returns a list with elements in indexes. or found by names.
+   * @param {NumberList|StringList} indexesOrNames list of indexes or list of names
+   *
+   * @param {Boolean} nullIfNotFound true:adds a null if not found<br>false: doesn't add any element and the resulting List could have less elements than indexes or names provided
+   * @return {List}
+   * tags:filter
+   */
+  List.prototype.getElements = function(indexesOrNames, nullIfNotFound) {
+    if(indexesOrNames==null) return;
+
+    var newList = new List();
+    newList.name = this.name;
+    var l = indexesOrNames.length;
+    var i;
+    var list;
+
+    var name = _typeOf(indexesOrNames)=='StringList';
+
+    for(i=0; i<l; i++){
+      list = name?this.getElementByName(indexesOrNames[i]):this[indexesOrNames[i]];
+
+      if(list==null){
+        if(nullIfNotFound) newList.push(null);
+      } else {
+        newList.push(list);
+      }
+    }
+
+    return newList.getImproved();
   };
 
   /**
@@ -1122,9 +1181,9 @@
     if(arguments[0]==null) return;
 
     if(arguments[0].isList) {
-      return this.getSubListByIndexes(arguments[0]);
+      return this.getElements(arguments[0]);
     } else if(arguments.length > 2) {
-      return this.getSubListByIndexes(arguments);
+      return this.getElements(arguments);
     } else if(_typeOf(arguments[0]) == 'number') {
       if(_typeOf(arguments[1]) != null && _typeOf(arguments[1]) == 'number') {
         interval = new Interval(arguments[0], arguments[1]);
@@ -1201,90 +1260,6 @@
     return this.getElements.apply(this, arguments);
   };
 
-
-  /**
-   * returns a list with elements in indexes. or found by names.
-   * @param {NumberList|StringList} indexesOrNames list of indexes or list of names
-   *
-   * @param {Boolean} nullIfNotFound true:adds a null if not found<br>false: doesn't add any element and the resulting List could have less elements than indexes or names provided
-   * @return {List}
-   * tags:filter
-   */
-  List.prototype.getElements = function(indexesOrNames, nullIfNotFound) {
-    if(indexesOrNames==null) return;
-
-    var newList = new List();
-    newList.name = this.name;
-    var l = indexesOrNames.length;
-    var i;
-    var list;
-
-    var name = _typeOf(indexesOrNames)=='StringList';
-
-    console.log("_name:"+name);
-
-    for(i=0; i<l; i++){
-      list = name?this.getElementByName(indexesOrNames[i]):this[indexesOrNames[i]];
-
-      if(list==null){
-        if(nullIfNotFound) newList.push(null);
-      } else {
-        newList.push(list);
-      }
-    }
-
-    return newList.getImproved();
-
-
-
-
-    // if(this.length < 1) return this;
-    // var indexes;
-    // if(typeOf(arguments[0]) == 'number') {
-    //   indexes = arguments;
-    // } else {
-    //   indexes = arguments[0];
-    // }
-
-    // if(indexes == null) {
-    //   return;
-    // }
-
-    // var newList;
-    // var type = this.type;
-    // if(type == 'List') {
-    //   newList = new List();
-    // } else {
-    //   newList = instantiate(typeOf(this));
-    // }
-
-    // newList.name = this.name;
-    // if(indexes.length === 0) {
-    //   return newList;
-    // }
-    // var nElements = this.length;
-    // var nPositions = indexes.length;
-    // var i;
-
-    // if(type=="NodeList"){
-    //   for(i = 0; i < nPositions; i++) {
-    //     if(indexes[i] < nElements) {
-    //       newList.addNode(this[(indexes[i] + this.length) % this.length]);
-    //     }
-    //   }
-    // } else {
-    //   for(i = 0; i < nPositions; i++) {
-    //     if(indexes[i] < nElements) {
-    //       newList.push(this[(indexes[i] + this.length) % this.length]);
-    //     }
-    //   }
-    // }
-
-    // if(type == 'List' || type == 'Table') {
-    //   return newList.getImproved();
-    // }
-    // return newList;
-  };
 
   /**
    * getElementNumberOfOccurrences
@@ -4892,19 +4867,19 @@
     result.type = "Table";
     //assign methods to array:
     result.applyFunction = Table.prototype.applyFunction;
-    result.getRow = Table.prototype.getRow;
     result.getColumn = Table.prototype.getColumn;
     result.getColumns = Table.prototype.getColumns;
+    result.getRow = Table.prototype.getRow;
     result.getRows = Table.prototype.getRows;
+    result.getCell = Table.prototype.getCell;
     result.getLengths = Table.prototype.getLengths;
     result.getListLength = Table.prototype.getListLength;
     result.sliceRows = Table.prototype.sliceRows;
-    result.getSubListsByIndexes = Table.prototype.getSubListsByIndexes;
+    result.getSubListsByIndexes = Table.prototype.getSubListsByIndexes; //deprecated
     result.getWithoutRow = Table.prototype.getWithoutRow;
     result.getWithoutRows = Table.prototype.getWithoutRows;
     result.getTransposed = Table.prototype.getTransposed;
-    result.getListsSortedByList = Table.prototype.getListsSortedByList;
-    result.sortListsByList = Table.prototype.sortListsByList;
+    result.getListsSortedByList = Table.prototype.getListsSortedByList; //change name to getWithColumnsSortedByList
     result.clone = Table.prototype.clone;
     result.cloneWithEmptyLists = Table.prototype.cloneWithEmptyLists;
     result.print = Table.prototype.print;
@@ -4942,53 +4917,55 @@
     return newTable.getImproved();
   };
 
-  /**
-   * Returns a {@link List} with all the elements of a row.
-   * @param  {Number} index Index of the row to get.
-   * @return {List}
-   * tags:filter
-   */
-  Table.prototype.getRow = function(index) {
-    var list = new List();
-    var i;
-    var l = this.length;
 
-    for(i = 0; i < l; i++) {
-      list[i] = this[i][index];
-    }
-    return list.getImproved();
-  };
 
   /**
    * returns a list from the Table, optionally slicing the list by providing initial and final indexes (notice that this method, except for the slicing, is equivalent to getElement because a Table is a List whose elements are Lists)
-   * @param  {Number|String} indexOrName index or name of column to extract
+   * @param  {Number|String} indexOrNameOfColumn index or name of column to extract
    *
    * @param {Number} row0 initial index (included)
    * @param {Number} row1 final index (included)
    * @return {List}
    * tags:filter
    */
-  Table.prototype.getColumn = function(indexOrName, row0, row1) {
+  Table.prototype.getColumn = function(indexOrNameOfColumn, row0, row1) {
 
     var i;
     var found;
 
-    if(typeof indexOrName =='string'){
-      indexOrName = indexOrName.trim();
+    if(typeof indexOrNameOfColumn =='string'){
+      indexOrNameOfColumn = indexOrNameOfColumn.trim();
       found = false;
       for(i=0; i<this.length; i++){
-        if(this[i].name==indexOrName){
+        if(this[i].name==indexOrNameOfColumn){
           found = true;
-          indexOrName = i;
+          indexOrNameOfColumn = i;
           break;
         }
       }
-      if(!found) return null;
+      if(!found) throw new Error("didn't find a list with name "+indexOrNameOfColumn);
+    } else {
+      indexOrNameOfColumn = indexOrNameOfColumn == null ? 0 : indexOrNameOfColumn;
+      if(indexOrNameOfColumn<0) indexOrNameOfColumn+=indexOrNameOfColumn.length;
     }
 
-    indexOrName = indexOrName == null ? 0 : indexOrName % this.length;
+    var list = this[indexOrNameOfColumn];
 
-    var list = this[indexOrName];
+    if(list==null){
+      if(typeof indexOrNameOfColumn == 'number'){
+        if(indexOrNameOfColumn>this.length){
+          throw new Error("provided indexElementInColumn bigger than list in indexOrNameOfColumn");
+        } else {
+          return null;
+        }
+      } else if(typeof indexOrNameOfColumn == 'string'){
+        
+      } else {
+        throw new Error("indexOrNameOfColumn should be a number or a string");
+      }
+    }
+
+    if(list==null) return null;
 
     if(row0==null && row1==null) return list;
 
@@ -5038,17 +5015,69 @@
     return newTable.getImproved();
   };
 
+  /**
+   * Returns a {@link List} with all the elements of a row.
+   * @param  {Number} index Index of the row to get.
+   * @return {List}
+   * tags:filter
+   */
+  Table.prototype.getRow = function(index) {
+    index = index==null?0:index;
+    
+    var list = new List();
+    var i;
+    var l = this.length;
+
+    for(i = 0; i < l; i++) {
+      list[i] = this[i][index];
+    }
+    return list.getImproved();
+  };
+
+  /**
+   * returns a table with all lists filtered by indexes
+   * @param  {NumberList} indexes
+   * @return {Table}
+   * tags:filter
+   */
+  Table.prototype.getRows = function(indexes) {
+    if(indexes==null) return;
+
+    var newTable = new Table();
+    var i;
+    var l = this.length;
+
+    for(i=0; i<l; i++){
+      newTable.push(this[i].getElements(indexes));
+    }
+
+    return newTable.getImproved();
+  };
+
+  /**
+   * extracts an element from some list in the table
+   *
+   * @param  {Number} indexOrNameOfColumn number of list (negative number accepted for counting from end downwards)
+   * @param  {Number} indexElementInColumn index of element in list (negative number accepted for counting from end downwards)
+   * @return {Object}
+   * tags:
+   */
+  Table.prototype.getCell = function(indexOrNameOfColumn, indexElementInColumn) {
+    var list = this.getColumn(indexOrNameOfColumn);
+
+    return list.getElement(indexElementInColumn);
+  };
+
 
   /**
    * Returns the length a column of the Table.
-   * @param  {Number} index The Column to return its length.
-   * Defaults to 0.
-   * @return {Number} Length of column at given index.
+   * @param  {Number} indexOrNameOfColumn The Column to return its length (defaults)
+   * @return {Number} Length of column at given indexOrNameOfColumn.
    */
-  Table.prototype.getListLength = function(index) {
-    index = index || 0;
-    if(index>=this.length) return;
-    return this[index].length;
+  Table.prototype.getListLength = function(indexOrNameOfColumn) {
+    indexOrNameOfColumn = indexOrNameOfColumn || 0;
+    if(indexOrNameOfColumn>=this.length) return;
+    return this[indexOrNameOfColumn].length;
   };
 
   /**
@@ -5093,30 +5122,15 @@
    * Filters the lists of the table by indexes (getRows).
    * @param  {NumberList} indexes
    * @return {Table}
-   * tags:filter
+   * tags:deprecated
+   * replacedBy:getRows
    */
   Table.prototype.getSubListsByIndexes = function(indexes) {
-    var newTable = new Table();
-    var i;
-    var l = this.length;
-
-    for(i=0; i<l; i++){
-      newTable.push(this[i].getSubListByIndexes(indexes));
-    }
-    // this.forEach(function(list) {
-    //   newTable.push(list.getSubListByIndexes(indexes));
-    // });
-    return newTable.getImproved();
+    return this.getRows(indexes);
   };
 
 
-  //deprecated
-  /**
-   * @ignore
-   */
-  Table.prototype.getRows = function(indexes) {
-    return Table.prototype.getSubListsByIndexes(indexes);
-  };
+
 
   /**
    * Returns a new Table with the row at the given index removed.
@@ -5158,6 +5172,7 @@
   };
 
 
+
   /**
    * Sort Table's lists by a list
    * @param  {List|Number} listOrIndex List used to sort, or index of list in the table
@@ -5173,7 +5188,6 @@
     var l = this.length;
     var i;
 
-    //this.forEach(function(list) {
     for(i=0; i<l; i++){
       newTable.push(this[i].getSortedByList(sortinglist, ascending));
     }
@@ -5241,7 +5255,7 @@
   /**
    * removes a row from the table.
    * @param {Number} index The row to remove.
-   * @return {undefined}
+   * @return {Table}
    */
   Table.prototype.removeRow = function(index) {
     for(var i = 0; this[i] != null; i++) {
@@ -5303,7 +5317,6 @@
   /**
    * Prints contents of Table to console.log.
    */
-
   Table.prototype.print = function() {
     console.log("///////////// <" + this.name + "////////////////////////////////////////////////////");
     console.log(TableEncodings.TableToCSV(this, null, true));
@@ -7334,31 +7347,10 @@
    */
   function ListOperators() {}
   /**
-   * gets an element in a specified position from a List
-   * @param  {List} list
-   *
-   * @param  {Number|String} indexOrName position or name of element
-   * @return {Object}
-   * tags:
+   * deprecated
    */
-  ListOperators.getElement = function(list, indexOrName) {
-    if(list == null) return null;
-
-    if(typeof indexOrName =='string'){
-      indexOrName = indexOrName.trim();
-      var found = false;
-      for(var i=0; i<list.length; i++){
-        if(list[i]["name"]==indexOrName){
-          found = true;
-          indexOrName = i;
-          break;
-        }
-      }
-      if(!found) return null;
-    }
-
-    indexOrName = indexOrName == null ? 0 : indexOrName % list.length;
-    return list[indexOrName];
+  ListOperators.getElement = function(list, indexOrName){
+    return list.getElement(indexOrName);
   };
 
   /**
@@ -7507,7 +7499,7 @@
    * replaces all nulls in a list
    * @param  {List} list
    * @param  {Number} mode of replacement<br>0:replace by element<br>1:by previous non-null element<br>2:by next non-null element<br>3:average (if all non-null elements are numbers)<br>4:local average, average of previous and next non-null values (if numbers)<br>5:interpolate numbers (if all non-null elements are numbers)
-   * @param  {Object} element element that will replace nulls
+   * @param  {Object} element that will replace nulls
    * @return {List}
    * tags:
    */
@@ -10095,14 +10087,16 @@
   ColorListGenerators.createColorListFromColorScale = function(n, colorScale){
     if(n==null) return;
 
-    var i;
     colorScale = colorScale==null?ColorScales.grayToOrange:colorScale;
 
+    var i;
+    var colorList = new mo.ColorList();
+
     for(i=0; i<n; i++){
-      colorScale[i] = colorScale(i/(n+1));
+      colorList[i] = colorScale(i/(n+1));
     }
 
-    return colorScale;
+    return colorList;
   };
 
 
@@ -18437,15 +18431,17 @@
   /**
    * creates a Table by randomly sampling rows from the input table.
    * @param  {Table} input table
+   *
    * @param  {Number} f fraction of rows to randomly select [0,1] (Default is .5)
    * @param  {Boolean} avoidRepetitions (Default is true)
    * @return {Table}
    * tags:filter,sampling
    */
   TableOperators.getRandomRows = function(table, f, avoidRepetitions) {
+    if(table==null) return null;
     avoidRepetitions = avoidRepetitions == null ? true : avoidRepetitions;
     if(table == null || table[0] == null) return null;
-    if(f == null) f=.5
+    if(f == null) f=0.5;
     if(f < 0 || f > 1) return null;
     var nRows = table[0].length;
     var n=Math.round(f*nRows);
@@ -18470,6 +18466,40 @@
   };
 
 
+  /**
+   * replaces null values present in any of the lists of the table, and using different criteria for lists with nulls and numbers, and lists with nulls and other objects (typically strings)
+   * @param {Table} table to be transformed
+   * @param {Object} elementToBeRemoved
+   * @param {Object} elementToBePlaced
+   * @return {Table}
+   * tags:
+   */
+  TableOperators.replaceElementInTable = function(table, elementToBeRemoved, elementToBePlaced){
+    if(table==null || elementToBeRemoved==null ||elementToBePlaced==null) return;
+
+    var nLists = table.length;
+    var l;
+    var i, j;
+    var list, newList;
+
+    var newTable = new Table();
+
+    for(i=0; i<nLists; i++){
+      list = table[i];
+      l = list.length;
+      newList = new List();
+      newTable[i] = newList;
+      for(j=0; j<l; j++){
+        newList[j] = list[j]==elementToBeRemoved?elementToBePlaced:list[j];
+      }
+      newList = newList.getImproved();
+    }
+
+    return newTable.getImproved();
+
+  };
+
+
 
   /**
    * replaces null values present in any of the lists of the table, and using different criteria for lists with nulls and numbers, and lists with nulls and other objects (typically strings)
@@ -18477,7 +18507,7 @@
    * @param {Number} modeForNumbers when finding a null, or a sequence of nulls, between two numbers<br>0:replace by provided number<br>1:by previous non-null element<br>2:by next non-null element<br>3:average (if all non-null elements are numbers)<br>4:local average, average of previous and next non-null values (if numbers)<br>5:interpolate numbers (if all non-null elements are numbers)
    * @param {Number} modeForNotnumbers when finding a null, or a sequence of nulls, between two strings<br>0:replace by provided element<br>1:by previous non-null element<br>2:by next non-null element
    *
-   * @param {Number} number to be used to replace nulls in lists with nulls and numbers
+   * @param {Object} number to be used to replace nulls in lists with nulls and numbers
    * @param {Object} element to be used to replace nulls in list with nulls and other non-numerical elements
    * @return {Table}
    * tags:
