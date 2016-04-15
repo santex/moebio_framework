@@ -399,15 +399,17 @@ TableOperators.getSubTableByElementsOnList = function(table, nList, list){
 /**
  * creates a Table by randomly sampling rows from the input table.
  * @param  {Table} input table
+ *
  * @param  {Number} f fraction of rows to randomly select [0,1] (Default is .5)
  * @param  {Boolean} avoidRepetitions (Default is true)
  * @return {Table}
  * tags:filter,sampling
  */
 TableOperators.getRandomRows = function(table, f, avoidRepetitions) {
+  if(table==null) return null;
   avoidRepetitions = avoidRepetitions == null ? true : avoidRepetitions;
   if(table == null || table[0] == null) return null;
-  if(f == null) f=.5
+  if(f == null) f=0.5;
   if(f < 0 || f > 1) return null;
   var nRows = table[0].length;
   var n=Math.round(f*nRows);
@@ -432,6 +434,40 @@ TableOperators.transpose = function(table, firstListAsHeaders, headersAsFirstLis
 };
 
 
+/**
+ * replaces null values present in any of the lists of the table, and using different criteria for lists with nulls and numbers, and lists with nulls and other objects (typically strings)
+ * @param {Table} table to be transformed
+ * @param {Object} elementToBeRemoved
+ * @param {Object} elementToBePlaced
+ * @return {Table}
+ * tags:
+ */
+TableOperators.replaceElementInTable = function(table, elementToBeRemoved, elementToBePlaced){
+  if(table==null || elementToBeRemoved==null ||elementToBePlaced==null) return;
+
+  var nLists = table.length;
+  var l;
+  var i, j;
+  var list, newList;
+
+  var newTable = new Table();
+
+  for(i=0; i<nLists; i++){
+    list = table[i];
+    l = list.length;
+    newList = new List();
+    newTable[i] = newList;
+    for(j=0; j<l; j++){
+      newList[j] = list[j]==elementToBeRemoved?elementToBePlaced:list[j];
+    }
+    newList = newList.getImproved();
+  }
+
+  return newTable.getImproved();
+
+};
+
+
 
 /**
  * replaces null values present in any of the lists of the table, and using different criteria for lists with nulls and numbers, and lists with nulls and other objects (typically strings)
@@ -439,7 +475,7 @@ TableOperators.transpose = function(table, firstListAsHeaders, headersAsFirstLis
  * @param {Number} modeForNumbers when finding a null, or a sequence of nulls, between two numbers<br>0:replace by provided number<br>1:by previous non-null element<br>2:by next non-null element<br>3:average (if all non-null elements are numbers)<br>4:local average, average of previous and next non-null values (if numbers)<br>5:interpolate numbers (if all non-null elements are numbers)
  * @param {Number} modeForNotnumbers when finding a null, or a sequence of nulls, between two strings<br>0:replace by provided element<br>1:by previous non-null element<br>2:by next non-null element
  *
- * @param {Number} number to be used to replace nulls in lists with nulls and numbers
+ * @param {Object} number to be used to replace nulls in lists with nulls and numbers
  * @param {Object} element to be used to replace nulls in list with nulls and other non-numerical elements
  * @return {Table}
  * tags:
