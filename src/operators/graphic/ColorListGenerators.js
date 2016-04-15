@@ -130,10 +130,32 @@ ColorListGenerators.createCategoricalColorListForList = function(list, colorList
 
 
 /**
+ * create a colorList based on a colorScale
+ * @param  {Number} n number of colors
+ *
+ * @param  {ColorScale} colorScale (grayToOrange by default)
+ * @return {ColorList}
+ * tags:generator
+ */
+ColorListGenerators.createColorListFromColorScale = function(n, colorScale){
+  if(n==null) return;
+
+  var i;
+  colorScale = colorScale==null?ColorScales.grayToOrange:colorScale;
+
+  for(i=0; i<n; i++){
+    colorScale[i] = colorScale(i/(n+1));
+  }
+
+  return colorScale;
+};
+
+
+/**
  * create a colorList based on a colorScale and values from a numberList (that will be normalized)
  * @param  {NumberList} numberList
  *
- * @param  {ColorScale} colorScale
+ * @param  {ColorScale} colorScale (grayToOrange by default)
  * @param  {Number} mode 0:normalize numberList
  * @return {ColorList}
  * tags:generator
