@@ -140,14 +140,16 @@ ColorListGenerators.createCategoricalColorListForList = function(list, colorList
 ColorListGenerators.createColorListFromColorScale = function(n, colorScale){
   if(n==null) return;
 
-  var i;
   colorScale = colorScale==null?ColorScales.grayToOrange:colorScale;
 
+  var i;
+  var colorList = new mo.ColorList();
+
   for(i=0; i<n; i++){
-    colorScale[i] = colorScale(i/(n+1));
+    colorList[i] = colorScale(i/(n+1));
   }
 
-  return colorScale;
+  return colorList;
 };
 
 
