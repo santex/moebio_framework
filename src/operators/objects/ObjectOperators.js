@@ -329,6 +329,19 @@ ObjectOperators.toList = function(array) {
 };
 
 
+/**
+ * applies Math.floor operator to any numeric object
+ * @param  {Object} number, numberList…
+ * @return {Object}
+ * tags:
+ */
+ObjectOperators.floor = function(object){
+  if(typeof object == 'number') return Math.floor(object);
+  if(object.floor) return object.floor();
+  return null;
+};
+
+
 /////universal operators
 
 
