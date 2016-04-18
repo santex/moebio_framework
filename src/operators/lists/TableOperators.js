@@ -84,7 +84,7 @@ TableOperators.getSubTable = function(table, x, y, width, height) {
 /**
  * filter the rows of a table by a criteria defined by an operator applied to all lists or a selected list
  * @param  {Table} table Table
- * @param  {String} operator "=c"(default, exact match for numbers, contains for strings), "==", "<", "<=", ">", ">=", "!=", "contains", "between", Function that returns a boolean
+ * @param  {String} operator "=c"(default, exact match for numbers, contains for strings), "==", "<", "<=", ">", ">=", "!=", "contains", "between", "init" Function that returns a boolean
  * @param  {Object} value to compare against, can be String or Number
  *
  * @param  {Number} nList null(default) means check every column, otherwise column index to test. Can also be another List instance of same length as table.
@@ -216,7 +216,19 @@ TableOperators.filterTable = function(table, operator, value, nList, value2, bIg
         for(c=cStart; c<cEnd; c++){
           val0 = bExternalList ? nList[r] : table[c][r];
           val = bIgnoreCase ? String(val0).toLowerCase() : String(val0);
-          if(val.indexOf(value) > -1){
+          if(val.indexOf(String(value)) > -1){
+            nLKeep.push(r);
+            break;
+          }
+        }
+      }
+      break;
+    case "init":
+      for(r=0; r<nRows; r++){
+        for(c=cStart; c<cEnd; c++){
+          val0 = bExternalList ? nList[r] : table[c][r];
+          val = bIgnoreCase ? String(val0).toLowerCase() : String(val0);
+          if(val.indexOf(String(value)) === 0){
             nLKeep.push(r);
             break;
           }
