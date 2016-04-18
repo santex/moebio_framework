@@ -769,9 +769,7 @@ NumberList.prototype.log = function(add) {
 };
 
 /**
- * Returns a new NumberList containing the floor values (removing decimals) of
- * the values of the current NumberList.
- *
+ * Returns a new NumberList containing the floor values (removing decimals) of the values of the current NumberList.
  * @return {NumberList} NumberList with integer values.
  */
 NumberList.prototype.floor = function() {
@@ -782,7 +780,6 @@ NumberList.prototype.floor = function() {
     newNumberList.push(Math.floor(this[i]));
   }
   newNumberList.name = this.name;
-
   return newNumberList;
 };
 
