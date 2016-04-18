@@ -3129,9 +3129,7 @@
   };
 
   /**
-   * Returns a new NumberList containing the floor values (removing decimals) of
-   * the values of the current NumberList.
-   *
+   * Returns a new NumberList containing the floor values (removing decimals) of the values of the current NumberList.
    * @return {NumberList} NumberList with integer values.
    */
   NumberList.prototype.floor = function() {
@@ -3142,7 +3140,6 @@
       newNumberList.push(Math.floor(this[i]));
     }
     newNumberList.name = this.name;
-
     return newNumberList;
   };
 
@@ -13743,19 +13740,30 @@
     }
   }
 
+  function isDataStructure(type){
+    if(_shortFromTypeDictionary==null) _createDataModelsInfoDictionaries();
+    return _shortFromTypeDictionary[type]!=null;
+  }
+
   function getShortNameFromDataModelType(type){
     if(_shortFromTypeDictionary==null) _createDataModelsInfoDictionaries();
-    return _shortFromTypeDictionary[type];
+    var short = _shortFromTypeDictionary[type];
+    short = short==null?"{}":short;
+    return short;
   }
 
   function getColorFromDataModelType(type){
     if(_shortFromTypeDictionary==null) _createDataModelsInfoDictionaries();
-    return _colorFromTypeDictionary[type];
+    var color = _colorFromTypeDictionary[type];
+    color = color==null?_colorFromTypeDictionary["Object"]:color;
+    return color;
   }
 
   function getLightColorFromDataModelType(type){
     if(_shortFromTypeDictionary==null) _createDataModelsInfoDictionaries();
-    return _lightColorFromTypeDictionary[type];
+    var color = _lightColorFromTypeDictionary[type];
+    color = color==null?_lightColorFromTypeDictionary["Object"]:color;
+    return color;
   }
 
   function getTextFromObject(value, type){
@@ -14071,7 +14079,11 @@
 
     csvString = csvString.replace(/\$/g, "");
 
-    var blocks = csvString.split("\"");
+    //var blocks = csvString.split("\"");
+    var blocks = csvString.split(/'|"/);
+
+
+
     for(i = 1; blocks[i] != null; i += 2) {
       blocks[i] = blocks[i].replace(/\n/g, "*ENTER*");
     }
@@ -18116,7 +18128,7 @@
   /**
    * filter the rows of a table by a criteria defined by an operator applied to all lists or a selected list
    * @param  {Table} table Table
-   * @param  {String} operator "=c"(default, exact match for numbers, contains for strings), "==", "<", "<=", ">", ">=", "!=", "contains", "between", Function that returns a boolean
+   * @param  {String} operator "=c"(default, exact match for numbers, contains for strings), "==", "<", "<=", ">", ">=", "!=", "contains", "between", "init" Function that returns a boolean
    * @param  {Object} value to compare against, can be String or Number
    *
    * @param  {Number} nList null(default) means check every column, otherwise column index to test. Can also be another List instance of same length as table.
@@ -18248,7 +18260,19 @@
           for(c=cStart; c<cEnd; c++){
             val0 = bExternalList ? nList[r] : table[c][r];
             val = bIgnoreCase ? String(val0).toLowerCase() : String(val0);
-            if(val.indexOf(value) > -1){
+            if(val.indexOf(String(value)) > -1){
+              nLKeep.push(r);
+              break;
+            }
+          }
+        }
+        break;
+      case "init":
+        for(r=0; r<nRows; r++){
+          for(c=cStart; c<cEnd; c++){
+            val0 = bExternalList ? nList[r] : table[c][r];
+            val = bIgnoreCase ? String(val0).toLowerCase() : String(val0);
+            if(val.indexOf(String(value)) === 0){
               nLKeep.push(r);
               break;
             }
@@ -22080,6 +22104,19 @@
    */
   ObjectOperators.toList = function(array) {
     return List.fromArray(array).getImproved();
+  };
+
+
+  /**
+   * applies Math.floor operator to any numeric object
+   * @param  {Object} number, numberList…
+   * @return {Object}
+   * tags:
+   */
+  ObjectOperators.floor = function(object){
+    if(typeof object == 'number') return Math.floor(object);
+    if(object.floor) return object.floor();
+    return null;
   };
 
 
@@ -34280,6 +34317,7 @@
   exports.Navigator = Navigator;
   exports.typeOf = _typeOf;
   exports.instantiate = instantiate;
+  exports.isDataStructure = isDataStructure;
   exports.getShortNameFromDataModelType = getShortNameFromDataModelType;
   exports.getColorFromDataModelType = getColorFromDataModelType;
   exports.getLightColorFromDataModelType = getLightColorFromDataModelType;
