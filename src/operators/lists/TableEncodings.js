@@ -64,7 +64,11 @@ TableEncodings.CSVtoTable = function(csvString, firstRowIsHeader, separator, val
 
   csvString = csvString.replace(/\$/g, "");
 
-  var blocks = csvString.split("\"");
+  //var blocks = csvString.split("\"");
+  var blocks = csvString.split(/'|"/);
+
+
+
   for(i = 1; blocks[i] != null; i += 2) {
     blocks[i] = blocks[i].replace(/\n/g, "*ENTER*");
   }
