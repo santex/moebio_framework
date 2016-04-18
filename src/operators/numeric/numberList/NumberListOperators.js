@@ -300,6 +300,10 @@ NumberListOperators.normalizeToInterval = function(numberlist, interval) {
   var i;
   var numberListInterval = numberlist.getInterval();
   var nLAmplitude = numberListInterval.getAmplitude();
+  if(nLAmplitude){
+    newNumberList = ListGenerators.createListWithSameElement (numberlist.length, interval.x, numberlist.name);
+    return newNumberList;
+  }
   var amplitude = interval.getAmplitude();
   var factor = amplitude/nLAmplitude;
   var newNumberList = new NumberList();
