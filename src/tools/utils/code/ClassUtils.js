@@ -140,19 +140,30 @@ export function _createDataModelsInfoDictionaries(){
   }
 }
 
+export function isDataStructure(type){
+  if(_shortFromTypeDictionary==null) _createDataModelsInfoDictionaries();
+  return _shortFromTypeDictionary[type]!=null;
+}
+
 export function getShortNameFromDataModelType(type){
   if(_shortFromTypeDictionary==null) _createDataModelsInfoDictionaries();
-  return _shortFromTypeDictionary[type];
+  var short = _shortFromTypeDictionary[type];
+  short = short==null?"{}":short;
+  return short;
 }
 
 export function getColorFromDataModelType(type){
   if(_shortFromTypeDictionary==null) _createDataModelsInfoDictionaries();
-  return _colorFromTypeDictionary[type];
+  var color = _colorFromTypeDictionary[type];
+  color = color==null?_colorFromTypeDictionary["Object"]:color;
+  return color;
 }
 
 export function getLightColorFromDataModelType(type){
   if(_shortFromTypeDictionary==null) _createDataModelsInfoDictionaries();
-  return _lightColorFromTypeDictionary[type];
+  var color = _lightColorFromTypeDictionary[type];
+  color = color==null?_lightColorFromTypeDictionary["Object"]:color;
+  return color;
 }
 
 export function getTextFromObject(value, type){
