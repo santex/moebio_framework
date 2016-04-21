@@ -216,7 +216,7 @@ NumberListOperators.normalizedToSum = function(numberlist, factor, sum) {
  */
 NumberListOperators.normalized = function(numberlist, factor) {//@todo: remove
   if(numberlist==null) return;
-  return numbeList.getNormalized();
+  return numberlist.getNormalized();
 
   // if(numberlist.length === 0) return null;
 
