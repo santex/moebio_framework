@@ -9459,7 +9459,7 @@
    */
   NumberListOperators.normalized = function(numberlist, factor) {//@todo: remove
     if(numberlist==null) return;
-    return numbeList.getNormalized();
+    return numberlist.getNormalized();
 
     // if(numberlist.length === 0) return null;
 
@@ -14137,10 +14137,8 @@
     var k;
     i = 0;
 
-    console.log(csvString);
-
     for(k = startIndex; k < lines.length; k++) {
-      console.log(k, "lines[k].length", lines[k].length);
+      //console.log(k, "lines[k].length", lines[k].length);
 
       if(lines[k].length < 2){
         console.log(' x ');
@@ -14150,11 +14148,11 @@
       cellContents = NetworkEncodings.replaceChomasInLine(lines[k], separator).split(comaCharacter); //TODO: will be obsolete (see previous TODO)
       actualIndex = _firstRowIsHeader ? (i - 1) : i;
 
-      console.log('    √ i, actualIndex, cellContents.length, cellContents', i, actualIndex, cellContents.length, cellContents);
-      console.log(lines[k]);
-      console.log('-');
-      console.log(cellContents);
-      console.log('');
+      // console.log('    √ i, actualIndex, cellContents.length, cellContents', i, actualIndex, cellContents.length, cellContents);
+      // console.log(lines[k]);
+      // console.log('-');
+      // console.log(cellContents);
+      // console.log('');
       //if(k>5) return null;
 
       for(j = 0; j < cellContents.length; j++) {
@@ -14180,13 +14178,13 @@
         
         table[j][actualIndex] = element;
 
-        if(j===0) console.log('   table[0][actualIndex]= ['+element+']');
+        //if(j===0) console.log('   table[0][actualIndex]= ['+element+']');
       }
 
       i++;
     }
 
-    console.log('table[0].length',table[0].length);
+    //console.log('table[0].length',table[0].length);
 
     for(i = 0; table[i] != null; i++) {
       table[i] = table[i].getImproved();
