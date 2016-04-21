@@ -234,7 +234,7 @@ NumberTable.prototype.getSums = function() {
 };
 
 /**
- * returns a numberList with all values fro rows added
+ * returns a numberList with all values from rows added
  * @return {NumberList}
  * tags:
  */
@@ -251,7 +251,9 @@ NumberTable.prototype.getRowsSums = function() {
 };
 
 /**
- * @todo write docs
+ * returns a numberList with numberLists averages
+ * @return {NumberList}
+ * tags:
  */
 NumberTable.prototype.getAverages = function() {
   var numberList = new NumberList();
