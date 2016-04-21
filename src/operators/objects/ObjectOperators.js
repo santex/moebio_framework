@@ -92,6 +92,17 @@ ObjectOperators.getInterval = function(object){
 
 
 /**
+ * return rich information about abject (working with: List and table)
+ * @param  {Object} object
+ * @return {Object}
+ * tags:
+ */
+ObjectOperators.buildInformationObject = function(object) {
+  if(object["buildInformationObject"]) return object.buildInformationObject;
+  return null;
+}
+
+/**
  * builds a string report of the object, with detailed information about its structure and contents
  * @param  {Object} object
  * @return {String}
