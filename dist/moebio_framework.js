@@ -5550,7 +5550,7 @@
   };
 
   /**
-   * returns a numberList with all values fro rows added
+   * returns a numberList with all values from rows added
    * @return {NumberList}
    * tags:
    */
@@ -5567,7 +5567,9 @@
   };
 
   /**
-   * @todo write docs
+   * returns a numberList with numberLists averages
+   * @return {NumberList}
+   * tags:
    */
   NumberTable.prototype.getAverages = function() {
     var numberList = new NumberList();
@@ -8717,7 +8719,7 @@
   };
 
   /**
-   * builds an object with statistical information about the list
+   * builds an object with statistical information about the list (infoObject property will be added to the list)
    * @param  {List} list
    * @return {Object}
    */
@@ -8811,6 +8813,8 @@
 
       if(infoObject.kind == "categories" || infoObject.kind == "integer numbers") infoObject.entropy = ListOperators.getListEntropy(list, null, infoObject.frequenciesTable);
     }
+
+    list.infoObject = infoObject;
 
     return infoObject;
 
@@ -19953,7 +19957,7 @@
   };
 
   /**
-   * builds an object with statistical information about the table
+   * builds an object with statistical information about the table  (infoObject property will be added to lists)
    * @param  {Table} table
    * @return {Object}
    */
@@ -20044,6 +20048,8 @@
         infoObject.kind = 'numbers';
       }
     }
+
+    table.infoObject = infoObject;
 
     return infoObject;
 
@@ -21902,6 +21908,17 @@
     if(object.getInterval!=null) return object.getInterval();
   };
 
+
+  /**
+   * return rich information about abject (working with: List and table)
+   * @param  {Object} object
+   * @return {Object}
+   * tags:
+   */
+  ObjectOperators.buildInformationObject = function(object) {
+    if(object["buildInformationObject"]) return object.buildInformationObject;
+    return null;
+  }
 
   /**
    * builds a string report of the object, with detailed information about its structure and contents
