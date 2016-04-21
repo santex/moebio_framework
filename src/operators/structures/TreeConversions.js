@@ -32,9 +32,10 @@ TreeConversions.TableToTree = function(table, fatherName, colorsOnLeaves)  {
     throw new Error("Table has only one list, unsufficient to assemble a Tree");
   } else if(table[0]===null){
     throw new Error("table[0] is null");
-  } else if(table.containsNulls){
-    throw new Error("table contains nulls");
   }
+  // } else if(table.containsNulls){
+  //   throw new Error("table contains nulls");
+  // }
 
   fatherName = fatherName == null ? "father" : fatherName;
 
@@ -46,7 +47,7 @@ TreeConversions.TableToTree = function(table, fatherName, colorsOnLeaves)  {
   tree.addNodeToTree(father, null);
 
   var nLists = table.length;
-  var nElements = table[0].length;
+  //var nElements = table[0].length;
   var i, j;
   var list, element;
   var leavesColorsDictionary;
@@ -57,36 +58,38 @@ TreeConversions.TableToTree = function(table, fatherName, colorsOnLeaves)  {
 
   for(i=0; i<nLists; i++){
     list = table[i];
-    if(list.length!=nElements) return null;
+    //if(list.length!=nElements) return null;
     
-    for(j=0; j<nElements; j++){
+    for(j=0; j<list.length; j++){
       element = list[j];
-      
-      id = TreeConversions._getId(table, i, j);
-      node = tree.nodeList.getNodeById(id);
-      if(node == null) {
-        node = new Node(id, String(element));
 
-        if( colorsOnLeaves && i==(nLists-1) ) {
-          
-          node.color = leavesColorsDictionary[element];
-        }
+      if(element!=null){
+        id = TreeConversions._getId(table, i, j);
+        node = tree.nodeList.getNodeById(id);
+        if(node == null) {
+          node = new Node(id, String(element));
 
-        if(i === 0) {
-          tree.addNodeToTree(node, father);
+          if( colorsOnLeaves && i==(nLists-1) ) {
+            
+            node.color = leavesColorsDictionary[element];
+          }
+
+          if(i === 0) {
+            tree.addNodeToTree(node, father);
+          } else {
+            
+            parent = tree.nodeList.getNodeById(TreeConversions._getId(table, i - 1, j));
+
+            tree.addNodeToTree(node, parent);
+          }
+
+          node.firstIndexInTable = j;
+          node.indexesInTable = new NumberList(j);
+
         } else {
-          
-          parent = tree.nodeList.getNodeById(TreeConversions._getId(table, i - 1, j));
-
-          tree.addNodeToTree(node, parent);
+          node.weight++;
+          node.indexesInTable.push(j);
         }
-
-        node.firstIndexInTable = j;
-        node.indexesInTable = new NumberList(j);
-
-      } else {
-        node.weight++;
-        node.indexesInTable.push(j);
       }
     }
   }
