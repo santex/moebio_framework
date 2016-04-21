@@ -23219,9 +23219,10 @@
       throw new Error("Table has only one list, unsufficient to assemble a Tree");
     } else if(table[0]===null){
       throw new Error("table[0] is null");
-    } else if(table.containsNulls){
-      throw new Error("table contains nulls");
     }
+    // } else if(table.containsNulls){
+    //   throw new Error("table contains nulls");
+    // }
 
     fatherName = fatherName == null ? "father" : fatherName;
 
@@ -23233,7 +23234,7 @@
     tree.addNodeToTree(father, null);
 
     var nLists = table.length;
-    var nElements = table[0].length;
+    //var nElements = table[0].length;
     var i, j;
     var list, element;
     var leavesColorsDictionary;
@@ -23244,36 +23245,38 @@
 
     for(i=0; i<nLists; i++){
       list = table[i];
-      if(list.length!=nElements) return null;
+      //if(list.length!=nElements) return null;
       
-      for(j=0; j<nElements; j++){
+      for(j=0; j<list.length; j++){
         element = list[j];
-        
-        id = TreeConversions._getId(table, i, j);
-        node = tree.nodeList.getNodeById(id);
-        if(node == null) {
-          node = new Node(id, String(element));
 
-          if( colorsOnLeaves && i==(nLists-1) ) {
-            
-            node.color = leavesColorsDictionary[element];
-          }
+        if(element!=null){
+          id = TreeConversions._getId(table, i, j);
+          node = tree.nodeList.getNodeById(id);
+          if(node == null) {
+            node = new Node(id, String(element));
 
-          if(i === 0) {
-            tree.addNodeToTree(node, father);
+            if( colorsOnLeaves && i==(nLists-1) ) {
+              
+              node.color = leavesColorsDictionary[element];
+            }
+
+            if(i === 0) {
+              tree.addNodeToTree(node, father);
+            } else {
+              
+              parent = tree.nodeList.getNodeById(TreeConversions._getId(table, i - 1, j));
+
+              tree.addNodeToTree(node, parent);
+            }
+
+            node.firstIndexInTable = j;
+            node.indexesInTable = new NumberList(j);
+
           } else {
-            
-            parent = tree.nodeList.getNodeById(TreeConversions._getId(table, i - 1, j));
-
-            tree.addNodeToTree(node, parent);
+            node.weight++;
+            node.indexesInTable.push(j);
           }
-
-          node.firstIndexInTable = j;
-          node.indexesInTable = new NumberList(j);
-
-        } else {
-          node.weight++;
-          node.indexesInTable.push(j);
         }
       }
     }
@@ -26764,11 +26767,19 @@
 
   };
 
+
+
+  /////////////////////////////////////////////////////////////////////////////////
+  ////////////////////// cycle ////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////////////
+
+
   /*
    * Starts or restarts the draw cycle at the current cycleInterval
    * @ignore
    */
   Graphics.prototype._startCycle = function() { this.cycleActive = true;
+    //console.log('[G] _startCycle');
     if(this._cycleInterval === 0) {
       // Call the cycle only once function
       setTimeout(this._onCycle.bind(this), 10);
@@ -26801,18 +26812,15 @@
    * @param  {Number} time time in milliseconds to run the cycle function before stopping ot. if 0 it starts and endless cycle, if 1 it executes the cycle once
    */
   Graphics.prototype.cycleFor = function(time) {
-
-    if(time===0){
+    if(time===0){//infinite
       if(this._setIntervalId) clearTimeout(this._setTimeOutId);
       this._startCycle();
-    } else if(time==1){
-      if(this._setIntervalId) clearTimeout(this._setTimeOutId);
+    } else if(time==1){//one frame cycle
+      //if(this._setIntervalId) clearTimeout(this._setTimeOutId);
+      this._stopCycle();
       this._onCycle();
-    } else {
+    } else {//specified number of frames
       if(this._setIntervalId) {
-        // If there was already a running cycle then just delay the
-        // stop function to stop after time. This effectively debounces
-        // the _startCycle call.
         clearTimeout(this._setTimeOutId);
       } else {
         //this._onCycle(); // <----- maybe this is a good idea
@@ -26837,13 +26845,9 @@
    * This function is called on every cycle of the draw loop.
    * It is responsible for clearing the background and then calling
    * the user defined cycle function.
-   *
    */
   Graphics.prototype._onCycle = function() {
-    // YY i don't think this interacts well with my expectations
-    // of setting the background color. it basically needs to be greater than 0
-    // if the bg color is not white and that isn't super obvious.
-    // SS I think I fixed it
+    //console.log('[G] _onCycle');
     if(this._alphaRefresh === 0){
       if(this.backGroundColorRGB!=null){
         this.context.fillStyle =
@@ -27075,7 +27079,6 @@
    * Clear the canvas.
    */
   Graphics.prototype.clearCanvas = function() {
-    console.log('[G] clearCanvas');
     this.context.clearRect(0, 0, this.cW, this.cH);
   };
 
