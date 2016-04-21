@@ -255,6 +255,7 @@ List.prototype.getImproved = function() {
 
 /**
  * extracts an element from the list
+ *
  * @param {Number|String} position or name of the element
  * @return {Object}
  * tags:
