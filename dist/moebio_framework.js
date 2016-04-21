@@ -989,6 +989,7 @@
 
   /**
    * extracts an element from the list
+   *
    * @param {Number|String} position or name of the element
    * @return {Object}
    * tags:
@@ -14084,12 +14085,16 @@
     csvString = csvString.replace(/\$/g, "");
 
     //var blocks = csvString.split("\"");
-    var blocks = csvString.split(/'|"/);
+    
+
+    //var blocks = csvString.split(/'|"/);
+
+    var blocks = csvString.split("\"");
 
 
 
     for(i = 1; blocks[i] != null; i += 2) {
-      blocks[i] = blocks[i].replace(/\n/g, "*ENTER*");
+      blocks[i] = blocks[i].replace(/\n|\r/g, "*ENTER*");
     }
     csvString = blocks.join("\""); //TODO: create a general method for replacements inside "", apply it to chomas
 
@@ -14102,6 +14107,10 @@
         enterChar = TableEncodings.ENTER3;
         lines = csvString.split(enterChar);
       }
+    }
+
+    if(lines.length==1 && firstRowIsHeader){
+      throw new Error("CSV contains only one line and firstRowIsHeader is true, a Table can't be build");
     }
 
     separator = separator==null?",":separator;
@@ -14121,18 +14130,40 @@
     var element;
     var cellContent;
     var numberCandidate;
+    var cellContents;
+    var actualIndex;
 
-    for(i = startIndex; i < lines.length; i++) {
-      if(lines[i].length < 2) continue;
 
-      var cellContents = NetworkEncodings.replaceChomasInLine(lines[i], separator).split(comaCharacter); //TODO: will be obsolete (see previous TODO)
+    var k;
+    i = 0;
+
+    console.log(csvString);
+
+    for(k = startIndex; k < lines.length; k++) {
+      console.log(k, "lines[k].length", lines[k].length);
+
+      if(lines[k].length < 2){
+        console.log(' x ');
+        continue;
+      }
+
+      cellContents = NetworkEncodings.replaceChomasInLine(lines[k], separator).split(comaCharacter); //TODO: will be obsolete (see previous TODO)
+      actualIndex = _firstRowIsHeader ? (i - 1) : i;
+
+      console.log('    √ i, actualIndex, cellContents.length, cellContents', i, actualIndex, cellContents.length, cellContents);
+      console.log(lines[k]);
+      console.log('-');
+      console.log(cellContents);
+      console.log('');
+      //if(k>5) return null;
 
       for(j = 0; j < cellContents.length; j++) {
         table[j] = table[j] == null ? new List() : table[j];
         if(_firstRowIsHeader && i == 1) {
           table[j].name = ( headerContent[j] == null ? "" : TableEncodings._removeQuotes(headerContent[j]) ).trim();
         }
-        var actualIndex = _firstRowIsHeader ? (i - 1) : i;
+        
+        
 
         cellContent = cellContents[j].replace(/\*CHOMA\*/g, separator).replace(/\*ENTER\*/g, "\n");
 
@@ -14148,8 +14179,14 @@
         }
         
         table[j][actualIndex] = element;
+
+        if(j===0) console.log('   table[0][actualIndex]= ['+element+']');
       }
+
+      i++;
     }
+
+    console.log('table[0].length',table[0].length);
 
     for(i = 0; table[i] != null; i++) {
       table[i] = table[i].getImproved();
