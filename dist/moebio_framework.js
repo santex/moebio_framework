@@ -9410,12 +9410,12 @@
   };
 
   /**
-   * Returns a NumberList normalized to the sum.
-   *
+   * returns a NumberList normalized to the sum, all its values will add up 1 (or optionally provided factor)
    * @param  {NumberList} numberlist NumberList to Normalize.
-   * @param {Number} factor Optional multiplier to modify the normalized values by. Defaults to 1.
-   * @param {Number} sum Optional sum to normalize to. If not provided, sum will be calculated automatically.
-   * @return {NumberList} new NumberList of values normalized to the sum.
+   *
+   * @param {Number} factor optional factor value (values will add up factor)
+   * @param {Number} sum provide this value if sum has been previously calculated, it will reduce calculations. If not provided, sum will be calculated automatically.
+   * @return {NumberList} new NumberList of values normalized to the sum
    * tags:
    */
   NumberListOperators.normalizeToSum = function(numberlist, factor, sum) {
@@ -9437,6 +9437,7 @@
 
   /**
    * @param  {NumberList}
+   *
    * @param {Number}
    * @param {Number}
    * @return {NumberList}
@@ -9460,20 +9461,6 @@
   NumberListOperators.normalized = function(numberlist, factor) {//@todo: remove
     if(numberlist==null) return;
     return numberlist.getNormalized();
-
-    // if(numberlist.length === 0) return null;
-
-    // var i;
-    // var interval = numberlist.getInterval();
-    // var a = interval.getAmplitude();
-    // var newNumberList = new NumberList();
-    // factor = factor == null ? 1 : factor;
-    // factor/=a;
-    // for(i = 0; i < numberlist.length; i++) {
-    //   newNumberList.push( factor*(numberlist[i] - interval.x) );
-    // }
-    // newNumberList.name = numberlist.name;
-    // return newNumberList;
   };
 
   /**
@@ -20536,8 +20523,12 @@
   };
 
   /**
-   * @todo write docs
-   * @param {NumberTable} numbertable NumberTable.
+   * normalize each numberList to its maximum value
+   * @param {NumberTable} numbertable to be normalized
+   *
+   * @param {Number} factorValue optional factor
+   * @return {NumberTable}
+   * tags:normalization
    */
   NumberTableOperators.normalizeListsToMax = function(numbertable, factorValue) {
     var newTable = new NumberTable();
@@ -20553,17 +20544,21 @@
   };
 
   /**
-   * @todo write docs
-   * @param {NumberTable} numbertable NumberTable.
+   * normalize each numberList to make them sum 1 (or optional factor value)
+   * @param {NumberTable} numbertable to be normalized
+   *
+   * @param {Number} factorValue optional factor (each numberList values will add up factorValue)
+   * @return {NumberTable}
+   * tags:normalization
    */
-  NumberTableOperators.normalizeListsToSum = function(numbertable) {
+  NumberTableOperators.normalizeListsToSum = function(numbertable, factorValue) {
     var newTable = new NumberTable();
     var numberlist;
     var l = numbertable.length;
     var i;
     for(i = 0; i<l; i++) {
       numberlist = numbertable[i];
-      newTable[i] = NumberListOperators.normalizeToSum(numberlist);
+      newTable[i] = NumberListOperators.normalizeToSum(numberlist, factorValue);
     }
     newTable.name = numbertable.name;
     return newTable;
