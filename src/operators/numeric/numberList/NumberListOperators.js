@@ -167,12 +167,12 @@ NumberListOperators.pearsonProductMomentCorrelation = function(numberList0, numb
 };
 
 /**
- * Returns a NumberList normalized to the sum.
- *
+ * returns a NumberList normalized to the sum, all its values will add up 1 (or optionally provided factor)
  * @param  {NumberList} numberlist NumberList to Normalize.
- * @param {Number} factor Optional multiplier to modify the normalized values by. Defaults to 1.
- * @param {Number} sum Optional sum to normalize to. If not provided, sum will be calculated automatically.
- * @return {NumberList} new NumberList of values normalized to the sum.
+ *
+ * @param {Number} factor optional factor value (values will add up factor)
+ * @param {Number} sum provide this value if sum has been previously calculated, it will reduce calculations. If not provided, sum will be calculated automatically.
+ * @return {NumberList} new NumberList of values normalized to the sum
  * tags:
  */
 NumberListOperators.normalizeToSum = function(numberlist, factor, sum) {
@@ -194,6 +194,7 @@ NumberListOperators.normalizeToSum = function(numberlist, factor, sum) {
 
 /**
  * @param  {NumberList}
+ *
  * @param {Number}
  * @param {Number}
  * @return {NumberList}
@@ -217,20 +218,6 @@ NumberListOperators.normalizedToSum = function(numberlist, factor, sum) {
 NumberListOperators.normalized = function(numberlist, factor) {//@todo: remove
   if(numberlist==null) return;
   return numberlist.getNormalized();
-
-  // if(numberlist.length === 0) return null;
-
-  // var i;
-  // var interval = numberlist.getInterval();
-  // var a = interval.getAmplitude();
-  // var newNumberList = new NumberList();
-  // factor = factor == null ? 1 : factor;
-  // factor/=a;
-  // for(i = 0; i < numberlist.length; i++) {
-  //   newNumberList.push( factor*(numberlist[i] - interval.x) );
-  // }
-  // newNumberList.name = numberlist.name;
-  // return newNumberList;
 };
 
 /**

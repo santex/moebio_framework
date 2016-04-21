@@ -67,8 +67,12 @@ NumberTableOperators.normalizeLists = function(numbertable, factor) {
 };
 
 /**
- * @todo write docs
- * @param {NumberTable} numbertable NumberTable.
+ * normalize each numberList to its maximum value
+ * @param {NumberTable} numbertable to be normalized
+ *
+ * @param {Number} factorValue optional factor
+ * @return {NumberTable}
+ * tags:normalization
  */
 NumberTableOperators.normalizeListsToMax = function(numbertable, factorValue) {
   var newTable = new NumberTable();
@@ -84,17 +88,21 @@ NumberTableOperators.normalizeListsToMax = function(numbertable, factorValue) {
 };
 
 /**
- * @todo write docs
- * @param {NumberTable} numbertable NumberTable.
+ * normalize each numberList to make them sum 1 (or optional factor value)
+ * @param {NumberTable} numbertable to be normalized
+ *
+ * @param {Number} factorValue optional factor (each numberList values will add up factorValue)
+ * @return {NumberTable}
+ * tags:normalization
  */
-NumberTableOperators.normalizeListsToSum = function(numbertable) {
+NumberTableOperators.normalizeListsToSum = function(numbertable, factorValue) {
   var newTable = new NumberTable();
   var numberlist;
   var l = numbertable.length;
   var i;
   for(i = 0; i<l; i++) {
     numberlist = numbertable[i];
-    newTable[i] = NumberListOperators.normalizeToSum(numberlist);
+    newTable[i] = NumberListOperators.normalizeToSum(numberlist, factorValue);
   }
   newTable.name = numbertable.name;
   return newTable;
