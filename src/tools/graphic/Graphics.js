@@ -396,11 +396,19 @@ Graphics.prototype._adjustCanvas = function(dimensions) {
 
 };
 
+
+
+/////////////////////////////////////////////////////////////////////////////////
+////////////////////// cycle ////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////
+
+
 /*
  * Starts or restarts the draw cycle at the current cycleInterval
  * @ignore
  */
 Graphics.prototype._startCycle = function() { this.cycleActive = true;
+  //console.log('[G] _startCycle');
   if(this._cycleInterval === 0) {
     // Call the cycle only once function
     setTimeout(this._onCycle.bind(this), 10);
@@ -433,18 +441,15 @@ Graphics.prototype._stopCycle = function(callback) {
  * @param  {Number} time time in milliseconds to run the cycle function before stopping ot. if 0 it starts and endless cycle, if 1 it executes the cycle once
  */
 Graphics.prototype.cycleFor = function(time) {
-
-  if(time===0){
+  if(time===0){//infinite
     if(this._setIntervalId) clearTimeout(this._setTimeOutId);
     this._startCycle();
-  } else if(time==1){
-    if(this._setIntervalId) clearTimeout(this._setTimeOutId);
+  } else if(time==1){//one frame cycle
+    //if(this._setIntervalId) clearTimeout(this._setTimeOutId);
+    this._stopCycle();
     this._onCycle();
-  } else {
+  } else {//specified number of frames
     if(this._setIntervalId) {
-      // If there was already a running cycle then just delay the
-      // stop function to stop after time. This effectively debounces
-      // the _startCycle call.
       clearTimeout(this._setTimeOutId);
     } else {
       //this._onCycle(); // <----- maybe this is a good idea
@@ -469,13 +474,9 @@ Graphics.prototype._stopAfter = function(time, callback) {
  * This function is called on every cycle of the draw loop.
  * It is responsible for clearing the background and then calling
  * the user defined cycle function.
- *
  */
 Graphics.prototype._onCycle = function() {
-  // YY i don't think this interacts well with my expectations
-  // of setting the background color. it basically needs to be greater than 0
-  // if the bg color is not white and that isn't super obvious.
-  // SS I think I fixed it
+  //console.log('[G] _onCycle');
   if(this._alphaRefresh === 0){
     if(this.backGroundColorRGB!=null){
       this.context.fillStyle =
@@ -707,7 +708,6 @@ Graphics.prototype.off = function(eventName, callback) {
  * Clear the canvas.
  */
 Graphics.prototype.clearCanvas = function() {
-  console.log('[G] clearCanvas');
   this.context.clearRect(0, 0, this.cW, this.cH);
 };
 
