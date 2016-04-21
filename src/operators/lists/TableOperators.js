@@ -1883,7 +1883,7 @@ TableOperators.allListsSameLength = function(table){
 };
 
 /**
- * builds an object with statistical information about the table
+ * builds an object with statistical information about the table  (infoObject property will be added to lists)
  * @param  {Table} table
  * @return {Object}
  */
