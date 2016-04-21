@@ -1397,7 +1397,7 @@ ListOperators._groupElements_Base = function(list, propertyName, sortedByValue, 
 };
 
 /**
- * builds an object with statistical information about the list
+ * builds an object with statistical information about the list (infoObject property will be added to the list)
  * @param  {List} list
  * @return {Object}
  */
@@ -1491,6 +1491,8 @@ ListOperators.buildInformationObject = function(list){
 
     if(infoObject.kind == "categories" || infoObject.kind == "integer numbers") infoObject.entropy = ListOperators.getListEntropy(list, null, infoObject.frequenciesTable);
   }
+
+  list.infoObject = infoObject;
 
   return infoObject;
 
