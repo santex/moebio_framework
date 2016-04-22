@@ -8801,7 +8801,7 @@
           else if(Math.floor(val) == val && val < 1000)
             iCategoryLike++; // simple integer less than 1000
         }
-        if(iCategoryLike/infoObject.numberDifferentElements>0.8)
+        if(infoObject.numberDifferentElements/list.length <= 0.8 && iCategoryLike/infoObject.numberDifferentElements>0.8)
           infoObject.kind = "categories";
         else
           infoObject.kind = "texts";
@@ -19957,7 +19957,7 @@
   };
 
   /**
-   * builds an object with statistical information about the table  (infoObject property will be added to lists)
+   * builds an object with statistical information about the table  (infoObject property will be added to table and to lists)
    * @param  {Table} table
    * @return {Object}
    */
