@@ -14068,7 +14068,7 @@
     }
 
     var i, j;
-    var _firstRowIsHeader = firstRowIsHeader == null ? false : firstRowIsHeader;
+    firstRowIsHeader = firstRowIsHeader == null ? false : firstRowIsHeader;
 
     if(csvString == null) return null;
     if(csvString === "") return new Table();
@@ -14113,7 +14113,7 @@
 
     var startIndex = 0;
     var headerContent;
-    if(_firstRowIsHeader) {
+    if(firstRowIsHeader) {
       startIndex = 1;
       headerContent = lines[0].split(comaCharacter);
     }
@@ -14122,7 +14122,7 @@
     var cellContent;
     var numberCandidate;
     var cellContents;
-    var actualIndex;
+    //var actualIndex;
 
 
     var k;
@@ -14137,7 +14137,7 @@
       }
 
       cellContents = NetworkEncodings.replaceChomasInLine(lines[k], separator).split(comaCharacter); //TODO: will be obsolete (see previous TODO)
-      actualIndex = _firstRowIsHeader ? (i - 1) : i;
+      //actualIndex = firstRowIsHeader ? i : i;
 
       // console.log('    √ i, actualIndex, cellContents.length, cellContents', i, actualIndex, cellContents.length, cellContents);
       // console.log(lines[k]);
@@ -14148,7 +14148,8 @@
 
       for(j = 0; j < cellContents.length; j++) {
         table[j] = table[j] == null ? new List() : table[j];
-        if(_firstRowIsHeader && i == 1) {
+
+        if(firstRowIsHeader && i == 0) {
           table[j].name = ( headerContent[j] == null ? "" : TableEncodings._removeQuotes(headerContent[j]) ).trim();
         }
         
@@ -14167,7 +14168,7 @@
           element = null;
         }
         
-        table[j][actualIndex] = element;
+        table[j][i] = element;
 
         //if(j===0) console.log('   table[0][actualIndex]= ['+element+']');
       }
