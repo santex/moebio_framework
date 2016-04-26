@@ -3036,11 +3036,9 @@
    * If input is a Number, each value of the returned
    * NumberList will be the original value divided by this
    * input value.
-   *
    * If the input is a NumberList, each value of the returned
    * NumberList will be the original value divided by the
    * value at the same index in the input list.
-   *
    * @param {Number|NumberList} object Input value to divide by the list.
    * @return {NumberList}
    * tags:
@@ -4271,6 +4269,7 @@
     result.type = "DateList";
     //assign methods to array:
     result.getTimes = DateList.prototype.getTimes;
+    result.getYears = DateList.prototype.getYears;
     result.getMin = DateList.prototype.getMin;
     result.getMax = DateList.prototype.getMax;
     return result;
@@ -4286,6 +4285,20 @@
     var numberList = new NumberList();
     for(i = 0; this[i] != null; i++) {
       numberList.push(this[i].getTime());
+    }
+    return numberList;
+  };
+
+  /**
+   * get a numberList of year values
+   * @return {NumberList}
+   * tags:
+   */
+  DateList.prototype.getYears = function() {
+    var i;
+    var numberList = new NumberList();
+    for(i = 0; this[i] != null; i++) {
+      numberList.push(this[i].getYear());
     }
     return numberList;
   };
@@ -9520,25 +9533,20 @@
 
 
   /**
-   * Returns a NumberList normalized to Max.
+   * Returns a NumberList normalized to an Interval.
    * @param  {NumberList} numberlist NumberList to Normalize.
-   * @param {Number} factor Optional multiplier to modify the normalized values by. Defaults to 1.
+   * @param {Interval} interval that defines the range of the new numberList
    * @return {NumberList}
    * tags:
    */
   NumberListOperators.normalizeToInterval = function(numberlist, interval) {
-    if(numberlist==null || interval==null) return;
-
-    if(numberlist.length === 0) return null;
+    if(numberlist==null || interval==null || numberlist.length === 0) return;
 
     var i;
     var numberListInterval = numberlist.getInterval();
     var nLAmplitude = numberListInterval.getAmplitude();
-    if(nLAmplitude){
-      newNumberList = ListGenerators.createListWithSameElement (numberlist.length, interval.x, numberlist.name);
-      return newNumberList;
-    }
-    var amplitude = interval.getAmplitude();
+    if(nLAmplitude===0) return ListGenerators.createListWithSameElement (numberlist.length, interval.x, numberlist.name);
+    var amplitude = interval.getSignedAmplitude();
     var factor = amplitude/nLAmplitude;
     var newNumberList = new NumberList();
     for(i = 0; i < numberlist.length; i++) {
@@ -33353,18 +33361,15 @@
 
       graphics.setStroke('black', 0.2);
 
-      //tree.nodeList.forEach(function(node, i) {
       for(i=0; i<nNodes; i++){
         node = tree.nodeList[i];
 
         rect = new Rectangle(tx(node._outRectangle.x), ty(node._outRectangle.y), node._outRectangle.width * kx, node._outRectangle.height * ky);
 
-        if(rect.width > 5 && rect.height > 4 && rect.x < frame.width && rect.getRight() > 0 && rect.y < frame.height && rect.getBottom() > 0) {
+        if(rect.width > 7 && rect.height > 5 && rect.x < frame.width && rect.getRight() > 0 && rect.y < frame.height && rect.getBottom() > 0) {
 
           x = Math.round(frame.x + rect.x) + 0.5;
           y = Math.round(frame.y + rect.y) + 0.5;
-
-
 
           if(node._rgbF) {
             node._rgbF[0] = 0.95 * node._rgbF[0] + 0.05 * node._rgb[0];
@@ -33379,6 +33384,7 @@
             overNode = node;
             overI = i;
           }
+
           if(rect.width > 20) {
             margTextX = rect.width * TreeDraw.PROP_RECT_MARGIN * 0.8;
             margTextY = rect.height * TreeDraw.PROP_RECT_MARGIN * 0.15;
@@ -33399,8 +33405,14 @@
               //if(exceedes) context.restore();
             }
           }
+        } else {//not visible
+          if(node._rgbF) {
+            node._rgbF[0] = 0.95 * node._rgbF[0] + 0.05 * node._rgb[0];
+            node._rgbF[1] = 0.95 * node._rgbF[1] + 0.05 * node._rgb[1];
+            node._rgbF[2] = 0.95 * node._rgbF[2] + 0.05 * node._rgb[2];
+          }
         }
-      };
+      }
 
       if(captureImage) {
         //OLD VERSION
