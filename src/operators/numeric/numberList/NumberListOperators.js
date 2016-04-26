@@ -273,25 +273,20 @@ NumberListOperators.normalizeToMax = function(numberlist, factor) {
 
 
 /**
- * Returns a NumberList normalized to Max.
+ * Returns a NumberList normalized to an Interval.
  * @param  {NumberList} numberlist NumberList to Normalize.
- * @param {Number} factor Optional multiplier to modify the normalized values by. Defaults to 1.
+ * @param {Interval} interval that defines the range of the new numberList
  * @return {NumberList}
  * tags:
  */
 NumberListOperators.normalizeToInterval = function(numberlist, interval) {
-  if(numberlist==null || interval==null) return;
-
-  if(numberlist.length === 0) return null;
+  if(numberlist==null || interval==null || numberlist.length === 0) return;
 
   var i;
   var numberListInterval = numberlist.getInterval();
   var nLAmplitude = numberListInterval.getAmplitude();
-  if(nLAmplitude){
-    newNumberList = ListGenerators.createListWithSameElement (numberlist.length, interval.x, numberlist.name);
-    return newNumberList;
-  }
-  var amplitude = interval.getAmplitude();
+  if(nLAmplitude===0) return ListGenerators.createListWithSameElement (numberlist.length, interval.x, numberlist.name);
+  var amplitude = interval.getSignedAmplitude();
   var factor = amplitude/nLAmplitude;
   var newNumberList = new NumberList();
   for(i = 0; i < numberlist.length; i++) {
