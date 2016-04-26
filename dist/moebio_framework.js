@@ -868,6 +868,8 @@
     array.getWithoutElements = List.prototype.getWithoutElements;
     array.getWithoutElementsAtIndexes = List.prototype.getWithoutElementsAtIndexes;
     array.getFilteredByFunction = List.prototype.getFilteredByFunction;
+    array.addElements = List.prototype.addElements;
+
     array._concat = Array.prototype.concat;
     array.concat = List.prototype.concat;
 
@@ -1294,6 +1296,7 @@
       clonedList.push(this[i]);
     }
     clonedList.name = this.name;
+
     return clonedList;
   };
 
@@ -2150,12 +2153,10 @@
 
 
   /**
-   * Returns subset of List where true is returned from
-   * given function that is executed on each element in the List.
-   * @param {Function} func Function to run on each element.
-   * If the function returns true, the element is maintained in the
-   * returned List.
-   * @return {List} Filtered List.
+   * Returns subset of List where true is returned from given function that is executed on each element in the List.
+   * @param {Function} func Function to run on each element. If the function returns true, the element is maintained in thereturned List.
+   * @return {List} filtered list
+   * tags:
    */
   List.prototype.getFilteredByFunction = function(func) {
     var newList = instantiateWithSameType(this);
@@ -2170,6 +2171,42 @@
     return newList;
   };
 
+
+
+  /**
+   * returns a list with new added elements
+   *
+   * @param {Object} element0
+   * @param {Object} element1
+   * @param {Object} element2
+   * @param {Object} element3
+   * @param {Object} element4
+   * @param {Object} element5
+   * @param {Object} element6
+   * @param {Object} element7
+   * @param {Object} element8
+   * @param {Object} element9
+   * @return {List}
+   * tags:
+   */
+  List.prototype.addElements = function(element0, element1, element2, element3, element4, element5, element6, element7, element8, element9) {
+    var newList = this.clone();
+
+    if(element0!=null) newList.push(element0);
+    if(element1!=null) newList.push(element1);
+    if(element2!=null) newList.push(element2);
+    if(element3!=null) newList.push(element3);
+    if(element4!=null) newList.push(element4);
+    if(element5!=null) newList.push(element5);
+    if(element6!=null) newList.push(element6);
+    if(element7!=null) newList.push(element7);
+    if(element8!=null) newList.push(element8);
+    if(element9!=null) newList.push(element9);
+
+    newList.name = this.name;
+
+    return newList.getImproved();
+  };
 
 
   List.prototype.concat = function() {
