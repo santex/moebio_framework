@@ -675,11 +675,9 @@ NumberList.prototype.subtract = function(object) {
  * If input is a Number, each value of the returned
  * NumberList will be the original value divided by this
  * input value.
- *
  * If the input is a NumberList, each value of the returned
  * NumberList will be the original value divided by the
  * value at the same index in the input list.
- *
  * @param {Number|NumberList} object Input value to divide by the list.
  * @return {NumberList}
  * tags:
