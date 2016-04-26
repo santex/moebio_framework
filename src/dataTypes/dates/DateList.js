@@ -46,6 +46,7 @@ DateList.fromArray = function(array, forceToDate) {
   result.type = "DateList";
   //assign methods to array:
   result.getTimes = DateList.prototype.getTimes;
+  result.getYears = DateList.prototype.getYears;
   result.getMin = DateList.prototype.getMin;
   result.getMax = DateList.prototype.getMax;
   return result;
@@ -61,6 +62,20 @@ DateList.prototype.getTimes = function() {
   var numberList = new NumberList();
   for(i = 0; this[i] != null; i++) {
     numberList.push(this[i].getTime());
+  }
+  return numberList;
+};
+
+/**
+ * get a numberList of year values
+ * @return {NumberList}
+ * tags:
+ */
+DateList.prototype.getYears = function() {
+  var i;
+  var numberList = new NumberList();
+  for(i = 0; this[i] != null; i++) {
+    numberList.push(this[i].getYear());
   }
   return numberList;
 };
