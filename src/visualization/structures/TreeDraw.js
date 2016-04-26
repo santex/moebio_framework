@@ -340,18 +340,15 @@ TreeDraw.drawTreemap = function(frame, tree, colorList, weights, textColor, exte
 
     graphics.setStroke('black', 0.2);
 
-    //tree.nodeList.forEach(function(node, i) {
     for(i=0; i<nNodes; i++){
       node = tree.nodeList[i];
 
       rect = new Rectangle(tx(node._outRectangle.x), ty(node._outRectangle.y), node._outRectangle.width * kx, node._outRectangle.height * ky);
 
-      if(rect.width > 5 && rect.height > 4 && rect.x < frame.width && rect.getRight() > 0 && rect.y < frame.height && rect.getBottom() > 0) {
+      if(rect.width > 7 && rect.height > 5 && rect.x < frame.width && rect.getRight() > 0 && rect.y < frame.height && rect.getBottom() > 0) {
 
         x = Math.round(frame.x + rect.x) + 0.5;
         y = Math.round(frame.y + rect.y) + 0.5;
-
-
 
         if(node._rgbF) {
           node._rgbF[0] = 0.95 * node._rgbF[0] + 0.05 * node._rgb[0];
@@ -366,6 +363,7 @@ TreeDraw.drawTreemap = function(frame, tree, colorList, weights, textColor, exte
           overNode = node;
           overI = i;
         }
+
         if(rect.width > 20) {
           margTextX = rect.width * TreeDraw.PROP_RECT_MARGIN * 0.8;
           margTextY = rect.height * TreeDraw.PROP_RECT_MARGIN * 0.15;
@@ -386,8 +384,14 @@ TreeDraw.drawTreemap = function(frame, tree, colorList, weights, textColor, exte
             //if(exceedes) context.restore();
           }
         }
+      } else {//not visible
+        if(node._rgbF) {
+          node._rgbF[0] = 0.95 * node._rgbF[0] + 0.05 * node._rgb[0];
+          node._rgbF[1] = 0.95 * node._rgbF[1] + 0.05 * node._rgb[1];
+          node._rgbF[2] = 0.95 * node._rgbF[2] + 0.05 * node._rgb[2];
+        }
       }
-    };
+    }
 
     if(captureImage) {
       //OLD VERSION
