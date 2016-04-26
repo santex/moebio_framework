@@ -108,7 +108,7 @@ List.fromArray = function(array) {
   //array.sortNumeric = List.prototype.sortNumeric;
   //array.sortNumericIndexedDescending = List.prototype.sortNumericIndexedDescending;
   //array.sortNumericDescending = List.prototype.sortNumericDescending;
-  array.sortOnIndexes = List.prototype.sortOnIndexes;
+  array.getSortedByIndexes = List.prototype.getSortedByIndexes;
   array.getReversed = List.prototype.getReversed;
   array.getSortedByProperty = List.prototype.getSortedByProperty;
   array.getSorted = List.prototype.getSorted;
@@ -916,7 +916,13 @@ List.prototype.sortIndexed = function() {
   return result;
 };
 
-List.prototype.sortOnIndexes = function(indexes) {
+/**
+ * Sorts the list by indexes
+ * @param {List} list of indexes used to sort
+ * @return {List} sorted list
+ * tags:sort
+ */
+List.prototype.getSortedByIndexes = function(indexes) {
   if(indexes==null) return;
 
   var result = instantiateWithSameType(this);
