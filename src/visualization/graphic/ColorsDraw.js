@@ -18,17 +18,21 @@ export default ColorsDraw;
  * tags:draw
  */
 ColorsDraw.drawColorScaleLegend = function(frame, colorScale, minValue, maxValue, graphics) {
+  if(colorScale==null) return;
+
+  if(graphics==null) graphics = frame.graphics;
+
   // TODO refactor this to import context from Global and not reassign it.
-  var change = frame.memory == null || frame.width != frame.memory.w || frame.height != frame.memory.h || colorScale != frame.memory.cS || minValue != frame.memory.min || maxValue != frame.memory.max;
+  var change = true;//frame.memory == null || frame.width != frame.memory.w || frame.height != frame.memory.h || colorScale != frame.memory.cS || minValue != frame.memory.min || maxValue != frame.memory.max;
 
   if(change) {
-    frame.memory = {
-      w: frame.width,
-      h: frame.height,
-      cS: colorScale,
-      min: minValue,
-      max: maxValue
-    };
+    // frame.memory = {
+    //   w: frame.width,
+    //   h: frame.height,
+    //   cS: colorScale,
+    //   min: minValue,
+    //   max: maxValue
+    // };
 
     ///// capture image 1
     // TODO refactor to not reassign context
@@ -47,19 +51,19 @@ ColorsDraw.drawColorScaleLegend = function(frame, colorScale, minValue, maxValue
 
       for(x = 0; x < frame.width; x += 2) {
         graphics.setFill(colorScale(x / frame.width));
-        graphics.fRect(x, 0, 2, frame.height);
+        graphics.fRect(x+frame.x, 0+frame.y, 2, frame.height);
       }
 
-      graphics.setStroke('rgba(0,0,0,0.8)', 3);
+      graphics.setStroke('rgba(255,255,255,0.8)', 3);
 
       if(minValue != null) {
-        graphics.setText('white', 12, null, 'left', 'middle');
-        graphics.fsText(minValue, 2, frame.height * 0.5);
+        graphics.setText('black', 12, null, 'left', 'middle');
+        graphics.fsText(minValue, 4+frame.x, frame.height * 0.5+frame.y);
       }
 
       if(maxValue != null) {
-        graphics.setText('white', 12, null, 'right', 'middle');
-        graphics.fsText(maxValue, frame.width - 2, frame.height * 0.5);
+        graphics.setText('black', 12, null, 'right', 'middle');
+        graphics.fsText(maxValue, frame.width - 4+frame.x, frame.height * 0.5+frame.y);
       }
     } else {
 
@@ -67,7 +71,7 @@ ColorsDraw.drawColorScaleLegend = function(frame, colorScale, minValue, maxValue
 
       for(x = 0; x < frame.height; x += 2) {
         graphics.setFill(colorScale(x / frame.height));
-        graphics.fRect(0, x, frame.width, 2);
+        graphics.fRect(0+frame.x, x+frame.y, frame.width, 2);
       }
     }
 
@@ -80,8 +84,8 @@ ColorsDraw.drawColorScaleLegend = function(frame, colorScale, minValue, maxValue
   }
 
 
-  if(frame.memory.image) {
-    graphics.drawImage(frame.memory.image, frame.x, frame.y);
-  }
+  // if(frame.memory.image) {
+  //   graphics.drawImage(frame.memory.image, frame.x, frame.y);
+  // }
 
 };
