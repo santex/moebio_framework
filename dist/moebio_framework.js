@@ -7885,15 +7885,16 @@
    * @param  {Table} dictionary table with two lists
    *
    * @param {Object} nullElement element to place in case no translation is found
+   * @param {Boolean} if no translation is found keeps original value (default: false)
    * @return {List}
    * tags:
    */
-  ListOperators.translateWithDictionary = function(list, dictionary, nullElement) {
+  ListOperators.translateWithDictionary = function(list, dictionary, nullElement, keepsOriginal) {
     if(list==null || dictionary==null || dictionary.length<2) return;
 
     var dictionaryObject = ListOperators.buildDictionaryObjectForDictionary(dictionary);
 
-    var newList = ListOperators.translateWithDictionaryObject(list, dictionaryObject, nullElement);
+    var newList = ListOperators.translateWithDictionaryObject(list, dictionaryObject, nullElement, keepsOriginal);
 
     newList.dictionaryObject = dictionaryObject;
 
@@ -7906,11 +7907,12 @@
    * @param  {List} list
    * @param  {Object} dictionaryObject
    *
-   * @param  {Object} nullElement
+   * @param  {Object} nullElement element to place in case no translation is found
+   * @param {Boolean} if no translation is found keeps original value (default: false)
    * @return {List}
    * tags:
    */
-  ListOperators.translateWithDictionaryObject = function(list, dictionaryObject, nullElement) {
+  ListOperators.translateWithDictionaryObject = function(list, dictionaryObject, nullElement, keepsOriginal) {
     if(list==null || dictionaryObject==null) return;
 
     var newList = new List();
@@ -7921,12 +7923,13 @@
       newList[i] = dictionaryObject[list[i]];
     }
 
-    if(nullElement!=null){
+    if(nullElement!=null || keepsOriginal){
       var l = list.length;
       for(i=0; i<l; i++){
-        if(newList[i]==null) newList[i]=nullElement;
+        if(newList[i]==null) newList[i]=keepsOriginal?list[i]:nullElement;
       }
     }
+    
     newList.name = list.name;
     return newList.getImproved();
   };
@@ -31018,17 +31021,21 @@
    * tags:draw
    */
   ColorsDraw.drawColorScaleLegend = function(frame, colorScale, minValue, maxValue, graphics) {
+    if(colorScale==null) return;
+
+    if(graphics==null) graphics = frame.graphics;
+
     // TODO refactor this to import context from Global and not reassign it.
-    var change = frame.memory == null || frame.width != frame.memory.w || frame.height != frame.memory.h || colorScale != frame.memory.cS || minValue != frame.memory.min || maxValue != frame.memory.max;
+    var change = true;//frame.memory == null || frame.width != frame.memory.w || frame.height != frame.memory.h || colorScale != frame.memory.cS || minValue != frame.memory.min || maxValue != frame.memory.max;
 
     if(change) {
-      frame.memory = {
-        w: frame.width,
-        h: frame.height,
-        cS: colorScale,
-        min: minValue,
-        max: maxValue
-      };
+      // frame.memory = {
+      //   w: frame.width,
+      //   h: frame.height,
+      //   cS: colorScale,
+      //   min: minValue,
+      //   max: maxValue
+      // };
 
       ///// capture image 1
       // TODO refactor to not reassign context
@@ -31047,19 +31054,19 @@
 
         for(x = 0; x < frame.width; x += 2) {
           graphics.setFill(colorScale(x / frame.width));
-          graphics.fRect(x, 0, 2, frame.height);
+          graphics.fRect(x+frame.x, 0+frame.y, 2, frame.height);
         }
 
-        graphics.setStroke('rgba(0,0,0,0.8)', 3);
+        graphics.setStroke('rgba(255,255,255,0.8)', 3);
 
         if(minValue != null) {
-          graphics.setText('white', 12, null, 'left', 'middle');
-          graphics.fsText(minValue, 2, frame.height * 0.5);
+          graphics.setText('black', 12, null, 'left', 'middle');
+          graphics.fsText(minValue, 4+frame.x, frame.height * 0.5+frame.y);
         }
 
         if(maxValue != null) {
-          graphics.setText('white', 12, null, 'right', 'middle');
-          graphics.fsText(maxValue, frame.width - 2, frame.height * 0.5);
+          graphics.setText('black', 12, null, 'right', 'middle');
+          graphics.fsText(maxValue, frame.width - 4+frame.x, frame.height * 0.5+frame.y);
         }
       } else {
 
@@ -31067,7 +31074,7 @@
 
         for(x = 0; x < frame.height; x += 2) {
           graphics.setFill(colorScale(x / frame.height));
-          graphics.fRect(0, x, frame.width, 2);
+          graphics.fRect(0+frame.x, x+frame.y, frame.width, 2);
         }
       }
 
@@ -31080,9 +31087,9 @@
     }
 
 
-    if(frame.memory.image) {
-      graphics.drawImage(frame.memory.image, frame.x, frame.y);
-    }
+    // if(frame.memory.image) {
+    //   graphics.drawImage(frame.memory.image, frame.x, frame.y);
+    // }
 
   };
 
