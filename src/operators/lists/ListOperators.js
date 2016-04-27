@@ -507,15 +507,16 @@ ListOperators.buildDictionaryObjectForDictionary = function(dictionary){
  * @param  {Table} dictionary table with two lists
  *
  * @param {Object} nullElement element to place in case no translation is found
+ * @param {Boolean} if no translation is found keeps original value (default: false)
  * @return {List}
  * tags:
  */
-ListOperators.translateWithDictionary = function(list, dictionary, nullElement) {
+ListOperators.translateWithDictionary = function(list, dictionary, nullElement, keepsOriginal) {
   if(list==null || dictionary==null || dictionary.length<2) return;
 
   var dictionaryObject = ListOperators.buildDictionaryObjectForDictionary(dictionary);
 
-  var newList = ListOperators.translateWithDictionaryObject(list, dictionaryObject, nullElement);
+  var newList = ListOperators.translateWithDictionaryObject(list, dictionaryObject, nullElement, keepsOriginal);
 
   newList.dictionaryObject = dictionaryObject;
 
@@ -528,11 +529,12 @@ ListOperators.translateWithDictionary = function(list, dictionary, nullElement) 
  * @param  {List} list
  * @param  {Object} dictionaryObject
  *
- * @param  {Object} nullElement
+ * @param  {Object} nullElement element to place in case no translation is found
+ * @param {Boolean} if no translation is found keeps original value (default: false)
  * @return {List}
  * tags:
  */
-ListOperators.translateWithDictionaryObject = function(list, dictionaryObject, nullElement) {
+ListOperators.translateWithDictionaryObject = function(list, dictionaryObject, nullElement, keepsOriginal) {
   if(list==null || dictionaryObject==null) return;
 
   var newList = new List();
@@ -543,12 +545,13 @@ ListOperators.translateWithDictionaryObject = function(list, dictionaryObject, n
     newList[i] = dictionaryObject[list[i]];
   }
 
-  if(nullElement!=null){
+  if(nullElement!=null || keepsOriginal){
     var l = list.length;
     for(i=0; i<l; i++){
-      if(newList[i]==null) newList[i]=nullElement;
+      if(newList[i]==null) newList[i]=keepsOriginal?list[i]:nullElement;
     }
   }
+  
   newList.name = list.name;
   return newList.getImproved();
 };
