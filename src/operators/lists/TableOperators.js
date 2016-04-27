@@ -473,6 +473,7 @@ TableOperators.replaceElementInTable = function(table, elementToBeRemoved, eleme
       newList[j] = list[j]==elementToBeRemoved?elementToBePlaced:list[j];
     }
     newList = newList.getImproved();
+    newList.name = list.name;
   }
 
   return newTable.getImproved();
