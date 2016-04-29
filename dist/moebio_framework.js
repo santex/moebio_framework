@@ -9401,6 +9401,9 @@
    * cosine similarity, used to compare two NumberLists regardless of norm (see: http://en.wikipedia.org/wiki/Cosine_similarity)
    * @param  {NumberList} numberList0
    * @param  {NumberList} numberList1
+   *
+   * @param  {Number} norm0 accelerates operations if this values has benn previously calculated
+   * @param  {Number} norm1 accelerates operations if this values has benn previously calculated
    * @return {Number}
    * tags:statistics
    */
@@ -9456,7 +9459,7 @@
    * returns Pearson Product Moment Correlation, the most common correlation coefficient ( covariance/(standard_deviation0*standard_deviation1) )
    * @param  {NumberList} numberList0
    * @param  {NumberList} numberList1
-
+   *
    * @param {Number} sd0 standrad deviation of list 0, accelerates opeartion if previously calculated
    * @param {Number} sd1 standrad deviation of list 1, accelerates opeartion if previously calculated
    * @return {Number}
@@ -18216,13 +18219,13 @@
    * @param  {String} operator "=c"(default, exact match for numbers, contains for strings), "==", "<", "<=", ">", ">=", "!=", "contains", "between", "init" Function that returns a boolean
    * @param  {Object} value to compare against, can be String or Number
    *
-   * @param  {Number} nList null(default) means check every column, otherwise column index to test. Can also be another List instance of same length as table.
+   * @param  {Number} listToCheck it could be one of the following option:<br>null (default) means it checks every list, a row is kept if at least one its values verify the condition<br>a number, an index of the list to check<br>a string, the name of the list to check<br>an external list (with same sizes as the lists in the table).
    * @param  {Object} value2 only used for "between" operator
    * @param  {Boolean} bIgnoreCase for string compares, defaults to true
    * @return {Table}
    * tags:filter
    */
-  TableOperators.filterTable = function(table, operator, value, nList, value2, bIgnoreCase){
+  TableOperators.filterTable = function(table, operator, value, listToCheck, value2, bIgnoreCase){
     // input validation and defaults
     if(table==null || table.length === 0 || table[0]==null) return;
     if(operator==null) operator='=c';
@@ -18233,10 +18236,15 @@
     var cStart=0;
     var cEnd=table.length;
     var type = _typeOf(value);
-    var bExternalList = nList != null && nList.isList === true;
+    var bExternalList = listToCheck != null && listToCheck.isList === true;
 
-    if(bExternalList && nList.length != nRows){
-      throw new Error('selected List (in nList position) must have same length as table');
+    if(bExternalList && listToCheck.length != nRows){
+      throw new Error('selected List (in listToCheck position) must have same length as table');
+    }
+
+    if(listToCheck!=null){
+      if(typeof listToCheck === 'string') listToCheck=table.getNames().indexOf(listToCheck);
+      if(listToCheck==-1) throw new Error('do not find any list with such name');
     }
 
     if(value==null){
@@ -18261,9 +18269,9 @@
     }
     if(operator == 'between' && value2 == null)
       operator='noop';
-    if(nList != null){
-      cStart=nList;
-      cEnd=nList+1;
+    if(listToCheck != null){
+      cStart=listToCheck;
+      cEnd=listToCheck+1;
     }
     if(bExternalList){
       cStart=0;
@@ -18289,7 +18297,7 @@
       case "==":
         for(r=0; r<nRows; r++){
           for(c=cStart; c<cEnd; c++){
-            val0 = bExternalList ? nList[r] : table[c][r];
+            val0 = bExternalList ? listToCheck[r] : table[c][r];
             if(val0 == null) val0 = '';
             if(val0 == value){
               nLKeep.push(r);
@@ -18301,7 +18309,7 @@
       case "==i":
         for(r=0; r<nRows; r++){
           for(c=cStart; c<cEnd; c++){
-            val0 = bExternalList ? nList[r] : table[c][r];
+            val0 = bExternalList ? listToCheck[r] : table[c][r];
             val = val0 == null ? '' : String(val0).toLowerCase();
             if(val == value){
               nLKeep.push(r);
@@ -18314,7 +18322,7 @@
         for(r=0; r<nRows; r++){
           bKeep=true;
           for(c=cStart; c<cEnd; c++){
-            val0 = bExternalList ? nList[r] : table[c][r];
+            val0 = bExternalList ? listToCheck[r] : table[c][r];
             if(val0 == null) val0 = '';
             if(val0 == value){
               bKeep=false;
@@ -18329,7 +18337,7 @@
         for(r=0; r<nRows; r++){
           bKeep=true;
           for(c=cStart; c<cEnd; c++){
-            val0 = bExternalList ? nList[r] : table[c][r];
+            val0 = bExternalList ? listToCheck[r] : table[c][r];
             val = val0 == null ? '' : String(val0).toLowerCase();
             if(val == value){
               bKeep=false;
@@ -18343,7 +18351,7 @@
       case "contains":
         for(r=0; r<nRows; r++){
           for(c=cStart; c<cEnd; c++){
-            val0 = bExternalList ? nList[r] : table[c][r];
+            val0 = bExternalList ? listToCheck[r] : table[c][r];
             val = bIgnoreCase ? String(val0).toLowerCase() : String(val0);
             if(val.indexOf(String(value)) > -1){
               nLKeep.push(r);
@@ -18355,7 +18363,7 @@
       case "init":
         for(r=0; r<nRows; r++){
           for(c=cStart; c<cEnd; c++){
-            val0 = bExternalList ? nList[r] : table[c][r];
+            val0 = bExternalList ? listToCheck[r] : table[c][r];
             val = bIgnoreCase ? String(val0).toLowerCase() : String(val0);
             if(val.indexOf(String(value)) === 0){
               nLKeep.push(r);
@@ -18368,7 +18376,7 @@
       case "<=":
         for(r=0; r<nRows; r++){
           for(c=cStart; c<cEnd; c++){
-            val0 = bExternalList ? nList[r] : table[c][r];
+            val0 = bExternalList ? listToCheck[r] : table[c][r];
             if(type != _typeOf(val0)) continue;
             //val = bIgnoreCase ? String(val0).toLowerCase() : String(val0);
             val =  (type == 'string')?( bIgnoreCase ? String(val0).toLowerCase() : String(val0) ):Number(val0);
@@ -18387,7 +18395,7 @@
       case ">=":
         for(r=0; r<nRows; r++){
           for(c=cStart; c<cEnd; c++){
-            val0 = bExternalList ? nList[r] : table[c][r];
+            val0 = bExternalList ? listToCheck[r] : table[c][r];
             if(type != _typeOf(val0)) continue;
             val =  (type == 'string')?( bIgnoreCase ? String(val0).toLowerCase() : String(val0) ):Number(val0);
             if(val > value){
@@ -18404,7 +18412,7 @@
       case "between":
         for(r=0; r<nRows; r++){
           for(c=cStart; c<cEnd; c++){
-            val0 = bExternalList ? nList[r] : table[c][r];
+            val0 = bExternalList ? listToCheck[r] : table[c][r];
             //if(type != typeOf(val0)) continue;
 
             //val = bIgnoreCase ? String(val0).toLowerCase() : String(val0);
@@ -18424,7 +18432,7 @@
         if(typeof(operator) == 'function'){
           for(r=0; r<nRows; r++){
             for(c=cStart; c<cEnd; c++){
-              if(operator.call(this,table[c][r], value, value2, nList, table, c, r, bIgnoreCase) ){
+              if(operator.call(this,table[c][r], value, value2, listToCheck, table, c, r, bIgnoreCase) ){
                 nLKeep.push(r);
                 break;
               }
