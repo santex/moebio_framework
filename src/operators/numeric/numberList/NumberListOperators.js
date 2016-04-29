@@ -95,6 +95,9 @@ NumberListOperators.distance = function(numberList1, numberList2) {
  * cosine similarity, used to compare two NumberLists regardless of norm (see: http://en.wikipedia.org/wiki/Cosine_similarity)
  * @param  {NumberList} numberList0
  * @param  {NumberList} numberList1
+ *
+ * @param  {Number} norm0 accelerates operations if this values has benn previously calculated
+ * @param  {Number} norm1 accelerates operations if this values has benn previously calculated
  * @return {Number}
  * tags:statistics
  */
@@ -150,7 +153,7 @@ NumberListOperators.standardDeviationBetweenTwoNumberLists = function(numberList
  * returns Pearson Product Moment Correlation, the most common correlation coefficient ( covariance/(standard_deviation0*standard_deviation1) )
  * @param  {NumberList} numberList0
  * @param  {NumberList} numberList1
-
+ *
  * @param {Number} sd0 standrad deviation of list 0, accelerates opeartion if previously calculated
  * @param {Number} sd1 standrad deviation of list 1, accelerates opeartion if previously calculated
  * @return {Number}
