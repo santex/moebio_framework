@@ -72,22 +72,24 @@ TableEncodings.CSVtoTable = function(csvString, firstRowIsHeader, separator, val
   var blocks = csvString.split("\"");
 
 
-
   for(i = 1; blocks[i] != null; i += 2) {
     blocks[i] = blocks[i].replace(/\n|\r/g, "*ENTER*");
   }
   csvString = blocks.join("\""); //TODO: create a general method for replacements inside "", apply it to chomas
 
-  var enterChar = TableEncodings.ENTER2;
-  var lines = csvString.split(enterChar);
-  if(lines.length == 1) {
-    enterChar = TableEncodings.ENTER;
-    lines = csvString.split(enterChar);
-    if(lines.length == 1) {
-      enterChar = TableEncodings.ENTER3;
-      lines = csvString.split(enterChar);
-    }
-  }
+  // var enterChar = TableEncodings.ENTER2;
+  // var lines = csvString.split(enterChar);
+  // if(lines.length == 1) {
+  //   enterChar = TableEncodings.ENTER;
+  //   lines = csvString.split(enterChar);
+  //   if(lines.length == 1) {
+  //     enterChar = TableEncodings.ENTER3;
+  //     lines = csvString.split(enterChar);
+  //   }
+  // }
+
+  var lines = csvString.split(/\n|\r/g);
+
 
   if(lines.length==1 && firstRowIsHeader){
     throw new Error("CSV contains only one line and firstRowIsHeader is true, a Table can't be build");
