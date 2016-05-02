@@ -123,7 +123,6 @@ TableEncodings.CSVtoTable = function(csvString, firstRowIsHeader, separator, val
     //console.log(k, "lines[k].length", lines[k].length);
 
     if(lines[k].length < 2){
-      console.log(' x ');
       continue;
     }
 
@@ -140,7 +139,7 @@ TableEncodings.CSVtoTable = function(csvString, firstRowIsHeader, separator, val
     for(j = 0; j < cellContents.length; j++) {
       table[j] = table[j] == null ? new List() : table[j];
 
-      if(firstRowIsHeader && i == 0) {
+      if(firstRowIsHeader && i === 0) {
         table[j].name = ( headerContent[j] == null ? "" : TableEncodings._removeQuotes(headerContent[j]) ).trim();
       }
       
