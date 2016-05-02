@@ -117,7 +117,7 @@ Table.prototype.applyFunction = function(func) {
 
 /**
  * returns a list from the Table, optionally slicing the list by providing initial and final indexes (notice that this method, except for the slicing, is equivalent to getElement because a Table is a List whose elements are Lists)
- * @param  {Number|String} indexOrNameOfColumn index or name of column to extract
+ * @param  {Number|String} indexOrNameOfColumn index (Number) or name (String) of column to extract
  *
  * @param {Number} row0 initial index (included)
  * @param {Number} row1 final index (included)
@@ -182,7 +182,7 @@ Table.prototype.getColumn = function(indexOrNameOfColumn, row0, row1) {
 
 /**
  * returns some lists from the Table, optionally slicing the list by providing initial and final indexes (notice that this method, except for the slicing, is equivalent to getElement because a Table is a List whose elements are Lists)
- * @param  {NumberList|StringList} indexesOrNames index or name of column to extract
+ * @param  {NumberList|StringList} indexesOrNames indexes (NumberList) or names (StringList) of columns to extract
  *
  * @param {Number} row0 initial index (included)
  * @param {Number} row1 final index (included)
@@ -253,7 +253,7 @@ Table.prototype.getRows = function(indexes) {
 /**
  * extracts an element from some list in the table
  *
- * @param  {Number} indexOrNameOfColumn number of list (negative number accepted for counting from end downwards)
+ * @param  {Number|String} indexOrNameOfColumn index (Number) or name (String) of list (negative number accepted for counting from end downwards)
  * @param  {Number} indexElementInColumn index of element in list (negative number accepted for counting from end downwards)
  * @return {Object}
  * tags:
@@ -267,7 +267,7 @@ Table.prototype.getCell = function(indexOrNameOfColumn, indexElementInColumn) {
 
 /**
  * Returns the length a column of the Table.
- * @param  {Number} indexOrNameOfColumn The Column to return its length (defaults)
+ * @param  {Number|String} indexOrNameOfColumn The Column to return its length (defaults)
  * @return {Number} Length of column at given indexOrNameOfColumn.
  */
 Table.prototype.getListLength = function(indexOrNameOfColumn) {
@@ -277,8 +277,8 @@ Table.prototype.getListLength = function(indexOrNameOfColumn) {
 };
 
 /**
- * Returns the lengths of all the columns of the Table.
- * @return {NumberList} Lengths of all columns in Table.
+ * returns the lengths of all the lists of the Table
+ * @return {NumberList} Lengths of all lists in Table.
  */
 Table.prototype.getLengths = function() {
   var lengths = new NumberList();

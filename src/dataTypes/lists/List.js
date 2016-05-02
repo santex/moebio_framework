@@ -258,7 +258,7 @@ List.prototype.getImproved = function() {
 /**
  * extracts an element from the list
  *
- * @param {Number|String} position or name of the element
+ * @param {Number|String} index (Number) or name (String) of the element
  * @return {Object}
  * tags:
  */
@@ -284,7 +284,7 @@ List.prototype.getElement = function(indexOrName) {//@todo: make this efficient
 
 /**
  * returns a list with elements in indexes. or found by names.
- * @param {NumberList|StringList} indexesOrNames list of indexes or list of names
+ * @param {NumberList|StringList} indexesOrNames list of indexes (NumberList) or names (StringList) of lists
  *
  * @param {Boolean} nullIfNotFound true:adds a null if not found<br>false: doesn't add any element and the resulting List could have less elements than indexes or names provided
  * @return {List}
@@ -327,9 +327,9 @@ List.prototype.toArray = function() {//@todo: make this efficient
 };
 
 /**
- * Compares elements with another list.
- * @param  {List} list List to compare.
- * @return {Boolean} true if all elements are identical.
+ * Compares elements with another list, if all elements are identical, the lists are equivalent and return true. A List is always equivalente to itslef, and two different lists could be equivalent.
+ * @param  {List} list to compare.
+ * @return {Boolean} true if all elements are identical
  * tags:
  */
 List.prototype.isEquivalent = function(list) {
@@ -345,21 +345,12 @@ List.prototype.isEquivalent = function(list) {
 };
 
 /**
- * Returns the number of elements of the list.
- * @return {Number} Length of the list.
- */
-// List.prototype.getLength = function() {
-//   return this.length;
-// };
-
-/**
- * In sub-classes, this function returns a NumberList of lengths.
- * Base function returns null.
+ * returns a NumberList of lengths of elements on list (string lengths for StringList, lists lengths for Table)
  * @return {null}
  * tags:
  */
 List.prototype.getLengths = function() {
-  //overriden by different extentions of List
+  throw new Error('requires a list with elements that have a length property');
   return null;
 };
 
