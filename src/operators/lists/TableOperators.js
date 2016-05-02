@@ -35,7 +35,7 @@ export default TableOperators;
 /**
  * @todo finish docs
  */
-TableOperators.getElementFromTable = function(table, i, j) {
+TableOperators.getElementFromTable = function(table, i, j) {//deprecated, replaced by getCell
   if(table[i] == null) return null;
   return table[i][j];
 };
@@ -87,7 +87,7 @@ TableOperators.getSubTable = function(table, x, y, width, height) {
  * @param  {String} operator "=c"(default, exact match for numbers, contains for strings), "==", "<", "<=", ">", ">=", "!=", "contains", "between", "init" Function that returns a boolean
  * @param  {Object} value to compare against, can be String or Number
  *
- * @param  {Number} listToCheck it could be one of the following option:<br>null (default) means it checks every list, a row is kept if at least one its values verify the condition<br>a number, an index of the list to check<br>a string, the name of the list to check<br>an external list (with same sizes as the lists in the table).
+ * @param  {Number|String|List} listToCheck it could be one of the following option:<br>null (default) means it checks every list, a row is kept if at least one its values verify the condition<br>a number, an index of the list to check<br>a string, the name of the list to check<br>a list (with same sizes as the lists in the table) that will be used to check conditions on elements and filter the table.
  * @param  {Object} value2 only used for "between" operator
  * @param  {Boolean} bIgnoreCase for string compares, defaults to true
  * @return {Table}
