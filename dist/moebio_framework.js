@@ -14125,7 +14125,7 @@
 
     //var blocks = csvString.split("\"");
     
-    
+
     //var blocks = csvString.split(/'|"/);
 
     var blocks = csvString.split("\"");
@@ -14182,7 +14182,6 @@
       //console.log(k, "lines[k].length", lines[k].length);
 
       if(lines[k].length < 2){
-        console.log(' x ');
         continue;
       }
 
