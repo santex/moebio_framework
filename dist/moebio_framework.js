@@ -992,7 +992,7 @@
   /**
    * extracts an element from the list
    *
-   * @param {Number|String} position or name of the element
+   * @param {Number|String} index (Number) or name (String) of the element
    * @return {Object}
    * tags:
    */
@@ -1018,7 +1018,7 @@
 
   /**
    * returns a list with elements in indexes. or found by names.
-   * @param {NumberList|StringList} indexesOrNames list of indexes or list of names
+   * @param {NumberList|StringList} indexesOrNames list of indexes (NumberList) or names (StringList) of lists
    *
    * @param {Boolean} nullIfNotFound true:adds a null if not found<br>false: doesn't add any element and the resulting List could have less elements than indexes or names provided
    * @return {List}
@@ -1061,9 +1061,9 @@
   };
 
   /**
-   * Compares elements with another list.
-   * @param  {List} list List to compare.
-   * @return {Boolean} true if all elements are identical.
+   * Compares elements with another list, if all elements are identical, the lists are equivalent and return true. A List is always equivalente to itslef, and two different lists could be equivalent.
+   * @param  {List} list to compare.
+   * @return {Boolean} true if all elements are identical
    * tags:
    */
   List.prototype.isEquivalent = function(list) {
@@ -1079,21 +1079,12 @@
   };
 
   /**
-   * Returns the number of elements of the list.
-   * @return {Number} Length of the list.
-   */
-  // List.prototype.getLength = function() {
-  //   return this.length;
-  // };
-
-  /**
-   * In sub-classes, this function returns a NumberList of lengths.
-   * Base function returns null.
+   * returns a NumberList of lengths of elements on list (string lengths for StringList, lists lengths for Table)
    * @return {null}
    * tags:
    */
   List.prototype.getLengths = function() {
-    //overriden by different extentions of List
+    throw new Error('requires a list with elements that have a length property');
     return null;
   };
 
@@ -4975,7 +4966,7 @@
 
   /**
    * returns a list from the Table, optionally slicing the list by providing initial and final indexes (notice that this method, except for the slicing, is equivalent to getElement because a Table is a List whose elements are Lists)
-   * @param  {Number|String} indexOrNameOfColumn index or name of column to extract
+   * @param  {Number|String} indexOrNameOfColumn index (Number) or name (String) of column to extract
    *
    * @param {Number} row0 initial index (included)
    * @param {Number} row1 final index (included)
@@ -5040,7 +5031,7 @@
 
   /**
    * returns some lists from the Table, optionally slicing the list by providing initial and final indexes (notice that this method, except for the slicing, is equivalent to getElement because a Table is a List whose elements are Lists)
-   * @param  {NumberList|StringList} indexesOrNames index or name of column to extract
+   * @param  {NumberList|StringList} indexesOrNames indexes (NumberList) or names (StringList) of columns to extract
    *
    * @param {Number} row0 initial index (included)
    * @param {Number} row1 final index (included)
@@ -5111,7 +5102,7 @@
   /**
    * extracts an element from some list in the table
    *
-   * @param  {Number} indexOrNameOfColumn number of list (negative number accepted for counting from end downwards)
+   * @param  {Number|String} indexOrNameOfColumn index (Number) or name (String) of list (negative number accepted for counting from end downwards)
    * @param  {Number} indexElementInColumn index of element in list (negative number accepted for counting from end downwards)
    * @return {Object}
    * tags:
@@ -5125,7 +5116,7 @@
 
   /**
    * Returns the length a column of the Table.
-   * @param  {Number} indexOrNameOfColumn The Column to return its length (defaults)
+   * @param  {Number|String} indexOrNameOfColumn The Column to return its length (defaults)
    * @return {Number} Length of column at given indexOrNameOfColumn.
    */
   Table.prototype.getListLength = function(indexOrNameOfColumn) {
@@ -5135,8 +5126,8 @@
   };
 
   /**
-   * Returns the lengths of all the columns of the Table.
-   * @return {NumberList} Lengths of all columns in Table.
+   * returns the lengths of all the lists of the Table
+   * @return {NumberList} Lengths of all lists in Table.
    */
   Table.prototype.getLengths = function() {
     var lengths = new NumberList();
@@ -14134,11 +14125,10 @@
 
     //var blocks = csvString.split("\"");
     
-
+    
     //var blocks = csvString.split(/'|"/);
 
     var blocks = csvString.split("\"");
-
 
 
     for(i = 1; blocks[i] != null; i += 2) {
@@ -14146,16 +14136,19 @@
     }
     csvString = blocks.join("\""); //TODO: create a general method for replacements inside "", apply it to chomas
 
-    var enterChar = TableEncodings.ENTER2;
-    var lines = csvString.split(enterChar);
-    if(lines.length == 1) {
-      enterChar = TableEncodings.ENTER;
-      lines = csvString.split(enterChar);
-      if(lines.length == 1) {
-        enterChar = TableEncodings.ENTER3;
-        lines = csvString.split(enterChar);
-      }
-    }
+    // var enterChar = TableEncodings.ENTER2;
+    // var lines = csvString.split(enterChar);
+    // if(lines.length == 1) {
+    //   enterChar = TableEncodings.ENTER;
+    //   lines = csvString.split(enterChar);
+    //   if(lines.length == 1) {
+    //     enterChar = TableEncodings.ENTER3;
+    //     lines = csvString.split(enterChar);
+    //   }
+    // }
+
+    var lines = csvString.split(/\n|\r/g);
+
 
     if(lines.length==1 && firstRowIsHeader){
       throw new Error("CSV contains only one line and firstRowIsHeader is true, a Table can't be build");
@@ -18167,7 +18160,7 @@
   /**
    * @todo finish docs
    */
-  TableOperators.getElementFromTable = function(table, i, j) {
+  TableOperators.getElementFromTable = function(table, i, j) {//deprecated, replaced by getCell
     if(table[i] == null) return null;
     return table[i][j];
   };
@@ -18219,7 +18212,7 @@
    * @param  {String} operator "=c"(default, exact match for numbers, contains for strings), "==", "<", "<=", ">", ">=", "!=", "contains", "between", "init" Function that returns a boolean
    * @param  {Object} value to compare against, can be String or Number
    *
-   * @param  {Number} listToCheck it could be one of the following option:<br>null (default) means it checks every list, a row is kept if at least one its values verify the condition<br>a number, an index of the list to check<br>a string, the name of the list to check<br>an external list (with same sizes as the lists in the table).
+   * @param  {Number|String|List} listToCheck it could be one of the following option:<br>null (default) means it checks every list, a row is kept if at least one its values verify the condition<br>a number, an index of the list to check<br>a string, the name of the list to check<br>a list (with same sizes as the lists in the table) that will be used to check conditions on elements and filter the table.
    * @param  {Object} value2 only used for "between" operator
    * @param  {Boolean} bIgnoreCase for string compares, defaults to true
    * @return {Table}
