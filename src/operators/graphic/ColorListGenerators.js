@@ -56,7 +56,7 @@ ColorListGenerators.colorsForCategoricalList = function(list){
 
 /**
  * Creates a ColorList of categorical colors based on an input List. All entries with the same value will get the same color.
- * @param {List} the list containing categorical data
+ * @param {List} list containing categorical data
  *
  * @param {ColorList} ColorList with categorical colors
  * @param {Number} alpha transparency
@@ -158,7 +158,7 @@ ColorListGenerators.createColorListFromColorScale = function(n, colorScale){
  * @param  {NumberList} numberList
  *
  * @param  {ColorScale} colorScale (grayToOrange by default)
- * @param  {Number} mode 0:normalize numberList
+ * @param  {Number} mode<br>0:normalize numberList<br><br>2:numberList contains color scale values (between 0 and 1)
  * @return {ColorList}
  * tags:generator
  */
@@ -171,6 +171,7 @@ ColorListGenerators.createColorListFromNumberList = function(numberList, colorSc
   var colorList = new ColorList();
   var newNumberList;
   var i;
+  var l = numberList.length;
 
   switch(mode) {
     case 0: //0 to max
@@ -179,11 +180,12 @@ ColorListGenerators.createColorListFromNumberList = function(numberList, colorSc
     case 1: //min to max
       break;
     case 2: //values between 0 and 1
+      newNumberList = numberList;
       break;
   }
 
-  for(i = 0; newNumberList[i] != null; i++) {
-    colorList.push(colorScale(newNumberList[i]));
+  for(i = 0; i<l; i++) {
+    colorList[i]  = colorScale(newNumberList[i]);
   }
 
   return colorList;
