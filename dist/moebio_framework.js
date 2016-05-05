@@ -2072,6 +2072,9 @@
   List.prototype.getWithoutElementAtIndex = function(index) {
     var newList;
     var l = this.length;
+
+    if(index<0) index+=l;
+
     if(this.type == 'List') {
       newList = new List();
     } else {
@@ -5220,7 +5223,7 @@
 
   /**
    * Sort Table's lists by a list
-   * @param  {List|Number} listOrIndex List used to sort, or index of list in the table
+   * @param  {Number|List} listOrIndex List used to sort, or index of list in the table
    *
    * @param  {Boolean} ascending (true by default)
    * @return {Table} table (of the same type)
@@ -5228,13 +5231,14 @@
    */
   Table.prototype.getListsSortedByList = function(listOrIndex, ascending) { //depracated: use sortListsByList
     if(listOrIndex == null) return;
+
     var newTable = instantiateWithSameType(this);
     var sortinglist = listOrIndex.isList ? listOrIndex.clone() : this[listOrIndex];
     var l = this.length;
     var i;
 
     for(i=0; i<l; i++){
-      newTable.push(this[i].getSortedByList(sortinglist, ascending));
+      newTable[i] = this[i].getSortedByList(sortinglist, ascending);
     }
 
     return newTable;
@@ -8276,6 +8280,7 @@
     return (ListOperators.intersection(list0, list1).length+sigma)/union;
   };
 
+
   /**
    * calculates Jaccard distance 1 - |list0 ∩ list1|/|list0 ∪ list1| see: https://en.wikipedia.org/wiki/Jaccard_index
    * @param  {List} list0
@@ -8287,6 +8292,103 @@
     return 1 - ListOperators.jaccardIndex(list0, list1);
   };
 
+
+  /**
+   * filters a list by different criteria
+   * @param  {List} list to be filtered
+   * @param  {String} operator "=c"(default, exact match for numbers, contains for strings), "==", "<", "<=", ">", ">=", "!=", "contains", "between", "init" Function that returns a boolean
+   * @param  {Object} value to compare against
+   *
+   * @param  {List} otherList optionally used to verify condition on elements, instead of given list (selected elements belong to original list)
+   * @param  {Object} value2 only used for "between" operator
+   * @return {Number}
+   * tags:
+   */
+  ListOperators.filterList = function(list, operator, value, otherList, value2){
+    if(list==null) return;
+
+    if(operator==null) operator='=c';
+    if(operator == '=') operator = '==';
+
+    if(otherList==null) otherList = list;
+
+    var newList = new List();
+    var l = list.length;
+    var i;
+
+    switch(operator){
+      case "==":
+        for(i=0; i<l; i++){
+          if(otherList[i]==value) newList.push(list[i]);
+        }
+        break;
+      case "<":
+        for(i=0; i<l; i++){
+          if(otherList[i]<value) newList.push(list[i]);
+        }
+        break;
+      case "<=":
+        for(i=0; i<l; i++){
+          if(otherList[i]<=value) newList.push(list[i]);
+        }
+        break;
+      case ">":
+        for(i=0; i>l; i++){
+          if(otherList[i]<=value) newList.push(list[i]);
+        }
+        break;
+      case ">=":
+        for(i=0; i>l; i++){
+          if(otherList[i]>=value) newList.push(list[i]);
+        }
+        break;
+      case "!=":
+        for(i=0; i>l; i++){
+          if(otherList[i]!=value) newList.push(list[i]);
+        }
+        break;
+      case "contains":
+        for(i=0; i>l; i++){
+          if(otherList[i].indexOf(value)!=-1) newList.push(list[i]);
+        }
+        break;
+      case "between":
+        for(i=0; i>l; i++){
+          if(otherList[i].indexOf(value)>=value && list[i].indexOf(value)<=value2) newList.push(list[i]);
+        }
+        break;
+      case "init":
+        for(i=0; i>l; i++){
+          if(otherList[i].indexOf(value)===0) newList.push(list[i]);
+        }
+        break;
+
+    }
+    return newList.getImproved();
+  };
+
+  /**
+   * applies a function on list elements and return new list
+   * @param  {List} list
+   * @param  {Function} func function to be applied, the function receives the element, its position on the list, and, optionally, two parameters func(list[i], i, param0, param1)
+   *
+   * @param {Object} param0 optional param to be sent to function (will receive it after index)
+   * @param {Object} param1 optional param to be sent to function (will receive it after param0)
+   * @return {List}
+   * tags:
+   */
+  ListOperators.mapFunctionOnList = function(list, func, param0, param1){
+    if(list==null || func==null) return;
+
+    var newList = new List();
+    var l = list.length;
+    var i;
+    for(i=0; i<l; i++){
+      newList[i] = func.call(this, list[i], i, param0, param1);
+    }
+
+    return newList.getImproved();
+  };
 
 
   /**
@@ -8620,19 +8722,28 @@
     var ig = ListOperators.getListEntropy(supervised);
     var childrenObject = {};
     var childrenLists = [];
+    var i;
     var N = feature.length;
+    var element;
 
-    feature.forEach(function(element, i) {
+
+    //feature.forEach(function(element, i) {
+    for(i=0; i<N; i++){
+      element = feature[i];
       if(childrenObject[element] == null) {
         childrenObject[element] = new List();
         childrenLists.push(childrenObject[element]);
       }
       childrenObject[element].push(supervised[i]);
-    });
+    }//);
 
-    childrenLists.forEach(function(cl) {
-      ig -= (cl.length / N) * ListOperators.getListEntropy(cl);
-    });
+    N = childrenLists.length;
+
+    //childrenLists.forEach(function(cl) {
+    for(i=0; i<N; i++){
+      ig -= (childrenLists[i].length / N) * ListOperators.getListEntropy(childrenLists[i]);
+    }
+    //});
 
     return ig;
   };
@@ -10044,7 +10155,7 @@
 
   /**
    * Creates a ColorList of categorical colors based on an input List. All entries with the same value will get the same color.
-   * @param {List} the list containing categorical data
+   * @param {List} list containing categorical data
    *
    * @param {ColorList} ColorList with categorical colors
    * @param {Number} alpha transparency
@@ -10146,7 +10257,7 @@
    * @param  {NumberList} numberList
    *
    * @param  {ColorScale} colorScale (grayToOrange by default)
-   * @param  {Number} mode 0:normalize numberList
+   * @param  {Number} mode<br>0:normalize numberList<br><br>2:numberList contains color scale values (between 0 and 1)
    * @return {ColorList}
    * tags:generator
    */
@@ -10159,6 +10270,7 @@
     var colorList = new ColorList();
     var newNumberList;
     var i;
+    var l = numberList.length;
 
     switch(mode) {
       case 0: //0 to max
@@ -10167,11 +10279,12 @@
       case 1: //min to max
         break;
       case 2: //values between 0 and 1
+        newNumberList = numberList;
         break;
     }
 
-    for(i = 0; newNumberList[i] != null; i++) {
-      colorList.push(colorScale(newNumberList[i]));
+    for(i = 0; i<l; i++) {
+      colorList[i]  = colorScale(newNumberList[i]);
     }
 
     return colorList;
@@ -11401,11 +11514,14 @@
    * format cases
    * 0: MM-DD-YYYY
    * 1: YYYY-MM-DD
+   * 2: MM-DD-YY
+   * 3: YY-MM-DD
    */
   DateOperators.dateToString = function(date, formatCase, separator) {// @todo: move to DateConversions
     separator = separator == null ? "-" : separator;
     formatCase = formatCase == null ? 0 : formatCase;
     var year = date.getFullYear();
+    var yearTwoLast = String(year).substr(2);
     var month = date.getMonth() + 1;
     var day = date.getDate();
 
@@ -11414,6 +11530,10 @@
         return month + separator + day + separator + year;
       case 1: //YYYY-MM-DD
         return year + separator + month + separator + day;
+      case 2: //MM-DD-YY
+        return month + separator + day + separator + yearTwoLast;
+      case 3: //YY-MM-DD
+        return yearTwoLast + separator + month + separator + day;
     }
   };
 
@@ -18209,7 +18329,7 @@
    * filter the rows of a table by a criteria defined by an operator applied to all lists or a selected list
    * @param  {Table} table Table
    * @param  {String} operator "=c"(default, exact match for numbers, contains for strings), "==", "<", "<=", ">", ">=", "!=", "contains", "between", "init" Function that returns a boolean
-   * @param  {Object} value to compare against, can be String or Number
+   * @param  {Object} value to compare against
    *
    * @param  {Number|String|List} listToCheck it could be one of the following option:<br>null (default) means it checks every list, a row is kept if at least one its values verify the condition<br>a number, an index of the list to check<br>a string, the name of the list to check<br>a list (with same sizes as the lists in the table) that will be used to check conditions on elements and filter the table.
    * @param  {Object} value2 only used for "between" operator
@@ -19234,7 +19354,7 @@
 
   /**
    * builds the vector of values from a data table and the complete list of categories
-   * @param {Table} dataTable lwith categories and values
+   * @param {Table} dataTable with categories and values
    * @param {List} allCategories complete list of categories
    *
    * @param {Object} allCategoriesIndexesDictionary optional dictionar of indexes if pre-calculated
@@ -19261,8 +19381,52 @@
   };
 
   /**
+   * creates a new table that combines rows from two tables that have a variable in common (equivalent to SQL join)
+   * @param {Table} table0 first table to be joined (aka left table in SQL naming)
+   * @param {Table} table1 second table to be joined (aka right table in SQL naming)
+   *
+   * @param {Number|String} keyIndex0 index (Number) or name (String) of variable that is also present in table1 (default:0)
+   * @param {Number|String} keyIndex1 index (Number) or name (String) of variable that is also present in table0 (default:0)
+   * @param {Number} mode<br>0:inner (default)<br>1:full outer<br>2:left
+   * @return {Table} 
+   * tags:
+   */
+  TableOperators.joinTwoTables = function(table0, table1, keyIndex0, keyIndex1, mode){
+    var joinTabe = new Table();
+    var list0, list1;
+
+    keyIndex0 = keyIndex0==null?0:keyIndex0;
+    keyIndex1 = keyIndex0==null?0:keyIndex1;
+    mode = mode==null?0:mode;
+
+    if(typeof keyIndex0 == "string"){
+      list0 = table0.getElement(keyIndex0);
+      if(list0==null) throw Error("the table doesn't contain a list with name "+keyIndex0);
+    } else {
+      if(keyIndex0<0) keyIndex0+=table0.length;
+      list0 = table0[keyIndex0%table0.length];
+    }
+
+    if(typeof keyIndex1 == "string"){
+      list1 = table1.getElement(keyIndex1);
+      if(list1==null) throw Error("the table doesn't contain a list with name "+keyIndex1);
+    } else {
+      if(keyIndex1<0) keyIndex1+=table1.length;
+      list1 = table1[keyIndex1%table1.length];
+    }
+
+    var dictionary0 = ListOperators.getBooleanDictionaryForList(list0);
+
+
+    return joinTabe.getImproved();
+  };
+
+
+
+
+  /**
    * creates a new table with an updated first categorical List of elements and  added new numberLists with the new values
-   * @param {Table} table0 table wit a list of elements and a numberList of numbers associated to elements
+   * @param {Table} table0 table with a list of elements and a numberList of numbers associated to elements
    * @param {Table} table1 wit a list of elements and a numberList of numbers associated to elements
    * @return {Table}
    * tags:
@@ -19616,8 +19780,8 @@
    * @param  {Table} table
    *
    * @param  {Boolean} nodesAreRows if true (default value) each node corresponds to a row in the table, and rows are compared, if false lists are compared ([!] working only for NumberTable, using pearson correlation)
-   * @param  {Object} names (StringList|Number) optionally add names to nodes with a list that could be part of the table or not; receives a StringList for names, index for list in the providade table
-   * @param {Object} colorsByList (List|Number) optionally add color to nodes from a NumberList (for scale) or any List (for categorical colors) that could be part of the table or not; receives a List or an index if the list is in the providade table
+   * @param  {StringList|Number} names optionally add names to nodes with a list that could be part of the table or not; receives a StringList for names, or an index (Number) for a list in the providade table
+   * @param {List|Number} colorsByList optionally add color to nodes from a NumberList (for scale), any List (for categorical colors) that could be part of the table or not; receives a List or an index if the list is in the providade table
    * @param {Number} correlationThreshold 0.3 by default, above that level a relation is created
    * @param  {Boolean} negativeCorrelation takes into account negative correlations for building relations
    * @param {Number} numericMode numeric correlation mode<br>0:Pearson correlation (defualt)<br>1:cosine similarity
@@ -19699,6 +19863,8 @@
           network.addNode(node);
           node.i = i;
           node.numbers = table[i];
+
+          if(colors) node.color = colors[i];
         }
 
         for(i=0; i<l; i++){
@@ -19832,7 +19998,7 @@
 
     if(_typeOf(supervised)=='number'){
       var newTable = variablesTable.getWithoutElementAtIndex(supervised);
-      supervised = variablesTable[supervised];
+      supervised = variablesTable.getElement(supervised);
       variablesTable = newTable;
     }
 
@@ -19842,6 +20008,8 @@
 
     var indexes = NumberListGenerators.createSortedNumberList(supervised.length);
     var tree = new Tree();
+
+    console.log('TableOperators.buildDecisionTree');
 
     TableOperators._buildDecisionTreeNode(tree, variablesTable, supervised, 0, min_entropy, min_size_node, min_info_gain, null, null, supervisedValue, indexes, generatePattern, colorScale);
 
@@ -19853,9 +20021,12 @@
    * @ignore
    */
   TableOperators._buildDecisionTreeNode = function(tree, variablesTable, supervised, level, min_entropy, min_size_node, min_info_gain, parent, value, supervisedValue, indexes, generatePattern, colorScale) {
+    if(level < 4) console.log('\n_buildDecisionTreeNode | supervised.name, supervisedValue', supervised.name, supervisedValue);
+
     var entropy = ListOperators.getListEntropy(supervised, supervisedValue);
 
-    //if(level < 4) c.l('entropy, min_entropy', entropy, min_entropy);
+    if(level < 4) console.log('entropy, min_entropy', entropy, min_entropy);
+    
     var maxIg = 0;
     var iBestFeature = 0;
     var informationGains = 0;
@@ -19870,7 +20041,16 @@
       });
     }
 
+    if(level < 4) console.log('informationGains:', informationGains);
+    if(level < 4) console.log('maxIg, min_info_gain:', maxIg, min_info_gain);
+    if(level < 4) console.log('supervised.length, min_size_node:', supervised.length, min_size_node);
+    if(level < 4) console.log('iBestFeature:', iBestFeature);
+    if(level < 4) console.log('best feature:', variablesTable[iBestFeature].name);
+
+
     var subDivide = entropy >= min_entropy && maxIg > min_info_gain && supervised.length >= min_size_node;
+
+    if(level < 4) console.log('subDivide:', subDivide);
 
     var id = tree.nodeList.getNewId();
     var name = (value == null ? '' : value + ':') + (subDivide ? variablesTable[iBestFeature].name : 'P=' + supervised._biggestProbability + '(' + supervised._mostRepresentedValue + ')');
@@ -19897,21 +20077,20 @@
     node.valueFollowingProbability = supervised._P_valueFollowing;
     node.lift = node.valueFollowingProbability / tree.nodeList[0].valueFollowingProbability; //Math.log(node.valueFollowingProbability/tree.nodeList[0].valueFollowingProbability)/Math.log(2);
 
-
-    // if(level < 4) {
-    //   c.l('supervised.countElement(supervisedValue)', supervised.countElement(supervisedValue));
-    //   c.l('value', value);
-    //   c.l('name', name);
-    //   c.l('supervised.name', supervised.name);
-    //   c.l('supervised.length', supervised.length);
-    //   c.l('supervisedValue', supervisedValue);
-    //   c.l('supervised._biggestProbability, supervised._P_valueFollowing', supervised._biggestProbability, supervised._P_valueFollowing);
-    //   c.l('node.valueFollowingProbability (=supervised._P_valueFollowing):', node.valueFollowingProbability);
-    //   c.l('tree.nodeList[0].valueFollowingProbability', tree.nodeList[0].valueFollowingProbability);
-    //   c.l('node.biggestProbability (=_biggestProbability):', node.biggestProbability);
-    //   c.l('node.mostRepresentedValue:', node.mostRepresentedValue);
-    //   c.l('node.mostRepresentedValue==supervisedValue', node.mostRepresentedValue == supervisedValue);
-    // }
+    if(level < 4) {
+      console.log('supervisedValue', supervisedValue);
+      console.log('supervised.countElement(supervisedValue)', supervised.countElement(supervisedValue));
+      console.log('value', value);
+      console.log('name', name);
+      console.log('supervised.name', supervised.name);
+      console.log('supervised.length', supervised.length);
+      console.log('supervised._biggestProbability, supervised._P_valueFollowing', supervised._biggestProbability, supervised._P_valueFollowing);
+      console.log('node.valueFollowingProbability (=supervised._P_valueFollowing):', node.valueFollowingProbability);
+      console.log('tree.nodeList[0].valueFollowingProbability', tree.nodeList[0].valueFollowingProbability);
+      console.log('node.biggestProbability (=_biggestProbability):', node.biggestProbability);
+      console.log('node.mostRepresentedValue:', node.mostRepresentedValue);
+      console.log('node.mostRepresentedValue==supervisedValue', node.mostRepresentedValue == supervisedValue);
+    }
 
     node._color = colorScale(node.valueFollowingProbability); //TableOperators._decisionTreeColorScale(1 - node.valueFollowingProbability, colorScale);
 
@@ -20013,6 +20192,46 @@
   };
 
   /**
+   * returns a Table with lists without repeated elements
+   * @param  {Table} table
+   * @return {NumberList}
+   * tags:
+   */
+  TableOperators.getListsWithoutRepetition = function(table){
+    if(table==null) return;
+
+    var l = table.length;
+    var i;
+    var newTable = new Table();
+
+    for(i=0; i<l; i++){
+      newTable[i] = table[i].getWithoutRepetitions();
+    }
+
+    return newTable.getImproved();
+  };
+
+  /**
+   * returns a numberList with the number of different elements in each list
+   * @param  {Table} table
+   * @return {NumberList}
+   * tags:
+   */
+  TableOperators.getNumberOfDifferentElementsOfLists = function(table){
+    if(table==null) return;
+
+    var l = table.length;
+    var i;
+    var nList = new NumberList();
+
+    for(i=0; i<l; i++){
+      nList[i] = table[i].getWithoutRepetitions().length;
+    }
+
+    return nList;
+  };
+
+  /**
    * builds an object with statistical information about the table  (infoObject property will be added to table and to lists)
    * @param  {Table} table
    * @return {Object}
@@ -20106,6 +20325,9 @@
     }
 
     table.infoObject = infoObject;
+
+    console.log('infoObject:', infoObject);
+    console.log('infoObject.type:', infoObject.type);
 
     return infoObject;
 
@@ -20656,13 +20878,14 @@
   function NumberTableOperators() {}
   /**
    * normalizes the table to its maximal value
+   * @param {NumberTable} numbertable NumberTable
    *
-   * @param {NumberTable} numbertable NumberTable.
    * @param  {Number} factor optional factor
    * @return {NumberTable}
    * tags:normalization
    */
   NumberTableOperators.normalizeTableToMax = function(numbertable, factor) {
+    if(numbertable==null) return;
     factor = factor == null ? 1 : factor;
 
     var newTable = new NumberTable();
@@ -20677,13 +20900,15 @@
 
   /**
    * returns a table with having normalized all the numberLists
+   * @param {NumberTable} numbertable NumberTable
    *
-   * @param {NumberTable} numbertable NumberTable.
    * @param  {factor} factor optional factor
    * @return {NumberTable}
    * tags:normalization
    */
   NumberTableOperators.normalizeLists = function(numbertable, factor) {
+    if(numbertable==null || !numbertable[0].length) return;
+
     factor = factor == null ? 1 : factor;
 
     var newTable = new NumberTable();
@@ -20705,6 +20930,8 @@
    * tags:normalization
    */
   NumberTableOperators.normalizeListsToMax = function(numbertable, factorValue) {
+    if(numbertable==null || !numbertable[0].length) return;
+
     var newTable = new NumberTable();
     var numberlist;
     var l = numbertable.length;
@@ -20726,6 +20953,8 @@
    * tags:normalization
    */
   NumberTableOperators.normalizeListsToSum = function(numbertable, factorValue) {
+    if(numbertable==null || !numbertable[0].length) return;
+
     var newTable = new NumberTable();
     var numberlist;
     var l = numbertable.length;
@@ -20748,7 +20977,7 @@
    * tags:statistics
    */
   NumberTableOperators.averageSmootherOnLists = function(numberTable, intensity, nIterations) {
-    if(numberTable == null) return;
+    if(numbertable == null || !numbertable[0].length) return;
 
     intensity = intensity || 0.5;
     nIterations = nIterations || 1;
@@ -22081,12 +22310,16 @@
    * return rich information about abject (working with: List and table)
    * @param  {Object} object
    * @return {Object}
-   * tags:
    */
   ObjectOperators.buildInformationObject = function(object) {
+    console.log('object.isTable', object.isTable);
+
+    if(object.isTable) return TableOperators.buildInformationObject(object);
+    if(object.isList) return ListOperators.buildInformationObject(object);
     if(object["buildInformationObject"]) return object.buildInformationObject;
+
     return null;
-  }
+  };
 
   /**
    * builds a string report of the object, with detailed information about its structure and contents
@@ -25435,10 +25668,11 @@
    * @param {StringList} names optional, names of Nodes
    * @param {Number} threshold (default: 0.3)
    * @param {Number} weightMode relations weight mode<br>0: weight<br>1:weight -  threshold<br>2:(weight -  threshold)/(1 - threshold)
+   * @param {Boolean} symmetric (default:true) if false, assumes the function is not symmetric and creates asymmetric relations (A ->> B and B ->> A)
    * @return {Network} a network with number of nodes equal to the length of the List
    * tags:
    */
-  NetworkGenerators.createNetworkFromListAndFunction = function(list, weightFunction, names, threshold, weightMode) {
+  NetworkGenerators.createNetworkFromListAndFunction = function(list, weightFunction, names, threshold, weightMode, symmetric) {
     if(list==null || weightFunction==null) return;
 
     var i, j;
@@ -25453,15 +25687,31 @@
       network.addNode(new Node("n_"+i, names == null ? "n_"+i : names[i]));
     }
 
-    for(i=0; i<n; i++){
-      node = network.nodeList[i];
-      for(j=i+1; j<n; j++){
-        node1 = network.nodeList[j];
-        w = weightFunction(list[i], list[j]);
-        if(w > threshold) {
-          if(weightMode>0) w -= threshold;
-          if(weightMode==2) w /= (1-threshold);
-          network.addRelation(new Relation(i + "_" + j, i + "_" + j, node, node1, w));
+    if(symmetric){
+      for(i=0; i<n; i++){
+        node = network.nodeList[i];
+        for(j=i+1; j<n; j++){
+          node1 = network.nodeList[j];
+          w = weightFunction(list[i], list[j]);
+          if(w > threshold) {
+            if(weightMode>0) w -= threshold;
+            if(weightMode==2) w /= (1-threshold);
+            network.addRelation(new Relation(i + "_" + j, i + "_" + j, node, node1, w));
+          }
+        }
+      }
+    } else {
+      for(i=0; i<n; i++){
+        node = network.nodeList[i];
+        for(j=0; j<n; j++){
+          if(i==j) continue;
+          node1 = network.nodeList[j];
+          w = weightFunction(list[i], list[j]);
+          if(w > threshold) {
+            if(weightMode>0) w -= threshold;
+            if(weightMode==2) w /= (1-threshold);
+            network.addRelation(new Relation(i + "_" + j, i + "_" + j, node, node1, w));
+          }
         }
       }
     }
