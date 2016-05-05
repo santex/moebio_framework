@@ -68,11 +68,14 @@ DateOperators.stringToDate = function(string, formatCase, separator) {// @todo: 
  * format cases
  * 0: MM-DD-YYYY
  * 1: YYYY-MM-DD
+ * 2: MM-DD-YY
+ * 3: YY-MM-DD
  */
 DateOperators.dateToString = function(date, formatCase, separator) {// @todo: move to DateConversions
   separator = separator == null ? "-" : separator;
   formatCase = formatCase == null ? 0 : formatCase;
   var year = date.getFullYear();
+  var yearTwoLast = String(year).substr(2);
   var month = date.getMonth() + 1;
   var day = date.getDate();
 
@@ -81,6 +84,10 @@ DateOperators.dateToString = function(date, formatCase, separator) {// @todo: mo
       return month + separator + day + separator + year;
     case 1: //YYYY-MM-DD
       return year + separator + month + separator + day;
+    case 2: //MM-DD-YY
+      return month + separator + day + separator + yearTwoLast;
+    case 3: //YY-MM-DD
+      return yearTwoLast + separator + month + separator + day;
   }
 };
 
