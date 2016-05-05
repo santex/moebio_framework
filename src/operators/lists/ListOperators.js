@@ -907,6 +907,7 @@ ListOperators.jaccardIndex = function(list0, list1, sigma) {//TODO: see if this 
   return (ListOperators.intersection(list0, list1).length+sigma)/union;
 };
 
+
 /**
  * calculates Jaccard distance 1 - |list0 ∩ list1|/|list0 ∪ list1| see: https://en.wikipedia.org/wiki/Jaccard_index
  * @param  {List} list0
@@ -918,6 +919,103 @@ ListOperators.jaccardDistance = function(list0, list1) {
   return 1 - ListOperators.jaccardIndex(list0, list1);
 };
 
+
+/**
+ * filters a list by different criteria
+ * @param  {List} list to be filtered
+ * @param  {String} operator "=c"(default, exact match for numbers, contains for strings), "==", "<", "<=", ">", ">=", "!=", "contains", "between", "init" Function that returns a boolean
+ * @param  {Object} value to compare against
+ *
+ * @param  {List} otherList optionally used to verify condition on elements, instead of given list (selected elements belong to original list)
+ * @param  {Object} value2 only used for "between" operator
+ * @return {Number}
+ * tags:
+ */
+ListOperators.filterList = function(list, operator, value, otherList, value2){
+  if(list==null) return;
+
+  if(operator==null) operator='=c';
+  if(operator == '=') operator = '==';
+
+  if(otherList==null) otherList = list;
+
+  var newList = new List();
+  var l = list.length;
+  var i;
+
+  switch(operator){
+    case "==":
+      for(i=0; i<l; i++){
+        if(otherList[i]==value) newList.push(list[i]);
+      }
+      break;
+    case "<":
+      for(i=0; i<l; i++){
+        if(otherList[i]<value) newList.push(list[i]);
+      }
+      break;
+    case "<=":
+      for(i=0; i<l; i++){
+        if(otherList[i]<=value) newList.push(list[i]);
+      }
+      break;
+    case ">":
+      for(i=0; i>l; i++){
+        if(otherList[i]<=value) newList.push(list[i]);
+      }
+      break;
+    case ">=":
+      for(i=0; i>l; i++){
+        if(otherList[i]>=value) newList.push(list[i]);
+      }
+      break;
+    case "!=":
+      for(i=0; i>l; i++){
+        if(otherList[i]!=value) newList.push(list[i]);
+      }
+      break;
+    case "contains":
+      for(i=0; i>l; i++){
+        if(otherList[i].indexOf(value)!=-1) newList.push(list[i]);
+      }
+      break;
+    case "between":
+      for(i=0; i>l; i++){
+        if(otherList[i].indexOf(value)>=value && list[i].indexOf(value)<=value2) newList.push(list[i]);
+      }
+      break;
+    case "init":
+      for(i=0; i>l; i++){
+        if(otherList[i].indexOf(value)===0) newList.push(list[i]);
+      }
+      break;
+
+  }
+  return newList.getImproved();
+};
+
+/**
+ * applies a function on list elements and return new list
+ * @param  {List} list
+ * @param  {Function} func function to be applied, the function receives the element, its position on the list, and, optionally, two parameters func(list[i], i, param0, param1)
+ *
+ * @param {Object} param0 optional param to be sent to function (will receive it after index)
+ * @param {Object} param1 optional param to be sent to function (will receive it after param0)
+ * @return {List}
+ * tags:
+ */
+ListOperators.mapFunctionOnList = function(list, func, param0, param1){
+  if(list==null || func==null) return;
+
+  var newList = new List();
+  var l = list.length;
+  var i;
+  for(i=0; i<l; i++){
+    newList[i] = func.call(this, list[i], i, param0, param1);
+  }
+
+  return newList.getImproved();
+};
 
 
 /**
@@ -1251,19 +1349,28 @@ ListOperators.getInformationGain = function(feature, supervised) {
   var ig = ListOperators.getListEntropy(supervised);
   var childrenObject = {};
   var childrenLists = [];
+  var i;
   var N = feature.length;
+  var element;
 
-  feature.forEach(function(element, i) {
+
+  //feature.forEach(function(element, i) {
+  for(i=0; i<N; i++){
+    element = feature[i];
     if(childrenObject[element] == null) {
       childrenObject[element] = new List();
       childrenLists.push(childrenObject[element]);
     }
     childrenObject[element].push(supervised[i]);
-  });
+  }//);
 
-  childrenLists.forEach(function(cl) {
-    ig -= (cl.length / N) * ListOperators.getListEntropy(cl);
-  });
+  N = childrenLists.length;
+
+  //childrenLists.forEach(function(cl) {
+  for(i=0; i<N; i++){
+    ig -= (childrenLists[i].length / N) * ListOperators.getListEntropy(childrenLists[i]);
+  }
+  //});
 
   return ig;
 };
