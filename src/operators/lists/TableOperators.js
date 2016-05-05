@@ -85,7 +85,7 @@ TableOperators.getSubTable = function(table, x, y, width, height) {
  * filter the rows of a table by a criteria defined by an operator applied to all lists or a selected list
  * @param  {Table} table Table
  * @param  {String} operator "=c"(default, exact match for numbers, contains for strings), "==", "<", "<=", ">", ">=", "!=", "contains", "between", "init" Function that returns a boolean
- * @param  {Object} value to compare against, can be String or Number
+ * @param  {Object} value to compare against
  *
  * @param  {Number|String|List} listToCheck it could be one of the following option:<br>null (default) means it checks every list, a row is kept if at least one its values verify the condition<br>a number, an index of the list to check<br>a string, the name of the list to check<br>a list (with same sizes as the lists in the table) that will be used to check conditions on elements and filter the table.
  * @param  {Object} value2 only used for "between" operator
@@ -1110,7 +1110,7 @@ TableOperators.filterTableByElementsInList = function(table, nList, elements, ke
 
 /**
  * builds the vector of values from a data table and the complete list of categories
- * @param {Table} dataTable lwith categories and values
+ * @param {Table} dataTable with categories and values
  * @param {List} allCategories complete list of categories
  *
  * @param {Object} allCategoriesIndexesDictionary optional dictionar of indexes if pre-calculated
@@ -1137,8 +1137,52 @@ TableOperators.numberListFromDataTable = function(dataTable, allCategories, allC
 };
 
 /**
+ * creates a new table that combines rows from two tables that have a variable in common (equivalent to SQL join)
+ * @param {Table} table0 first table to be joined (aka left table in SQL naming)
+ * @param {Table} table1 second table to be joined (aka right table in SQL naming)
+ *
+ * @param {Number|String} keyIndex0 index (Number) or name (String) of variable that is also present in table1 (default:0)
+ * @param {Number|String} keyIndex1 index (Number) or name (String) of variable that is also present in table0 (default:0)
+ * @param {Number} mode<br>0:inner (default)<br>1:full outer<br>2:left
+ * @return {Table} 
+ * tags:
+ */
+TableOperators.joinTwoTables = function(table0, table1, keyIndex0, keyIndex1, mode){
+  var joinTabe = new Table();
+  var list0, list1;
+
+  keyIndex0 = keyIndex0==null?0:keyIndex0;
+  keyIndex1 = keyIndex0==null?0:keyIndex1;
+  mode = mode==null?0:mode;
+
+  if(typeof keyIndex0 == "string"){
+    list0 = table0.getElement(keyIndex0);
+    if(list0==null) throw Error("the table doesn't contain a list with name "+keyIndex0);
+  } else {
+    if(keyIndex0<0) keyIndex0+=table0.length;
+    list0 = table0[keyIndex0%table0.length];
+  }
+
+  if(typeof keyIndex1 == "string"){
+    list1 = table1.getElement(keyIndex1);
+    if(list1==null) throw Error("the table doesn't contain a list with name "+keyIndex1);
+  } else {
+    if(keyIndex1<0) keyIndex1+=table1.length;
+    list1 = table1[keyIndex1%table1.length];
+  }
+
+  var dictionary0 = ListOperators.getBooleanDictionaryForList(list0);
+
+
+  return joinTabe.getImproved();
+};
+
+
+
+
+/**
  * creates a new table with an updated first categorical List of elements and  added new numberLists with the new values
- * @param {Table} table0 table wit a list of elements and a numberList of numbers associated to elements
+ * @param {Table} table0 table with a list of elements and a numberList of numbers associated to elements
  * @param {Table} table1 wit a list of elements and a numberList of numbers associated to elements
  * @return {Table}
  * tags:
@@ -1492,8 +1536,8 @@ TableOperators.splitTableByCategoricList = function(table, list) {
  * @param  {Table} table
  *
  * @param  {Boolean} nodesAreRows if true (default value) each node corresponds to a row in the table, and rows are compared, if false lists are compared ([!] working only for NumberTable, using pearson correlation)
- * @param  {Object} names (StringList|Number) optionally add names to nodes with a list that could be part of the table or not; receives a StringList for names, index for list in the providade table
- * @param {Object} colorsByList (List|Number) optionally add color to nodes from a NumberList (for scale) or any List (for categorical colors) that could be part of the table or not; receives a List or an index if the list is in the providade table
+ * @param  {StringList|Number} names optionally add names to nodes with a list that could be part of the table or not; receives a StringList for names, or an index (Number) for a list in the providade table
+ * @param {List|Number} colorsByList optionally add color to nodes from a NumberList (for scale), any List (for categorical colors) that could be part of the table or not; receives a List or an index if the list is in the providade table
  * @param {Number} correlationThreshold 0.3 by default, above that level a relation is created
  * @param  {Boolean} negativeCorrelation takes into account negative correlations for building relations
  * @param {Number} numericMode numeric correlation mode<br>0:Pearson correlation (defualt)<br>1:cosine similarity
@@ -1575,6 +1619,8 @@ TableOperators.buildCorrelationsNetwork = function(table, nodesAreRows, names, c
         network.addNode(node);
         node.i = i;
         node.numbers = table[i];
+
+        if(colors) node.color = colors[i];
       }
 
       for(i=0; i<l; i++){
@@ -1708,7 +1754,7 @@ TableOperators.buildDecisionTree = function(variablesTable, supervised, supervis
 
   if(typeOf(supervised)=='number'){
     var newTable = variablesTable.getWithoutElementAtIndex(supervised);
-    supervised = variablesTable[supervised];
+    supervised = variablesTable.getElement(supervised);
     variablesTable = newTable;
   }
 
@@ -1718,6 +1764,8 @@ TableOperators.buildDecisionTree = function(variablesTable, supervised, supervis
 
   var indexes = NumberListGenerators.createSortedNumberList(supervised.length);
   var tree = new Tree();
+
+  console.log('TableOperators.buildDecisionTree');
 
   TableOperators._buildDecisionTreeNode(tree, variablesTable, supervised, 0, min_entropy, min_size_node, min_info_gain, null, null, supervisedValue, indexes, generatePattern, colorScale);
 
@@ -1729,9 +1777,12 @@ TableOperators.buildDecisionTree = function(variablesTable, supervised, supervis
  * @ignore
  */
 TableOperators._buildDecisionTreeNode = function(tree, variablesTable, supervised, level, min_entropy, min_size_node, min_info_gain, parent, value, supervisedValue, indexes, generatePattern, colorScale) {
+  if(level < 4) console.log('\n_buildDecisionTreeNode | supervised.name, supervisedValue', supervised.name, supervisedValue);
+
   var entropy = ListOperators.getListEntropy(supervised, supervisedValue);
 
-  //if(level < 4) c.l('entropy, min_entropy', entropy, min_entropy);
+  if(level < 4) console.log('entropy, min_entropy', entropy, min_entropy);
+  
   var maxIg = 0;
   var iBestFeature = 0;
   var informationGains = 0;
@@ -1746,7 +1797,16 @@ TableOperators._buildDecisionTreeNode = function(tree, variablesTable, supervise
     });
   }
 
+  if(level < 4) console.log('informationGains:', informationGains);
+  if(level < 4) console.log('maxIg, min_info_gain:', maxIg, min_info_gain);
+  if(level < 4) console.log('supervised.length, min_size_node:', supervised.length, min_size_node);
+  if(level < 4) console.log('iBestFeature:', iBestFeature);
+  if(level < 4) console.log('best feature:', variablesTable[iBestFeature].name);
+
+
   var subDivide = entropy >= min_entropy && maxIg > min_info_gain && supervised.length >= min_size_node;
+
+  if(level < 4) console.log('subDivide:', subDivide);
 
   var id = tree.nodeList.getNewId();
   var name = (value == null ? '' : value + ':') + (subDivide ? variablesTable[iBestFeature].name : 'P=' + supervised._biggestProbability + '(' + supervised._mostRepresentedValue + ')');
@@ -1773,21 +1833,20 @@ TableOperators._buildDecisionTreeNode = function(tree, variablesTable, supervise
   node.valueFollowingProbability = supervised._P_valueFollowing;
   node.lift = node.valueFollowingProbability / tree.nodeList[0].valueFollowingProbability; //Math.log(node.valueFollowingProbability/tree.nodeList[0].valueFollowingProbability)/Math.log(2);
 
-
-  // if(level < 4) {
-  //   c.l('supervised.countElement(supervisedValue)', supervised.countElement(supervisedValue));
-  //   c.l('value', value);
-  //   c.l('name', name);
-  //   c.l('supervised.name', supervised.name);
-  //   c.l('supervised.length', supervised.length);
-  //   c.l('supervisedValue', supervisedValue);
-  //   c.l('supervised._biggestProbability, supervised._P_valueFollowing', supervised._biggestProbability, supervised._P_valueFollowing);
-  //   c.l('node.valueFollowingProbability (=supervised._P_valueFollowing):', node.valueFollowingProbability);
-  //   c.l('tree.nodeList[0].valueFollowingProbability', tree.nodeList[0].valueFollowingProbability);
-  //   c.l('node.biggestProbability (=_biggestProbability):', node.biggestProbability);
-  //   c.l('node.mostRepresentedValue:', node.mostRepresentedValue);
-  //   c.l('node.mostRepresentedValue==supervisedValue', node.mostRepresentedValue == supervisedValue);
-  // }
+  if(level < 4) {
+    console.log('supervisedValue', supervisedValue);
+    console.log('supervised.countElement(supervisedValue)', supervised.countElement(supervisedValue));
+    console.log('value', value);
+    console.log('name', name);
+    console.log('supervised.name', supervised.name);
+    console.log('supervised.length', supervised.length);
+    console.log('supervised._biggestProbability, supervised._P_valueFollowing', supervised._biggestProbability, supervised._P_valueFollowing);
+    console.log('node.valueFollowingProbability (=supervised._P_valueFollowing):', node.valueFollowingProbability);
+    console.log('tree.nodeList[0].valueFollowingProbability', tree.nodeList[0].valueFollowingProbability);
+    console.log('node.biggestProbability (=_biggestProbability):', node.biggestProbability);
+    console.log('node.mostRepresentedValue:', node.mostRepresentedValue);
+    console.log('node.mostRepresentedValue==supervisedValue', node.mostRepresentedValue == supervisedValue);
+  }
 
   node._color = colorScale(node.valueFollowingProbability); //TableOperators._decisionTreeColorScale(1 - node.valueFollowingProbability, colorScale);
 
@@ -1889,6 +1948,46 @@ TableOperators.allListsSameLength = function(table){
 };
 
 /**
+ * returns a Table with lists without repeated elements
+ * @param  {Table} table
+ * @return {NumberList}
+ * tags:
+ */
+TableOperators.getListsWithoutRepetition = function(table){
+  if(table==null) return;
+
+  var l = table.length;
+  var i;
+  var newTable = new Table();
+
+  for(i=0; i<l; i++){
+    newTable[i] = table[i].getWithoutRepetitions();
+  }
+
+  return newTable.getImproved();
+};
+
+/**
+ * returns a numberList with the number of different elements in each list
+ * @param  {Table} table
+ * @return {NumberList}
+ * tags:
+ */
+TableOperators.getNumberOfDifferentElementsOfLists = function(table){
+  if(table==null) return;
+
+  var l = table.length;
+  var i;
+  var nList = new NumberList();
+
+  for(i=0; i<l; i++){
+    nList[i] = table[i].getWithoutRepetitions().length;
+  }
+
+  return nList;
+};
+
+/**
  * builds an object with statistical information about the table  (infoObject property will be added to table and to lists)
  * @param  {Table} table
  * @return {Object}
@@ -1982,6 +2081,9 @@ TableOperators.buildInformationObject = function(table){
   }
 
   table.infoObject = infoObject;
+
+  console.log('infoObject:', infoObject);
+  console.log('infoObject.type:', infoObject.type);
 
   return infoObject;
 
