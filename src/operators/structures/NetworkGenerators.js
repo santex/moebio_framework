@@ -228,10 +228,11 @@ NetworkGenerators.createNetworkFromOccurrencesTable = function(occurrencesTable,
  * @param {StringList} names optional, names of Nodes
  * @param {Number} threshold (default: 0.3)
  * @param {Number} weightMode relations weight mode<br>0: weight<br>1:weight -  threshold<br>2:(weight -  threshold)/(1 - threshold)
+ * @param {Boolean} symmetric (default:true) if false, assumes the function is not symmetric and creates asymmetric relations (A ->> B and B ->> A)
  * @return {Network} a network with number of nodes equal to the length of the List
  * tags:
  */
-NetworkGenerators.createNetworkFromListAndFunction = function(list, weightFunction, names, threshold, weightMode) {
+NetworkGenerators.createNetworkFromListAndFunction = function(list, weightFunction, names, threshold, weightMode, symmetric) {
   if(list==null || weightFunction==null) return;
 
   var i, j;
@@ -246,15 +247,31 @@ NetworkGenerators.createNetworkFromListAndFunction = function(list, weightFuncti
     network.addNode(new Node("n_"+i, names == null ? "n_"+i : names[i]));
   }
 
-  for(i=0; i<n; i++){
-    node = network.nodeList[i];
-    for(j=i+1; j<n; j++){
-      node1 = network.nodeList[j];
-      w = weightFunction(list[i], list[j]);
-      if(w > threshold) {
-        if(weightMode>0) w -= threshold;
-        if(weightMode==2) w /= (1-threshold);
-        network.addRelation(new Relation(i + "_" + j, i + "_" + j, node, node1, w));
+  if(symmetric){
+    for(i=0; i<n; i++){
+      node = network.nodeList[i];
+      for(j=i+1; j<n; j++){
+        node1 = network.nodeList[j];
+        w = weightFunction(list[i], list[j]);
+        if(w > threshold) {
+          if(weightMode>0) w -= threshold;
+          if(weightMode==2) w /= (1-threshold);
+          network.addRelation(new Relation(i + "_" + j, i + "_" + j, node, node1, w));
+        }
+      }
+    }
+  } else {
+    for(i=0; i<n; i++){
+      node = network.nodeList[i];
+      for(j=0; j<n; j++){
+        if(i==j) continue;
+        node1 = network.nodeList[j];
+        w = weightFunction(list[i], list[j]);
+        if(w > threshold) {
+          if(weightMode>0) w -= threshold;
+          if(weightMode==2) w /= (1-threshold);
+          network.addRelation(new Relation(i + "_" + j, i + "_" + j, node, node1, w));
+        }
       }
     }
   }
