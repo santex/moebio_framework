@@ -19049,7 +19049,7 @@
       var indexesDictionary = {};
       var elementsDictionary = {};
 
-      table[indexFirstAggregationList].forEach(function(element0, i){
+      table[indexFirstAggregationList].forEach(function(element0, i){//@todo: imporve this
         element1 = table[indexSecondAggregationList][i];
         coordinate = String(element0)+"∞"+String(element1);
         if(indexesDictionary[coordinate]==null){
@@ -19387,8 +19387,8 @@
    *
    * @param {Number|String} keyIndex0 index (Number) or name (String) of variable that is also present in table1 (default:0)
    * @param {Number|String} keyIndex1 index (Number) or name (String) of variable that is also present in table0 (default:0)
-   * @param {Number} mode<br>0:inner (default)<br>1:full outer<br>2:left
-   * @return {Table} 
+   * @param {Number} mode<br>0:inner (default)<br>1:left
+   * @return {Table}
    * tags:
    */
   TableOperators.joinTwoTables = function(table0, table1, keyIndex0, keyIndex1, mode){
@@ -19399,24 +19399,81 @@
     keyIndex1 = keyIndex0==null?0:keyIndex1;
     mode = mode==null?0:mode;
 
+    //receives indexes or lists names
     if(typeof keyIndex0 == "string"){
       list0 = table0.getElement(keyIndex0);
       if(list0==null) throw Error("the table doesn't contain a list with name "+keyIndex0);
+      keyIndex0 = table0.indexOf(list0);
     } else {
       if(keyIndex0<0) keyIndex0+=table0.length;
-      list0 = table0[keyIndex0%table0.length];
+      keyIndex0 = keyIndex0%table0.length;
+      list0 = table0[keyIndex0];
     }
-
     if(typeof keyIndex1 == "string"){
       list1 = table1.getElement(keyIndex1);
       if(list1==null) throw Error("the table doesn't contain a list with name "+keyIndex1);
+      keyIndex1 = table1.indexOf(list1);
     } else {
       if(keyIndex1<0) keyIndex1+=table1.length;
-      list1 = table1[keyIndex1%table1.length];
+      keyIndex1 = keyIndex1%table1.length;
+      list1 = table1[keyIndex1];
     }
 
-    var dictionary0 = ListOperators.getBooleanDictionaryForList(list0);
+    var dictionary1 = ListOperators.getIndexesDictionary(list1);
 
+    var n0 = table0.length;
+    var n1 = table1.length;
+
+    var l0 = list0.length;
+
+    var val0;
+    var indexes1;
+
+    var i, j, k;
+    var list;
+
+    //prepares de table
+    var joinList = new List();
+    joinList.name = list0.name;
+    joinTabe[0] = joinList;
+
+    for(k=0; k<n0; k++){
+      if(k!=keyIndex0){
+        list = new List();
+        list.name = table0[k].name;
+        list._list0=true;
+        list._listOnTable = table0[k];
+        joinTabe.push(list);
+      }
+    }
+    for(k=0; k<n1; k++){
+      if(k!=keyIndex1){
+        list = new List();
+        list.name = table1[k].name;
+        list._list0=false;
+        list._listOnTable = table1[k];
+        joinTabe.push(list);
+      }
+    }
+
+    //this is where the actual join happens
+    for(i=0; i<l0; i++){
+      val0 = list0[i];
+      indexes1 = dictionary1[val0];
+      if(indexes1!=null){
+        for(j=0; j<indexes1.length; j++){
+          joinList.push(val0);
+          for(k=1; k<joinTabe.length; k++){
+             joinTabe[k].push(  joinTabe[k]._list0?joinTabe[k]._listOnTable[i]:joinTabe[k]._listOnTable[indexes1[j]] );
+          }
+        }
+      } else if(mode==1){//left join
+        joinList.push(val0);
+        for(k=1; k<joinTabe.length; k++){
+           joinTabe[k].push(  joinTabe[k]._list0?joinTabe[k]._listOnTable[i]:null );
+        }
+      }
+    }
 
     return joinTabe.getImproved();
   };
@@ -20142,16 +20199,6 @@
     return node;
   };
 
-  // TableOperators._decisionTreeColorScale = function(value, colorScale) {
-  //   if(colorScale) return colorScale(value);
-  //   return ColorScales.blueWhiteRed
-
-  //   // var rr = value < 0.5 ? Math.floor(510 * value) : 255;
-  //   // var gg = value < 0.5 ? Math.floor(510 * value) : Math.floor(510 * (1 - value));
-  //   // var bb = value < 0.5 ? 255 : Math.floor(510 * (1 - value));
-
-  //   // return 'rgb(' + rr + ',' + gg + ',' + bb + ')';
-  // };
 
   /**
    * @ignore
