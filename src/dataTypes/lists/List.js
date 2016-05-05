@@ -1338,6 +1338,9 @@ List.prototype.getWithoutElementsAtIndexes = function(indexes) {
 List.prototype.getWithoutElementAtIndex = function(index) {
   var newList;
   var l = this.length;
+
+  if(index<0) index+=l;
+
   if(this.type == 'List') {
     newList = new List();
   } else {
