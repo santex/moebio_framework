@@ -371,7 +371,7 @@ Table.prototype.getWithoutRows = function(rowsIndexes) {// @todo improve efficie
 
 /**
  * Sort Table's lists by a list
- * @param  {List|Number} listOrIndex List used to sort, or index of list in the table
+ * @param  {Number|List} listOrIndex List used to sort, or index of list in the table
  *
  * @param  {Boolean} ascending (true by default)
  * @return {Table} table (of the same type)
@@ -379,13 +379,14 @@ Table.prototype.getWithoutRows = function(rowsIndexes) {// @todo improve efficie
  */
 Table.prototype.getListsSortedByList = function(listOrIndex, ascending) { //depracated: use sortListsByList
   if(listOrIndex == null) return;
+
   var newTable = instantiateWithSameType(this);
   var sortinglist = listOrIndex.isList ? listOrIndex.clone() : this[listOrIndex];
   var l = this.length;
   var i;
 
   for(i=0; i<l; i++){
-    newTable.push(this[i].getSortedByList(sortinglist, ascending));
+    newTable[i] = this[i].getSortedByList(sortinglist, ascending);
   }
 
   return newTable;
