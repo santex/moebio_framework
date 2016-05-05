@@ -26,13 +26,14 @@ export default NumberTableOperators;
 
 /**
  * normalizes the table to its maximal value
+ * @param {NumberTable} numbertable NumberTable
  *
- * @param {NumberTable} numbertable NumberTable.
  * @param  {Number} factor optional factor
  * @return {NumberTable}
  * tags:normalization
  */
 NumberTableOperators.normalizeTableToMax = function(numbertable, factor) {
+  if(numbertable==null) return;
   factor = factor == null ? 1 : factor;
 
   var newTable = new NumberTable();
@@ -47,13 +48,15 @@ NumberTableOperators.normalizeTableToMax = function(numbertable, factor) {
 
 /**
  * returns a table with having normalized all the numberLists
+ * @param {NumberTable} numbertable NumberTable
  *
- * @param {NumberTable} numbertable NumberTable.
  * @param  {factor} factor optional factor
  * @return {NumberTable}
  * tags:normalization
  */
 NumberTableOperators.normalizeLists = function(numbertable, factor) {
+  if(numbertable==null || !numbertable[0].length) return;
+
   factor = factor == null ? 1 : factor;
 
   var newTable = new NumberTable();
@@ -75,6 +78,8 @@ NumberTableOperators.normalizeLists = function(numbertable, factor) {
  * tags:normalization
  */
 NumberTableOperators.normalizeListsToMax = function(numbertable, factorValue) {
+  if(numbertable==null || !numbertable[0].length) return;
+
   var newTable = new NumberTable();
   var numberlist;
   var l = numbertable.length;
@@ -96,6 +101,8 @@ NumberTableOperators.normalizeListsToMax = function(numbertable, factorValue) {
  * tags:normalization
  */
 NumberTableOperators.normalizeListsToSum = function(numbertable, factorValue) {
+  if(numbertable==null || !numbertable[0].length) return;
+
   var newTable = new NumberTable();
   var numberlist;
   var l = numbertable.length;
@@ -118,7 +125,7 @@ NumberTableOperators.normalizeListsToSum = function(numbertable, factorValue) {
  * tags:statistics
  */
 NumberTableOperators.averageSmootherOnLists = function(numberTable, intensity, nIterations) {
-  if(numberTable == null) return;
+  if(numbertable == null || !numbertable[0].length) return;
 
   intensity = intensity || 0.5;
   nIterations = nIterations || 1;
