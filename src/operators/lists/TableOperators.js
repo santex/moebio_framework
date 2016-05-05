@@ -2358,6 +2358,118 @@ TableOperators.getReportHtml = function(table,level) {
 
 TableOperators.getReportObject = function() {}; //TODO
 
+/**
+ * Generates a Table containing details about the lists in the input table.
+ * @param {Table} tab Table to generate report on.
+ *
+ * @param {Boolean} bMeasuresAcrossTop, defaults to true
+ * @return {Table} Descriptive Table.
+ * tags:analysis
+ */
+TableOperators.getReportTable = function(tab, bMeasuresAcrossTop){
+  var i,list,infoObject;
+  var t = new Table();
+  if(tab == null || tab.length == 0)
+    return t;
+  bMeasuresAcrossTop = bMeasuresAcrossTop == null ? true : bMeasuresAcrossTop;
+  if(tab.name == '')
+    t.name='Table Details';
+  else
+    t.name='Details for Table ' + tab.name;
+  t.push(new StringList());
+  t[0].name = 'Characteristic';
+  var aListInfo = [];
+  for(i=0;i<tab.length;i++){
+    list = new List();
+    list.name = tab[i].name;
+    aListInfo[i] = ListOperators.buildInformationObject(tab[i]);
+    if(aListInfo[i].numberDifferentElements == undefined){
+      infoObject=aListInfo[i];
+      infoObject.frequenciesTable = tab[i].getFrequenciesTable(true, true, true);
+      infoObject.numberDifferentElements = infoObject.frequenciesTable[0].length;
+      infoObject.categoricalColors = infoObject.frequenciesTable[3];
+    }
+    if(aListInfo[i].entropy == undefined){
+      aListInfo[i].entropy = ListOperators.getListEntropy(tab[i], null, aListInfo[i].frequenciesTable);
+    }
+    t.push(list);
+  }
+  t[0].push('Column');
+  t[0].push('Type');
+  t[0].push('Kind');
+  t[0].push('Length');
+  t[0].push('NumberDifferentElements');
+  t[0].push('Average');
+  t[0].push('Min');
+  t[0].push('Max');
+  t[0].push('Entropy');
+  t[0].push('Standard Deviation');
+  t[0].push('Coefficient of Variation');
+  
+  t[0].push('1st Common Element');
+  t[0].push('2nd Common Element');
+  t[0].push('3rd Common Element');
+  t[0].push('1st Common Frequency');
+  t[0].push('2nd Common Frequency');
+  t[0].push('3rd Common Frequency');
+  
+  t[0].push('Row 1');
+  t[0].push('Row 2');
+  t[0].push('Row 3');
+  t[0].push('Row n-2');
+  t[0].push('Row n-1');
+  t[0].push('Row n');
+
+  var valOrEmpty = function(val){
+    if(val == undefined) return '';
+    return val;
+  };
+
+  var maxDecimals = function(val,nDec){
+    if(val == undefined) return '';
+    return Number(NumberOperators.numberToString(val,nDec));
+  };
+
+  for(i=0;i<tab.length;i++){
+    t[i+1].push(i);
+    t[i+1].push(tab[i].type);
+    t[i+1].push(aListInfo[i].kind);
+    t[i+1].push(aListInfo[i].length);
+    t[i+1].push(aListInfo[i].numberDifferentElements);
+    t[i+1].push(maxDecimals(aListInfo[i].average,2));
+    t[i+1].push(valOrEmpty(aListInfo[i].min));
+    t[i+1].push(valOrEmpty(aListInfo[i].max));
+    t[i+1].push(maxDecimals(aListInfo[i].entropy,4));
+    if(tab[i].type == 'NumberList'){
+      var stdev = tab[i].getStandardDeviation();
+      t[i+1].push(maxDecimals(stdev,4));
+      t[i+1].push(maxDecimals(stdev/aListInfo[i].average,4));
+    }
+    else{
+      t[i+1].push('');
+      t[i+1].push('');
+    }
+    
+    t[i+1].push(valOrEmpty(aListInfo[i].frequenciesTable[0][0]));
+    t[i+1].push(valOrEmpty(aListInfo[i].frequenciesTable[0][1]));
+    t[i+1].push(valOrEmpty(aListInfo[i].frequenciesTable[0][2]));
+    t[i+1].push(valOrEmpty(aListInfo[i].frequenciesTable[1][0]));
+    t[i+1].push(valOrEmpty(aListInfo[i].frequenciesTable[1][1]));
+    t[i+1].push(valOrEmpty(aListInfo[i].frequenciesTable[1][2]));
+
+    t[i+1].push(valOrEmpty(tab[i][0]));
+    t[i+1].push(valOrEmpty(tab[i][1]));
+    t[i+1].push(valOrEmpty(tab[i][2]));
+    t[i+1].push(valOrEmpty(tab[i][aListInfo[i].length-3]));
+    t[i+1].push(valOrEmpty(tab[i][aListInfo[i].length-2]));
+    t[i+1].push(valOrEmpty(tab[i][aListInfo[i].length-1]));
+  }
+  if(bMeasuresAcrossTop){
+    t = TableOperators.transpose(t,true,true);
+    t[0].name = 'List';
+  }
+  return t;
+};
 
 
 /**
