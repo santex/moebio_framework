@@ -8970,6 +8970,8 @@
         infoObject.kind = "categories";
       } else if(list.type=="NumberList"){
         infoObject.kind = "integer numbers";
+        if(infoObject.numberDifferentElements/list.length <= 0.2 && infoObject.numberDifferentElements <= 30)
+          infoObject.kind = "categories";
       }
 
       if(infoObject.kind == "categories" || infoObject.kind == "integer numbers") infoObject.entropy = ListOperators.getListEntropy(list, null, infoObject.frequenciesTable);
