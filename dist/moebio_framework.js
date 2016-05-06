@@ -19387,7 +19387,7 @@
    *
    * @param {Number|String} keyIndex0 index (Number) or name (String) of list in table0 (called first key list) that is also represented by another list (same variable) in table1 (default:0)
    * @param {Number|String} keyIndex1 index (Number) or name (String) of list in table1 (called second key list) that is also represented by another list (same variable) in table0 (default:0)
-   * @param {Number} mode<br>0:inner (default), will keep the values that are common to key lists, and complete the table<br>1:left, will keep all the values first key list, add values from second key list that are also in first key list, and then complete the table
+   * @param {Number} mode <br>0:inner (default), will keep the values that are common to key lists, and complete the table<br>1:left, will keep all the values first key list, add values from second key list that are also in first key list, and then complete the table
    * @return {Table}
    * tags:
    */
@@ -19398,7 +19398,7 @@
     var list0, list1;
 
     keyIndex0 = keyIndex0==null?0:keyIndex0;
-    keyIndex1 = keyIndex0==null?0:keyIndex1;
+    keyIndex1 = keyIndex1==null?0:keyIndex1;
     mode = mode==null?0:mode;
 
     //receives indexes or lists names
@@ -19486,7 +19486,7 @@
    * @param {List} listOfTables list of tables to be joined
    * @param {NumberList|StringList} listOfIndexes indexes (NumberList) or names (StringList) of variables that are present in all tables
    *
-   * @param {Number} mode<br>0:inner (default)<br>1:left
+   * @param {Number} mode <br>0:inner (default )<br>1:left
    * @return {Table}
    * tags:
    */
