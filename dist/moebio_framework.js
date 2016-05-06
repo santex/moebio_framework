@@ -19385,13 +19385,15 @@
    * @param {Table} table0 first table to be joined (aka left table in SQL naming)
    * @param {Table} table1 second table to be joined (aka right table in SQL naming)
    *
-   * @param {Number|String} keyIndex0 index (Number) or name (String) of variable that is also present in table1 (default:0)
-   * @param {Number|String} keyIndex1 index (Number) or name (String) of variable that is also present in table0 (default:0)
-   * @param {Number} mode<br>0:inner (default)<br>1:left
+   * @param {Number|String} keyIndex0 index (Number) or name (String) of list in table0 (called first key list) that is also represented by another list (same variable) in table1 (default:0)
+   * @param {Number|String} keyIndex1 index (Number) or name (String) of list in table1 (called second key list) that is also represented by another list (same variable) in table0 (default:0)
+   * @param {Number} mode<br>0:inner (default), will keep the values that are common to key lists, and complete the table<br>1:left, will keep all the values first key list, add values from second key list that are also in first key list, and then complete the table
    * @return {Table}
    * tags:
    */
   TableOperators.joinTwoTables = function(table0, table1, keyIndex0, keyIndex1, mode){
+    if(table0==null || table1==null) return;
+
     var joinTabe = new Table();
     var list0, list1;
 
@@ -19476,6 +19478,35 @@
     }
 
     return joinTabe.getImproved();
+  };
+
+
+  /**
+   * creates a new table that combines rows from multiple tables that have a variable in common, this operator performs a sequence of joinTwoTables
+   * @param {List} listOfTables list of tables to be joined
+   * @param {NumberList|StringList} listOfIndexes indexes (NumberList) or names (StringList) of variables that are present in all tables
+   *
+   * @param {Number} mode<br>0:inner (default)<br>1:left
+   * @return {Table}
+   * tags:
+   */
+  TableOperators.joinMultipleTables = function(listOfTables, listOfIndexes, mode){
+    if(listOfTables==null || listOfIndexes==null) return;
+
+    if(listOfTables.length<2) throw new Error("listOfTables must have at least two tables");
+    if(listOfIndexes.length!=listOfTables.length) throw new Error("listOfIndexes must have same length as listOfTables");
+    if(listOfTables[0]==null) throw new Error("listOfTables[0] is null");
+    if(listOfTables[1]==null) throw new Error("listOfTables[1] is null");
+
+    var joinTable = TableOperators.joinTwoTables(listOfTables[0], listOfTables[1], listOfIndexes[0], listOfIndexes[1], mode);
+    var i;
+    var l = listOfTables.length;
+
+    for(i=2; i<l; i++){
+      joinTable = TableOperators.joinTwoTables(joinTable, listOfTables[i], 0, listOfIndexes[i], mode);
+    }
+
+    return joinTable;
   };
 
 
