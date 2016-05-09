@@ -96,6 +96,7 @@ TableOperators.getSubTable = function(table, x, y, width, height) {
 TableOperators.filterTable = function(table, operator, value, listToCheck, value2, bIgnoreCase){
   // input validation and defaults
   if(table==null || table.length === 0 || table[0]==null) return;
+  if(operator === undefined && value === undefined) return table;
   if(operator==null) operator='=c';
   if(operator == '=') operator = '==';
   var nLKeep = new NumberList();
@@ -1604,7 +1605,7 @@ TableOperators.splitTableByCategoricList = function(table, list) {
       childrenObject[element] = childrenTable;
       tablesList.push(childrenTable);
       table.forEach(function(list, j) {
-        childrenTable[j] = new List();
+        childrenTable[j] = instantiateWithSameType(list);
         childrenTable[j].name = list.name;
       });
       childrenTable._element = element;
