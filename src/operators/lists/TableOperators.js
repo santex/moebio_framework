@@ -1113,7 +1113,7 @@ TableOperators.filterTableByElementsInList = function(table, nList, elements, ke
  * @param {Table} dataTable with categories and values
  * @param {List} allCategories complete list of categories
  *
- * @param {Object} allCategoriesIndexesDictionary optional dictionar of indexes if pre-calculated
+ * @param {Object} allCategoriesIndexesDictionary optional dictionary of indexes if pre-calculated
  * @return {NumberList} values for each category from complete categorical list
  * tags:
  */
@@ -1143,7 +1143,7 @@ TableOperators.numberListFromDataTable = function(dataTable, allCategories, allC
  *
  * @param {Number|String} keyIndex0 index (Number) or name (String) of list in table0 (called first key list) that is also represented by another list (same variable) in table1 (default:0)
  * @param {Number|String} keyIndex1 index (Number) or name (String) of list in table1 (called second key list) that is also represented by another list (same variable) in table0 (default:0)
- * @param {Number} mode <br>0:inner (default), will keep the values that are common to key lists, and complete the table<br>1:left, will keep all the values first key list, add values from second key list that are also in first key list, and then complete the table
+ * @param {Number} mode mode of join <br>0:inner (default), will keep the values that are common to key lists, and complete the table<br>1:left, will keep all the values first key list, add values from second key list that are also in first key list, and then complete the table
  * @return {Table}
  * tags:
  */
@@ -1242,7 +1242,7 @@ TableOperators.joinTwoTables = function(table0, table1, keyIndex0, keyIndex1, mo
  * @param {List} listOfTables list of tables to be joined
  * @param {NumberList|StringList} listOfIndexes indexes (NumberList) or names (StringList) of variables that are present in all tables
  *
- * @param {Number} mode <br>0:inner (default )<br>1:left
+ * @param {Number} mode mode of join <br>0:inner (default )<br>1:left
  * @return {Table}
  * tags:
  */
