@@ -1605,7 +1605,7 @@ TableOperators.splitTableByCategoricList = function(table, list) {
       childrenObject[element] = childrenTable;
       tablesList.push(childrenTable);
       table.forEach(function(list, j) {
-        childrenTable[j] = new List();
+        childrenTable[j] = instantiateWithSameType(list);
         childrenTable[j].name = list.name;
       });
       childrenTable._element = element;
