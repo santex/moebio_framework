@@ -29,6 +29,7 @@ export default ObjectConversions;
  * tags:decoder,dani
  */
 ObjectConversions.ObjectToTable = function(object, fields) {
+  if(object==null) return null;
   // Formats:
   // 1: normal list of objects
   // 2: Object with single property, containing normal list of obejcts
