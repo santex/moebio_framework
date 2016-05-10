@@ -14391,14 +14391,16 @@
       list = table[i];
       type = list.type;
       addSeparator = i != table.length - 1;
-      for(j = 0; list[j] != null; j++) {
-        switch(type) {
-          case 'NumberList':
-            lines[j] += list[j];
-            break;
-          default:
-            lines[j] += "\"" + list[j] + "\"";
-            break;
+      for(j = 0; j < list.length; j++) {
+        if(list[j] !== null){
+          switch(type) {
+            case 'NumberList':
+              lines[j] += list[j];
+              break;
+            default:
+              lines[j] += "\"" + list[j] + "\"";
+              break;
+          }
         }
         if(addSeparator) lines[j] += separator;
       }
