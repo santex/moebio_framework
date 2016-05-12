@@ -19877,7 +19877,7 @@
    * @param {List|Number} colorsByList optionally add color to nodes from a NumberList (for scale), any List (for categorical colors) that could be part of the table or not; receives a List or an index if the list is in the providade table
    * @param {Number} correlationThreshold 0.3 by default, above that level a relation is created
    * @param  {Boolean} negativeCorrelation takes into account negative correlations for building relations
-   * @param {Number} numericMode numeric correlation mode<br>0:Pearson correlation (defualt)<br>1:cosine similarity
+   * @param {Number} numericMode numeric correlation mode<br>0:Pearson correlation (default)<br>1:cosine similarity
    * @return {Network}
    * tags:
    */
@@ -20887,6 +20887,85 @@
     }
 
     return tabResult;
+  };
+
+  /**
+   * Calculate the Uncertainty Coefficient (also called Theil's U), a measure of categorical association with value in [0,1]
+   * @param  {List} list0
+   * @param  {List} list1
+   *
+   * @param  {Number} direction 0:Symmetric (default)<br>1:row<br>2:column<br>3:vector of results [symmetric,row,column]
+   * @return {Number} coefficient in range [0,1] where 0 represents not associated at all and 1 represents perfectly associated
+   * tags: statistics
+   */
+  TableOperators.uncertaintyCoefficient = function(list0, list1, iDirection){
+    // this really belongs in ListOperators but putting it there and adding import statements causes everything to break
+    // algorithm based on https://github.com/danielmarcelino/SciencesPo/blob/master/R/TESTS.R
+    if(list0==null || list1==null) return;
+    iDirection = iDirection == null ? 0 : iDirection;
+    var i,j;
+    var t = new Table();
+    t.push(list0);
+    t.push(list1);
+    t.push(ListGenerators.createListWithSameElement(t[0].length,1));
+    var tp=TableOperators.pivotTable(t,0,1,2,2,0);
+    // drop col 0 which is labels, not counts
+    tp=tp.getSubList(1);
+    var nLRowSums = tp.getRowsSums();
+    var nLColSums = tp.getSums();
+    var total = nLColSums.getSum();
+    if(total==0) return 0;
+    // check for invalid values
+    var minVal = tp.getMin();
+    if(minVal == 0){
+      // so we can calculate logs later on we set 0 values to very small numbers
+      var zeroCorrection = 1 / (total*total);
+      for(i=0;i<tp.length;i++){
+        for(j=0;j<tp[i].length;j++){
+          if(tp[i][j] == 0)
+            tp[i][j]=zeroCorrection;
+        }
+      }
+      // now recalc sums
+      nLRowSums = tp.getRowsSums();
+      nLColSums = tp.getSums();
+      total = nLColSums.getSum();
+    }
+
+    var nLRowSumsByTotal = nLRowSums.factor(1/total);
+    var nLColSumsByTotal = nLColSums.factor(1/total);
+    var nLRowSumsLog = nLRowSumsByTotal.log();
+    var nLColSumsLog = nLColSumsByTotal.log();
+    var HY = -(nLColSumsByTotal.factor(nLColSumsLog).getSum());
+    var HX = -(nLRowSumsByTotal.factor(nLRowSumsLog).getSum());
+    tp = tp.factor(1/total);
+    var tpLog = new NumberTable();
+    for(i=0;i<tp.length;i++){
+      tpLog.push(tp[i].log());
+    }
+    // multiple tp and tpLog, NumberTable.factor doesn't do what I expect
+    for(i=0;i<tp.length;i++){
+      for(j=0;j<tp[i].length;j++){
+        tp[i][j] = tp[i][j]*tpLog[i][j];
+      }
+    }
+
+    var HXY = -(tp.getSums().getSum());
+    var UCs = 2*(HX+HY-HXY)/(HX+HY);
+    var UCrow = (HX+HY-HXY)/HX;
+    var UCcol = (HX+HY-HXY)/HY;
+    switch(iDirection){
+      case 0:
+        return UCs;
+      case 1:
+        return UCrow;
+      case 2:
+        return UCcol;
+      case 3:
+        return [UCs,UCrow,UCcol];
+      default:
+        throw new Error("TableOperators.uncertaintyCoefficient - invalid value for iDirection: "+iDirection);
+    }
   };
 
   /**
