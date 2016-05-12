@@ -2441,7 +2441,7 @@ TableOperators.getReportObject = function() {}; //TODO
  * Generates a Table containing details about the lists in the input table.
  * @param {Table} tab Table to generate report on.
  *
- * @param {Boolean} bMeasuresAcrossTop, defaults to true
+ * @param {Boolean} bMeasuresAcrossTop in output, defaults to true
  * @return {Table} Descriptive Table.
  * tags:analysis
  */
@@ -2706,6 +2706,10 @@ TableOperators.uncertaintyCoefficient = function(list0, list1, iDirection){
   var UCs = 2*(HX+HY-HXY)/(HX+HY);
   var UCrow = (HX+HY-HXY)/HX;
   var UCcol = (HX+HY-HXY)/HY;
+  // Use a reasonable precision
+  UCs  =Number(NumberOperators.numberToString(UCs,4));
+  UCrow=Number(NumberOperators.numberToString(UCrow,4));
+  UCcol=Number(NumberOperators.numberToString(UCcol,4));
   switch(iDirection){
     case 0:
       return UCs;

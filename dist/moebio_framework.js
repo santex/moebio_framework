@@ -20954,6 +20954,10 @@
     var UCs = 2*(HX+HY-HXY)/(HX+HY);
     var UCrow = (HX+HY-HXY)/HX;
     var UCcol = (HX+HY-HXY)/HY;
+    // Use a reasonable precision
+    UCs  =Number(NumberOperators.numberToString(UCs,4));
+    UCrow=Number(NumberOperators.numberToString(UCrow,4));
+    UCcol=Number(NumberOperators.numberToString(UCcol,4));
     switch(iDirection){
       case 0:
         return UCs;
