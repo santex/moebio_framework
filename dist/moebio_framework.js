@@ -10110,6 +10110,45 @@
     return newNl;
   };
 
+  /**
+   * Get any outliers in the numberList, based on Tukey's test (+- IQR * k)
+   * @param {NumberList} nl
+   *
+   * @param {Number} retMode 0: return outlier values<br>1: return indicies of outliers<br>2: return NumberTable having values in column 0 and indicies in column 1
+   * @param {Number} kValue IQR range multiple (default=1.5), larger value limits to more extreme outliers
+   * @return {NumberList}
+   * tags: statistics
+   */
+  NumberListOperators.getOutliers = function(nl, retMode, kValue){
+    if(nl==null) return null;
+    if(kValue==null) kValue=1.5;
+    if(retMode==null) retMode=0;
+
+    // based on Tukey's test using IQR
+    var nLQ=nl.getQuantiles(4);
+    var IQR = nLQ[2]-nLQ[0];
+    var lower=nLQ[0]-kValue*IQR;
+    var upper=nLQ[2]+kValue*IQR;
+
+    var nt = new NumberTable(2); // 0 are values, 1 are indices
+    nt[0].name='Values';
+    nt[1].name='Indicies';
+    for(var i=0;i<nl.length;i++){
+      if(nl[i] < lower || nl[i] > upper){
+        nt[0].push(nl[i]);
+        nt[1].push(i);
+      }
+    }
+    // sort by size of outliers
+    nt = nt.getListsSortedByList(nt[0],false);
+    if(retMode == 0)
+      return nt[0];
+    else if(retMode == 1)
+      return nt[1];
+
+    return nt;
+  };
+
   ColorListGenerators._HARDCODED_CATEGORICAL_COLORS = new ColorList(
     "#d62728", "#1f77b4", "#2ca02c", "#ff7f00", "#9467bd", "#bcbd22", "#8c564b", "#17becf", "#dd4411", "#206010", "#e377c2",
     "#2200bb", "#dd8811", "#ff220e", "#1f66a3", "#8c453a", "#2ba01c", "#dfc500", "#945600", "#ff008b", "#e37700", "#7f7f7f"
@@ -20689,7 +20728,7 @@
    * Generates a Table containing details about the lists in the input table.
    * @param {Table} tab Table to generate report on.
    *
-   * @param {Boolean} bMeasuresAcrossTop, defaults to true
+   * @param {Boolean} bMeasuresAcrossTop in output, defaults to true
    * @return {Table} Descriptive Table.
    * tags:analysis
    */

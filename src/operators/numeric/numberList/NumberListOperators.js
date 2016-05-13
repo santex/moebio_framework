@@ -700,3 +700,42 @@ NumberListOperators.simpleCompression = function(nl, compress){
   return newNl;
 };
 
+/**
+ * Get any outliers in the numberList, based on Tukey's test (+- IQR * k)
+ * @param {NumberList} nl
+ *
+ * @param {Number} retMode 0: return outlier values<br>1: return indicies of outliers<br>2: return NumberTable having values in column 0 and indicies in column 1
+ * @param {Number} kValue IQR range multiple (default=1.5), larger value limits to more extreme outliers
+ * @return {NumberList}
+ * tags: statistics
+ */
+NumberListOperators.getOutliers = function(nl, retMode, kValue){
+  if(nl==null) return null;
+  if(kValue==null) kValue=1.5;
+  if(retMode==null) retMode=0;
+
+  // based on Tukey's test using IQR
+  var nLQ=nl.getQuantiles(4);
+  var IQR = nLQ[2]-nLQ[0];
+  var lower=nLQ[0]-kValue*IQR;
+  var upper=nLQ[2]+kValue*IQR;
+
+  var nt = new NumberTable(2); // 0 are values, 1 are indices
+  nt[0].name='Values';
+  nt[1].name='Indicies';
+  for(var i=0;i<nl.length;i++){
+    if(nl[i] < lower || nl[i] > upper){
+      nt[0].push(nl[i]);
+      nt[1].push(i);
+    }
+  }
+  // sort by size of outliers
+  nt = nt.getListsSortedByList(nt[0],false);
+  if(retMode == 0)
+    return nt[0];
+  else if(retMode == 1)
+    return nt[1];
+
+  return nt;
+};
+
