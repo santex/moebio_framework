@@ -10129,16 +10129,24 @@
     var IQR = nLQ[2]-nLQ[0];
     var lower=nLQ[0]-kValue*IQR;
     var upper=nLQ[2]+kValue*IQR;
+    if(IQR == 0){
+      // doesn't seem to work very well. Use a heuristic based on stDev instead
+      var sd = nl.getStandardDeviation();
+      lower = nLQ[0] - 2*kValue*sd;
+      upper = nLQ[0] + 2*kValue*sd;
+    }
 
     var nt = new NumberTable(2); // 0 are values, 1 are indices
     nt[0].name='Values';
     nt[1].name='Indicies';
-    for(var i=0;i<nl.length;i++){
-      if(nl[i] < lower || nl[i] > upper){
-        nt[0].push(nl[i]);
-        nt[1].push(i);
+    // use _min and _max set inside getQuantiles to shortcut when there are no outliers
+    if(nLQ._min < lower || nLQ._max > upper)
+      for(var i=0;i<nl.length;i++){
+        if(nl[i] < lower || nl[i] > upper){
+          nt[0].push(nl[i]);
+          nt[1].push(i);
+        }
       }
-    }
     // sort by size of outliers
     nt = nt.getListsSortedByList(nt[0],false);
     if(retMode == 0)
