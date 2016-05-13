@@ -43,7 +43,7 @@ function NumberTable() {
     // one argument as number(n). creates a Table with n empty columns
     if ( typeof args[0] == 'number' ) {
         for (var i=0; i<args[0]; i++) {
-            array.push([]);
+            array.push(new NumberList());
         }
     }
     // one argument as array|NumberList|TableList
@@ -54,7 +54,7 @@ function NumberTable() {
   else if ( arguments.length > 1) {
     // arguments as numbers will be a NumberTable with 1 NumberList
     if( typeof args[0] == 'number' ) {
-        var arr=[];
+        var arr= new NumberList();
         for (var i=0; i<args.length; i++) {
             arr.push(args[i]);
         }
