@@ -10114,12 +10114,13 @@
    * Get any outliers in the numberList, based on Tukey's test (+- IQR * k)
    * @param {NumberList} nl
    *
-   * @param {Number} retMode 0: return outlier values<br>1: return indicies of outliers<br>2: return NumberTable having values in column 0 and indicies in column 1
+   * @param {Number} retMode 0: return outlier values(default)<br>1: return indicies of outliers<br>2: return NumberTable having values in column 0 and indicies in column 1
    * @param {Number} kValue IQR range multiple (default=1.5), larger value limits to more extreme outliers
+   * @param {Number} limit - if specified then return at most this many outliers. The most extreme cases are returned.
    * @return {NumberList}
    * tags: statistics
    */
-  NumberListOperators.getOutliers = function(nl, retMode, kValue){
+  NumberListOperators.getOutliers = function(nl, retMode, kValue, limit){
     if(nl==null) return null;
     if(kValue==null) kValue=1.5;
     if(retMode==null) retMode=0;
@@ -10136,17 +10137,32 @@
       upper = nLQ[0] + 2*kValue*sd;
     }
 
-    var nt = new NumberTable(2); // 0 are values, 1 are indices
+    var nt = new NumberTable(3); // 0 are values, 1 are indices, 2 deltas
     nt[0].name='Values';
     nt[1].name='Indicies';
     // use _min and _max set inside getQuantiles to shortcut when there are no outliers
     if(nLQ._min < lower || nLQ._max > upper)
       for(var i=0;i<nl.length;i++){
-        if(nl[i] < lower || nl[i] > upper){
+        if(nl[i] < lower){
           nt[0].push(nl[i]);
           nt[1].push(i);
+          nt[2].push(lower - nl[i]);
+        }
+        else if(nl[i] > upper){
+          nt[0].push(nl[i]);
+          nt[1].push(i);
+          nt[2].push(nl[i] - upper);
         }
       }
+    if(limit != null && nt[0].length > limit){
+      nt = nt.getListsSortedByList(nt[2],false);
+      if(limit==0)
+        nt = nt.getRows(new NumberList());
+      else 
+        nt = nt.sliceRows(0,Math.max(0,Math.ceil(limit)-1));
+    }
+    // remove delta column
+    nt = nt.getSubList(0,1);
     // sort by size of outliers
     nt = nt.getListsSortedByList(nt[0],false);
     if(retMode == 0)
