@@ -5412,7 +5412,7 @@
       // one argument as number(n). creates a Table with n empty columns
       if ( typeof args[0] == 'number' ) {
           for (var i=0; i<args[0]; i++) {
-              array.push([]);
+              array.push(new NumberList());
           }
       }
       // one argument as array|NumberList|TableList
@@ -5423,7 +5423,7 @@
     else if ( arguments.length > 1) {
       // arguments as numbers will be a NumberTable with 1 NumberList
       if( typeof args[0] == 'number' ) {
-          var arr=[];
+          var arr= new NumberList();
           for (var i=0; i<args.length; i++) {
               arr.push(args[i]);
           }
@@ -10108,6 +10108,69 @@
       }
     }
     return newNl;
+  };
+
+  /**
+   * Get any outliers in the numberList, based on Tukey's test (+- IQR * k)
+   * @param {NumberList} nl
+   *
+   * @param {Number} retMode 0: return outlier values(default)<br>1: return indicies of outliers<br>2: return NumberTable having values in column 0 and indicies in column 1
+   * @param {Number} kValue IQR range multiple (default=1.5), larger value limits to more extreme outliers
+   * @param {Number} limit - if specified then return at most this many outliers. The most extreme cases are returned.
+   * @return {NumberList}
+   * tags: statistics
+   */
+  NumberListOperators.getOutliers = function(nl, retMode, kValue, limit){
+    if(nl==null) return null;
+    if(kValue==null) kValue=1.5;
+    if(retMode==null) retMode=0;
+
+    // based on Tukey's test using IQR
+    var nLQ=nl.getQuantiles(4);
+    var IQR = nLQ[2]-nLQ[0];
+    var lower=nLQ[0]-kValue*IQR;
+    var upper=nLQ[2]+kValue*IQR;
+    if(IQR == 0){
+      // doesn't seem to work very well. Use a heuristic based on stDev instead
+      var sd = nl.getStandardDeviation();
+      lower = nLQ[0] - 2*kValue*sd;
+      upper = nLQ[0] + 2*kValue*sd;
+    }
+
+    var nt = new NumberTable(3); // 0 are values, 1 are indices, 2 deltas
+    nt[0].name='Values';
+    nt[1].name='Indicies';
+    // use _min and _max set inside getQuantiles to shortcut when there are no outliers
+    if(nLQ._min < lower || nLQ._max > upper)
+      for(var i=0;i<nl.length;i++){
+        if(nl[i] < lower){
+          nt[0].push(nl[i]);
+          nt[1].push(i);
+          nt[2].push(lower - nl[i]);
+        }
+        else if(nl[i] > upper){
+          nt[0].push(nl[i]);
+          nt[1].push(i);
+          nt[2].push(nl[i] - upper);
+        }
+      }
+    if(limit != null && nt[0].length > limit){
+      nt = nt.getListsSortedByList(nt[2],false);
+      if(limit==0)
+        nt = nt.getRows(new NumberList());
+      else 
+        nt = nt.sliceRows(0,Math.max(0,Math.ceil(limit)-1));
+    }
+    // remove delta column
+    nt = nt.getSubList(0,1);
+    // sort by size of outliers
+    nt = nt.getListsSortedByList(nt[0],false);
+    if(retMode == 0)
+      return nt[0];
+    else if(retMode == 1)
+      return nt[1];
+
+    return nt;
   };
 
   ColorListGenerators._HARDCODED_CATEGORICAL_COLORS = new ColorList(
@@ -20689,7 +20752,7 @@
    * Generates a Table containing details about the lists in the input table.
    * @param {Table} tab Table to generate report on.
    *
-   * @param {Boolean} bMeasuresAcrossTop, defaults to true
+   * @param {Boolean} bMeasuresAcrossTop in output, defaults to true
    * @return {Table} Descriptive Table.
    * tags:analysis
    */
