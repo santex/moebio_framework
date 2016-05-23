@@ -2646,63 +2646,73 @@ TableOperators.concatRows = function() {
  * @param  {List} list0
  * @param  {List} list1
  *
- * @param  {Number} direction 0:Symmetric (default)<br>1:row<br>2:column<br>3:vector of results [symmetric,row,column]
+ * @param  {Number} direction 0:Symmetric (default)<br>1: list1 to list2<br>2:list2 to list1<br>3:vector of results [symmetric,list1 to list2,list2 to list1]
  * @return {Number} coefficient in range [0,1] where 0 represents not associated at all and 1 represents perfectly associated
  * tags: statistics
  */
 TableOperators.uncertaintyCoefficient = function(list0, list1, iDirection){
   // this really belongs in ListOperators but putting it there and adding import statements causes everything to break
   // algorithm based on https://github.com/danielmarcelino/SciencesPo/blob/master/R/TESTS.R
-  if(list0==null || list1==null) return;
+  if(list0==null || list1==null || list0.length != list1.length) return;
+  if(list0.length == 0) return 0;
   iDirection = iDirection == null ? 0 : iDirection;
   var i,j;
-  var t = new Table();
-  t.push(list0);
-  t.push(list1);
-  t.push(ListGenerators.createListWithSameElement(t[0].length,1));
-  var tp=TableOperators.pivotTable(t,0,1,2,2,0);
-  // drop col 0 which is labels, not counts
-  tp=tp.getSubList(1);
-  var nLRowSums = tp.getRowsSums();
-  var nLColSums = tp.getSums();
-  var total = nLColSums.getSum();
-  if(total==0) return 0;
-  // check for invalid values
-  var minVal = tp.getMin();
-  if(minVal == 0){
-    // so we can calculate logs later on we set 0 values to very small numbers
-    var zeroCorrection = 1 / (total*total);
-    for(i=0;i<tp.length;i++){
-      for(j=0;j<tp[i].length;j++){
-        if(tp[i][j] == 0)
-          tp[i][j]=zeroCorrection;
-      }
+  var len=list0.length;
+  // pivotTable was used at first but far too slow for lots of combinations.
+  var v0,v1,v01,val,valinner;
+  var o0 = {};
+  var o1 = {};
+  for(i=0;i<len;i++){
+    v0 = o0[list0[i]];
+    if(v0 == null){
+      v0 = o0[list0[i]] = {count:0, vals:{}};
     }
-    // now recalc sums
-    nLRowSums = tp.getRowsSums();
-    nLColSums = tp.getSums();
-    total = nLColSums.getSum();
-  }
+    v0.count++;
+    v01 = v0.vals[list1[i]];
+    if(v01 == null){
+      v01 = v0.vals[list1[i]] = {count:0};
+    }
+    v01.count++;
 
-  var nLRowSumsByTotal = nLRowSums.factor(1/total);
-  var nLColSumsByTotal = nLColSums.factor(1/total);
-  var nLRowSumsLog = nLRowSumsByTotal.log();
-  var nLColSumsLog = nLColSumsByTotal.log();
+    v1 = o1[list1[i]];
+    if(v1 == null){
+      v1 = o1[list1[i]] = {count:0, vals:{}};
+    }
+    v1.count++;
+    v01 = v1.vals[list0[i]];
+    if(v01 == null){
+      v01 = v1.vals[list0[i]] = {count:0};
+    }
+    v01.count++;
+  }
+  var total = list0.length;
+  var nLColSumsByTotal = new NumberList();
+  var nLColSumsLog = new NumberList();
+  var hxySum = 0;
+  for(var key in o0){
+    if(!o0.hasOwnProperty(key)) continue;
+    val = o0[key].count/total;
+    nLColSumsByTotal.push(val);
+    nLColSumsLog.push(Math.log(val));
+    for(var keyinner in o0[key].vals){
+      if(!o0[key].vals.hasOwnProperty(keyinner)) continue;
+      valinner = o0[key].vals[keyinner].count/total;
+      hxySum += valinner*Math.log(valinner);
+    };
+  };
+  var nLRowSumsByTotal = new NumberList();
+  var nLRowSumsLog = new NumberList();
+  for(var key in o1){
+    if(!o1.hasOwnProperty(key)) continue;
+    val = o1[key].count/total;
+    nLRowSumsByTotal.push(val);
+    nLRowSumsLog.push(Math.log(val));
+  };
+
   var HY = -(nLColSumsByTotal.factor(nLColSumsLog).getSum());
   var HX = -(nLRowSumsByTotal.factor(nLRowSumsLog).getSum());
-  tp = tp.factor(1/total);
-  var tpLog = new NumberTable();
-  for(i=0;i<tp.length;i++){
-    tpLog.push(tp[i].log());
-  }
-  // multiple tp and tpLog, NumberTable.factor doesn't do what I expect
-  for(i=0;i<tp.length;i++){
-    for(j=0;j<tp[i].length;j++){
-      tp[i][j] = tp[i][j]*tpLog[i][j];
-    }
-  }
-
-  var HXY = -(tp.getSums().getSum());
+  
+  var HXY = -(hxySum);
   var UCs = 2*(HX+HY-HXY)/(HX+HY);
   var UCrow = (HX+HY-HXY)/HX;
   var UCcol = (HX+HY-HXY)/HY;
@@ -2723,4 +2733,3 @@ TableOperators.uncertaintyCoefficient = function(list0, list1, iDirection){
       throw new Error("TableOperators.uncertaintyCoefficient - invalid value for iDirection: "+iDirection);
   }
 };
-

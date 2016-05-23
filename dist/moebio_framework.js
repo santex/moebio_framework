@@ -12836,6 +12836,7 @@
       level:"0",
       write:"true",
       inherits:null,
+      comments:"javascript null object",
       color:"#ffffff"
     },
     {
@@ -12846,6 +12847,7 @@
       write:"true",
       inherits:null,
       to:"String",
+      comments:"javascript Object",
       color:"#C0BFBF"
     },
     {
@@ -12854,6 +12856,7 @@
       category:"object",
       level:"0",
       inherits:null,
+      comments:"javascript Function",
       color:"#C0BFBF"
     },  {
       type:"Boolean",
@@ -12863,6 +12866,7 @@
       write:"true",
       inherits:null,
       to:"Number",
+      comments:"javascript Boolean object (true/false)",
       color:"#4F60AB"
     },
     {
@@ -12873,6 +12877,7 @@
       write:"true",
       inherits:null,
       to:"String",
+      comments:"javascript number object",
       color:"#5DA1D8"
     },
     {
@@ -12881,9 +12886,10 @@
       category:"numeric",
       level:"0.5",
       write:"true",
-      inherits:null,
+      inherits:"Point",
       to:"Point",
       contains:"Number",
+      comments:"an Interval has x and y properties",
       color:"#386080"
     },
     {
@@ -12894,6 +12900,7 @@
       inherits:null,
       to:"List",
       contains:"Object,Null",
+      comments:"javascript Array object",
       color:"#80807F"
     },
     {
@@ -12924,6 +12931,7 @@
       inherits:"List",
       to:"NumberList",
       contains:"Boolean",
+      comments:"List of Booleans",
       color:"#3A4780"
     },
     {
@@ -12935,6 +12943,7 @@
       inherits:"List",
       to:"StringList",
       contains:"Number",
+      comments:"List of Numbers",
       color:"#386080"
     },
     {
@@ -12946,6 +12955,7 @@
       inherits:"List",
       to:"StringList",
       contains:"Interval",
+      comments:"List of Intervals",
       color:"#386080"
     },
     {
@@ -12957,6 +12967,7 @@
       inherits:"Table",
       to:"Network",
       contains:"NumberList",
+      comments:"Table with NumberLists",
       color:"#386080"
     },
     {
@@ -12966,6 +12977,7 @@
       level:"0",
       write:"true",
       inherits:null,
+      comments:"javascript String object",
       color:"#8BC63F"
     },
     {
@@ -12976,6 +12988,7 @@
       write:"true",
       inherits:"List",
       contains:"String",
+      comments:"List of strings",
       color:"#5A8039"
     },
     {
@@ -12985,6 +12998,7 @@
       level:"2",
       inherits:"Table",
       contains:"StringList",
+      comments:"Table with StringLists",
       color:"#5A8039"
     },
     {
@@ -12995,6 +13009,7 @@
       write:"true",
       inherits:null,
       to:"Number,String",
+      comments:"javascript Date object",
       color:"#7AC8A3"
     },
     {
@@ -13005,6 +13020,7 @@
       inherits:null,
       to:"Interval",
       contains:"Date",
+      comments:"a DateInterval has an date0 and date1 properties",
       color:"#218052"
     },
     {
@@ -13015,6 +13031,7 @@
       inherits:"List",
       to:"NumberList,StringList",
       contains:"Date",
+      comments:"List of Dates",
       color:"#218052"
     },
     {
@@ -13026,6 +13043,7 @@
       inherits:null,
       to:"Interval",
       contains:"Number",
+      comments:"a Point has x and y properties",
       color:"#9D59A4"
     },
     {
@@ -13036,6 +13054,7 @@
       inherits:null,
       to:"Polygon",
       contains:"Number",
+      comments:"a Rectangle has x, y, width and height properties",
       color:"#9D59A4"
     },
     {
@@ -13057,6 +13076,7 @@
       inherits:null,
       to:"MultiPolygon",
       contains:"Rectangle",
+      comments:"A RectangleList is a List of Rectangles",
       color:"#76297F"
     },
     {
@@ -13078,6 +13098,7 @@
       inherits:"Point",
       to:"NumberList",
       contains:"Number",
+      comments:"a Point has x, y and z properties",
       color:"#9D59A4"
     },
     {
@@ -13088,6 +13109,7 @@
       inherits:"List",
       to:"NumberTable",
       contains:"Point3D",
+      comments:"A Polygon3D is a List of Point3D",
       color:"#76297F"
     },
     {
@@ -13097,6 +13119,7 @@
       level:"2.5",
       inherits:"Table",
       contains:"Polygon3D",
+      comments:"A MultiPolygon3D is a List of Polygon3D",
       color:"#76297F"
     },
     {
@@ -13106,7 +13129,7 @@
       level:"0",
       inherits:null,
       to:"String",
-      comments:"a Color is just a string that can be interpreted as color",
+      comments:"a Color is a string that can be interpreted as color",
       color:"#EE4488"
     },
     {
@@ -13116,6 +13139,7 @@
       level:"0",
       write:"true",
       inherits:"Function",
+      comments:"a ColorScale is a Function that receives values between 0 and 1 and returns a Color",
       color:"#802046"
     },
     {
@@ -13127,6 +13151,7 @@
       inherits:"List",
       to:"StringList",
       contains:"Color",
+      comments:"A ColorList is a List of Colors",
       color:"#802046"
     },
     {
@@ -13135,6 +13160,7 @@
       category:"graphic",
       level:"0",
       inherits:null,
+      comments:"javascript Image object",
       color:"#802046"
     },
     {
@@ -13144,6 +13170,7 @@
       level:"1",
       inherits:"List",
       contains:"Image",
+      comments:"An ImageList is a List of Images",
       color:"#802046"
     },
     {
@@ -13152,6 +13179,7 @@
       category:"structures/elements",
       level:"0",
       inherits:null,
+      comments:"A Node is an Object with properties name, id, toNodeList, fromNodeList among others",
       color:"#FAA542"
     },
     {
@@ -13161,6 +13189,7 @@
       level:"0.5",
       inherits:"Node",
       contains:"Node",
+      comments:"A Relation contains node0 and node1 properties",
       color:"#FAA542"
     },
     {
@@ -13170,6 +13199,7 @@
       level:"1",
       inherits:"List",
       contains:"Node",
+      comments:"A NodeList is a List of Nodes",
       color:"#805522"
     },
     {
@@ -13179,6 +13209,7 @@
       level:"1.5",
       inherits:"NodeList",
       contains:"Relation",
+      comments:"A RelationList is a List of Relation",
       color:"#805522"
     },
     {
@@ -13189,6 +13220,7 @@
       inherits:null,
       to:"Table",
       contains:"NodeList,RelationList",
+      comments:"A Network contains a NodeList and a RelationList",
       color:"#805522"
     },
     {
@@ -13199,6 +13231,7 @@
       inherits:"Network",
       to:"Table",
       contains:"NodeList,RelationList",
+      comments:"A Tree is a Network whose Nodes contain only one father, except for one Node that has no father",
       color:"#805522"
     }
   ];
@@ -19425,7 +19458,7 @@
    * @param {Table} dataTable with categories and values
    * @param {List} allCategories complete list of categories
    *
-   * @param {Object} allCategoriesIndexesDictionary optional dictionar of indexes if pre-calculated
+   * @param {Object} allCategoriesIndexesDictionary optional dictionary of indexes if pre-calculated
    * @return {NumberList} values for each category from complete categorical list
    * tags:
    */
@@ -19455,7 +19488,7 @@
    *
    * @param {Number|String} keyIndex0 index (Number) or name (String) of list in table0 (called first key list) that is also represented by another list (same variable) in table1 (default:0)
    * @param {Number|String} keyIndex1 index (Number) or name (String) of list in table1 (called second key list) that is also represented by another list (same variable) in table0 (default:0)
-   * @param {Number} mode <br>0:inner (default), will keep the values that are common to key lists, and complete the table<br>1:left, will keep all the values first key list, add values from second key list that are also in first key list, and then complete the table
+   * @param {Number} mode mode of join <br>0:inner (default), will keep the values that are common to key lists, and complete the table<br>1:left, will keep all the values first key list, add values from second key list that are also in first key list, and then complete the table
    * @return {Table}
    * tags:
    */
@@ -19554,7 +19587,7 @@
    * @param {List} listOfTables list of tables to be joined
    * @param {NumberList|StringList} listOfIndexes indexes (NumberList) or names (StringList) of variables that are present in all tables
    *
-   * @param {Number} mode <br>0:inner (default )<br>1:left
+   * @param {Number} mode mode of join <br>0:inner (default )<br>1:left
    * @return {Table}
    * tags:
    */
@@ -20957,63 +20990,73 @@
    * @param  {List} list0
    * @param  {List} list1
    *
-   * @param  {Number} direction 0:Symmetric (default)<br>1:row<br>2:column<br>3:vector of results [symmetric,row,column]
+   * @param  {Number} direction 0:Symmetric (default)<br>1: list1 to list2<br>2:list2 to list1<br>3:vector of results [symmetric,list1 to list2,list2 to list1]
    * @return {Number} coefficient in range [0,1] where 0 represents not associated at all and 1 represents perfectly associated
    * tags: statistics
    */
   TableOperators.uncertaintyCoefficient = function(list0, list1, iDirection){
     // this really belongs in ListOperators but putting it there and adding import statements causes everything to break
     // algorithm based on https://github.com/danielmarcelino/SciencesPo/blob/master/R/TESTS.R
-    if(list0==null || list1==null) return;
+    if(list0==null || list1==null || list0.length != list1.length) return;
+    if(list0.length == 0) return 0;
     iDirection = iDirection == null ? 0 : iDirection;
     var i,j;
-    var t = new Table();
-    t.push(list0);
-    t.push(list1);
-    t.push(ListGenerators.createListWithSameElement(t[0].length,1));
-    var tp=TableOperators.pivotTable(t,0,1,2,2,0);
-    // drop col 0 which is labels, not counts
-    tp=tp.getSubList(1);
-    var nLRowSums = tp.getRowsSums();
-    var nLColSums = tp.getSums();
-    var total = nLColSums.getSum();
-    if(total==0) return 0;
-    // check for invalid values
-    var minVal = tp.getMin();
-    if(minVal == 0){
-      // so we can calculate logs later on we set 0 values to very small numbers
-      var zeroCorrection = 1 / (total*total);
-      for(i=0;i<tp.length;i++){
-        for(j=0;j<tp[i].length;j++){
-          if(tp[i][j] == 0)
-            tp[i][j]=zeroCorrection;
-        }
+    var len=list0.length;
+    // pivotTable was used at first but far too slow for lots of combinations.
+    var v0,v1,v01,val,valinner;
+    var o0 = {};
+    var o1 = {};
+    for(i=0;i<len;i++){
+      v0 = o0[list0[i]];
+      if(v0 == null){
+        v0 = o0[list0[i]] = {count:0, vals:{}};
       }
-      // now recalc sums
-      nLRowSums = tp.getRowsSums();
-      nLColSums = tp.getSums();
-      total = nLColSums.getSum();
-    }
+      v0.count++;
+      v01 = v0.vals[list1[i]];
+      if(v01 == null){
+        v01 = v0.vals[list1[i]] = {count:0};
+      }
+      v01.count++;
 
-    var nLRowSumsByTotal = nLRowSums.factor(1/total);
-    var nLColSumsByTotal = nLColSums.factor(1/total);
-    var nLRowSumsLog = nLRowSumsByTotal.log();
-    var nLColSumsLog = nLColSumsByTotal.log();
+      v1 = o1[list1[i]];
+      if(v1 == null){
+        v1 = o1[list1[i]] = {count:0, vals:{}};
+      }
+      v1.count++;
+      v01 = v1.vals[list0[i]];
+      if(v01 == null){
+        v01 = v1.vals[list0[i]] = {count:0};
+      }
+      v01.count++;
+    }
+    var total = list0.length;
+    var nLColSumsByTotal = new NumberList();
+    var nLColSumsLog = new NumberList();
+    var hxySum = 0;
+    for(var key in o0){
+      if(!o0.hasOwnProperty(key)) continue;
+      val = o0[key].count/total;
+      nLColSumsByTotal.push(val);
+      nLColSumsLog.push(Math.log(val));
+      for(var keyinner in o0[key].vals){
+        if(!o0[key].vals.hasOwnProperty(keyinner)) continue;
+        valinner = o0[key].vals[keyinner].count/total;
+        hxySum += valinner*Math.log(valinner);
+      };
+    };
+    var nLRowSumsByTotal = new NumberList();
+    var nLRowSumsLog = new NumberList();
+    for(var key in o1){
+      if(!o1.hasOwnProperty(key)) continue;
+      val = o1[key].count/total;
+      nLRowSumsByTotal.push(val);
+      nLRowSumsLog.push(Math.log(val));
+    };
+
     var HY = -(nLColSumsByTotal.factor(nLColSumsLog).getSum());
     var HX = -(nLRowSumsByTotal.factor(nLRowSumsLog).getSum());
-    tp = tp.factor(1/total);
-    var tpLog = new NumberTable();
-    for(i=0;i<tp.length;i++){
-      tpLog.push(tp[i].log());
-    }
-    // multiple tp and tpLog, NumberTable.factor doesn't do what I expect
-    for(i=0;i<tp.length;i++){
-      for(j=0;j<tp[i].length;j++){
-        tp[i][j] = tp[i][j]*tpLog[i][j];
-      }
-    }
-
-    var HXY = -(tp.getSums().getSum());
+    
+    var HXY = -(hxySum);
     var UCs = 2*(HX+HY-HXY)/(HX+HY);
     var UCrow = (HX+HY-HXY)/HX;
     var UCcol = (HX+HY-HXY)/HY;
@@ -22244,6 +22287,7 @@
    * tags:decoder,dani
    */
   ObjectConversions.ObjectToTable = function(object, fields) {
+    if(object==null) return null;
     // Formats:
     // 1: normal list of objects
     // 2: Object with single property, containing normal list of obejcts
