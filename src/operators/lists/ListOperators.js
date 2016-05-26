@@ -489,7 +489,7 @@ ListOperators.getIndexesTable = function(list){
  * tags:
  */
 ListOperators.buildDictionaryObjectForDictionary = function(dictionary){
-  if(dictionary==null || dictionary.length<2) return;
+  if(dictionary==null || dictionary.length<2 || dictionary[0] == null || dictionary[1] == null) return;
 
   var dictionaryObject = {};
 
