@@ -7862,7 +7862,7 @@
    * tags:
    */
   ListOperators.buildDictionaryObjectForDictionary = function(dictionary){
-    if(dictionary==null || dictionary.length<2) return;
+    if(dictionary==null || dictionary.length<2 || dictionary[0] == null || dictionary[1] == null) return;
 
     var dictionaryObject = {};
 
@@ -20990,7 +20990,7 @@
    * @param  {List} list0
    * @param  {List} list1
    *
-   * @param  {Number} direction 0:Symmetric (default)<br>1: list1 to list2<br>2:list2 to list1<br>3:vector of results [symmetric,list1 to list2,list2 to list1]
+   * @param  {Number} direction 0:Symmetric (default)<br>1:list1 to list2<br>2:list2 to list1<br>3:NumberList of results [symmetric,list1 to list2,list2 to list1]
    * @return {Number} coefficient in range [0,1] where 0 represents not associated at all and 1 represents perfectly associated
    * tags: statistics
    */
@@ -21071,8 +21071,13 @@
         return UCrow;
       case 2:
         return UCcol;
-      case 3:
-        return [UCs,UCrow,UCcol];
+      case 3:{
+        var nLret = new NumberList();
+        nLret.push(UCs);
+        nLret.push(UCrow);
+        nLret.push(UCcol);
+        return nLret;
+      }
       default:
         throw new Error("TableOperators.uncertaintyCoefficient - invalid value for iDirection: "+iDirection);
     }
