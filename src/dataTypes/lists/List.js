@@ -58,6 +58,8 @@ export default List;
  * @return {List} New List.
  */
 List.fromArray = function(array) {
+  if (array == null) return;
+  
   //TODO: clear some of these method declarations
   array.type = "List";
   array.name = array.name || "";
@@ -213,7 +215,7 @@ List.prototype.getImproved = function() {
   var i;
 
   if(newList == null ||  newList == "") {//do not change newList == null
-    
+
     for(i = 0; i<l; i++) {
       if(this[i]==null) containsNulls = true;
       if(this[i]==null || !(this[i].isList)) {
@@ -278,7 +280,7 @@ List.prototype.getElement = function(indexOrName) {//@todo: make this efficient
     indexOrName = indexOrName == null ? 0 : indexOrName;
     if(indexOrName<0) indexOrName += this.length;
   }
-  
+
   return this[indexOrName];
 };
 
@@ -609,7 +611,7 @@ List.prototype.getSimplified = function(nCategories, othersElement, nLWeights) {
   for(i=0; i<l; i++){
     newList.push(frequencyIndexesDictionary[this[i]]<nCategories-1?this[i]:othersElement);
   }
-  
+
   return newList;
 };
 
@@ -864,7 +866,7 @@ List.prototype.getPropertyValues = function(propertyName, valueIfNull) {
 
 List.prototype.isSorted = function(ascending){
   ascending = ascending==null?true:Boolean(ascending);
-  
+
   var l = this.length;
   var i;
   if(ascending){
