@@ -243,5 +243,6 @@ ObjectConversions.conversor = function(object, toType) {
  * tags:conversion
  */
 ObjectConversions.ArrayToList = function(array){
+  if (array == null) return;
   return List.fromArray(array).getImproved();
 };
