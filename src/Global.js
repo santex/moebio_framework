@@ -1,5 +1,5 @@
 import { version } from "src/Version";
-import MD5 from "src/tools/utils/strings/MD5";
+//import MD5 from "src/tools/utils/strings/MD5";
 import NetworkEncodings from "src/operators/structures/NetworkEncodings";
 import { typeOf } from "src/tools/utils/code/ClassUtils";
 
@@ -437,9 +437,9 @@ window.addEventListener('load', function(){
 /**
  * @todo write docs
  */
-export function setStructureLocalStorageWithSeed(object, seed, comments){
-  setStructureLocalStorage(object, MD5.hex_md5(seed), comments);
-}
+// export function setStructureLocalStorageWithSeed(object, seed, comments){
+//   setStructureLocalStorage(object, MD5.hex_md5(seed), comments);
+// }
 
 /**
  * Puts an object into HTML5 local storage. Note that when you 
@@ -490,9 +490,9 @@ export function setStructureLocalStorage(object, id, comments){
 /**
  * @todo write docs
  */
-export function getStructureLocalStorageFromSeed(seed, returnStorageObject){
-  return getStructureLocalStorage(MD5.hex_md5(seed), returnStorageObject);
-}
+// export function getStructureLocalStorageFromSeed(seed, returnStorageObject){
+//   return getStructureLocalStorage(MD5.hex_md5(seed), returnStorageObject);
+// }
 
 /**
  * Gets a item previously stored in localstorage. @see setStructureLocalStorage
