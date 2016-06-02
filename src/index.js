@@ -180,10 +180,10 @@ export { Loader, LoadEvent, TextBox, MultiLoader };
 import ConsoleTools from "src/tools/utils/strings/ConsoleTools";
 import FastHtml from "src/tools/utils/strings/FastHtml";
 import JSONUtils from "src/tools/utils/strings/JSONUtils";
-import MD5 from "src/tools/utils/strings/MD5";
+//import MD5 from "src/tools/utils/strings/MD5";
 import StringUtils from "src/tools/utils/strings/StringUtils";
 import Navigator from "src/tools/utils/system/Navigator";
-export { ConsoleTools, FastHtml, JSONUtils, MD5, StringUtils, Navigator };
+export { ConsoleTools, FastHtml, JSONUtils, StringUtils, Navigator };//, MD5, StringUtils, Navigator };
 
 import { typeOf, instantiate, isDataStructure, getShortNameFromDataModelType, getColorFromDataModelType, getLightColorFromDataModelType, getTextFromObject, instantiateWithSameType, isArray,
   evalJavaScriptFunction, argumentsToArray } from "src/tools/utils/code/ClassUtils";
@@ -240,12 +240,12 @@ export { NetworkDraw, TreeDraw };
 // Functions
 import {
   setStructureLocalStorage,
-  getStructureLocalStorageFromSeed,
+  //getStructureLocalStorageFromSeed,
   getStructureLocalStorage
 } from "src/Global";
 export {
   setStructureLocalStorage,
-  getStructureLocalStorageFromSeed,
+  //getStructureLocalStorageFromSeed,
   getStructureLocalStorage
 };
 // Variables

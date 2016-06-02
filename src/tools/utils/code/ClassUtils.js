@@ -132,11 +132,11 @@ export function _createDataModelsInfoDictionaries(){
     type = dataModelsInfo[i].type;
     _shortFromTypeDictionary[type] = dataModelsInfo[i].short;
     _colorFromTypeDictionary[type] = ColorOperators.interpolateColors(dataModelsInfo[i].color, 'black', 0.2);
-    _lightColorFromTypeDictionary[type] = ColorOperators.interpolateColors(dataModelsInfo[i].color, 'white', 0.35);
+    _lightColorFromTypeDictionary[type] = ColorOperators.interpolateColors(dataModelsInfo[i].color, 'white', 0.55);
     type = type.toLowerCase();
     _shortFromTypeDictionary[type] = dataModelsInfo[i].short;
     _colorFromTypeDictionary[type] = ColorOperators.interpolateColors(dataModelsInfo[i].color, 'black', 0.2);
-    _lightColorFromTypeDictionary[type] = ColorOperators.interpolateColors(dataModelsInfo[i].color, 'white', 0.35);
+    _lightColorFromTypeDictionary[type] = ColorOperators.interpolateColors(dataModelsInfo[i].color, 'white', 0.55);
   }
 }
 
