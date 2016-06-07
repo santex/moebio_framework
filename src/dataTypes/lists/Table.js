@@ -308,7 +308,8 @@ Table.prototype.sliceRows = function(startIndex, endIndex) {
   newTable.name = this.name;
   for(i = 0; i<l; i++) {
     newList = this[i].getSubList(startIndex, endIndex);
-    newList.name = this[i].name;
+    if(newList)
+      newList.name = this[i].name;
     newTable.push(newList);
   }
   return newTable.getImproved();
