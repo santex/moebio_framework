@@ -13623,11 +13623,11 @@
       type = dataModelsInfo[i].type;
       _shortFromTypeDictionary[type] = dataModelsInfo[i].short;
       _colorFromTypeDictionary[type] = ColorOperators.interpolateColors(dataModelsInfo[i].color, 'black', 0.2);
-      _lightColorFromTypeDictionary[type] = ColorOperators.interpolateColors(dataModelsInfo[i].color, 'white', 0.55);
+      _lightColorFromTypeDictionary[type] = ColorOperators.interpolateColors(dataModelsInfo[i].color, 'white', 0.6);
       type = type.toLowerCase();
       _shortFromTypeDictionary[type] = dataModelsInfo[i].short;
       _colorFromTypeDictionary[type] = ColorOperators.interpolateColors(dataModelsInfo[i].color, 'black', 0.2);
-      _lightColorFromTypeDictionary[type] = ColorOperators.interpolateColors(dataModelsInfo[i].color, 'white', 0.55);
+      _lightColorFromTypeDictionary[type] = ColorOperators.interpolateColors(dataModelsInfo[i].color, 'white', 0.6);
     }
   }
 
@@ -19594,7 +19594,7 @@
 
 
   /**
-   * builds a network from columns or rows, taking into account similarity in numbers (correlation) and other elements (Jaccard)
+   * builds a network from columns or rows, taking into account similarity in numbers (correlation) and other elements (Jaccard) (adds i property to nodes, position of list or row)
    * @param  {Table} table
    *
    * @param  {Boolean} nodesAreRows if true (default value) each node corresponds to a row in the table, and rows are compared, if false lists are compared ([!] working only for NumberTable, using pearson correlation)
@@ -19710,7 +19710,8 @@
         id = "_"+i;
         name = names==null?id:names[i];
         node = new Node(id, name);
-
+        node.i = i;
+        
         node.row = table.getRow(i);
         node.numbers = new NumberList();
         node.categories = new List();
