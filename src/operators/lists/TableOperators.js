@@ -1621,7 +1621,7 @@ TableOperators.splitTableByCategoricList = function(table, list) {
 
 
 /**
- * builds a network from columns or rows, taking into account similarity in numbers (correlation) and other elements (Jaccard)
+ * builds a network from columns or rows, taking into account similarity in numbers (correlation) and other elements (Jaccard) (adds i property to nodes, position of list or row)
  * @param  {Table} table
  *
  * @param  {Boolean} nodesAreRows if true (default value) each node corresponds to a row in the table, and rows are compared, if false lists are compared ([!] working only for NumberTable, using pearson correlation)
@@ -1737,7 +1737,8 @@ TableOperators.buildCorrelationsNetwork = function(table, nodesAreRows, names, c
       id = "_"+i;
       name = names==null?id:names[i];
       node = new Node(id, name);
-
+      node.i = i;
+      
       node.row = table.getRow(i);
       node.numbers = new NumberList();
       node.categories = new List();
