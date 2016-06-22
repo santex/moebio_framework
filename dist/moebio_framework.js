@@ -9046,12 +9046,10 @@
   function NumberListOperators() {}
   /**
    * Returns dot product between two numberLists
-   *
-   * @param  {NumberList1} numberList NumberList of the same length
-   * as numberList2.
-   * @param  {NumberList2} numberList NumberList of the same length
-   * as numberList1.
+   * @param  {NumberList1} numberList1 NumberList of the same length as numberList2.
+   * @param  {NumberList2} numberList2 NumberList of the same length as numberList1.
    * @return {Number} Dot product between two lists.
+   * tags:statistics
    */
   NumberListOperators.dotProduct = function(numberList1, numberList2) {
     var sum = 0;
@@ -9066,7 +9064,6 @@
   /**
    * Returns linear regression between two numberLists in another numberList with items
    * slope, intercept, r squared, n OR in a Point representing the line
-   *
    * @param  {NumberList} numberListX of the same length as numberListY.
    * @param  {NumberList} numberListY of the same length as numberListX.
    * @param  {Number} returnType <br>0:NumberList with items slope, intercept, r squared, n.<br>1: Point with slope,intercept
@@ -9103,11 +9100,8 @@
 
   /**
    * Calculates Euclidean distance between two numberLists
-   *
-   * @param  {NumberList1} numberList NumberList of the same length
-   * as numberList2.
-   * @param  {NumberList2} numberList NumberList of the same length
-   * as numberList1.
+   * @param  {NumberList1} numberList NumberList of the same length as numberList2.
+   * @param  {NumberList2} numberList NumberList of the same length as numberList1.
    * @return {Number} Summed Euclidean distance between all values.
    * tags:
    */
@@ -9129,7 +9123,7 @@
    * @param  {Number} norm0 accelerates operations if this values has benn previously calculated
    * @param  {Number} norm1 accelerates operations if this values has benn previously calculated
    * @return {Number}
-   * tags:statistics
+   * tags:distance
    */
   NumberListOperators.cosineSimilarity = function(numberList0, numberList1, norm0, norm1) {
     norm0 = norm0==null?numberList0.getNorm():norm0;
@@ -27084,7 +27078,9 @@
     }
   };
 
+
   Graphics.prototype._adjustCanvas = function(dimensions) {
+    console.log('**8> dimensions', dimensions);
     if(dimensions !== undefined) {
       this.cW = dimensions.width;
       this.cH = dimensions.height;
@@ -27098,6 +27094,8 @@
 
     this.cX = Math.floor(this.cW * 0.5);
     this.cY = Math.floor(this.cH * 0.5);
+
+    console.log('****> this.cW', this.cW);
 
     this.canvas.setAttribute('width', this.cW);
     this.canvas.setAttribute('height', this.cH);
