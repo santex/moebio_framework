@@ -27078,9 +27078,7 @@
     }
   };
 
-
   Graphics.prototype._adjustCanvas = function(dimensions) {
-    console.log('**8> dimensions', dimensions);
     if(dimensions !== undefined) {
       this.cW = dimensions.width;
       this.cH = dimensions.height;
@@ -27094,8 +27092,6 @@
 
     this.cX = Math.floor(this.cW * 0.5);
     this.cY = Math.floor(this.cH * 0.5);
-
-    console.log('****> this.cW', this.cW);
 
     this.canvas.setAttribute('width', this.cW);
     this.canvas.setAttribute('height', this.cH);
