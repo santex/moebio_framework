@@ -2643,6 +2643,52 @@ TableOperators.concatRows = function() {
 };
 
 /**
+ * unions all the lists from a Table
+ * @param  {table} Table
+ * @return {List} list without repeated elements
+ * tags:
+ */
+TableOperators.unionListsFromTables = function(table){
+  if(table==null) return;
+
+  var list = table[0].getWithoutRepetitions();
+  var i, j;
+  var l = table.length;
+  var n;
+
+  for(i=1; i<l; i++){
+    n = table[i].length;
+    for(j=0; j<n; j++){
+      if(!list.includes(table[i][j])) list.push(table[i][j]);
+    }
+  }
+
+  return list;
+};
+
+
+/**
+ * intersects all the lists from a Table
+ * @param  {table} Table
+ * @return {List} list with elements persent in all lists
+ * tags:
+ */
+TableOperators.intersectListsFromTables = function(table){
+  if(table==null) return;
+
+  var list = table[0].getWithoutRepetitions();
+  var i;
+  var l = table.length;
+
+  for(i=1; i<l; i++){
+    list = ListOperators.intersection(list, table[i]);
+  }
+
+  return list;
+};
+
+
+/**
  * Calculate the Uncertainty Coefficient (also called Theil's U), a measure of categorical association with value in [0,1]
  * @param  {List} list0
  * @param  {List} list1
