@@ -1551,7 +1551,7 @@ List.prototype.toStringList = function() {
 ////transformations
 
 List.prototype.pushIfUnique = function(element) {
-  if(this.indexOf(element) != -1) return; //TODO: implement equivalence
+  if(this.includes(element)) return;
   this.push(element);
 };
 
