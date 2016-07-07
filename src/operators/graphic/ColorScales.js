@@ -171,6 +171,17 @@ ColorScales.blueWhiteRed = function(value) {
 /**
  * @todo write docs
  */
+ColorScales.blueBlackRed = function(value) {
+  var rr = value < 0.5 ? 0 : Math.floor(512*(value-0.5));
+  var gg = 0;
+  var bb = value < 0.5 ? Math.floor(255 - 512*value) : 0;
+
+  return 'rgb(' + rr + ',' + gg + ',' + bb + ')';
+};
+
+/**
+ * @todo write docs
+ */
 ColorScales.grayBlackOrange = function(value){ //TODO: make it + efficient
   var rgb = [0,0,0];
   if(value < 0.5) {
