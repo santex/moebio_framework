@@ -867,7 +867,6 @@
     array.getWithoutElementAtIndex = List.prototype.getWithoutElementAtIndex;
     array.getWithoutElement = List.prototype.getWithoutElement;
     array.getWithoutElements = List.prototype.getWithoutElements;
-    array.getWithoutElements = List.prototype.getWithoutElements;
     array.getWithoutElementsAtIndexes = List.prototype.getWithoutElementsAtIndexes;
     array.getFilteredByFunction = List.prototype.getFilteredByFunction;
     array.addElements = List.prototype.addElements;
@@ -2057,11 +2056,12 @@
       newList = instantiate(_typeOf(this));
     }
     for(i = 0; i < l; i++) {
-      if(indexes.indexOf(i) == -1) {
+      if(!indexes.includes(i)) {
         newList.push(this[i]);
       }
     }
     if(this.type == 'List') return newList.getImproved();
+    newList.name = this.name;
     return newList;
   };
 
@@ -2285,7 +2285,7 @@
   ////transformations
 
   List.prototype.pushIfUnique = function(element) {
-    if(this.indexOf(element) != -1) return; //TODO: implement equivalence
+    if(this.includes(element)) return;
     this.push(element);
   };
 
@@ -6971,6 +6971,17 @@
   /**
    * @todo write docs
    */
+  ColorScales.blueBlackRed = function(value) {
+    var rr = value < 0.5 ? 0 : Math.floor(512*(value-0.5));
+    var gg = 0;
+    var bb = value < 0.5 ? Math.floor(255 - 512*value) : 0;
+
+    return 'rgb(' + rr + ',' + gg + ',' + bb + ')';
+  };
+
+  /**
+   * @todo write docs
+   */
   ColorScales.grayBlackOrange = function(value){ //TODO: make it + efficient
     var rgb = [0,0,0];
     if(value < 0.5) {
@@ -7745,10 +7756,12 @@
    * creates a List that contains the intersection of two List (elements present in BOTH lists, result without repetions)
    * @param  {List} list0 first list
    * @param  {List} list1 second list
+   *
+   * @param  {Object} booleanDictionary0 optional pre-calculated boolean dictionary for list0 (built with ListOperators.getBooleanDictionaryForList), for faster operation
    * @return {List} intersection of both lists
    * tags:
    */
-  ListOperators.intersection = function(list0, list1) {//TODO:expand for more lists
+  ListOperators.intersection = function(list0, list1, booleanDictionary0) {//TODO:expand for more lists
     if(list0==null || list1==null) return;
 
     var intersection;
@@ -7771,7 +7784,7 @@
       return intersection;
     }
 
-    var dictionary =  ListOperators.getBooleanDictionaryForList(list0);//{};
+    var dictionary =  booleanDictionary0==null?ListOperators.getBooleanDictionaryForList(list0):booleanDictionary0;//{};
     var dictionaryIntersected = {};
     
     intersection = new List();
@@ -7889,15 +7902,20 @@
    * calculates Jaccard index |list0 ∩ list1|/|list0 ∪ list1| see: https://en.wikipedia.org/wiki/Jaccard_index
    * @param  {List} list0
    * @param  {List} list1
+   *
    * @param  {Number} sigma value added to the intersection, so two lists are more distant whenever the interestion is small or 0 and the union gets bigger ( [A,B] closer to [P,Q] than [A,B,C,D,D] to [P,Q,R,S,T,U,V] the later pair holding more differences)
+   * @param  {Object} booleanDictionary0 optional pre-calculated boolean dictionary for list0 (built with ListOperators.getBooleanDictionaryForList), for faster operation
    * @return {Number}
    * tags:
    */
-  ListOperators.jaccardIndex = function(list0, list1, sigma) {//TODO: see if this can be more efficient, maybe one idctionar for doing union and interstection at the same time
-    var union  = ListOperators.union(list0, list1).length;
-    if(union===0) return 0;
+  ListOperators.jaccardIndex = function(list0, list1, sigma, booleanDictionary0) {//TODO: see if this can be more efficient, maybe one idctionar for doing union and interstection at the same time
+    if(list0==null || list1==null) return;
+    if(list0.length===0 && list1.length===0) return 0;
+    //var union  = ListOperators.union(list0, list1).length;
+    //if(union===0) return 0;
     sigma = sigma==null?0:sigma;
-    return (ListOperators.intersection(list0, list1).length+sigma)/union;
+    var inter = ListOperators.intersection(list0, list1, booleanDictionary0).length;
+    return (inter+sigma)/(list0.length + list1.length - inter);
   };
 
 
@@ -20608,6 +20626,52 @@
 
     return tabResult;
   };
+
+  /**
+   * unions all the lists from a Table
+   * @param  {table} Table
+   * @return {List} list without repeated elements
+   * tags:
+   */
+  TableOperators.unionListsFromTables = function(table){
+    if(table==null) return;
+
+    var list = table[0].getWithoutRepetitions();
+    var i, j;
+    var l = table.length;
+    var n;
+
+    for(i=1; i<l; i++){
+      n = table[i].length;
+      for(j=0; j<n; j++){
+        if(!list.includes(table[i][j])) list.push(table[i][j]);
+      }
+    }
+
+    return list;
+  };
+
+
+  /**
+   * intersects all the lists from a Table
+   * @param  {table} Table
+   * @return {List} list with elements persent in all lists
+   * tags:
+   */
+  TableOperators.intersectListsFromTables = function(table){
+    if(table==null) return;
+
+    var list = table[0].getWithoutRepetitions();
+    var i;
+    var l = table.length;
+
+    for(i=1; i<l; i++){
+      list = ListOperators.intersection(list, table[i]);
+    }
+
+    return list;
+  };
+
 
   /**
    * Calculate the Uncertainty Coefficient (also called Theil's U), a measure of categorical association with value in [0,1]
