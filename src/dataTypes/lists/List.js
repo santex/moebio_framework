@@ -133,7 +133,6 @@ List.fromArray = function(array) {
   array.getWithoutElementAtIndex = List.prototype.getWithoutElementAtIndex;
   array.getWithoutElement = List.prototype.getWithoutElement;
   array.getWithoutElements = List.prototype.getWithoutElements;
-  array.getWithoutElements = List.prototype.getWithoutElements;
   array.getWithoutElementsAtIndexes = List.prototype.getWithoutElementsAtIndexes;
   array.getFilteredByFunction = List.prototype.getFilteredByFunction;
   array.addElements = List.prototype.addElements;
@@ -1323,11 +1322,12 @@ List.prototype.getWithoutElementsAtIndexes = function(indexes) {
     newList = instantiate(typeOf(this));
   }
   for(i = 0; i < l; i++) {
-    if(indexes.indexOf(i) == -1) {
+    if(!indexes.includes(i)) {
       newList.push(this[i]);
     }
   }
   if(this.type == 'List') return newList.getImproved();
+  newList.name = this.name;
   return newList;
 };
 
