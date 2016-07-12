@@ -92,18 +92,22 @@ ObjectOperators.getInterval = function(object){
 
 
 /**
- * return rich information about abject (working with: List and table)
+ * return rich information about abject (currently working with List and Table)
  * @param  {Object} object
  * @return {Object}
+ * tags:
  */
 ObjectOperators.buildInformationObject = function(object) {
-  console.log('object.isTable', object.isTable);
+  var infoObject;
+  if(object.isTable) infoObject = TableOperators.buildInformationObject(object);
+  if(object.isList) infoObject = ListOperators.buildInformationObject(object);
+  if(object["buildInformationObject"]) infoObject = object.buildInformationObject;
 
-  if(object.isTable) return TableOperators.buildInformationObject(object);
-  if(object.isList) return ListOperators.buildInformationObject(object);
-  if(object["buildInformationObject"]) return object.buildInformationObject;
+  if(infoObject==null) return null;
 
-  return null;
+  infoObject.objectType = infoObject.type;
+  infoObject.type = null;
+  return infoObject;
 };
 
 /**
