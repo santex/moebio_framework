@@ -23,8 +23,8 @@ GeoOperators.geoCoordinateToDecimal = function(value) {
 
 /**
  * Calculates geographic distance in meters between two points with coordinates: longitude, latitude
- * @param  {Point} point0 geographic coordinates of first point
- * @param  {Point} point1 geographic coordinates of second point
+ * @param  {Point} point0 geographic coordinates of first point (long, lat)
+ * @param  {Point} point1 geographic coordinates of second point (long, lat)
  * @return {Number}
  */
 GeoOperators.geoDistance = function(point0, point1) {
