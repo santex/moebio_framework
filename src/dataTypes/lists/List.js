@@ -1362,7 +1362,7 @@ List.prototype.getWithoutElementAtIndex = function(index) {
  * Creates a new List without the given element present.
  * If multiple copies of the element exist, only exlcudes first copy.
  *
- * @param {Number|String|Object} element Element to exclude in the new List.
+ * @param {Object} element Element to exclude in the new List.
  * @return {List} new List missing the given element
  * tags:
  */
