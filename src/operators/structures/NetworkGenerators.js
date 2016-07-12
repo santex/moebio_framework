@@ -22,6 +22,66 @@ export default NetworkGenerators;
 
 
 /**
+ * Creates a network using a list and measuring the relation weight with a given method
+ * a Relation is created between two nodes if and only if the returned weight is > 0
+ * @param {List} list List of objects that define the nodes
+ * @param {Function} weightFunction method used to eval each pair of nodes
+ *
+ * @param {StringList} names optional, names of Nodes
+ * @param {Number} threshold (default: 0.3)
+ * @param {Number} weightMode relations weight mode<br>0: weight<br>1:weight -  threshold<br>2:(weight -  threshold)/(1 - threshold)
+ * @param {Boolean} symmetric (default:true) if false, assumes the function is not symmetric and creates asymmetric relations (A ->> B and B ->> A)
+ * @return {Network} a network with number of nodes equal to the length of the List
+ * tags:
+ */
+NetworkGenerators.createNetworkFromListAndFunction = function(list, weightFunction, names, threshold, weightMode, symmetric) {
+  if(list==null || weightFunction==null) return;
+
+  var i, j;
+  var w;
+  var node, node1;
+  var network = new Network();
+  var n = list.length;
+
+  threshold = threshold==null?0.3:threshold;
+
+  for(i=0; i<n; i++){
+    network.addNode(new Node("n_"+i, names == null ? "n_"+i : names[i]));
+  }
+
+  if(symmetric){
+    for(i=0; i<n; i++){
+      node = network.nodeList[i];
+      for(j=i+1; j<n; j++){
+        node1 = network.nodeList[j];
+        w = weightFunction(list[i], list[j]);
+        if(w > threshold) {
+          if(weightMode>0) w -= threshold;
+          if(weightMode==2) w /= (1-threshold);
+          network.addRelation(new Relation(i + "_" + j, i + "_" + j, node, node1, w));
+        }
+      }
+    }
+  } else {
+    for(i=0; i<n; i++){
+      node = network.nodeList[i];
+      for(j=0; j<n; j++){
+        if(i==j) continue;
+        node1 = network.nodeList[j];
+        w = weightFunction(list[i], list[j]);
+        if(w > threshold) {
+          if(weightMode>0) w -= threshold;
+          if(weightMode==2) w /= (1-threshold);
+          network.addRelation(new Relation(i + "_" + j, i + "_" + j, node, node1, w));
+        }
+      }
+    }
+  }
+
+  return network;
+};
+
+/**
  * Build a random network based on the provided options
  * @param {Number} nNodes number of nodes
  * @param {Number} pRelationOrNumberOfRelations if value<1 it's G(n,p) aka Poisson random graph, the probability of a relation being created between 2 nodes, otherwise it's G(n,m) the number of relations
@@ -219,65 +279,6 @@ NetworkGenerators.createNetworkFromOccurrencesTable = function(occurrencesTable,
   return network;
 };
 
-/**
- * Creates a network using a list and measuring the relation weight with a given method
- * a Relation is created between two nodes if and only if the returned weight is > 0
- * @param {List} list List of objects that define the nodes
- * @param {Function} weightFunction method used to eval each pair of nodes
- *
- * @param {StringList} names optional, names of Nodes
- * @param {Number} threshold (default: 0.3)
- * @param {Number} weightMode relations weight mode<br>0: weight<br>1:weight -  threshold<br>2:(weight -  threshold)/(1 - threshold)
- * @param {Boolean} symmetric (default:true) if false, assumes the function is not symmetric and creates asymmetric relations (A ->> B and B ->> A)
- * @return {Network} a network with number of nodes equal to the length of the List
- * tags:
- */
-NetworkGenerators.createNetworkFromListAndFunction = function(list, weightFunction, names, threshold, weightMode, symmetric) {
-  if(list==null || weightFunction==null) return;
-
-  var i, j;
-  var w;
-  var node, node1;
-  var network = new Network();
-  var n = list.length;
-
-  threshold = threshold==null?0.3:threshold;
-
-  for(i=0; i<n; i++){
-    network.addNode(new Node("n_"+i, names == null ? "n_"+i : names[i]));
-  }
-
-  if(symmetric){
-    for(i=0; i<n; i++){
-      node = network.nodeList[i];
-      for(j=i+1; j<n; j++){
-        node1 = network.nodeList[j];
-        w = weightFunction(list[i], list[j]);
-        if(w > threshold) {
-          if(weightMode>0) w -= threshold;
-          if(weightMode==2) w /= (1-threshold);
-          network.addRelation(new Relation(i + "_" + j, i + "_" + j, node, node1, w));
-        }
-      }
-    }
-  } else {
-    for(i=0; i<n; i++){
-      node = network.nodeList[i];
-      for(j=0; j<n; j++){
-        if(i==j) continue;
-        node1 = network.nodeList[j];
-        w = weightFunction(list[i], list[j]);
-        if(w > threshold) {
-          if(weightMode>0) w -= threshold;
-          if(weightMode==2) w /= (1-threshold);
-          network.addRelation(new Relation(i + "_" + j, i + "_" + j, node, node1, w));
-        }
-      }
-    }
-  }
-
-  return network;
-};
 
 
 /**
