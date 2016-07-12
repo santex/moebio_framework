@@ -1530,16 +1530,36 @@ ListOperators.buildInformationObject = function(list){
     length:n
   };
 
+  infoObject.frequenciesTable = list.getFrequenciesTable(true, true, true);
+  infoObject.numberDifferentElements = infoObject.frequenciesTable[0].length;
+  infoObject.mostFrequentElement = infoObject.frequenciesTable[0][0];
+
+  //////////// Nest properties
+  infoObject.isNumeric =  list.type == "NumberList";
+  infoObject.isCategorical = infoObject.numberDifferentElements/list.length>0.8;
+  infoObject.isLongTexts = false;
+  infoObject.isDefault = false;
+  ////////////
+
+  infoObject.isUnique = infoObject.numberDifferentElements == list.length;
+
+  infoObject.containsNulls = infoObject.frequenciesTable[0].includes(undefined);
+
   if(list.type == "NumberList") {
     var min = 999999999999;
     var max = -999999999999;
     var average = 0;
+    var standardDeviation = 0;
     var shorten = new NumberList();
     var index = 0;
     var accumsum = 0;
     var maxAccumsum = -999999999999;
     var sizeAccum = Math.max(Math.floor(list.length/50), 1);
     var allIntegers = true;
+
+    //isSorted
+    //isConsecutive
+    //years like
 
     for(i=0; i<n; i++){
       val = list[i];
@@ -1557,6 +1577,7 @@ ListOperators.buildInformationObject = function(list){
         index=0;
       }
     }
+
     if(index !== 0){
         accumsum /=index;
         maxAccumsum = Math.max(maxAccumsum, accumsum);
@@ -1564,28 +1585,58 @@ ListOperators.buildInformationObject = function(list){
     }
 
     shorten = shorten.factor(1/maxAccumsum);
-
     average /= list.length;
+
+    for(i = 0; i<n; i++) {
+      standardDeviation += Math.pow(list[i] - average, 2);
+    }
+
+
 
     infoObject.min = min;
     infoObject.max = max;
     infoObject.average = average;
-    infoObject.shorten = shorten;
+    infoObject.standardDeviation = Math.sqrt(standardDeviation/n);
     infoObject.allIntegers = allIntegers;
     infoObject.kind = allIntegers?"integer numbers":"numbers";
     infoObject.allPositive = infoObject.min>=0;
     infoObject.allNegative = infoObject.min<0;
+    infoObject.histogram = NumberListOperators.rangeCounts(list, 50);
   }
 
   if(list.type != "NumberList" || infoObject.allIntegers) {
-    infoObject.frequenciesTable = list.getFrequenciesTable(true, true, true);
-    infoObject.numberDifferentElements = infoObject.frequenciesTable[0].length;
+    
     infoObject.categoricalColors = infoObject.frequenciesTable[3];
     
+    if(list.type=="StringList"){
+      var textLengths = list.getLengths();
 
-    if(list.type=="StringList" && infoObject.numberDifferentElements/list.length>0.8){
+      infoObject.averageTextLengths = 0;
+      infoObject.minTextLength = 999999999999999;
+      infoObject.maxTextLength = 0;
+
+      for(i=0; i<n; i++){
+        infoObject.averageTextLengths+=textLengths[i];
+        if(textLengths[i]>infoObject.maxTextLength){
+          infoObject.maxTextLength = textLengths[i];
+        }
+        if(textLengths[i]<infoObject.minTextLength){
+          infoObject.minTextLength = textLengths[i];
+        }
+      }
+
+      if(infoObject.averageTextLengths>40) infoObject.isLongTexts = true; //[!] completely arbitrary, there might be a better criteria
+
+    }
+
+
+    if(list.type=="StringList" && infoObject.isCategorical){
       //if 80% of texts are different, they aren't reckoned as categories
-      infoObject.kind = "texts";
+      infoObject.kind = "strings";
+    } else if(list.type=="StringList" && !infoObject.isCategorical){
+      infoObject.kind = "strings";
+
+
     } else if(list.type=="List"){
       // Count number of category-like unique items and look at ratio
       var iCategoryLike=0;
@@ -1599,7 +1650,7 @@ ListOperators.buildInformationObject = function(list){
       if(infoObject.numberDifferentElements/list.length <= 0.8 && iCategoryLike/infoObject.numberDifferentElements>0.8)
         infoObject.kind = "categories";
       else
-        infoObject.kind = "texts";
+        infoObject.kind = "strings";
     } else if(list.type!="NumberList"){// ||  (list.type=="NumberList" && infoObject.numberDifferentElements/list.length<0.8) ){
       infoObject.kind = "categories";
     } else if(list.type=="NumberList"){
@@ -1610,6 +1661,8 @@ ListOperators.buildInformationObject = function(list){
 
     if(infoObject.kind == "categories" || infoObject.kind == "integer numbers") infoObject.entropy = ListOperators.getListEntropy(list, null, infoObject.frequenciesTable);
   }
+
+  infoObject.isDefault = !infoObject.isNumeric && !infoObject.isCategorical && !infoObject.isLongTexts;
 
   list.infoObject = infoObject;
 
@@ -1714,7 +1767,12 @@ ListOperators.getReportHtml = function(list, level, infoObject) { //TODO:complet
     //console.log('infoObject.entropy', infoObject.entropy);
     var text = "";
     if(infoObject.entropy) text += ident + "entropy: <b>" + NumberOperators.numberToString(infoObject.entropy, 4) + "</b>";
-    text += ident + "number of different elements: <b>" + infoObject.frequenciesTable[0].length + "</b>";
+    if(infoObject.frequenciesTable[0].length < list.length){
+      text += ident + "number of different elements: <b>" + infoObject.frequenciesTable[0].length + "</b>";
+    } else {
+      text += ident + "<b>all elements are different</b>";
+    }
+    
     if(infoObject.frequenciesTable[0].length < 10) {
       text += ident + "elements frequency:";
     } else if(infoObject.frequenciesTable[0].length < list.length){
@@ -1734,7 +1792,7 @@ ListOperators.getReportHtml = function(list, level, infoObject) { //TODO:complet
       joined = ListConversions.toStringList(list).join("], [");
     }
 
-    if(joined.length < 1000) text += ident + "contents: [" + joined + "]";
+    if(joined.length < 21) text += ident + "contents: [" + joined + "]";
 
     return text;
   };
@@ -1760,6 +1818,7 @@ ListOperators.getReportHtml = function(list, level, infoObject) { //TODO:complet
       text += ident + "min: <b>" + infoObject.min + "</b>";
       text += ident + "max: <b>" + infoObject.max + "</b>";
       text += ident + "average: <b>" + infoObject.average + "</b>";
+      text += ident + "standard deviation: <b>" + infoObject.standardDeviation + "</b>";
       //text += ident + (infoObject.allIntegers?"":"not ")+"all are integers</b>";
       if(length < 41) {
         text += ident + "numbers: <b>" + list.join("</b>, <b>") + "</b>";
@@ -1768,9 +1827,11 @@ ListOperators.getReportHtml = function(list, level, infoObject) { //TODO:complet
       if(infoObject.kind=="categories" || infoObject.kind=="integer numbers") text += categoriesText(list, ident, infoObject);
 
       text += ident;
-      n = infoObject.shorten.length;
+      n = infoObject.histogram.length;
+      var histoNorm = NumberListOperators.normalizeToMax(infoObject.histogram);
+
       for(i=0; i<n; i++){
-        text += "<font style=\"font-size:7px\"><font color=\""+ColorOperators.colorStringToHEX(ColorScales.grayToOrange(infoObject.shorten[i]))+"\">█</font></font>";
+        text += "<font style=\"font-size:7px\"><font color=\""+ColorOperators.colorStringToHEX(ColorScales.blueToRed(histoNorm[i]))+"\">█</font></font>";
       }
       break;
     case "StringList":
