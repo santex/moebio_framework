@@ -296,7 +296,10 @@ TreeDraw.drawTreemap = function(frame, tree, colorList, weights, textColor, exte
   var kyF = frame.height / frame.memory.focusFrame.height;
   var myF = -kyF * frame.memory.focusFrame.y;
 
-  var v = kxF > frame.memory.kx ? 0.05 : 0.1;
+  var v = kxF > frame.memory.kx ? 0.1 : 0.2;
+
+  if(change) v=1;
+
   var antiv = 1 - v;
 
   frame.memory.kx = antiv * frame.memory.kx + v * kxF;
