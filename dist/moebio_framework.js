@@ -1541,10 +1541,11 @@
    *
    * @param  {Boolean} avoidRepetitions (true by default)
    * @param {Number} randomSeed (to expect stable results)
+   * @param {Boolean} keepOrder extracts elements respecting original order [!] number of elements will ba approximatevely n
    * @return {List}
    * tags:filter
    */
-  List.prototype.getRandomElements = function(n, avoidRepetitions, randomSeed) {
+  List.prototype.getRandomElements = function(n, avoidRepetitions, randomSeed, keepOrder) {
     if(n==null) return;
 
     var random = randomSeed!=null ? new NumberOperators._Alea("my", randomSeed, "seeds") : Math.random;
@@ -1552,11 +1553,19 @@
     n = Math.min(n, this.length);
     var newList = instantiateWithSameType(this);
     var element;
-
-    while(newList.length < n) {
-      element = this[Math.floor(this.length * random())];
-      if(!avoidRepetitions || newList.indexOf(element) == -1) newList.push(element);
+    
+    if(keepOrder){
+      var prob = n/this.length;
+      for(var i=0; i<this.length; i++){
+        if(Math.random()<prob) newList.push(this[i]);
+      }
+    } else {
+      while(newList.length < n) {
+        element = this[Math.floor(this.length * random())];
+        if(!avoidRepetitions || newList.indexOf(element) == -1) newList.push(element);
+      }
     }
+    newList.name = this.name;
     return newList;
   };
 
@@ -2096,7 +2105,7 @@
    * Creates a new List without the given element present.
    * If multiple copies of the element exist, only exlcudes first copy.
    *
-   * @param {Number|String|Object} element Element to exclude in the new List.
+   * @param {Object} element Element to exclude in the new List.
    * @return {List} new List missing the given element
    * tags:
    */
@@ -2246,6 +2255,8 @@
    * tags:conversion
    */
   List.prototype.toNumberList = function() {
+
+
     var numberList = new NumberList();
     var l = this.length;
     var i;
@@ -2481,6 +2492,7 @@
 
     //
     result.getNormalized = NumberList.prototype.getNormalized;
+    result.getNormalizedToMax = NumberList.prototype.getNormalizedToMax;
 
     //math
     result.factor = NumberList.prototype.factor;
@@ -2941,7 +2953,7 @@
 
 
   /**
-   * Returns a NumberList normalized to min-max interval.
+   * returns a NumberList normalized to min-max interval
    *
    * @param {Number} factor Optional multiplier to modify the normalized values by. Defaults to 1.
    * @return {NumberList}
@@ -2960,6 +2972,30 @@
     var newNumberList = new NumberList();
     for(i = 0; i < this.length; i++) {
       newNumberList[i] = factor * ((this[i] - interval.x) / a);
+    }
+    newNumberList.name = this.name;
+    return newNumberList;
+  };
+
+  /**
+   * returns a NumberList normalized to max value
+   *
+   * @param {Number} factor Optional multiplier to modify the normalized value
+   * @return {NumberList}
+   * tags:
+   */
+  NumberList.prototype.getNormalizedToMax = function(factor) {
+    if(this==null) return;
+
+    factor = factor == null ? 1 : factor;
+
+    if(this.length === 0) return null;
+    
+    var i;
+    var max = this.getMax();
+    var newNumberList = new NumberList();
+    for(i = 0; i < this.length; i++) {
+      newNumberList[i] = factor * this[i]/max;
     }
     newNumberList.name = this.name;
     return newNumberList;
@@ -3616,6 +3652,31 @@
     return [Math.floor(s * color0[0] + value * color1[0]), Math.floor(s * color0[1] + value * color1[1]), Math.floor(s * color0[2] + value * color1[2])];
   };
 
+
+  /**
+   * @todo write docs
+   */
+  ColorOperators.addAlpha = function(color, alpha) {
+    //var rgb = color.substr(0,3)=='rgb'?ColorOperators.colorStringToRGB(color):ColorOperators.HEXtoRGB(color);
+    var rgb = ColorOperators.colorStringToRGB(color);
+    if(rgb == null) return 'black';
+    return 'rgba(' + rgb[0] + ',' + rgb[1] + ',' + rgb[2] + ',' + alpha + ')';
+  };
+
+  /**
+   * @todo write docs
+   */
+  ColorOperators.invertColor = function(color) {
+    var rgb = ColorOperators.colorStringToRGB(color);
+    rgb = ColorOperators.invertColorRGB(rgb[0], rgb[1], rgb[2]);
+    return ColorOperators.RGBtoHEX(rgb[0], rgb[1], rgb[2]);
+  };
+
+
+
+
+
+
   /**
    * converts an hexadecimal color to RGB
    * @param {String} an hexadecimal color string
@@ -3866,24 +3927,7 @@
     return [255 - r, 255 - g, 255 - b];
   };
 
-  /**
-   * @todo write docs
-   */
-  ColorOperators.addAlpha = function(color, alpha) {
-    //var rgb = color.substr(0,3)=='rgb'?ColorOperators.colorStringToRGB(color):ColorOperators.HEXtoRGB(color);
-    var rgb = ColorOperators.colorStringToRGB(color);
-    if(rgb == null) return 'black';
-    return 'rgba(' + rgb[0] + ',' + rgb[1] + ',' + rgb[2] + ',' + alpha + ')';
-  };
 
-  /**
-   * @todo write docs
-   */
-  ColorOperators.invertColor = function(color) {
-    var rgb = ColorOperators.colorStringToRGB(color);
-    rgb = ColorOperators.invertColorRGB(rgb[0], rgb[1], rgb[2]);
-    return ColorOperators.RGBtoHEX(rgb[0], rgb[1], rgb[2]);
-  };
 
   /**
    * @todo write docs
@@ -6748,6 +6792,950 @@
     return numberList;
   };
 
+  RectangleList.prototype = new List();
+  RectangleList.prototype.constructor = RectangleList;
+  /**
+   * @classdesc A {@link List} structure for storing {@link Rectangle} instances.
+   *
+   * @description Creates a new RectangleList.
+   * @constructor
+   * @category geometry
+   */
+  function RectangleList() {
+    var array = List.apply(this, arguments);
+    array = RectangleList.fromArray(array);
+    return array;
+  }
+  /**
+   * @todo write docs
+   */
+  RectangleList.fromArray = function(array) {
+    var result = List.fromArray(array);
+    result.type = "RectangleList";
+
+    result.getFrame = RectangleList.prototype.getFrame;
+    result.add = RectangleList.prototype.add;
+    result.clone = RectangleList.prototype.clone;
+    result.factor = RectangleList.prototype.factor;
+    result.getAddedArea = RectangleList.prototype.getAddedArea;
+    result.getIntersectionArea = RectangleList.prototype.getIntersectionArea;
+
+    return result;
+  };
+
+
+  /**
+   * @todo write docs
+   */
+  RectangleList.prototype.getFrame = function() {//TODO: use RectangleOperators.minRect
+    if(this.length === 0) return null;
+
+    var frame = this[0].clone();
+    frame.width = frame.getRight();
+    frame.height = frame.getBottom();
+    for(var i = 1; this[i] != null; i++) {
+      frame.x = Math.min(frame.x, this[i].x);
+      frame.y = Math.min(frame.y, this[i].y);
+
+      frame.width = Math.max(this[i].getRight(), frame.width);
+      frame.height = Math.max(this[i].getBottom(), frame.height);
+    }
+
+    frame.width -= frame.x;
+    frame.height -= frame.y;
+
+    return frame;
+  };
+
+  // TODO:finish RectangleList methods
+
+  /**
+   * @todo write docs
+   */
+  RectangleList.prototype.clone = function() {
+    var newRectangleList = new RectangleList();
+    for(var i = 0; this[i] != null; i++) {
+      newRectangleList[i] = this[i].clone();
+    }
+    newRectangleList.name = this.name;
+    return newRectangleList;
+  };
+
+  /**
+   * @ignore
+   */
+  RectangleList.prototype.add = function() {
+
+  };
+
+  /**
+   * @ignore
+   */
+  RectangleList.prototype.factor = function() {
+
+  };
+
+
+  /**
+   * @ignore
+   */
+  RectangleList.prototype.getAddedArea = function() {};
+
+  /**
+   * @todo write docs
+   */
+  RectangleList.prototype.getIntersectionArea = function() {
+    var rect0;
+    var rect1;
+    var intersectionArea = 0;
+    var intersection;
+    for(var i = 0; this[i + 1] != null; i++) {
+      rect0 = this[i];
+      for(var j = i + 1; this[j] != null; j++) {
+        rect1 = this[j];
+        intersection = rect0.getIntersection(rect1);
+        intersectionArea += intersection == null ? 0 : intersection.getArea();
+      }
+    }
+
+    return intersectionArea;
+  };
+
+  /**
+   * @classdesc Create default lists
+   *
+   * @namespace
+   * @category basics
+   */
+  function ListGenerators() {}
+  /**
+   * Generates a List made of several copies of same element (returned List is improved)
+   * @param {Object} nValues length of the List
+   * @param {Object} element object to be placed in all positions
+   *
+   * @param {String} name optional name for the list
+   * @return {List} generated List
+   * tags:generator
+   */
+  ListGenerators.createListWithSameElement = function(nValues, element, name) {
+    var list;
+    switch(_typeOf(element)) {
+      case 'number':
+        list = new NumberList();
+        break;
+      case 'List':
+        list = new Table();
+        break;
+      case 'NumberList':
+        list = new NumberTable();
+        break;
+      case 'Rectangle':
+        list = new RectangleList();
+        break;
+      case 'string':
+        list = new StringList();
+        break;
+      case 'boolean':
+        list = new List(); //TODO:update once BooleanList exists
+        break;
+      default:
+        list = new List();
+    }
+
+    var i;
+
+    for(i = 0; i < nValues; i++) {
+      list[i] = element;
+    }
+
+    list.name = name;
+    return list;
+  };
+
+  /**
+   * Generates a List built froma seed element and a function that will be applied iteratively
+   * @param {Object} nValues length of the List
+   * @param {Object} firstElement first element
+   * @param {Object} dynamicFunction sequence generator function, elementN+1 =  dynamicFunction(elementN)
+   * @return {List} generated List
+   * tags:generator
+   */
+  ListGenerators.createIterationSequence = function(nValues, firstElement, dynamicFunction) {
+    var list = ListGenerators.createListWithSameElement(1, firstElement);
+    for(var i = 1; i < nValues; i++) {
+      list[i] = dynamicFunction(list[i - 1]);
+    }
+    return list;
+  };
+
+  /**
+   * @classdesc Table Generators
+   *
+   * @namespace
+   * @category basics
+   */
+  function TableGenerators() {}
+  /**
+   * @todo finish docs
+   */
+  TableGenerators.createTableWithSameElement = function(nLists, nRows, element) {
+    var table = new Table();
+    for(var i = 0; i < nLists; i++) {
+      table[i] = ListGenerators.createListWithSameElement(nRows, element);
+    }
+    return table.getImproved();
+  };
+
+  /**
+   * @classdesc NumberList Operators
+   *
+   * @namespace
+   * @category numbers
+   */
+  function NumberListOperators() {}
+  /**
+   * Returns dot product between two numberLists
+   * @param  {NumberList1} numberList1 NumberList of the same length as numberList2.
+   * @param  {NumberList2} numberList2 NumberList of the same length as numberList1.
+   * @return {Number} Dot product between two lists.
+   * tags:statistics
+   */
+  NumberListOperators.dotProduct = function(numberList1, numberList2) {
+    var sum = 0;
+    var i;
+    var nElements = Math.min(numberList1.length, numberList2.length);
+    for(i = 0; i < nElements; i++) {
+      sum += numberList1[i] * numberList2[i];
+    }
+    return sum;
+  };
+
+  /**
+   * Returns linear regression between two numberLists in another numberList with items
+   * slope, intercept, r squared, n OR in a Point representing the line
+   * @param  {NumberList} numberListX of the same length as numberListY.
+   * @param  {NumberList} numberListY of the same length as numberListX.
+   * @param  {Number} returnType <br>0:NumberList with items slope, intercept, r squared, n.<br>1: Point with slope,intercept
+   * @return {Object} result depending on returnType
+   * tags:statistics
+   */
+  NumberListOperators.linearRegression = function(numberListX, numberListY, returnType) {
+    returnType = returnType == null || returnType > 1 ? 0:returnType;
+    var numberListR = new NumberList();
+    if(numberListX == null || numberListY == null ||
+       numberListX.length != numberListY.length || numberListX.length === 0)
+      return returnType===0?numberListR:new _Point();
+    var sumx=0,sumy=0,sumx2=0,sumxy=0,sumy2=0;
+
+    var n = numberListX.length;
+    for(var i = 0; i < n; i++) {
+      sumx += numberListX[i];
+      sumy += numberListY[i];
+      sumx2 += numberListX[i]*numberListX[i];
+      sumxy += numberListX[i]*numberListY[i];
+      sumy2 += numberListY[i]*numberListY[i];
+    }
+    var slope = (n * sumxy - sumx * sumy) / (n * sumx2 - sumx * sumx);
+    var intercept = (sumy / n) - (slope * sumx) / n;
+    if(returnType==1)
+      return new _Point(slope,intercept);
+    var r2 = Math.pow((n*sumxy - sumx*sumy)/Math.sqrt((n*sumx2-sumx*sumx)*(n*sumy2-sumy*sumy)),2);
+    numberListR.push(slope);
+    numberListR.push(intercept);
+    numberListR.push(r2);
+    numberListR.push(n);
+    return numberListR;
+  };
+
+  /**
+   * Calculates Euclidean distance between two numberLists
+   * @param  {NumberList1} numberList NumberList of the same length as numberList2.
+   * @param  {NumberList2} numberList NumberList of the same length as numberList1.
+   * @return {Number} Summed Euclidean distance between all values.
+   * tags:
+   */
+  NumberListOperators.distance = function(numberList1, numberList2) {
+    var sum = 0;
+    var i;
+    var nElements = Math.min(numberList1.length, numberList2.length);
+    for(i = 0; i < nElements; i++) {
+      sum += Math.pow(numberList1[i] - numberList2[i], 2);
+    }
+    return Math.sqrt(sum);
+  };
+
+  /**
+   * cosine similarity, used to compare two NumberLists regardless of norm (see: http://en.wikipedia.org/wiki/Cosine_similarity)
+   * @param  {NumberList} numberList0
+   * @param  {NumberList} numberList1
+   *
+   * @param  {Number} norm0 accelerates operations if this values has benn previously calculated
+   * @param  {Number} norm1 accelerates operations if this values has benn previously calculated
+   * @return {Number}
+   * tags:distance
+   */
+  NumberListOperators.cosineSimilarity = function(numberList0, numberList1, norm0, norm1) {
+    norm0 = norm0==null?numberList0.getNorm():norm0;
+    norm1 = norm1==null?numberList1.getNorm():norm1;
+    var norms = norm0 * norm1;
+    if(norms === 0) return 0;
+    return NumberListOperators.dotProduct(numberList0, numberList1) / norms;
+  };
+
+  /**
+   * calculates the covariance between two numberLists
+   * @param  {NumberList} numberList0
+   * @param  {NumberList} numberList1
+   * @return {Number}
+   * tags:statistics
+   */
+  NumberListOperators.covariance = function(numberList0, numberList1) {
+    if(numberList0==null || numberList1==null) return;
+
+    var l = Math.min(numberList0.length, numberList1.length);
+    var i;
+    var av0 = numberList0.getAverage();
+    var av1 = numberList1.getAverage();
+    var s = 0;
+
+    for(i = 0; i<l; i++) {
+      s += (numberList0[i] - av0)*(numberList1[i] - av1);
+    }
+
+    return s/l;
+  };
+
+
+  /**
+   * @todo finish docs, maybe change name
+   */
+  NumberListOperators.standardDeviationBetweenTwoNumberLists = function(numberList0, numberList1) {
+    if(numberList0==null || numberList1==null) return;
+    var s = 0;
+    var l = Math.min(numberList0.length, numberList1.length);
+    var i;
+
+    for(i = 0; i < l; i++) {
+      s += Math.pow(numberList0[i] - numberList1[i], 2);
+    }
+
+    return s/l;
+  };
+
+  /**
+   * returns Pearson Product Moment Correlation, the most common correlation coefficient ( covariance/(standard_deviation0*standard_deviation1) )
+   * @param  {NumberList} numberList0
+   * @param  {NumberList} numberList1
+   *
+   * @param {Number} sd0 standrad deviation of list 0, accelerates opeartion if previously calculated
+   * @param {Number} sd1 standrad deviation of list 1, accelerates opeartion if previously calculated
+   * @return {Number}
+   * tags:statistics
+   */
+  NumberListOperators.pearsonProductMomentCorrelation = function(numberList0, numberList1, sd0, sd1) { //TODO:make more efficient
+    if(numberList0==null || numberList1==null) return;
+    if(sd0==null) sd0 = numberList0.getStandardDeviation();
+    if(sd1==null) sd1 = numberList1.getStandardDeviation();
+    
+    var stndDeviations = sd0*sd1;//numberList0.getStandardDeviation() * numberList1.getStandardDeviation();
+    if(stndDeviations===0) return 0;
+    return NumberListOperators.covariance(numberList0, numberList1) / stndDeviations;
+  };
+
+  /**
+   * returns a NumberList normalized to the sum, all its values will add up 1 (or optionally provided factor)
+   * @param  {NumberList} numberlist NumberList to Normalize.
+   *
+   * @param {Number} factor optional factor value (values will add up factor)
+   * @param {Number} sum provide this value if sum has been previously calculated, it will reduce calculations. If not provided, sum will be calculated automatically.
+   * @return {NumberList} new NumberList of values normalized to the sum
+   * tags:
+   */
+  NumberListOperators.normalizeToSum = function(numberlist, factor, sum) {
+    if(numberlist==null) return;
+    
+    factor = factor == null ? 1 : factor;
+    var newNumberList = new NumberList();
+    newNumberList.name = numberlist.name;
+    if(numberlist.length === 0) return newNumberList;
+    var i;
+    sum = sum == null ? numberlist.getSum() : sum;
+    if(sum === 0) return numberlist.clone();
+
+    for(i = 0; i < numberlist.length; i++) {
+      newNumberList.push(factor * numberlist[i] / sum);
+    }
+    return newNumberList;
+  };
+
+  /**
+   * @param  {NumberList}
+   *
+   * @param {Number}
+   * @param {Number}
+   * @return {NumberList}
+   * tags:deprecated
+   * replaceBy:normalizeToSum
+   */
+  NumberListOperators.normalizedToSum = function(numberlist, factor, sum) {
+    return NumberListOperators.normalizeToSum(numberlist, factor, sum);
+  };
+
+
+  /**
+   * Returns a NumberList normalized to min-max interval.
+   *
+   * @param  {NumberList} numberlist NumberList to Normalize.
+   * @param {Number} factor Optional multiplier to modify the normalized values by.
+   * Defaults to 1.
+   * @return {NumberList}
+   * tags:deprecated
+   */
+  NumberListOperators.normalized = function(numberlist, factor) {//@todo: remove
+    if(numberlist==null) return;
+    return numberlist.getNormalized();
+  };
+
+  /**
+   * Returns a NumberList normalized to z-scores (mean of 0, stdev of 1).
+   * @param  {NumberList} numberlist NumberList to Normalize.
+   * @return {NumberList}
+   * tags:statistics
+   */
+  NumberListOperators.normalizeByZScore = function(numberlist) {
+    if(numberlist==null) return;
+    if(numberlist.length === 0) return null;
+
+    var i;
+    var mean = numberlist.getAverage();
+    var stddev = numberlist.getStandardDeviation();
+    if(stddev===0) stddev=1; // all returned values will be zero
+
+    var newNumberList = new NumberList();
+    for(i = 0; i < numberlist.length; i++) {
+      newNumberList.push((numberlist[i] - mean) / stddev);
+    }
+    newNumberList.name = numberlist.name;
+    return newNumberList;
+  };
+
+  /**
+   * Returns a NumberList normalized to Max.
+   * @param  {NumberList} numberlist NumberList to Normalize.
+   *
+   * @param {Number} factor Optional multiplier to modify the normalized values by. Defaults to 1.
+   * @return {NumberList}
+   * tags:
+   */
+  NumberListOperators.normalizeToMax = function(numberlist, factor) {
+    if(numberlist==null) return;
+    
+    factor = factor == null ? 1 : factor;
+
+    if(numberlist.length === 0) return null;
+
+    var max = numberlist.getMax();
+    if(max === 0) {
+      max = numberlist.getMin();
+      if(max === 0) return ListGenerators.createListWithSameElement(numberlist.length, 0);
+    }
+    var newNumberList = new NumberList();
+    for(var i = 0; numberlist[i] != null; i++) {
+      newNumberList.push(factor * (numberlist[i] / max));
+    }
+    newNumberList.name = numberlist.name;
+    return newNumberList;
+  };
+
+
+  /**
+   * Returns a NumberList normalized to an Interval.
+   * @param  {NumberList} numberlist NumberList to Normalize.
+   * @param {Interval} interval that defines the range of the new numberList
+   * @return {NumberList}
+   * tags:
+   */
+  NumberListOperators.normalizeToInterval = function(numberlist, interval) {
+    if(numberlist==null || interval==null || numberlist.length === 0) return;
+
+    var i;
+    var numberListInterval = numberlist.getInterval();
+    var nLAmplitude = numberListInterval.getAmplitude();
+    if(nLAmplitude===0) return ListGenerators.createListWithSameElement (numberlist.length, interval.x, numberlist.name);
+    var amplitude = interval.getSignedAmplitude();
+    var factor = amplitude/nLAmplitude;
+    var newNumberList = new NumberList();
+    for(i = 0; i < numberlist.length; i++) {
+      newNumberList.push( interval.x + factor*(numberlist[i] - numberListInterval.x) );
+    }
+    newNumberList.name = numberlist.name;
+    return newNumberList;
+  };
+
+
+  /**
+   * generates a new numberList of desired size (smaller than original), with elements claculated as averages of neighbors
+   * @param  {NumberList} numberList
+   * @param  {Number} newLength length of returned numberList
+   * @return {NumberList}
+   * tags:statistics
+   */
+  NumberListOperators.shorten = function(numberList, newLength) {
+    if(numberList==null) return null;
+    if(newLength==null || newLength>=numberList.length) return numberList;
+
+    var windowSize = numberList.length/newLength;
+    var newNumberList = new NumberList();
+    var windowSizeInt = Math.floor(windowSize);
+    var val;
+    var i, j, j0;
+
+    newNumberList.name = numberList.name;
+
+    for(i=0; i<newLength; i++){
+      j0 = Math.floor(i*windowSize);
+      val = 0;
+      for(j=0; j<windowSizeInt; j++){
+        val += numberList[j0+j];
+      }
+      newNumberList[i] = val/windowSizeInt;
+    }
+    return newNumberList;
+  };
+
+  /**
+   * simplifies a numer list, by keeping the nCategories-1 most common values, and replacing the others with an "other" element
+   * this method reduces the number of different values contained in the list, converting it into a categorical list
+   * @param  {NumberList} numberList NumberList to shorten
+   *
+   * @param  {Number} method simplification method:<b>0:significant digits (default)<br>1:quantiles (value will be min value in percentile)<br>2:orders of magnitude
+   * @param  {Number} param different meaning according to choosen method:<br>0:number of significant digits<br>1:number of quantiles<br>2:no need of param
+   * @return {NumberList} simplified list
+   * tags:
+   */
+  NumberListOperators.simplify = function(numberList, method, param) {
+    if(numberList==null) return;
+
+    method = method||0;
+    param = param||0;
+
+    var newList = new NumberList();
+    newList.name = numberList.name;
+
+
+    switch(method){
+      case 0:
+        var power = Math.pow(10, param);
+        numberList.forEach(function(val){
+          newList.push(Math.floor(val/power)*power);
+        });
+        break;
+      case 1:
+        //deploy quantiles first (optional return of n percentile, min value, interval, numberTable with indexes, numberTable with values)
+        break;
+    }
+
+    return newList;
+  };
+
+  /**
+   * calculates k-means clusters of values in a numberList
+   * @param  {NumberList} numberList
+   * @param  {Number} k number of clusters
+   *
+   * @param {Boolean} returnIndexes return clusters of indexes rather than values (false by default)
+   * @return {NumberTable} numberLists each being a cluster
+   * tags:ds
+   */
+  NumberListOperators.linearKMeans = function(numberList, k, returnIndexes) {
+    if(numberList == null || k == null || (k <= 0)) {
+      return null;
+    }
+
+    var interval = numberList.getInterval();
+
+    var min = interval.x;
+    var max = interval.y;
+    var clusters = new NumberTable();
+    var i, j;
+    var jK;
+    var x;
+    var dX = (max - min) / k;
+    var d;
+    var dMin;
+    var n;
+    var N = 1000;
+    var means = new NumberList();
+    var nextMeans = new NumberList();
+    var nValuesInCluster = new NumberList();
+    var length = numberList.length;
+
+    var initdMin = 1 + max - min;
+
+    for(i = 0; i < k; i++) {
+      clusters[i] = new NumberList();
+      nextMeans[i] = min + (i + 0.5) * dX;
+    }
+
+    for(n = 0; n < N; n++) {
+
+      for(i = 0; i < k; i++) {
+        nValuesInCluster[i] = 0;
+        means[i] = nextMeans[i];
+        nextMeans[i] = 0;
+      }
+
+      for(i = 0; i<length; i++) {
+        x = numberList[i];
+        dMin = initdMin;
+        jK = 0;
+
+        for(j = 0; j < k; j++) {
+          d = Math.abs(x - means[j]);
+          if(d < dMin) {
+            dMin = d;
+            jK = j;
+          }
+        }
+        if(n == N - 1) {
+          if(returnIndexes) {
+            clusters[jK].push(i);
+          } else {
+            clusters[jK].push(x);
+          }
+        }
+
+        nValuesInCluster[jK]++;
+
+        nextMeans[jK] = ((nValuesInCluster[jK] - 1) * nextMeans[jK] + x) / nValuesInCluster[jK];
+      }
+    }
+
+    return clusters;
+  };
+
+
+  /**
+   * smooth a numberList by calculating averages with neighbors
+   * @param  {NumberList} numberList
+   *
+   * @param  {Number} intensity weight for neighbors in average (0<=intensity<=0.5)
+   * @param  {Number} nIterations number of ieterations
+   * @return {NumberList}
+   * tags:statistics
+   */
+  NumberListOperators.averageSmoother = function(numberList, intensity, nIterations) {
+    if(numberList==null) return;
+
+    nIterations = nIterations == null ? 1 : nIterations;
+    intensity = intensity == null ? 0.1 : intensity;
+
+    intensity = Math.max(Math.min(intensity, 0.5), 0);
+    var anti = 1 - 2 * intensity;
+    var n = numberList.length - 1;
+
+    var newNumberList = numberList.clone();
+    var i;
+
+    var smoothFirst = function(val, i, list){
+      list[i] = anti * val + (i > 0 ? (numberList[i - 1] * intensity) : 0) + (i < n ? (numberList[i + 1] * intensity) : 0);
+    };
+
+    var smooth = function(val, i, list){
+      list[i] = anti * val + (i > 0 ? (list[i - 1] * intensity) : 0) + (i < n ? (list[i + 1] * intensity) : 0);
+    };
+
+    for(i = 0; i < nIterations; i++) {
+      if(i === 0) {
+        newNumberList.forEach(smoothFirst);
+      } else {
+        newNumberList.forEach(smooth);
+      }
+    }
+
+    newNumberList.name = numberList.name;
+
+    return newNumberList;
+  };
+
+  /**
+   *@todo: finish
+   */
+  NumberListOperators.filterNumberListByInterval = function(numberList, min, max, includeMin, includeMax, returnMode) {
+    return null;
+  };
+
+  /**
+   * accepted comparison operators: "<", "<=", ">", ">=", "==", "!="
+   */
+  NumberListOperators.filterNumberListByNumber = function(numberList, value, comparisonOperator, returnIndexes) {
+    returnIndexes = returnIndexes || false;
+    var newNumberList = new NumberList();
+    var i;
+
+    if(returnIndexes) {
+      switch(comparisonOperator) {
+        case "<":
+          for(i = 0; numberList[i] != null; i++) {
+            if(numberList[i] < value) {
+              newNumberList.push(i);
+            }
+          }
+          break;
+        case "<=":
+          for(i = 0; numberList[i] != null; i++) {
+            if(numberList[i] <= value) {
+              newNumberList.push(i);
+            }
+          }
+          break;
+        case ">":
+          for(i = 0; numberList[i] != null; i++) {
+            if(numberList[i] > value) {
+              newNumberList.push(i);
+            }
+          }
+          break;
+        case ">=":
+          for(i = 0; numberList[i] != null; i++) {
+            if(numberList[i] >= value) {
+              newNumberList.push(i);
+            }
+          }
+          break;
+        case "==":
+          for(i = 0; numberList[i] != null; i++) {
+            if(numberList[i] == value) {
+              newNumberList.push(i);
+            }
+          }
+          break;
+        case "!=":
+          for(i = 0; numberList[i] != null; i++) {
+            if(numberList[i] != value) {
+              newNumberList.push(i);
+            }
+          }
+          break;
+      }
+
+    } else {
+      switch(comparisonOperator) {
+        case "<":
+          for(i = 0; numberList[i] != null; i++) {
+            if(numberList[i] < value) {
+              newNumberList.push(numberList[i]);
+            }
+          }
+          break;
+        case "<=":
+          for(i = 0; numberList[i] != null; i++) {
+            if(numberList[i] <= value) {
+              newNumberList.push(numberList[i]);
+            }
+          }
+          break;
+        case ">":
+          for(i = 0; numberList[i] != null; i++) {
+            if(numberList[i] > value) {
+              newNumberList.push(numberList[i]);
+            }
+          }
+          break;
+        case ">=":
+          for(i = 0; numberList[i] != null; i++) {
+            if(numberList[i] >= value) {
+              newNumberList.push(numberList[i]);
+            }
+          }
+          break;
+        case "==":
+          for(i = 0; numberList[i] != null; i++) {
+            if(numberList[i] == value) {
+              newNumberList.push(numberList[i]);
+            }
+          }
+          break;
+        case "!=":
+          for(i = 0; numberList[i] != null; i++) {
+            if(numberList[i] != value) {
+              newNumberList.push(numberList[i]);
+            }
+          }
+          break;
+      }
+    }
+
+    return newNumberList;
+  };
+
+
+  /**
+   * builds a rectangle that defines the boundaries of two numberLists interpreted as x and y coordinates
+   * @param  {NumberList} numberListX
+   * @param  {NumberList} numberListY
+   * @return {Rectangle}
+   */
+  NumberListOperators.frameFromTwoNumberLists = function(numberListX, numberListY){
+    if(numberListX==null || numberListY==null) return;
+    var intX = numberListX.getInterval();
+    var intY = numberListY.getInterval();
+    return new Rectangle(intX.x, intY.x, intX.getAmplitude(), intY.getAmplitude());
+  };
+
+  /**
+   * builds a NumberList that gives histogram counts
+   * @param  {NumberList} numberList
+   * 
+   * @param  {Number} nBins number of bins to use (default 100)
+   * @param  {Interval} interval range of values (default use actual range of input numberList)
+   * @param {Number} mode return mode<br>0:(default) return the number of numbers on each bin<br>1:return the bin index for each value
+   * @return {NumberList}
+   * tags:statistics
+   */
+  NumberListOperators.rangeCounts = function(numberList, nBins, interval, mode){
+    if(numberList==null) return;
+    nBins = nBins == null ? 100 : nBins;
+    interval = interval==null ? numberList.getInterval() : interval;
+    mode = mode || 0;
+    var nLCounts = ListGenerators.createListWithSameElement(nBins,0);
+    var f,bin,len=numberList.length;
+    var binIndexes = new NumberList();
+    for(var i=0;i<len;i++){
+      f = interval.getInverseInterpolatedValue(numberList[i]);
+      bin = Math.min(Math.floor(f*nBins),nBins-1);
+      binIndexes[i] = bin;
+      nLCounts[bin]++;
+    }
+    if(mode==1) return binIndexes;
+    return nLCounts;
+  };
+
+  /**
+   * builds a NumberTable that gives 2D histogram counts for a pair of NumberLists
+   * @param  {NumberList} nL1
+   * @param  {NumberList} nL2
+   * 
+   * @param  {Number} nBins1 number of bins to use for nL1 (default 25)
+   * @param  {Number} nBins2 number of bins to use for nL2 (default 25)
+   * @param  {Interval} int1 range of values (default use actual range of input nL1)
+   * @param  {Interval} int2 range of values (default use actual range of input nL2)
+   * @return {NumberTable}
+   * tags:statistics
+   */
+  NumberListOperators.rangeCounts2D = function(nL1,nL2,nBins1,nBins2,int1,int2){
+    if(nL1==null || nL2==null || nL1.length != nL2.length) return;
+    nBins1 = nBins1 == null ? 25 : nBins1;
+    nBins2 = nBins2 == null ? 25 : nBins2;
+    int1 = int1==null ? nL1.getInterval() : int1;
+    int2 = int2==null ? nL2.getInterval() : int2;
+    var nT = TableGenerators.createTableWithSameElement(nBins1,nBins2,0);
+    var f1,f2,bin1,bin2,len=nL1.length;
+    for(var i=0;i<len;i++){
+      f1 = int1.getInverseInterpolatedValue(nL1[i]);
+      bin1 = Math.max(0,Math.min(Math.floor(f1*nBins1),nBins1-1));
+      f2 = int2.getInverseInterpolatedValue(nL2[i]);
+      bin2 = Math.max(0,Math.min(Math.floor(f2*nBins2),nBins2-1));
+      nT[bin1][bin2]++;
+    }
+    return nT;
+  };
+
+  /**
+   * in case the numberList is sorted, it generates a new one with lower values, by subtracting consecutive numbers
+   * @param {NumberList} nl
+   *
+   * @param {Boolean} compress true (default) for compression, false for decompression
+   * @return {NumberList}
+   * tags:
+   */
+  NumberListOperators.simpleCompression = function(nl, compress){
+    if(nl==null) return null;
+
+    compress = compress==null?true:compress;
+
+    var i;
+    var newNl = new NumberList();
+
+    if(nl.length===0) return newNl;
+
+    newNl[0] = nl[0];
+
+    if(compress){
+      for(i=1; i<nl.length; i++){
+        newNl[i] = nl[i]-nl[i-1]-1;
+      }
+    } else {
+      for(i=1; i<nl.length; i++){
+        newNl[i] = newNl[i-1]+nl[i]+1;
+      }
+    }
+    return newNl;
+  };
+
+  /**
+   * Get any outliers in the numberList, based on Tukey's test (+- IQR * k)
+   * @param {NumberList} nl
+   *
+   * @param {Number} retMode 0: return outlier values(default)<br>1: return indicies of outliers<br>2: return NumberTable having values in column 0 and indicies in column 1
+   * @param {Number} kValue IQR range multiple (default=1.5), larger value limits to more extreme outliers
+   * @param {Number} limit - if specified then return at most this many outliers. The most extreme cases are returned.
+   * @return {NumberList}
+   * tags: statistics
+   */
+  NumberListOperators.getOutliers = function(nl, retMode, kValue, limit){
+    if(nl==null) return null;
+    if(kValue==null) kValue=1.5;
+    if(retMode==null) retMode=0;
+
+    // based on Tukey's test using IQR
+    var nLQ=nl.getQuantiles(4);
+    var IQR = nLQ[2]-nLQ[0];
+    var lower=nLQ[0]-kValue*IQR;
+    var upper=nLQ[2]+kValue*IQR;
+    if(IQR == 0){
+      // doesn't seem to work very well. Use a heuristic based on stDev instead
+      var sd = nl.getStandardDeviation();
+      lower = nLQ[0] - 2*kValue*sd;
+      upper = nLQ[0] + 2*kValue*sd;
+    }
+
+    var nt = new NumberTable(3); // 0 are values, 1 are indices, 2 deltas
+    nt[0].name='Values';
+    nt[1].name='Indicies';
+    // use _min and _max set inside getQuantiles to shortcut when there are no outliers
+    if(nLQ._min < lower || nLQ._max > upper)
+      for(var i=0;i<nl.length;i++){
+        if(nl[i] < lower){
+          nt[0].push(nl[i]);
+          nt[1].push(i);
+          nt[2].push(lower - nl[i]);
+        }
+        else if(nl[i] > upper){
+          nt[0].push(nl[i]);
+          nt[1].push(i);
+          nt[2].push(nl[i] - upper);
+        }
+      }
+    if(limit != null && nt[0].length > limit){
+      nt = nt.getListsSortedByList(nt[2],false);
+      if(limit==0)
+        nt = nt.getRows(new NumberList());
+      else 
+        nt = nt.sliceRows(0,Math.max(0,Math.ceil(limit)-1));
+    }
+    // remove delta column
+    nt = nt.getSubList(0,1);
+    // sort by size of outliers
+    nt = nt.getListsSortedByList(nt[0],false);
+    if(retMode == 0)
+      return nt[0];
+    else if(retMode == 1)
+      return nt[1];
+
+    return nt;
+  };
+
   /**
    * @classdesc List Operators
    *
@@ -8534,16 +9522,36 @@
       length:n
     };
 
+    infoObject.frequenciesTable = list.getFrequenciesTable(true, true, true);
+    infoObject.numberDifferentElements = infoObject.frequenciesTable[0].length;
+    infoObject.mostFrequentElement = infoObject.frequenciesTable[0][0];
+
+    //////////// Nest properties
+    infoObject.isNumeric =  list.type == "NumberList";
+    infoObject.isCategorical = infoObject.numberDifferentElements/list.length>0.8;
+    infoObject.isLongTexts = false;
+    infoObject.isDefault = false;
+    ////////////
+
+    infoObject.isUnique = infoObject.numberDifferentElements == list.length;
+
+    infoObject.containsNulls = infoObject.frequenciesTable[0].includes(undefined);
+
     if(list.type == "NumberList") {
       var min = 999999999999;
       var max = -999999999999;
       var average = 0;
+      var standardDeviation = 0;
       var shorten = new NumberList();
       var index = 0;
       var accumsum = 0;
       var maxAccumsum = -999999999999;
       var sizeAccum = Math.max(Math.floor(list.length/50), 1);
       var allIntegers = true;
+
+      //isSorted
+      //isConsecutive
+      //years like
 
       for(i=0; i<n; i++){
         val = list[i];
@@ -8561,6 +9569,7 @@
           index=0;
         }
       }
+
       if(index !== 0){
           accumsum /=index;
           maxAccumsum = Math.max(maxAccumsum, accumsum);
@@ -8568,28 +9577,58 @@
       }
 
       shorten = shorten.factor(1/maxAccumsum);
-
       average /= list.length;
+
+      for(i = 0; i<n; i++) {
+        standardDeviation += Math.pow(list[i] - average, 2);
+      }
+
+
 
       infoObject.min = min;
       infoObject.max = max;
       infoObject.average = average;
-      infoObject.shorten = shorten;
+      infoObject.standardDeviation = Math.sqrt(standardDeviation/n);
       infoObject.allIntegers = allIntegers;
       infoObject.kind = allIntegers?"integer numbers":"numbers";
       infoObject.allPositive = infoObject.min>=0;
       infoObject.allNegative = infoObject.min<0;
+      infoObject.histogram = NumberListOperators.rangeCounts(list, 50);
     }
 
     if(list.type != "NumberList" || infoObject.allIntegers) {
-      infoObject.frequenciesTable = list.getFrequenciesTable(true, true, true);
-      infoObject.numberDifferentElements = infoObject.frequenciesTable[0].length;
+      
       infoObject.categoricalColors = infoObject.frequenciesTable[3];
       
+      if(list.type=="StringList"){
+        var textLengths = list.getLengths();
 
-      if(list.type=="StringList" && infoObject.numberDifferentElements/list.length>0.8){
+        infoObject.averageTextLengths = 0;
+        infoObject.minTextLength = 999999999999999;
+        infoObject.maxTextLength = 0;
+
+        for(i=0; i<n; i++){
+          infoObject.averageTextLengths+=textLengths[i];
+          if(textLengths[i]>infoObject.maxTextLength){
+            infoObject.maxTextLength = textLengths[i];
+          }
+          if(textLengths[i]<infoObject.minTextLength){
+            infoObject.minTextLength = textLengths[i];
+          }
+        }
+
+        if(infoObject.averageTextLengths>40) infoObject.isLongTexts = true; //[!] completely arbitrary, there might be a better criteria
+
+      }
+
+
+      if(list.type=="StringList" && infoObject.isCategorical){
         //if 80% of texts are different, they aren't reckoned as categories
-        infoObject.kind = "texts";
+        infoObject.kind = "strings";
+      } else if(list.type=="StringList" && !infoObject.isCategorical){
+        infoObject.kind = "strings";
+
+
       } else if(list.type=="List"){
         // Count number of category-like unique items and look at ratio
         var iCategoryLike=0;
@@ -8603,7 +9642,7 @@
         if(infoObject.numberDifferentElements/list.length <= 0.8 && iCategoryLike/infoObject.numberDifferentElements>0.8)
           infoObject.kind = "categories";
         else
-          infoObject.kind = "texts";
+          infoObject.kind = "strings";
       } else if(list.type!="NumberList"){// ||  (list.type=="NumberList" && infoObject.numberDifferentElements/list.length<0.8) ){
         infoObject.kind = "categories";
       } else if(list.type=="NumberList"){
@@ -8614,6 +9653,8 @@
 
       if(infoObject.kind == "categories" || infoObject.kind == "integer numbers") infoObject.entropy = ListOperators.getListEntropy(list, null, infoObject.frequenciesTable);
     }
+
+    infoObject.isDefault = !infoObject.isNumeric && !infoObject.isCategorical && !infoObject.isLongTexts;
 
     list.infoObject = infoObject;
 
@@ -8718,7 +9759,12 @@
       //console.log('infoObject.entropy', infoObject.entropy);
       var text = "";
       if(infoObject.entropy) text += ident + "entropy: <b>" + NumberOperators.numberToString(infoObject.entropy, 4) + "</b>";
-      text += ident + "number of different elements: <b>" + infoObject.frequenciesTable[0].length + "</b>";
+      if(infoObject.frequenciesTable[0].length < list.length){
+        text += ident + "number of different elements: <b>" + infoObject.frequenciesTable[0].length + "</b>";
+      } else {
+        text += ident + "<b>all elements are different</b>";
+      }
+      
       if(infoObject.frequenciesTable[0].length < 10) {
         text += ident + "elements frequency:";
       } else if(infoObject.frequenciesTable[0].length < list.length){
@@ -8738,7 +9784,7 @@
         joined = ListConversions.toStringList(list).join("], [");
       }
 
-      if(joined.length < 1000) text += ident + "contents: [" + joined + "]";
+      if(joined.length < 21) text += ident + "contents: [" + joined + "]";
 
       return text;
     };
@@ -8764,6 +9810,7 @@
         text += ident + "min: <b>" + infoObject.min + "</b>";
         text += ident + "max: <b>" + infoObject.max + "</b>";
         text += ident + "average: <b>" + infoObject.average + "</b>";
+        text += ident + "standard deviation: <b>" + infoObject.standardDeviation + "</b>";
         //text += ident + (infoObject.allIntegers?"":"not ")+"all are integers</b>";
         if(length < 41) {
           text += ident + "numbers: <b>" + list.join("</b>, <b>") + "</b>";
@@ -8772,9 +9819,11 @@
         if(infoObject.kind=="categories" || infoObject.kind=="integer numbers") text += categoriesText(list, ident, infoObject);
 
         text += ident;
-        n = infoObject.shorten.length;
+        n = infoObject.histogram.length;
+        var histoNorm = NumberListOperators.normalizeToMax(infoObject.histogram);
+
         for(i=0; i<n; i++){
-          text += "<font style=\"font-size:7px\"><font color=\""+ColorOperators.colorStringToHEX(ColorScales.grayToOrange(infoObject.shorten[i]))+"\">█</font></font>";
+          text += "<font style=\"font-size:7px\"><font color=\""+ColorOperators.colorStringToHEX(ColorScales.blueToRed(histoNorm[i]))+"\">█</font></font>";
         }
         break;
       case "StringList":
@@ -8859,950 +9908,6 @@
       allSubLists = Table.fromArray( allSubLists.concat( ListOperators.kCombinations(list, k) ) );
     }
     return allSubLists.getImproved();
-  };
-
-  RectangleList.prototype = new List();
-  RectangleList.prototype.constructor = RectangleList;
-  /**
-   * @classdesc A {@link List} structure for storing {@link Rectangle} instances.
-   *
-   * @description Creates a new RectangleList.
-   * @constructor
-   * @category geometry
-   */
-  function RectangleList() {
-    var array = List.apply(this, arguments);
-    array = RectangleList.fromArray(array);
-    return array;
-  }
-  /**
-   * @todo write docs
-   */
-  RectangleList.fromArray = function(array) {
-    var result = List.fromArray(array);
-    result.type = "RectangleList";
-
-    result.getFrame = RectangleList.prototype.getFrame;
-    result.add = RectangleList.prototype.add;
-    result.clone = RectangleList.prototype.clone;
-    result.factor = RectangleList.prototype.factor;
-    result.getAddedArea = RectangleList.prototype.getAddedArea;
-    result.getIntersectionArea = RectangleList.prototype.getIntersectionArea;
-
-    return result;
-  };
-
-
-  /**
-   * @todo write docs
-   */
-  RectangleList.prototype.getFrame = function() {//TODO: use RectangleOperators.minRect
-    if(this.length === 0) return null;
-
-    var frame = this[0].clone();
-    frame.width = frame.getRight();
-    frame.height = frame.getBottom();
-    for(var i = 1; this[i] != null; i++) {
-      frame.x = Math.min(frame.x, this[i].x);
-      frame.y = Math.min(frame.y, this[i].y);
-
-      frame.width = Math.max(this[i].getRight(), frame.width);
-      frame.height = Math.max(this[i].getBottom(), frame.height);
-    }
-
-    frame.width -= frame.x;
-    frame.height -= frame.y;
-
-    return frame;
-  };
-
-  // TODO:finish RectangleList methods
-
-  /**
-   * @todo write docs
-   */
-  RectangleList.prototype.clone = function() {
-    var newRectangleList = new RectangleList();
-    for(var i = 0; this[i] != null; i++) {
-      newRectangleList[i] = this[i].clone();
-    }
-    newRectangleList.name = this.name;
-    return newRectangleList;
-  };
-
-  /**
-   * @ignore
-   */
-  RectangleList.prototype.add = function() {
-
-  };
-
-  /**
-   * @ignore
-   */
-  RectangleList.prototype.factor = function() {
-
-  };
-
-
-  /**
-   * @ignore
-   */
-  RectangleList.prototype.getAddedArea = function() {};
-
-  /**
-   * @todo write docs
-   */
-  RectangleList.prototype.getIntersectionArea = function() {
-    var rect0;
-    var rect1;
-    var intersectionArea = 0;
-    var intersection;
-    for(var i = 0; this[i + 1] != null; i++) {
-      rect0 = this[i];
-      for(var j = i + 1; this[j] != null; j++) {
-        rect1 = this[j];
-        intersection = rect0.getIntersection(rect1);
-        intersectionArea += intersection == null ? 0 : intersection.getArea();
-      }
-    }
-
-    return intersectionArea;
-  };
-
-  /**
-   * @classdesc Create default lists
-   *
-   * @namespace
-   * @category basics
-   */
-  function ListGenerators() {}
-  /**
-   * Generates a List made of several copies of same element (returned List is improved)
-   * @param {Object} nValues length of the List
-   * @param {Object} element object to be placed in all positions
-   *
-   * @param {String} name optional name for the list
-   * @return {List} generated List
-   * tags:generator
-   */
-  ListGenerators.createListWithSameElement = function(nValues, element, name) {
-    var list;
-    switch(_typeOf(element)) {
-      case 'number':
-        list = new NumberList();
-        break;
-      case 'List':
-        list = new Table();
-        break;
-      case 'NumberList':
-        list = new NumberTable();
-        break;
-      case 'Rectangle':
-        list = new RectangleList();
-        break;
-      case 'string':
-        list = new StringList();
-        break;
-      case 'boolean':
-        list = new List(); //TODO:update once BooleanList exists
-        break;
-      default:
-        list = new List();
-    }
-
-    var i;
-
-    for(i = 0; i < nValues; i++) {
-      list[i] = element;
-    }
-
-    list.name = name;
-    return list;
-  };
-
-  /**
-   * Generates a List built froma seed element and a function that will be applied iteratively
-   * @param {Object} nValues length of the List
-   * @param {Object} firstElement first element
-   * @param {Object} dynamicFunction sequence generator function, elementN+1 =  dynamicFunction(elementN)
-   * @return {List} generated List
-   * tags:generator
-   */
-  ListGenerators.createIterationSequence = function(nValues, firstElement, dynamicFunction) {
-    var list = ListGenerators.createListWithSameElement(1, firstElement);
-    for(var i = 1; i < nValues; i++) {
-      list[i] = dynamicFunction(list[i - 1]);
-    }
-    return list;
-  };
-
-  /**
-   * @classdesc Table Generators
-   *
-   * @namespace
-   * @category basics
-   */
-  function TableGenerators() {}
-  /**
-   * @todo finish docs
-   */
-  TableGenerators.createTableWithSameElement = function(nLists, nRows, element) {
-    var table = new Table();
-    for(var i = 0; i < nLists; i++) {
-      table[i] = ListGenerators.createListWithSameElement(nRows, element);
-    }
-    return table.getImproved();
-  };
-
-  /**
-   * @classdesc NumberList Operators
-   *
-   * @namespace
-   * @category numbers
-   */
-  function NumberListOperators() {}
-  /**
-   * Returns dot product between two numberLists
-   * @param  {NumberList1} numberList1 NumberList of the same length as numberList2.
-   * @param  {NumberList2} numberList2 NumberList of the same length as numberList1.
-   * @return {Number} Dot product between two lists.
-   * tags:statistics
-   */
-  NumberListOperators.dotProduct = function(numberList1, numberList2) {
-    var sum = 0;
-    var i;
-    var nElements = Math.min(numberList1.length, numberList2.length);
-    for(i = 0; i < nElements; i++) {
-      sum += numberList1[i] * numberList2[i];
-    }
-    return sum;
-  };
-
-  /**
-   * Returns linear regression between two numberLists in another numberList with items
-   * slope, intercept, r squared, n OR in a Point representing the line
-   * @param  {NumberList} numberListX of the same length as numberListY.
-   * @param  {NumberList} numberListY of the same length as numberListX.
-   * @param  {Number} returnType <br>0:NumberList with items slope, intercept, r squared, n.<br>1: Point with slope,intercept
-   * @return {Object} result depending on returnType
-   * tags:statistics
-   */
-  NumberListOperators.linearRegression = function(numberListX, numberListY, returnType) {
-    returnType = returnType == null || returnType > 1 ? 0:returnType;
-    var numberListR = new NumberList();
-    if(numberListX == null || numberListY == null ||
-       numberListX.length != numberListY.length || numberListX.length === 0)
-      return returnType===0?numberListR:new _Point();
-    var sumx=0,sumy=0,sumx2=0,sumxy=0,sumy2=0;
-
-    var n = numberListX.length;
-    for(var i = 0; i < n; i++) {
-      sumx += numberListX[i];
-      sumy += numberListY[i];
-      sumx2 += numberListX[i]*numberListX[i];
-      sumxy += numberListX[i]*numberListY[i];
-      sumy2 += numberListY[i]*numberListY[i];
-    }
-    var slope = (n * sumxy - sumx * sumy) / (n * sumx2 - sumx * sumx);
-    var intercept = (sumy / n) - (slope * sumx) / n;
-    if(returnType==1)
-      return new _Point(slope,intercept);
-    var r2 = Math.pow((n*sumxy - sumx*sumy)/Math.sqrt((n*sumx2-sumx*sumx)*(n*sumy2-sumy*sumy)),2);
-    numberListR.push(slope);
-    numberListR.push(intercept);
-    numberListR.push(r2);
-    numberListR.push(n);
-    return numberListR;
-  };
-
-  /**
-   * Calculates Euclidean distance between two numberLists
-   * @param  {NumberList1} numberList NumberList of the same length as numberList2.
-   * @param  {NumberList2} numberList NumberList of the same length as numberList1.
-   * @return {Number} Summed Euclidean distance between all values.
-   * tags:
-   */
-  NumberListOperators.distance = function(numberList1, numberList2) {
-    var sum = 0;
-    var i;
-    var nElements = Math.min(numberList1.length, numberList2.length);
-    for(i = 0; i < nElements; i++) {
-      sum += Math.pow(numberList1[i] - numberList2[i], 2);
-    }
-    return Math.sqrt(sum);
-  };
-
-  /**
-   * cosine similarity, used to compare two NumberLists regardless of norm (see: http://en.wikipedia.org/wiki/Cosine_similarity)
-   * @param  {NumberList} numberList0
-   * @param  {NumberList} numberList1
-   *
-   * @param  {Number} norm0 accelerates operations if this values has benn previously calculated
-   * @param  {Number} norm1 accelerates operations if this values has benn previously calculated
-   * @return {Number}
-   * tags:distance
-   */
-  NumberListOperators.cosineSimilarity = function(numberList0, numberList1, norm0, norm1) {
-    norm0 = norm0==null?numberList0.getNorm():norm0;
-    norm1 = norm1==null?numberList1.getNorm():norm1;
-    var norms = norm0 * norm1;
-    if(norms === 0) return 0;
-    return NumberListOperators.dotProduct(numberList0, numberList1) / norms;
-  };
-
-  /**
-   * calculates the covariance between two numberLists
-   * @param  {NumberList} numberList0
-   * @param  {NumberList} numberList1
-   * @return {Number}
-   * tags:statistics
-   */
-  NumberListOperators.covariance = function(numberList0, numberList1) {
-    if(numberList0==null || numberList1==null) return;
-
-    var l = Math.min(numberList0.length, numberList1.length);
-    var i;
-    var av0 = numberList0.getAverage();
-    var av1 = numberList1.getAverage();
-    var s = 0;
-
-    for(i = 0; i<l; i++) {
-      s += (numberList0[i] - av0)*(numberList1[i] - av1);
-    }
-
-    return s/l;
-  };
-
-
-  /**
-   * @todo finish docs, maybe change name
-   */
-  NumberListOperators.standardDeviationBetweenTwoNumberLists = function(numberList0, numberList1) {
-    if(numberList0==null || numberList1==null) return;
-    var s = 0;
-    var l = Math.min(numberList0.length, numberList1.length);
-    var i;
-
-    for(i = 0; i < l; i++) {
-      s += Math.pow(numberList0[i] - numberList1[i], 2);
-    }
-
-    return s/l;
-  };
-
-  /**
-   * returns Pearson Product Moment Correlation, the most common correlation coefficient ( covariance/(standard_deviation0*standard_deviation1) )
-   * @param  {NumberList} numberList0
-   * @param  {NumberList} numberList1
-   *
-   * @param {Number} sd0 standrad deviation of list 0, accelerates opeartion if previously calculated
-   * @param {Number} sd1 standrad deviation of list 1, accelerates opeartion if previously calculated
-   * @return {Number}
-   * tags:statistics
-   */
-  NumberListOperators.pearsonProductMomentCorrelation = function(numberList0, numberList1, sd0, sd1) { //TODO:make more efficient
-    if(numberList0==null || numberList1==null) return;
-    if(sd0==null) sd0 = numberList0.getStandardDeviation();
-    if(sd1==null) sd1 = numberList1.getStandardDeviation();
-    
-    var stndDeviations = sd0*sd1;//numberList0.getStandardDeviation() * numberList1.getStandardDeviation();
-    if(stndDeviations===0) return 0;
-    return NumberListOperators.covariance(numberList0, numberList1) / stndDeviations;
-  };
-
-  /**
-   * returns a NumberList normalized to the sum, all its values will add up 1 (or optionally provided factor)
-   * @param  {NumberList} numberlist NumberList to Normalize.
-   *
-   * @param {Number} factor optional factor value (values will add up factor)
-   * @param {Number} sum provide this value if sum has been previously calculated, it will reduce calculations. If not provided, sum will be calculated automatically.
-   * @return {NumberList} new NumberList of values normalized to the sum
-   * tags:
-   */
-  NumberListOperators.normalizeToSum = function(numberlist, factor, sum) {
-    if(numberlist==null) return;
-    
-    factor = factor == null ? 1 : factor;
-    var newNumberList = new NumberList();
-    newNumberList.name = numberlist.name;
-    if(numberlist.length === 0) return newNumberList;
-    var i;
-    sum = sum == null ? numberlist.getSum() : sum;
-    if(sum === 0) return numberlist.clone();
-
-    for(i = 0; i < numberlist.length; i++) {
-      newNumberList.push(factor * numberlist[i] / sum);
-    }
-    return newNumberList;
-  };
-
-  /**
-   * @param  {NumberList}
-   *
-   * @param {Number}
-   * @param {Number}
-   * @return {NumberList}
-   * tags:deprecated
-   * replaceBy:normalizeToSum
-   */
-  NumberListOperators.normalizedToSum = function(numberlist, factor, sum) {
-    return NumberListOperators.normalizeToSum(numberlist, factor, sum);
-  };
-
-
-  /**
-   * Returns a NumberList normalized to min-max interval.
-   *
-   * @param  {NumberList} numberlist NumberList to Normalize.
-   * @param {Number} factor Optional multiplier to modify the normalized values by.
-   * Defaults to 1.
-   * @return {NumberList}
-   * tags:deprecated
-   */
-  NumberListOperators.normalized = function(numberlist, factor) {//@todo: remove
-    if(numberlist==null) return;
-    return numberlist.getNormalized();
-  };
-
-  /**
-   * Returns a NumberList normalized to z-scores (mean of 0, stdev of 1).
-   * @param  {NumberList} numberlist NumberList to Normalize.
-   * @return {NumberList}
-   * tags:statistics
-   */
-  NumberListOperators.normalizeByZScore = function(numberlist) {
-    if(numberlist==null) return;
-    if(numberlist.length === 0) return null;
-
-    var i;
-    var mean = numberlist.getAverage();
-    var stddev = numberlist.getStandardDeviation();
-    if(stddev===0) stddev=1; // all returned values will be zero
-
-    var newNumberList = new NumberList();
-    for(i = 0; i < numberlist.length; i++) {
-      newNumberList.push((numberlist[i] - mean) / stddev);
-    }
-    newNumberList.name = numberlist.name;
-    return newNumberList;
-  };
-
-  /**
-   * Returns a NumberList normalized to Max.
-   * @param  {NumberList} numberlist NumberList to Normalize.
-   *
-   * @param {Number} factor Optional multiplier to modify the normalized values by. Defaults to 1.
-   * @return {NumberList}
-   * tags:
-   */
-  NumberListOperators.normalizeToMax = function(numberlist, factor) {
-    if(numberlist==null) return;
-    
-    factor = factor == null ? 1 : factor;
-
-    if(numberlist.length === 0) return null;
-
-    var max = numberlist.getMax();
-    if(max === 0) {
-      max = numberlist.getMin();
-      if(max === 0) return ListGenerators.createListWithSameElement(numberlist.length, 0);
-    }
-    var newNumberList = new NumberList();
-    for(var i = 0; numberlist[i] != null; i++) {
-      newNumberList.push(factor * (numberlist[i] / max));
-    }
-    newNumberList.name = numberlist.name;
-    return newNumberList;
-  };
-
-
-  /**
-   * Returns a NumberList normalized to an Interval.
-   * @param  {NumberList} numberlist NumberList to Normalize.
-   * @param {Interval} interval that defines the range of the new numberList
-   * @return {NumberList}
-   * tags:
-   */
-  NumberListOperators.normalizeToInterval = function(numberlist, interval) {
-    if(numberlist==null || interval==null || numberlist.length === 0) return;
-
-    var i;
-    var numberListInterval = numberlist.getInterval();
-    var nLAmplitude = numberListInterval.getAmplitude();
-    if(nLAmplitude===0) return ListGenerators.createListWithSameElement (numberlist.length, interval.x, numberlist.name);
-    var amplitude = interval.getSignedAmplitude();
-    var factor = amplitude/nLAmplitude;
-    var newNumberList = new NumberList();
-    for(i = 0; i < numberlist.length; i++) {
-      newNumberList.push( interval.x + factor*(numberlist[i] - numberListInterval.x) );
-    }
-    newNumberList.name = numberlist.name;
-    return newNumberList;
-  };
-
-
-  /**
-   * generates a new numberList of desired size (smaller than original), with elements claculated as averages of neighbors
-   * @param  {NumberList} numberList
-   * @param  {Number} newLength length of returned numberList
-   * @return {NumberList}
-   * tags:statistics
-   */
-  NumberListOperators.shorten = function(numberList, newLength) {
-    if(numberList==null) return null;
-    if(newLength==null || newLength>=numberList.length) return numberList;
-
-    var windowSize = numberList.length/newLength;
-    var newNumberList = new NumberList();
-    var windowSizeInt = Math.floor(windowSize);
-    var val;
-    var i, j, j0;
-
-    newNumberList.name = numberList.name;
-
-    for(i=0; i<newLength; i++){
-      j0 = Math.floor(i*windowSize);
-      val = 0;
-      for(j=0; j<windowSizeInt; j++){
-        val += numberList[j0+j];
-      }
-      newNumberList[i] = val/windowSizeInt;
-    }
-    return newNumberList;
-  };
-
-  /**
-   * simplifies a numer list, by keeping the nCategories-1 most common values, and replacing the others with an "other" element
-   * this method reduces the number of different values contained in the list, converting it into a categorical list
-   * @param  {NumberList} numberList NumberList to shorten
-   *
-   * @param  {Number} method simplification method:<b>0:significant digits (default)<br>1:quantiles (value will be min value in percentile)<br>2:orders of magnitude
-   * @param  {Number} param different meaning according to choosen method:<br>0:number of significant digits<br>1:number of quantiles<br>2:no need of param
-   * @return {NumberList} simplified list
-   * tags:
-   */
-  NumberListOperators.simplify = function(numberList, method, param) {
-    if(numberList==null) return;
-
-    method = method||0;
-    param = param||0;
-
-    var newList = new NumberList();
-    newList.name = numberList.name;
-
-
-    switch(method){
-      case 0:
-        var power = Math.pow(10, param);
-        numberList.forEach(function(val){
-          newList.push(Math.floor(val/power)*power);
-        });
-        break;
-      case 1:
-        //deploy quantiles first (optional return of n percentile, min value, interval, numberTable with indexes, numberTable with values)
-        break;
-    }
-
-    return newList;
-  };
-
-  /**
-   * calculates k-means clusters of values in a numberList
-   * @param  {NumberList} numberList
-   * @param  {Number} k number of clusters
-   *
-   * @param {Boolean} returnIndexes return clusters of indexes rather than values (false by default)
-   * @return {NumberTable} numberLists each being a cluster
-   * tags:ds
-   */
-  NumberListOperators.linearKMeans = function(numberList, k, returnIndexes) {
-    if(numberList == null || k == null || (k <= 0)) {
-      return null;
-    }
-
-    var interval = numberList.getInterval();
-
-    var min = interval.x;
-    var max = interval.y;
-    var clusters = new NumberTable();
-    var i, j;
-    var jK;
-    var x;
-    var dX = (max - min) / k;
-    var d;
-    var dMin;
-    var n;
-    var N = 1000;
-    var means = new NumberList();
-    var nextMeans = new NumberList();
-    var nValuesInCluster = new NumberList();
-    var length = numberList.length;
-
-    var initdMin = 1 + max - min;
-
-    for(i = 0; i < k; i++) {
-      clusters[i] = new NumberList();
-      nextMeans[i] = min + (i + 0.5) * dX;
-    }
-
-    for(n = 0; n < N; n++) {
-
-      for(i = 0; i < k; i++) {
-        nValuesInCluster[i] = 0;
-        means[i] = nextMeans[i];
-        nextMeans[i] = 0;
-      }
-
-      for(i = 0; i<length; i++) {
-        x = numberList[i];
-        dMin = initdMin;
-        jK = 0;
-
-        for(j = 0; j < k; j++) {
-          d = Math.abs(x - means[j]);
-          if(d < dMin) {
-            dMin = d;
-            jK = j;
-          }
-        }
-        if(n == N - 1) {
-          if(returnIndexes) {
-            clusters[jK].push(i);
-          } else {
-            clusters[jK].push(x);
-          }
-        }
-
-        nValuesInCluster[jK]++;
-
-        nextMeans[jK] = ((nValuesInCluster[jK] - 1) * nextMeans[jK] + x) / nValuesInCluster[jK];
-      }
-    }
-
-    return clusters;
-  };
-
-
-  /**
-   * smooth a numberList by calculating averages with neighbors
-   * @param  {NumberList} numberList
-   *
-   * @param  {Number} intensity weight for neighbors in average (0<=intensity<=0.5)
-   * @param  {Number} nIterations number of ieterations
-   * @return {NumberList}
-   * tags:statistics
-   */
-  NumberListOperators.averageSmoother = function(numberList, intensity, nIterations) {
-    if(numberList==null) return;
-
-    nIterations = nIterations == null ? 1 : nIterations;
-    intensity = intensity == null ? 0.1 : intensity;
-
-    intensity = Math.max(Math.min(intensity, 0.5), 0);
-    var anti = 1 - 2 * intensity;
-    var n = numberList.length - 1;
-
-    var newNumberList = numberList.clone();
-    var i;
-
-    var smoothFirst = function(val, i, list){
-      list[i] = anti * val + (i > 0 ? (numberList[i - 1] * intensity) : 0) + (i < n ? (numberList[i + 1] * intensity) : 0);
-    };
-
-    var smooth = function(val, i, list){
-      list[i] = anti * val + (i > 0 ? (list[i - 1] * intensity) : 0) + (i < n ? (list[i + 1] * intensity) : 0);
-    };
-
-    for(i = 0; i < nIterations; i++) {
-      if(i === 0) {
-        newNumberList.forEach(smoothFirst);
-      } else {
-        newNumberList.forEach(smooth);
-      }
-    }
-
-    newNumberList.name = numberList.name;
-
-    return newNumberList;
-  };
-
-  /**
-   *@todo: finish
-   */
-  NumberListOperators.filterNumberListByInterval = function(numberList, min, max, includeMin, includeMax, returnMode) {
-    return null;
-  };
-
-  /**
-   * accepted comparison operators: "<", "<=", ">", ">=", "==", "!="
-   */
-  NumberListOperators.filterNumberListByNumber = function(numberList, value, comparisonOperator, returnIndexes) {
-    returnIndexes = returnIndexes || false;
-    var newNumberList = new NumberList();
-    var i;
-
-    if(returnIndexes) {
-      switch(comparisonOperator) {
-        case "<":
-          for(i = 0; numberList[i] != null; i++) {
-            if(numberList[i] < value) {
-              newNumberList.push(i);
-            }
-          }
-          break;
-        case "<=":
-          for(i = 0; numberList[i] != null; i++) {
-            if(numberList[i] <= value) {
-              newNumberList.push(i);
-            }
-          }
-          break;
-        case ">":
-          for(i = 0; numberList[i] != null; i++) {
-            if(numberList[i] > value) {
-              newNumberList.push(i);
-            }
-          }
-          break;
-        case ">=":
-          for(i = 0; numberList[i] != null; i++) {
-            if(numberList[i] >= value) {
-              newNumberList.push(i);
-            }
-          }
-          break;
-        case "==":
-          for(i = 0; numberList[i] != null; i++) {
-            if(numberList[i] == value) {
-              newNumberList.push(i);
-            }
-          }
-          break;
-        case "!=":
-          for(i = 0; numberList[i] != null; i++) {
-            if(numberList[i] != value) {
-              newNumberList.push(i);
-            }
-          }
-          break;
-      }
-
-    } else {
-      switch(comparisonOperator) {
-        case "<":
-          for(i = 0; numberList[i] != null; i++) {
-            if(numberList[i] < value) {
-              newNumberList.push(numberList[i]);
-            }
-          }
-          break;
-        case "<=":
-          for(i = 0; numberList[i] != null; i++) {
-            if(numberList[i] <= value) {
-              newNumberList.push(numberList[i]);
-            }
-          }
-          break;
-        case ">":
-          for(i = 0; numberList[i] != null; i++) {
-            if(numberList[i] > value) {
-              newNumberList.push(numberList[i]);
-            }
-          }
-          break;
-        case ">=":
-          for(i = 0; numberList[i] != null; i++) {
-            if(numberList[i] >= value) {
-              newNumberList.push(numberList[i]);
-            }
-          }
-          break;
-        case "==":
-          for(i = 0; numberList[i] != null; i++) {
-            if(numberList[i] == value) {
-              newNumberList.push(numberList[i]);
-            }
-          }
-          break;
-        case "!=":
-          for(i = 0; numberList[i] != null; i++) {
-            if(numberList[i] != value) {
-              newNumberList.push(numberList[i]);
-            }
-          }
-          break;
-      }
-    }
-
-    return newNumberList;
-  };
-
-
-  /**
-   * builds a rectangle that defines the boundaries of two numberLists interpreted as x and y coordinates
-   * @param  {NumberList} numberListX
-   * @param  {NumberList} numberListY
-   * @return {Rectangle}
-   */
-  NumberListOperators.frameFromTwoNumberLists = function(numberListX, numberListY){
-    if(numberListX==null || numberListY==null) return;
-    var intX = numberListX.getInterval();
-    var intY = numberListY.getInterval();
-    return new Rectangle(intX.x, intY.x, intX.getAmplitude(), intY.getAmplitude());
-  };
-
-  /**
-   * builds a NumberList that gives histogram counts
-   * @param  {NumberList} numberList
-   * 
-   * @param  {Number} nBins number of bins to use (default 100)
-   * @param  {Interval} interval range of values (default use actual range of input numberList)
-   * @param {Number} mode return mode<br>0:(default) return the number of numbers on each bin<br>1:return the bin index for each value
-   * @return {NumberList}
-   * tags:statistics
-   */
-  NumberListOperators.rangeCounts = function(numberList, nBins, interval, mode){
-    if(numberList==null) return;
-    nBins = nBins == null ? 100 : nBins;
-    interval = interval==null ? numberList.getInterval() : interval;
-    mode = mode || 0;
-    var nLCounts = ListGenerators.createListWithSameElement(nBins,0);
-    var f,bin,len=numberList.length;
-    var binIndexes = new NumberList();
-    for(var i=0;i<len;i++){
-      f = interval.getInverseInterpolatedValue(numberList[i]);
-      bin = Math.min(Math.floor(f*nBins),nBins-1);
-      binIndexes[i] = bin;
-      nLCounts[bin]++;
-    }
-    if(mode==1) return binIndexes;
-    return nLCounts;
-  };
-
-  /**
-   * builds a NumberTable that gives 2D histogram counts for a pair of NumberLists
-   * @param  {NumberList} nL1
-   * @param  {NumberList} nL2
-   * 
-   * @param  {Number} nBins1 number of bins to use for nL1 (default 25)
-   * @param  {Number} nBins2 number of bins to use for nL2 (default 25)
-   * @param  {Interval} int1 range of values (default use actual range of input nL1)
-   * @param  {Interval} int2 range of values (default use actual range of input nL2)
-   * @return {NumberTable}
-   * tags:statistics
-   */
-  NumberListOperators.rangeCounts2D = function(nL1,nL2,nBins1,nBins2,int1,int2){
-    if(nL1==null || nL2==null || nL1.length != nL2.length) return;
-    nBins1 = nBins1 == null ? 25 : nBins1;
-    nBins2 = nBins2 == null ? 25 : nBins2;
-    int1 = int1==null ? nL1.getInterval() : int1;
-    int2 = int2==null ? nL2.getInterval() : int2;
-    var nT = TableGenerators.createTableWithSameElement(nBins1,nBins2,0);
-    var f1,f2,bin1,bin2,len=nL1.length;
-    for(var i=0;i<len;i++){
-      f1 = int1.getInverseInterpolatedValue(nL1[i]);
-      bin1 = Math.max(0,Math.min(Math.floor(f1*nBins1),nBins1-1));
-      f2 = int2.getInverseInterpolatedValue(nL2[i]);
-      bin2 = Math.max(0,Math.min(Math.floor(f2*nBins2),nBins2-1));
-      nT[bin1][bin2]++;
-    }
-    return nT;
-  };
-
-  /**
-   * in case the numberList is sorted, it generates a new one with lower values, by subtracting consecutive numbers
-   * @param {NumberList} nl
-   *
-   * @param {Boolean} compress true (default) for compression, false for decompression
-   * @return {NumberList}
-   * tags:
-   */
-  NumberListOperators.simpleCompression = function(nl, compress){
-    if(nl==null) return null;
-
-    compress = compress==null?true:compress;
-
-    var i;
-    var newNl = new NumberList();
-
-    if(nl.length===0) return newNl;
-
-    newNl[0] = nl[0];
-
-    if(compress){
-      for(i=1; i<nl.length; i++){
-        newNl[i] = nl[i]-nl[i-1]-1;
-      }
-    } else {
-      for(i=1; i<nl.length; i++){
-        newNl[i] = newNl[i-1]+nl[i]+1;
-      }
-    }
-    return newNl;
-  };
-
-  /**
-   * Get any outliers in the numberList, based on Tukey's test (+- IQR * k)
-   * @param {NumberList} nl
-   *
-   * @param {Number} retMode 0: return outlier values(default)<br>1: return indicies of outliers<br>2: return NumberTable having values in column 0 and indicies in column 1
-   * @param {Number} kValue IQR range multiple (default=1.5), larger value limits to more extreme outliers
-   * @param {Number} limit - if specified then return at most this many outliers. The most extreme cases are returned.
-   * @return {NumberList}
-   * tags: statistics
-   */
-  NumberListOperators.getOutliers = function(nl, retMode, kValue, limit){
-    if(nl==null) return null;
-    if(kValue==null) kValue=1.5;
-    if(retMode==null) retMode=0;
-
-    // based on Tukey's test using IQR
-    var nLQ=nl.getQuantiles(4);
-    var IQR = nLQ[2]-nLQ[0];
-    var lower=nLQ[0]-kValue*IQR;
-    var upper=nLQ[2]+kValue*IQR;
-    if(IQR == 0){
-      // doesn't seem to work very well. Use a heuristic based on stDev instead
-      var sd = nl.getStandardDeviation();
-      lower = nLQ[0] - 2*kValue*sd;
-      upper = nLQ[0] + 2*kValue*sd;
-    }
-
-    var nt = new NumberTable(3); // 0 are values, 1 are indices, 2 deltas
-    nt[0].name='Values';
-    nt[1].name='Indicies';
-    // use _min and _max set inside getQuantiles to shortcut when there are no outliers
-    if(nLQ._min < lower || nLQ._max > upper)
-      for(var i=0;i<nl.length;i++){
-        if(nl[i] < lower){
-          nt[0].push(nl[i]);
-          nt[1].push(i);
-          nt[2].push(lower - nl[i]);
-        }
-        else if(nl[i] > upper){
-          nt[0].push(nl[i]);
-          nt[1].push(i);
-          nt[2].push(nl[i] - upper);
-        }
-      }
-    if(limit != null && nt[0].length > limit){
-      nt = nt.getListsSortedByList(nt[2],false);
-      if(limit==0)
-        nt = nt.getRows(new NumberList());
-      else 
-        nt = nt.sliceRows(0,Math.max(0,Math.ceil(limit)-1));
-    }
-    // remove delta column
-    nt = nt.getSubList(0,1);
-    // sort by size of outliers
-    nt = nt.getListsSortedByList(nt[0],false);
-    if(retMode == 0)
-      return nt[0];
-    else if(retMode == 1)
-      return nt[1];
-
-    return nt;
   };
 
   ColorListGenerators._HARDCODED_CATEGORICAL_COLORS = new ColorList(
@@ -15037,8 +15142,7 @@
   /**
    * Returns the leaves (nodes without children) of a tree.
    *
-   * @param {Node} node Optional parent Node to start the leaf search from.
-   * If no Node is provided, all leaf Nodes are returned.
+   * @param {Node} node Optional parent Node to start the leaf search from. If no Node is provided, all leaf Nodes are returned.
    * @return {NodeList} Leaves of the Tree or sub-tree.
    */
   Tree.prototype.getLeaves = function(node) {
@@ -17109,8 +17213,8 @@
 
   /**
    * Calculates geographic distance in meters between two points with coordinates: longitude, latitude
-   * @param  {Point} point0 geographic coordinates of first point
-   * @param  {Point} point1 geographic coordinates of second point
+   * @param  {Point} point0 geographic coordinates of first point (long, lat)
+   * @param  {Point} point1 geographic coordinates of second point (long, lat)
    * @return {Number}
    */
   GeoOperators.geoDistance = function(point0, point1) {
@@ -22274,18 +22378,22 @@
 
 
   /**
-   * return rich information about abject (working with: List and table)
+   * return rich information about abject (currently working with List and Table)
    * @param  {Object} object
    * @return {Object}
+   * tags:
    */
   ObjectOperators.buildInformationObject = function(object) {
-    console.log('object.isTable', object.isTable);
+    var infoObject;
+    if(object.isTable) infoObject = TableOperators.buildInformationObject(object);
+    if(object.isList) infoObject = ListOperators.buildInformationObject(object);
+    if(object["buildInformationObject"]) infoObject = object.buildInformationObject;
 
-    if(object.isTable) return TableOperators.buildInformationObject(object);
-    if(object.isList) return ListOperators.buildInformationObject(object);
-    if(object["buildInformationObject"]) return object.buildInformationObject;
+    if(infoObject==null) return null;
 
-    return null;
+    infoObject.objectType = infoObject.type;
+    infoObject.type = null;
+    return infoObject;
   };
 
   /**
@@ -25429,6 +25537,66 @@
    */
   function NetworkGenerators() {}
   /**
+   * Creates a network using a list and measuring the relation weight with a given method
+   * a Relation is created between two nodes if and only if the returned weight is > 0
+   * @param {List} list List of objects that define the nodes
+   * @param {Function} weightFunction method used to eval each pair of nodes
+   *
+   * @param {StringList} names optional, names of Nodes
+   * @param {Number} threshold (default: 0.3)
+   * @param {Number} weightMode relations weight mode<br>0: weight<br>1:weight -  threshold<br>2:(weight -  threshold)/(1 - threshold)
+   * @param {Boolean} symmetric (default:true) if false, assumes the function is not symmetric and creates asymmetric relations (A ->> B and B ->> A)
+   * @return {Network} a network with number of nodes equal to the length of the List
+   * tags:
+   */
+  NetworkGenerators.createNetworkFromListAndFunction = function(list, weightFunction, names, threshold, weightMode, symmetric) {
+    if(list==null || weightFunction==null) return;
+
+    var i, j;
+    var w;
+    var node, node1;
+    var network = new Network();
+    var n = list.length;
+
+    threshold = threshold==null?0.3:threshold;
+
+    for(i=0; i<n; i++){
+      network.addNode(new Node("n_"+i, names == null ? "n_"+i : names[i]));
+    }
+
+    if(symmetric){
+      for(i=0; i<n; i++){
+        node = network.nodeList[i];
+        for(j=i+1; j<n; j++){
+          node1 = network.nodeList[j];
+          w = weightFunction(list[i], list[j]);
+          if(w > threshold) {
+            if(weightMode>0) w -= threshold;
+            if(weightMode==2) w /= (1-threshold);
+            network.addRelation(new Relation(i + "_" + j, i + "_" + j, node, node1, w));
+          }
+        }
+      }
+    } else {
+      for(i=0; i<n; i++){
+        node = network.nodeList[i];
+        for(j=0; j<n; j++){
+          if(i==j) continue;
+          node1 = network.nodeList[j];
+          w = weightFunction(list[i], list[j]);
+          if(w > threshold) {
+            if(weightMode>0) w -= threshold;
+            if(weightMode==2) w /= (1-threshold);
+            network.addRelation(new Relation(i + "_" + j, i + "_" + j, node, node1, w));
+          }
+        }
+      }
+    }
+
+    return network;
+  };
+
+  /**
    * Build a random network based on the provided options
    * @param {Number} nNodes number of nodes
    * @param {Number} pRelationOrNumberOfRelations if value<1 it's G(n,p) aka Poisson random graph, the probability of a relation being created between 2 nodes, otherwise it's G(n,m) the number of relations
@@ -25626,65 +25794,6 @@
     return network;
   };
 
-  /**
-   * Creates a network using a list and measuring the relation weight with a given method
-   * a Relation is created between two nodes if and only if the returned weight is > 0
-   * @param {List} list List of objects that define the nodes
-   * @param {Function} weightFunction method used to eval each pair of nodes
-   *
-   * @param {StringList} names optional, names of Nodes
-   * @param {Number} threshold (default: 0.3)
-   * @param {Number} weightMode relations weight mode<br>0: weight<br>1:weight -  threshold<br>2:(weight -  threshold)/(1 - threshold)
-   * @param {Boolean} symmetric (default:true) if false, assumes the function is not symmetric and creates asymmetric relations (A ->> B and B ->> A)
-   * @return {Network} a network with number of nodes equal to the length of the List
-   * tags:
-   */
-  NetworkGenerators.createNetworkFromListAndFunction = function(list, weightFunction, names, threshold, weightMode, symmetric) {
-    if(list==null || weightFunction==null) return;
-
-    var i, j;
-    var w;
-    var node, node1;
-    var network = new Network();
-    var n = list.length;
-
-    threshold = threshold==null?0.3:threshold;
-
-    for(i=0; i<n; i++){
-      network.addNode(new Node("n_"+i, names == null ? "n_"+i : names[i]));
-    }
-
-    if(symmetric){
-      for(i=0; i<n; i++){
-        node = network.nodeList[i];
-        for(j=i+1; j<n; j++){
-          node1 = network.nodeList[j];
-          w = weightFunction(list[i], list[j]);
-          if(w > threshold) {
-            if(weightMode>0) w -= threshold;
-            if(weightMode==2) w /= (1-threshold);
-            network.addRelation(new Relation(i + "_" + j, i + "_" + j, node, node1, w));
-          }
-        }
-      }
-    } else {
-      for(i=0; i<n; i++){
-        node = network.nodeList[i];
-        for(j=0; j<n; j++){
-          if(i==j) continue;
-          node1 = network.nodeList[j];
-          w = weightFunction(list[i], list[j]);
-          if(w > threshold) {
-            if(weightMode>0) w -= threshold;
-            if(weightMode==2) w /= (1-threshold);
-            network.addRelation(new Relation(i + "_" + j, i + "_" + j, node, node1, w));
-          }
-        }
-      }
-    }
-
-    return network;
-  };
 
 
   /**
@@ -33697,7 +33806,10 @@
     var kyF = frame.height / frame.memory.focusFrame.height;
     var myF = -kyF * frame.memory.focusFrame.y;
 
-    var v = kxF > frame.memory.kx ? 0.05 : 0.1;
+    var v = kxF > frame.memory.kx ? 0.1 : 0.2;
+
+    if(change) v=1;
+
     var antiv = 1 - v;
 
     frame.memory.kx = antiv * frame.memory.kx + v * kxF;
