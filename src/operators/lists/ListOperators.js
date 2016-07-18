@@ -1536,7 +1536,7 @@ ListOperators.buildInformationObject = function(list){
 
   //////////// Nest properties
   infoObject.isNumeric =  list.type == "NumberList";
-  infoObject.isCategorical = infoObject.numberDifferentElements/list.length>0.8;
+  infoObject.isCategorical = infoObject.numberDifferentElements/list.length<0.8;
   infoObject.isLongTexts = false;
   infoObject.isDefault = false;
   ////////////
@@ -1630,7 +1630,7 @@ ListOperators.buildInformationObject = function(list){
     }
 
 
-    if(list.type=="StringList" && infoObject.isCategorical){
+    if(list.type=="StringList" && !infoObject.isCategorical){
       //if 80% of texts are different, they aren't reckoned as categories
       infoObject.kind = "strings";
     } else if(list.type=="StringList" && !infoObject.isCategorical){
