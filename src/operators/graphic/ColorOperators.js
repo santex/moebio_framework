@@ -39,6 +39,31 @@ ColorOperators.interpolateColorsRGB = function(color0, color1, value) {
   return [Math.floor(s * color0[0] + value * color1[0]), Math.floor(s * color0[1] + value * color1[1]), Math.floor(s * color0[2] + value * color1[2])];
 };
 
+
+/**
+ * @todo write docs
+ */
+ColorOperators.addAlpha = function(color, alpha) {
+  //var rgb = color.substr(0,3)=='rgb'?ColorOperators.colorStringToRGB(color):ColorOperators.HEXtoRGB(color);
+  var rgb = ColorOperators.colorStringToRGB(color);
+  if(rgb == null) return 'black';
+  return 'rgba(' + rgb[0] + ',' + rgb[1] + ',' + rgb[2] + ',' + alpha + ')';
+};
+
+/**
+ * @todo write docs
+ */
+ColorOperators.invertColor = function(color) {
+  var rgb = ColorOperators.colorStringToRGB(color);
+  rgb = ColorOperators.invertColorRGB(rgb[0], rgb[1], rgb[2]);
+  return ColorOperators.RGBtoHEX(rgb[0], rgb[1], rgb[2]);
+};
+
+
+
+
+
+
 /**
  * converts an hexadecimal color to RGB
  * @param {String} an hexadecimal color string
@@ -289,24 +314,7 @@ ColorOperators.invertColorRGB = function(r, g, b) {
   return [255 - r, 255 - g, 255 - b];
 };
 
-/**
- * @todo write docs
- */
-ColorOperators.addAlpha = function(color, alpha) {
-  //var rgb = color.substr(0,3)=='rgb'?ColorOperators.colorStringToRGB(color):ColorOperators.HEXtoRGB(color);
-  var rgb = ColorOperators.colorStringToRGB(color);
-  if(rgb == null) return 'black';
-  return 'rgba(' + rgb[0] + ',' + rgb[1] + ',' + rgb[2] + ',' + alpha + ')';
-};
 
-/**
- * @todo write docs
- */
-ColorOperators.invertColor = function(color) {
-  var rgb = ColorOperators.colorStringToRGB(color);
-  rgb = ColorOperators.invertColorRGB(rgb[0], rgb[1], rgb[2]);
-  return ColorOperators.RGBtoHEX(rgb[0], rgb[1], rgb[2]);
-};
 
 /**
  * @todo write docs
