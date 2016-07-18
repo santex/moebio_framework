@@ -93,8 +93,7 @@ Tree.prototype.getNodesByLevel = function(level) {
 /**
  * Returns the leaves (nodes without children) of a tree.
  *
- * @param {Node} node Optional parent Node to start the leaf search from.
- * If no Node is provided, all leaf Nodes are returned.
+ * @param {Node} node Optional parent Node to start the leaf search from. If no Node is provided, all leaf Nodes are returned.
  * @return {NodeList} Leaves of the Tree or sub-tree.
  */
 Tree.prototype.getLeaves = function(node) {
