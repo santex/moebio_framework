@@ -807,10 +807,11 @@ List.prototype.getRandomElement = function() {
  *
  * @param  {Boolean} avoidRepetitions (true by default)
  * @param {Number} randomSeed (to expect stable results)
+ * @param {Boolean} keepOrder extracts elements respecting original order [!] number of elements will ba approximatevely n
  * @return {List}
  * tags:filter
  */
-List.prototype.getRandomElements = function(n, avoidRepetitions, randomSeed) {
+List.prototype.getRandomElements = function(n, avoidRepetitions, randomSeed, keepOrder) {
   if(n==null) return;
 
   var random = randomSeed!=null ? new NumberOperators._Alea("my", randomSeed, "seeds") : Math.random;
@@ -818,11 +819,19 @@ List.prototype.getRandomElements = function(n, avoidRepetitions, randomSeed) {
   n = Math.min(n, this.length);
   var newList = instantiateWithSameType(this);
   var element;
-
-  while(newList.length < n) {
-    element = this[Math.floor(this.length * random())];
-    if(!avoidRepetitions || newList.indexOf(element) == -1) newList.push(element);
+  
+  if(keepOrder){
+    var prob = n/this.length;
+    for(var i=0; i<this.length; i++){
+      if(Math.random()<prob) newList.push(this[i]);
+    }
+  } else {
+    while(newList.length < n) {
+      element = this[Math.floor(this.length * random())];
+      if(!avoidRepetitions || newList.indexOf(element) == -1) newList.push(element);
+    }
   }
+  newList.name = this.name;
   return newList;
 };
 
@@ -1512,6 +1521,8 @@ List.prototype.concat = function() {
  * tags:conversion
  */
 List.prototype.toNumberList = function() {
+
+
   var numberList = new NumberList();
   var l = this.length;
   var i;
