@@ -126,8 +126,8 @@ StringOperators.replaceStringsInText = function(text, strings, replacement, asWo
  * @param  {String} string text to be analyzed
  *
  * @param  {Boolean} withoutRepetitions remove words repetitions
- * @param  {Boolean} stopWords remove stop words
- * @param  {Boolean} sortedByFrequency  sorted by frequency in text
+ * @param  {Boolean|StringList} stopWords remove stop words (true for default stop words, or stringList of words)
+ * @param  {Boolean} sortedByFrequency  sorted by frequency in text (default: true)
  * @param  {Boolean} includeLinks include html links
  * @param  {Number} limit of words
  * @param  {Number} minSizeWords minimal number of characters of words
@@ -166,6 +166,9 @@ StringOperators.getWords = function(string, withoutRepetitions, stopWords, sorte
 
   if(stopWords != null) { //TODO:check before if all stopwrds are strings
     //list.removeElements(stopWords);
+    
+    if(stopWords===true) stopWords = StringOperators.STOP_WORDS;
+
     nMatches = list.length;
     var nStopWords = stopWords.length;
     for(i = 0; i<nMatches; i++) {
