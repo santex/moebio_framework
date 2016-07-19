@@ -819,7 +819,7 @@ List.prototype.getRandomElements = function(n, avoidRepetitions, randomSeed, kee
   n = Math.min(n, this.length);
   var newList = instantiateWithSameType(this);
   var element;
-  
+
   if(keepOrder){
     var prob = n/this.length;
     for(var i=0; i<this.length; i++){
@@ -1467,22 +1467,23 @@ List.prototype.getFilteredByFunction = function(func) {
  * tags:
  */
 List.prototype.addElements = function(element0, element1, element2, element3, element4, element5, element6, element7, element8, element9) {
-  var newList = this.clone();
+  var array = [];
 
-  if(element0!=null) newList.push(element0);
-  if(element1!=null) newList.push(element1);
-  if(element2!=null) newList.push(element2);
-  if(element3!=null) newList.push(element3);
-  if(element4!=null) newList.push(element4);
-  if(element5!=null) newList.push(element5);
-  if(element6!=null) newList.push(element6);
-  if(element7!=null) newList.push(element7);
-  if(element8!=null) newList.push(element8);
-  if(element9!=null) newList.push(element9);
+  if(element0!=null) array.push(element0);
+  if(element1!=null) array.push(element1);
+  if(element2!=null) array.push(element2);
+  if(element3!=null) array.push(element3);
+  if(element4!=null) array.push(element4);
+  if(element5!=null) array.push(element5);
+  if(element6!=null) array.push(element6);
+  if(element7!=null) array.push(element7);
+  if(element8!=null) array.push(element8);
+  if(element9!=null) array.push(element9);
 
+  var newList = List.fromArray(this.concat(array)).getImproved();
   newList.name = this.name;
 
-  return newList.getImproved();
+  return newList;
 };
 
 
