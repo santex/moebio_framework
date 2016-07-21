@@ -99,9 +99,13 @@ ObjectOperators.getInterval = function(object){
  */
 ObjectOperators.buildInformationObject = function(object) {
   var infoObject;
-  if(object.isTable) infoObject = TableOperators.buildInformationObject(object);
-  if(object.isList) infoObject = ListOperators.buildInformationObject(object);
-  if(object["buildInformationObject"]) infoObject = object.buildInformationObject;
+  if(object.isTable){
+    infoObject = TableOperators.buildInformationObject(object);
+  } else if(object.isList){
+    infoObject = ListOperators.buildInformationObject(object);
+  } else if(object["buildInformationObject"]) {
+    infoObject = object.buildInformationObject;
+  }
 
   if(infoObject==null) return null;
 
@@ -279,6 +283,22 @@ ObjectOperators.getPropertiesNamesAndValues = function(object) {
   table[1] = table[1].getImproved();
 
   return table;
+};
+
+/**
+ * assigns a value to a property in the object ([!] this method is transformative)
+ * @param  {Object} object
+ * @param  {String} property_name
+ * @param  {String} property_value
+ * @return {Object}
+ * tags:transformative
+ */
+ObjectOperators.setPropertyValue = function(object, property_name, property_value) {
+  if(object == null) return;
+
+  object[property_name] = property_value;
+
+  return object;
 };
 
 
