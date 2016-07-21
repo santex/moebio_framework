@@ -293,6 +293,26 @@ NumberListOperators.normalizeToInterval = function(numberlist, interval) {
   return newNumberList;
 };
 
+/**
+ * Returns a numberList with accumulated values (each value in the new list being the sum of current and all previous values in the original)
+ * @param  {NumberList} numberlist NumberList to Normalize.
+ * @return {NumberList}
+ * tags:
+ */
+NumberListOperators.getAccumulativeSum = function(numberlist) {
+  if(numberlist==null || numberlist.length === 0) return;
+
+  var newNumberList = new NumberList();
+
+  newNumberList[0] = numberlist[0];
+
+  for(var i = 1; i < numberlist.length; i++) {
+    newNumberList[i] = numberlist[i] + newNumberList[i-1];
+  }
+
+  return newNumberList;
+};
+
 
 /**
  * generates a new numberList of desired size (smaller than original), with elements claculated as averages of neighbors
