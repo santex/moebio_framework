@@ -98,6 +98,8 @@ ObjectOperators.getInterval = function(object){
  * tags:
  */
 ObjectOperators.buildInformationObject = function(object) {
+  if(object==null) return null;
+  
   var infoObject;
   if(object.isTable){
     infoObject = TableOperators.buildInformationObject(object);
