@@ -32,10 +32,10 @@ export default ColorListGenerators;
  * tags:generator
  */
 ColorListGenerators.createDefaultCategoricalColorList = function(nColors, alpha, invert, bDarken) {
-  alpha = alpha == null ? 1 : alpha;
+  //alpha = alpha == null ? 1 : alpha;
   bDarken = bDarken == null ? false : bDarken;
   var colors = ColorListGenerators.createCategoricalColors(2, nColors,null,null,null,null,null,bDarken);
-  if(alpha < 1) colors = colors.addAlpha(alpha);
+  if(alpha!=null && alpha <= 1) colors = colors.addAlpha(alpha);
 
   if(invert) colors = colors.getInverted();
 
@@ -45,11 +45,13 @@ ColorListGenerators.createDefaultCategoricalColorList = function(nColors, alpha,
 /**
  * Creates a ColorList of categorical colors based on an input List. All entries with the same value will get the same color.
  * @param {List} the list containing categorical data with same length as given list
+ *
+ * @param {ColorList} optional colors to be used
  */
-ColorListGenerators.colorsForCategoricalList = function(list){
+ColorListGenerators.colorsForCategoricalList = function(list, colorList){
   if(list==null) return;
 
-  return ColorListGenerators.createCategoricalColorListForList(list)[0].value;
+  return ColorListGenerators.createCategoricalColorListForList(list, colorList)[0].value;
 };
 
 //@todo: change this method (and try to not break things)
@@ -71,28 +73,27 @@ ColorListGenerators.colorsForCategoricalList = function(list){
  * @return {Object} citionaryObject (relational array, from objects to colors)
  * tags:generator
  */
-ColorListGenerators.createCategoricalColorListForList = function(list, colorList, alpha, color, interpolate, invert, bDarken)
-{
+ColorListGenerators.createCategoricalColorListForList = function(list, colorList, alpha, color, interpolate, invert, bDarken){
 
-  if(!list)
-    return new ColorList();
-  if(!alpha)
-    alpha = 1;
-  if(!color)
-    color = "#fff";
-  if(!interpolate)
-    interpolate = 0;
-  bDarken = bDarken == null ? false : bDarken;
+  if(list==null) return null;// new ColorList();
 
-  list = List.fromArray(list);
+  //alpha = alpha == null ? 1 : alpha;
+
+  //if(!color)
+    //color = "#fff";
+  interpolate = interpolate==null?0:interpolate;
+  //bDarken = bDarken == null ? false : bDarken;
+
+  //list = List.fromArray(list);
+  
   var diffValues = list.getWithoutRepetitions();
   var diffColors;
-  if(colorList && interpolate !== 0) {
+  if(colorList && interpolate>0){
     diffColors = colorList.getInterpolated(color, interpolate);
   } else {
     diffColors = ColorListGenerators.createCategoricalColors(2, diffValues.length, null, alpha, color, interpolate, colorList,bDarken);
   }
-  if(alpha<1) diffColors = diffColors.addAlpha(alpha);
+  if(alpha!=null && alpha<=1) diffColors = diffColors.addAlpha(alpha);
 
   if(invert) diffColors = diffColors.getInverted();
 
@@ -250,8 +251,9 @@ ColorListGenerators.createColorListSpectrum = function(nColors, saturation,value
  */
 ColorListGenerators.createCategoricalColors = function(mode, nColors, colorScaleFunction, alpha, interpolateColor, interpolateValue, colorList, bDarken) {
   colorScaleFunction = colorScaleFunction == null ? ColorScales.temperature : colorScaleFunction;
-  bDarken = bDarken == null ? false : bDarken;
-  var i;
+  //bDarken = bDarken == null ? false : bDarken;
+  interpolateColor = interpolateColor==null?0:interpolateColor;
+  var i, j;
   var newColorList = new ColorList();
   switch(mode) {
     case 0: //picking from ColorScale
@@ -270,10 +272,11 @@ ColorListGenerators.createCategoricalColors = function(mode, nColors, colorScale
       var nInterpolate;
       for(i = 0; i < nColors; i++) {
         newColorList[i] = colorList[i%colorList.length];
+
         if(bDarken && i >= colorList.length){
           // move towards black
           nInterpolate = Math.floor(i/colorList.length);
-          for(var j=0; j < nInterpolate;j++){
+          for(j=0; j < nInterpolate;j++){
             newColorList[i]= ColorOperators.interpolateColors(newColorList[i],'black',0.20);
           }
         }
@@ -296,7 +299,6 @@ ColorListGenerators.createCategoricalColors = function(mode, nColors, colorScale
       var bestEvaluation = ColorListGenerators._evaluationFunction(randomPositions,bCircular,bExtendedNeighbourhood);
       var child;
       var bestChildren = randomPositions;
-      var j;
       var nr = 0;
       var evaluation;
 
@@ -326,13 +328,18 @@ ColorListGenerators.createCategoricalColors = function(mode, nColors, colorScale
       break;
   }
 
-  if(interpolateColor != null && interpolateValue != null) {
+  console.log('    A. newColorList', newColorList.join(', '));
+  console.log('     interpolateColor', interpolateColor);
+  console.log('     interpolateValue', interpolateValue);
+
+  if(interpolateColor>0 && interpolateValue != null) {
     newColorList = newColorList.getInterpolated(interpolateColor, interpolateValue);
   }
 
-  if(alpha) {
+  if(alpha!=null) {
     newColorList = newColorList.addAlpha(alpha);
   }
+
 
   return newColorList;
 };
