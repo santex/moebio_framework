@@ -1553,7 +1553,7 @@
     n = Math.min(n, this.length);
     var newList = instantiateWithSameType(this);
     var element;
-    
+
     if(keepOrder){
       var prob = n/this.length;
       for(var i=0; i<this.length; i++){
@@ -2201,22 +2201,23 @@
    * tags:
    */
   List.prototype.addElements = function(element0, element1, element2, element3, element4, element5, element6, element7, element8, element9) {
-    var newList = this.clone();
+    var array = [];
 
-    if(element0!=null) newList.push(element0);
-    if(element1!=null) newList.push(element1);
-    if(element2!=null) newList.push(element2);
-    if(element3!=null) newList.push(element3);
-    if(element4!=null) newList.push(element4);
-    if(element5!=null) newList.push(element5);
-    if(element6!=null) newList.push(element6);
-    if(element7!=null) newList.push(element7);
-    if(element8!=null) newList.push(element8);
-    if(element9!=null) newList.push(element9);
+    if(element0!=null) array.push(element0);
+    if(element1!=null) array.push(element1);
+    if(element2!=null) array.push(element2);
+    if(element3!=null) array.push(element3);
+    if(element4!=null) array.push(element4);
+    if(element5!=null) array.push(element5);
+    if(element6!=null) array.push(element6);
+    if(element7!=null) array.push(element7);
+    if(element8!=null) array.push(element8);
+    if(element9!=null) array.push(element9);
 
+    var newList = List.fromArray(this.concat(array)).getImproved();
     newList.name = this.name;
 
-    return newList.getImproved();
+    return newList;
   };
 
 
@@ -7272,6 +7273,26 @@
     return newNumberList;
   };
 
+  /**
+   * Returns a numberList with accumulated values (each value in the new list being the sum of current and all previous values in the original)
+   * @param  {NumberList} numberlist NumberList to Normalize.
+   * @return {NumberList}
+   * tags:
+   */
+  NumberListOperators.getAccumulativeSum = function(numberlist) {
+    if(numberlist==null || numberlist.length === 0) return;
+
+    var newNumberList = new NumberList();
+
+    newNumberList[0] = numberlist[0];
+
+    for(var i = 1; i < numberlist.length; i++) {
+      newNumberList[i] = numberlist[i] + newNumberList[i-1];
+    }
+
+    return newNumberList;
+  };
+
 
   /**
    * generates a new numberList of desired size (smaller than original), with elements claculated as averages of neighbors
@@ -9933,10 +9954,10 @@
    * tags:generator
    */
   ColorListGenerators.createDefaultCategoricalColorList = function(nColors, alpha, invert, bDarken) {
-    alpha = alpha == null ? 1 : alpha;
+    //alpha = alpha == null ? 1 : alpha;
     bDarken = bDarken == null ? false : bDarken;
     var colors = ColorListGenerators.createCategoricalColors(2, nColors,null,null,null,null,null,bDarken);
-    if(alpha < 1) colors = colors.addAlpha(alpha);
+    if(alpha!=null && alpha <= 1) colors = colors.addAlpha(alpha);
 
     if(invert) colors = colors.getInverted();
 
@@ -9946,11 +9967,13 @@
   /**
    * Creates a ColorList of categorical colors based on an input List. All entries with the same value will get the same color.
    * @param {List} the list containing categorical data with same length as given list
+   *
+   * @param {ColorList} optional colors to be used
    */
-  ColorListGenerators.colorsForCategoricalList = function(list){
+  ColorListGenerators.colorsForCategoricalList = function(list, colorList){
     if(list==null) return;
 
-    return ColorListGenerators.createCategoricalColorListForList(list)[0].value;
+    return ColorListGenerators.createCategoricalColorListForList(list, colorList)[0].value;
   };
 
   //@todo: change this method (and try to not break things)
@@ -9972,28 +9995,27 @@
    * @return {Object} citionaryObject (relational array, from objects to colors)
    * tags:generator
    */
-  ColorListGenerators.createCategoricalColorListForList = function(list, colorList, alpha, color, interpolate, invert, bDarken)
-  {
+  ColorListGenerators.createCategoricalColorListForList = function(list, colorList, alpha, color, interpolate, invert, bDarken){
 
-    if(!list)
-      return new ColorList();
-    if(!alpha)
-      alpha = 1;
-    if(!color)
-      color = "#fff";
-    if(!interpolate)
-      interpolate = 0;
-    bDarken = bDarken == null ? false : bDarken;
+    if(list==null) return null;// new ColorList();
 
-    list = List.fromArray(list);
+    //alpha = alpha == null ? 1 : alpha;
+
+    //if(!color)
+      //color = "#fff";
+    interpolate = interpolate==null?0:interpolate;
+    //bDarken = bDarken == null ? false : bDarken;
+
+    //list = List.fromArray(list);
+    
     var diffValues = list.getWithoutRepetitions();
     var diffColors;
-    if(colorList && interpolate !== 0) {
+    if(colorList && interpolate>0){
       diffColors = colorList.getInterpolated(color, interpolate);
     } else {
       diffColors = ColorListGenerators.createCategoricalColors(2, diffValues.length, null, alpha, color, interpolate, colorList,bDarken);
     }
-    if(alpha<1) diffColors = diffColors.addAlpha(alpha);
+    if(alpha!=null && alpha<=1) diffColors = diffColors.addAlpha(alpha);
 
     if(invert) diffColors = diffColors.getInverted();
 
@@ -10151,8 +10173,9 @@
    */
   ColorListGenerators.createCategoricalColors = function(mode, nColors, colorScaleFunction, alpha, interpolateColor, interpolateValue, colorList, bDarken) {
     colorScaleFunction = colorScaleFunction == null ? ColorScales.temperature : colorScaleFunction;
-    bDarken = bDarken == null ? false : bDarken;
-    var i;
+    //bDarken = bDarken == null ? false : bDarken;
+    interpolateColor = interpolateColor==null?0:interpolateColor;
+    var i, j;
     var newColorList = new ColorList();
     switch(mode) {
       case 0: //picking from ColorScale
@@ -10171,10 +10194,11 @@
         var nInterpolate;
         for(i = 0; i < nColors; i++) {
           newColorList[i] = colorList[i%colorList.length];
+
           if(bDarken && i >= colorList.length){
             // move towards black
             nInterpolate = Math.floor(i/colorList.length);
-            for(var j=0; j < nInterpolate;j++){
+            for(j=0; j < nInterpolate;j++){
               newColorList[i]= ColorOperators.interpolateColors(newColorList[i],'black',0.20);
             }
           }
@@ -10197,7 +10221,6 @@
         var bestEvaluation = ColorListGenerators._evaluationFunction(randomPositions,bCircular,bExtendedNeighbourhood);
         var child;
         var bestChildren = randomPositions;
-        var j;
         var nr = 0;
         var evaluation;
 
@@ -10227,13 +10250,18 @@
         break;
     }
 
-    if(interpolateColor != null && interpolateValue != null) {
+    console.log('    A. newColorList', newColorList.join(', '));
+    console.log('     interpolateColor', interpolateColor);
+    console.log('     interpolateValue', interpolateValue);
+
+    if(interpolateColor>0 && interpolateValue != null) {
       newColorList = newColorList.getInterpolated(interpolateColor, interpolateValue);
     }
 
-    if(alpha) {
+    if(alpha!=null) {
       newColorList = newColorList.addAlpha(alpha);
     }
+
 
     return newColorList;
   };
@@ -10433,8 +10461,8 @@
    * @param  {String} string text to be analyzed
    *
    * @param  {Boolean} withoutRepetitions remove words repetitions
-   * @param  {Boolean} stopWords remove stop words
-   * @param  {Boolean} sortedByFrequency  sorted by frequency in text
+   * @param  {Boolean|StringList} stopWords remove stop words (true for default stop words, or stringList of words)
+   * @param  {Boolean} sortedByFrequency  sorted by frequency in text (default: true)
    * @param  {Boolean} includeLinks include html links
    * @param  {Number} limit of words
    * @param  {Number} minSizeWords minimal number of characters of words
@@ -10473,6 +10501,9 @@
 
     if(stopWords != null) { //TODO:check before if all stopwrds are strings
       //list.removeElements(stopWords);
+      
+      if(stopWords===true) stopWords = StringOperators.STOP_WORDS;
+
       nMatches = list.length;
       var nStopWords = stopWords.length;
       for(i = 0; i<nMatches; i++) {
@@ -22384,10 +22415,16 @@
    * tags:
    */
   ObjectOperators.buildInformationObject = function(object) {
+    if(object==null) return null;
+    
     var infoObject;
-    if(object.isTable) infoObject = TableOperators.buildInformationObject(object);
-    if(object.isList) infoObject = ListOperators.buildInformationObject(object);
-    if(object["buildInformationObject"]) infoObject = object.buildInformationObject;
+    if(object.isTable){
+      infoObject = TableOperators.buildInformationObject(object);
+    } else if(object.isList){
+      infoObject = ListOperators.buildInformationObject(object);
+    } else if(object["buildInformationObject"]) {
+      infoObject = object.buildInformationObject;
+    }
 
     if(infoObject==null) return null;
 
@@ -22565,6 +22602,22 @@
     table[1] = table[1].getImproved();
 
     return table;
+  };
+
+  /**
+   * assigns a value to a property in the object ([!] this method is transformative)
+   * @param  {Object} object
+   * @param  {String} property_name
+   * @param  {String} property_value
+   * @return {Object}
+   * tags:transformative
+   */
+  ObjectOperators.setPropertyValue = function(object, property_name, property_value) {
+    if(object == null) return;
+
+    object[property_name] = property_value;
+
+    return object;
   };
 
 
