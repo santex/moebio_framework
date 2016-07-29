@@ -251,7 +251,7 @@ ListOperators.replaceNullsInList = function(list, mode, element){
           break;
         }
       }
-      
+
       if(element==null) return list;
 
       if(i==n) i1=n;
@@ -439,6 +439,7 @@ ListOperators.getSingleIndexDictionaryForList = function(list){
  * tags:dictionary
  */
 ListOperators.getIndexesDictionary = function(list){
+  if (list == null) return;
   var indexesDictionary = {};
   var i;
   var l = list.length;
@@ -551,7 +552,7 @@ ListOperators.translateWithDictionaryObject = function(list, dictionaryObject, n
       if(newList[i]==null) newList[i]=keepsOriginal?list[i]:nullElement;
     }
   }
-  
+
   newList.name = list.name;
   return newList.getImproved();
 };
@@ -579,7 +580,7 @@ ListOperators.sortListByNumberList = function(list, numberList, descending) {
  */
 ListOperators.getRankings = function(list, ascendant, randomSortingForEqualElements){
   if(list==null) return null;
-  
+
   ascendant = ascendant==null?true:ascendant;
 
   var indexes = NumberListGenerators.createSortedNumberList(list.length);
@@ -740,7 +741,7 @@ ListOperators.union = function(list0, list1) {//TODO:expand for more lists
 
   for(i = 0; i<l0; i++) obj[list0[i]] = list0[i];
   for(i = 0; i<l1; i++) obj[list1[i]] = list1[i];
-  
+
   for(k in obj) {
     //if(obj.hasOwnProperty(k)) // <-- optional
     union.push(obj[k]);
@@ -782,7 +783,7 @@ ListOperators.intersection = function(list0, list1, booleanDictionary0) {//TODO:
 
   var dictionary =  booleanDictionary0==null?ListOperators.getBooleanDictionaryForList(list0):booleanDictionary0;//{};
   var dictionaryIntersected = {};
-  
+
   intersection = new List();
 
 
@@ -1153,7 +1154,7 @@ ListOperators.aggregateList = function(aggregatorList, toAggregateList, mode, in
           index = indexes[j];
           list.push(toAggregateList[index]);
         }
-        
+
         list = list.getImproved();
 
         if(mode==16){
@@ -1326,7 +1327,7 @@ ListOperators.getListEntropy = function(list, valueFollowing, freqTable) {
   //set: {*,*,*,°,°,°,X,X,X}
   //N=9
   //norm=3
-  // -(3/9)*log(3/9)/3 -(3/9)*log(3/9)/3 -(3/9)*log(3/9)/3 
+  // -(3/9)*log(3/9)/3 -(3/9)*log(3/9)/3 -(3/9)*log(3/9)/3
   // -(3/9)*log(3/9)
   // -(1/3)*log(1/3)
   // 0.366… (is something wrong?) @todo: check this entropy algebra
@@ -1605,9 +1606,9 @@ ListOperators.buildInformationObject = function(list){
   }
 
   if(list.type != "NumberList" || infoObject.allIntegers) {
-    
+
     infoObject.categoricalColors = infoObject.frequenciesTable[3];
-    
+
     if(list.type=="StringList"){
       var textLengths = list.getLengths();
 
@@ -1772,7 +1773,7 @@ ListOperators.getReportHtml = function(list, level, infoObject) { //TODO:complet
     } else {
       text += ident + "<b>all elements are different</b>";
     }
-    
+
     if(infoObject.frequenciesTable[0].length < 10) {
       text += ident + "elements frequency:";
     } else if(infoObject.frequenciesTable[0].length < list.length){
@@ -1874,19 +1875,19 @@ ListOperators.kCombinations = function(list, k){
   if (k > list.length || k <= 0) {
     return kCombinations;
   }
-  
+
   if (k == list.length) {
     kCombinations.push(list.clone());
     return kCombinations;
   }
-  
+
   if (k == 1) {
     for (i = 0; i < list.length; i++) {
       kCombinations.push( new List(list[i]).getImproved() );
     }
     return kCombinations;
   }
-  
+
   for (i = 0; i < list.length - k + 1; i++) {
     head = list.slice(i, i+1);
     tailkCombinations = ListOperators.kCombinations(List.fromArray(list.slice(i + 1)).getImproved(), k - 1);
@@ -1917,4 +1918,3 @@ ListOperators.allSubLists = function(list, includeEmpty){
   }
   return allSubLists.getImproved();
 };
-
