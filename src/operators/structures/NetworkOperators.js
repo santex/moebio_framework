@@ -946,12 +946,11 @@ NetworkOperators._buildNetworkClustersLouvain = function(network) {
 
 
 /**
- * Adds PageRank as <strong>fromPageRank</strong> and <strong>toPageRank</strong> properties See {@link http://en.wikipedia.org/wiki/Page_rank|Page Rank} for more details. fromPageRank or toPageRank will be added as propertie to Nodes.
- * I use two different pageranks, since a Network whose relations measure influence would require a pagerank to measure nodes influence into the system.
- *
+ * Adds PageRank as <strong>fromPageRank</strong> and <strong>toPageRank</strong> properties See {@link http://en.wikipedia.org/wiki/Page_rank|Page Rank} for more details. fromPageRank or toPageRank will be added as propertie to Nodes. I use two different pageranks, since a Network whose relations measure influence would require a pagerank to measure nodes influence into the system.
  * @param {Network} network
  * @param {Boolean} From=true Optional, default:true, to set if the PageRank uses the in-relations or out-relations
- * @param {Boolean} useRelationsWeigh=false Optional, default:false, set to true if relations weight will affect the metric balance, particularly interesting if some weights are negative
+ *
+ * @param {Boolean} useRelationsWeigh (default:false) set to true if relations weight will affect the metric balance, particularly interesting if some weights are negative
  * tags:analytics,transformative
  */
 NetworkOperators.addPageRankToNodes = function(network, from, useRelationsWeight){
@@ -961,13 +960,14 @@ NetworkOperators.addPageRankToNodes = function(network, from, useRelationsWeight
   var n;
   var i;
   var j;
-  var d = 0.85; //dumping factor;
+  var d =0.85; //dumping factor;
   var N = network.nodeList.length;
   var base = (1 - d) / N;
   var propName = from ? "fromPageRank" : "toPageRank";
   var node;
   var otherNode;
   var nodeList;
+  var weights, w=1;
 
   network.minFromPageRank = network.minToPageRank = 99999999;
   network.maxFromPageRank = network.maxToPageRank = -99999999;
@@ -985,12 +985,18 @@ NetworkOperators.addPageRankToNodes = function(network, from, useRelationsWeight
       nodeList = from ? node.fromNodeList : node.toNodeList;
       node[propName] = base;
 
+      if(useRelationsWeight) weights = from ? node.fromRelationList : node.toRelationList;
+
       for(j = 0; nodeList[j] != null; j++) {
         otherNode = nodeList[j];
-        node[propName] += d * otherNode[propName] / (from ? otherNode.toNodeList.length : otherNode.fromNodeList.length);
+        if(useRelationsWeight) w = weights[j].weight;
+        node[propName] += w * d * otherNode[propName] / (from ? otherNode.toNodeList.length : otherNode.fromNodeList.length);
       }
 
       if(n == 299) {
+
+        if(useRelationsWeight) node[propName] = Math.pow(node[propName], 4);
+
         if(from) {
           network.minFromPageRank = Math.min(network.minFromPageRank, node[propName]);
           network.maxFromPageRank = Math.max(network.maxFromPageRank, node[propName]);
@@ -1001,6 +1007,7 @@ NetworkOperators.addPageRankToNodes = function(network, from, useRelationsWeight
       }
     }
   }
+
 };
 
 
