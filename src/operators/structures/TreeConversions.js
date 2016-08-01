@@ -57,9 +57,10 @@ TreeConversions.TableToTree = function(table, fatherName, colorsOnLeaves)  {
   }
 
   for(i=0; i<nLists; i++){
+    if (table[i] == null) continue;
     list = table[i];
     //if(list.length!=nElements) return null;
-    
+
     for(j=0; j<list.length; j++){
       element = list[j];
 
@@ -70,14 +71,14 @@ TreeConversions.TableToTree = function(table, fatherName, colorsOnLeaves)  {
           node = new Node(id, String(element));
 
           if( colorsOnLeaves && i==(nLists-1) ) {
-            
+
             node.color = leavesColorsDictionary[element];
           }
 
           if(i === 0) {
             tree.addNodeToTree(node, father);
           } else {
-            
+
             parent = tree.nodeList.getNodeById(TreeConversions._getId(table, i - 1, j));
 
             tree.addNodeToTree(node, parent);
