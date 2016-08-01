@@ -1,3 +1,5 @@
+import NumberOperators from "src/operators/numeric/NumberOperators";
+
 /**
  * @classdesc Provides a set of tools that work with Colors.
  *
@@ -9,9 +11,7 @@ export default ColorOperators;
 // TODO: create Color struture to be used instead of arrays [255, 100,0] ?
 
 /**
- * return a color between color0 and color1
- * 0 -> color0
- * 1 -> color1
+ * return a color between color0 and color1<br>0 -> color0<br>1 -> color1
  * @param {String} color0
  * @param {String} color1
  * @param value between 0 and 1 (to obtain color between color0 and color1)
@@ -60,7 +60,25 @@ ColorOperators.invertColor = function(color) {
 };
 
 
-
+/**
+ * associates a color to any string
+ * @param {String} any string
+ * @return {String} associated color
+ */
+ColorOperators.stringToColor = function(string){
+  if(string==null) return;
+  //var colors =  ColorListGenerators._HARDCODED_CATEGORICAL_COLORS //Some strange issue that prevents from importing ColorListGenerators
+  var colors =  [
+  "#d62728", "#1f77b4", "#2ca02c", "#ff7f00", "#9467bd", "#bcbd22", "#8c564b", "#17becf", "#dd4411", "#206010", "#e377c2", "#2200bb", "#dd8811", "#ff220e", "#1f66a3", "#8c453a", "#2ba01c", "#dfc500", "#945600", "#ff008b", "#e37700", "#7f7f7f",
+  "#d62720", "#1f77b0", "#2ca02a", "#ff7f08", "#9467ba", "#bcbd20", "#8c564f", "#17becf", "#dd4418", "#206010", "#e377c9", "#2200bf", "#dd8818", "#ff220a", "#1f66a9", "#8c453f", "#2ba01f", "#dfc508", "#945608", "#ff008f", "#e37708"
+  ];
+  var number = 0;
+  for(var i = 0; i<string.length; i++){
+    number += string.charCodeAt(i)*(i*i+1);
+  }
+  return colors[ Math.floor(  NumberOperators.getRandomWithSeed(number)*colors.length ) ];
+  //return colors[Math.floor( (100*number - Math.floor(100*number))*colors.length ) ];
+};
 
 
 
@@ -68,7 +86,6 @@ ColorOperators.invertColor = function(color) {
  * converts an hexadecimal color to RGB
  * @param {String} an hexadecimal color string
  * @return {Array} returns an RGB color Array
- *
  */
 ColorOperators.HEXtoRGB = function(hexColor) {
   return [parseInt(hexColor.substr(1, 2), 16), parseInt(hexColor.substr(3, 2), 16), parseInt(hexColor.substr(5, 2), 16)];
