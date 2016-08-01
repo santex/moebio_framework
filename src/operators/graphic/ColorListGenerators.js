@@ -4,13 +4,8 @@ import NumberListGenerators from "src/operators/numeric/numberList/NumberListGen
 import ListOperators from "src/operators/lists/ListOperators";
 import ColorOperators from "src/operators/graphic/ColorOperators";
 import Table from "src/dataTypes/lists/Table";
-import List from "src/dataTypes/lists/List";
 import NumberListOperators from "src/operators/numeric/numberList/NumberListOperators";
 
-ColorListGenerators._HARDCODED_CATEGORICAL_COLORS = new ColorList(
-  "#d62728", "#1f77b4", "#2ca02c", "#ff7f00", "#9467bd", "#bcbd22", "#8c564b", "#17becf", "#dd4411", "#206010", "#e377c2",
-  "#2200bb", "#dd8811", "#ff220e", "#1f66a3", "#8c453a", "#2ba01c", "#dfc500", "#945600", "#ff008b", "#e37700", "#7f7f7f"
-);
 
 /**
  * @classdesc Tools for generating {@link List|Lists} of colors.
@@ -20,6 +15,11 @@ ColorListGenerators._HARDCODED_CATEGORICAL_COLORS = new ColorList(
  */
 function ColorListGenerators() {}
 export default ColorListGenerators;
+
+ColorListGenerators._HARDCODED_CATEGORICAL_COLORS = new ColorList(
+  "#d62728", "#1f77b4", "#2ca02c", "#ff7f00", "#9467bd", "#bcbd22", "#8c564b", "#17becf", "#dd4411", "#206010", "#e377c2",
+  "#2200bb", "#dd8811", "#ff220e", "#1f66a3", "#8c453a", "#2ba01c", "#dfc500", "#945600", "#ff008b", "#e37700", "#7f7f7f"
+);
 
 /**
  * create a simple list of categorical colors
@@ -210,9 +210,7 @@ ColorListGenerators.createColorListWithSingleColor = function(nColors, color) {
 
 
 /**
- * Creates a new ColorList from the full spectrum. Size of the List
- * is controlled by the nColors input.
- *
+ * Creates a new ColorList from the full spectrum. Size of the List is controlled by the nColors input
  * @param {Number} nColors Length of the list (default 8).
  * @param {Number} saturation in range [0,1]
  * @param {Number} value in range [0,1]
@@ -232,6 +230,24 @@ ColorListGenerators.createColorListSpectrum = function(nColors, saturation,value
     colorList.push(ColorOperators.HSVtoHEX(hue,saturation,value));
   }
   return colorList;
+};
+
+/**
+ * Creates a colorList with a color associated to each different string (the color is produced from its characters)
+ * @param {List} list
+ * @return {ColorList} ColorList with spectrum colors
+ * tags:generator
+*/
+ColorListGenerators.stringsToColors = function(list){
+  if(list==null) return;
+
+  var colors =  new ColorList();
+
+  for(var i=0; i<list.length; i++){
+    colors[i] = ColorOperators.stringToColor(String(list[i]));
+  }
+
+  return colors;
 };
 
 
