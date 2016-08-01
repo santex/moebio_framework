@@ -659,7 +659,7 @@ List.prototype.countOccurrences = function() { //TODO: more efficient
  * tags:count
  * previous_name:getElementsRepetitionCount
  */
-List.prototype.getFrequenciesTable = function(sortListsByOccurrences, addWeightsNormalizedToSum, addCategoricalColors,nLWeights) {
+List.prototype.getFrequenciesTable = function(sortListsByOccurrences, addWeightsNormalizedToSum, addCategoricalColors, nLWeights) {
   sortListsByOccurrences = sortListsByOccurrences == null?true:sortListsByOccurrences;
 
   var table = new Table();
@@ -689,19 +689,27 @@ List.prototype.getFrequenciesTable = function(sortListsByOccurrences, addWeights
       numberList[index]++;
   }
 
+  numberList.name = "occurences";
+
   if(sortListsByOccurrences){
     table[0] = elementList.getSortedByList(numberList, false);
     table[1] = numberList.getSorted(false);
     table._indexesDictionary = null;
   }
 
-  if(addWeightsNormalizedToSum) table[2] = NumberListOperators.normalizeToSum(table[1]);
+  if(addWeightsNormalizedToSum){
+    table[2] = NumberListOperators.normalizeToSum(table[1]);
+    table[2].name = "occurences normalized to sum";
+  }
+
   if(addCategoricalColors){
-    var colors = new ColorList();
-    l = table[0].length;
-    for(i = 0; i<l; i++) {
-      colors[i] = ColorListGenerators._HARDCODED_CATEGORICAL_COLORS[i%ColorListGenerators._HARDCODED_CATEGORICAL_COLORS.length];
-    }
+    //var colors = new ColorList();
+    //l = table[0].length;
+    //for(i = 0; i<l; i++) {
+    //  colors[i] = ColorListGenerators._HARDCODED_CATEGORICAL_COLORS[i%ColorListGenerators._HARDCODED_CATEGORICAL_COLORS.length];
+    //}
+    var colors = ColorListGenerators.stringsToColors(table[0]);
+    colors.name = "categorical colors";
     table.push(colors);
   }
 
@@ -1487,11 +1495,13 @@ List.prototype.addElements = function(element0, element1, element2, element3, el
 };
 
 
-List.prototype.concat = function() {
+List.prototype.concat = function() {//fix this
   if(arguments[0] == null) return this;
 
   if(arguments[0].type == this.type) {//var type = … / switch/case
-    if(this.type == "NumberList") {
+    if(this.type == "Table") {
+      return Table.fromArray(this._concat.apply(this, arguments), false);
+    } else if(this.type == "NumberList") {
       return NumberList.fromArray(this._concat.apply(this, arguments), false);
     } else if(this.type == "StringList") {
       return StringList.fromArray(this._concat.apply(this, arguments), false);
