@@ -1353,7 +1353,7 @@ ListOperators.getListEntropy = function(list, valueFollowing, freqTable) {
 ListOperators.getInformationGain = function(feature, supervised) {
   if(feature == null || supervised == null || feature.length != supervised.length) return null;
 
-  var ig = ListOperators.getListEntropy(supervised);
+  var ig = supervised.infoObject==null?ListOperators.getListEntropy(supervised):supervised.infoObject.entropy;
   var childrenObject = {};
   var childrenLists = new Table();
   var i;
@@ -1386,7 +1386,7 @@ ListOperators.getInformationGain = function(feature, supervised) {
     //console.log("     childrenLists[i].length", childrenLists[i].length);
     //console.log("     (childrenLists[i].length / n_total)", (childrenLists[i].length / n_total));
     //console.log("     (childrenLists[i].length / n_total) * ListOperators.getListEntropy(childrenLists[i])", (childrenLists[i].length / n_total) * ListOperators.getListEntropy(childrenLists[i]));
-    ig -= (childrenLists[i].length / n_total) * ListOperators.getListEntropy(childrenLists[i]);
+    ig -= (childrenLists[i].length / n_total) * (childrenLists[i].infoObject==null?ListOperators.getListEntropy(childrenLists[i]):childrenLists[i].infoObject.entropy);
   }
   //});
 
