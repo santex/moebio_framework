@@ -151,7 +151,7 @@ RectangleOperators.packingRectangles = function(weights, packingMode, rectangle,
 
       }
     case 4:
-      return europeQuadrigram(weights);
+      //return europeQuadrigram(weights);
     case 5:
       param = param || 0;
       var nLists;
