@@ -1855,8 +1855,6 @@ TableOperators.buildDecisionTree = function(variablesTable, supervised, supervis
   var indexes = NumberListGenerators.createSortedNumberList(supervised.length);
   var tree = new Tree();
 
-  console.log('TableOperators.buildDecisionTree');
-
   TableOperators._buildDecisionTreeNode(tree, variablesTable, supervised, 0, min_entropy, min_size_node, min_info_gain, null, null, supervisedValue, indexes, generatePattern, colorScale);
 
   return tree;
@@ -1923,22 +1921,22 @@ TableOperators._buildDecisionTreeNode = function(tree, variablesTable, supervise
   node.valueFollowingProbability = supervised._P_valueFollowing;
   node.lift = node.valueFollowingProbability / tree.nodeList[0].valueFollowingProbability; //Math.log(node.valueFollowingProbability/tree.nodeList[0].valueFollowingProbability)/Math.log(2);
 
-  if(level < 4) {
-    console.log('supervisedValue', supervisedValue);
-    console.log('supervised.countElement(supervisedValue)', supervised.countElement(supervisedValue));
-    console.log('value', value);
-    console.log('name', name);
-    console.log('supervised.name', supervised.name);
-    console.log('supervised.length', supervised.length);
-    console.log('supervised._biggestProbability, supervised._P_valueFollowing', supervised._biggestProbability, supervised._P_valueFollowing);
-    console.log('node.valueFollowingProbability (=supervised._P_valueFollowing):', node.valueFollowingProbability);
-    console.log('tree.nodeList[0].valueFollowingProbability', tree.nodeList[0].valueFollowingProbability);
-    console.log('node.biggestProbability (=_biggestProbability):', node.biggestProbability);
-    console.log('node.mostRepresentedValue:', node.mostRepresentedValue);
-    console.log('node.mostRepresentedValue==supervisedValue', node.mostRepresentedValue == supervisedValue);
-  }
+  // if(level < 4) {
+  //   console.log('supervisedValue', supervisedValue);
+  //   console.log('supervised.countElement(supervisedValue)', supervised.countElement(supervisedValue));
+  //   console.log('value', value);
+  //   console.log('name', name);
+  //   console.log('supervised.name', supervised.name);
+  //   console.log('supervised.length', supervised.length);
+  //   console.log('supervised._biggestProbability, supervised._P_valueFollowing', supervised._biggestProbability, supervised._P_valueFollowing);
+  //   console.log('node.valueFollowingProbability (=supervised._P_valueFollowing):', node.valueFollowingProbability);
+  //   console.log('tree.nodeList[0].valueFollowingProbability', tree.nodeList[0].valueFollowingProbability);
+  //   console.log('node.biggestProbability (=_biggestProbability):', node.biggestProbability);
+  //   console.log('node.mostRepresentedValue:', node.mostRepresentedValue);
+  //   console.log('node.mostRepresentedValue==supervisedValue', node.mostRepresentedValue == supervisedValue);
+  // }
 
-  node._color = colorScale(node.valueFollowingProbability); //TableOperators._decisionTreeColorScale(1 - node.valueFollowingProbability, colorScale);
+  node._color = colorScale(1-node.valueFollowingProbability); //TableOperators._decisionTreeColorScale(1 - node.valueFollowingProbability, colorScale);
 
   if(generatePattern) {
     var newCanvas = document.createElement("canvas");
