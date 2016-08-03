@@ -30,7 +30,7 @@ export default NetworkGenerators;
  * @param {StringList} names optional, names of Nodes
  * @param {Number} threshold (default: 0.3)
  * @param {Number} weightMode relations weight mode<br>0: weight<br>1:weight -  threshold<br>2:(weight -  threshold)/(1 - threshold)
- * @param {Boolean} symmetric (default:true) if false, assumes the function is not symmetric and creates asymmetric relations (A ->> B and B ->> A)
+ * @param {Boolean} symmetric (default:false) if false, assumes the function is not symmetric and creates asymmetric relations (A ->> B and B ->> A)
  * @return {Network} a network with number of nodes equal to the length of the List
  * tags:
  */
@@ -46,7 +46,10 @@ NetworkGenerators.createNetworkFromListAndFunction = function(list, weightFuncti
   threshold = threshold==null?0.3:threshold;
 
   for(i=0; i<n; i++){
-    network.addNode(new Node("n_"+i, names == null ? "n_"+i : names[i]));
+    node = new Node("n_"+i, names == null ? "n_"+i : names[i]);
+    node.element = list[i];
+    node.i = i;
+    network.addNode(node);
   }
 
   if(symmetric){
