@@ -891,17 +891,27 @@ TreeDraw.drawDecisionTree = function(frame, tree, textColor, graphics) {
 TreeDraw._generateRectanglesDecision = function(node, hLevel) {
 
   var weights = new NumberList();
-  node.toNodeList.forEach(function(node) {
-    weights.push(node.weight);
-  });
+  var child;
+
+  for(var i =0; i<node.toNodeList.length; i++){
+    child = node.toNodeList[i];
+    weights[i] = child.weight;
+  }
+
+  //node.toNodeList.forEach(function(node) {
+  //  weights.push(node.weight);
+  //});
 
   var rectangles = TreeDraw._horizontalRectanglesDecision(node._inRectangle, weights);
 
-  node.toNodeList.forEach(function(child, i) {
+  //node.toNodeList.forEach(function(child, i) {
+  for(i =0; i<node.toNodeList.length; i++){
+    child = node.toNodeList[i];
     child._outRectangle = rectangles[i];
     child._inRectangle = TreeDraw._inRectFromOutRectDecision(child._outRectangle, hLevel);
     TreeDraw._generateRectanglesDecision(child, hLevel);
-  });
+  }
+  //});
 };
 
 /**
