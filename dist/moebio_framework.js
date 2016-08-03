@@ -1374,10 +1374,18 @@
    */
   List.prototype.countOccurrences = function() { //TODO: more efficient
     var occurrences = new NumberList();
+    var dictionary = {};
     var l = this.length;
+    
     for(var i = 0; i<l; i++) {
-      occurrences[i] = this.indexesOf(this[i]).length;
+      if(dictionary[this[i]]==null) dictionary[this[i]] = 0;
+      dictionary[this[i]]++;
     }
+
+    for(i = 0; i<l; i++) {
+      occurrences[i] = dictionary[this[i]];
+    }
+
     return occurrences;
   };
 
@@ -4998,12 +5006,11 @@
   };
 
   /**
-   * Expands Rectangle by multiplying dimensions by the given expansion around a
-   * given center point. If no center point is provided, the new Rectangle is
-   * expanded around the center of the current Rectangle.
-   * @param {Number} expansion Factor to expand by.
-   * @param {Point} centerPoint Center point of the expansion. Center of Rectangle by default.
-   * @return {Rectangle} Expanded Rectangle.
+   * Expands Rectangle by multiplying dimensions by the given expansion around a given center point. If no center point is provided, the new Rectangle is expanded around the center of the current Rectangle.
+   * @param {Number} expansion Factor to expand by
+   *
+   * @param {Point} centerPoint Center point of the expansion. Center of Rectangle by default
+   * @return {Rectangle} Expanded Rectangle
    */
   Rectangle.prototype.expand = function(expansion, centerPoint) {
     centerPoint = centerPoint || new _Point(this.x + 0.5 * this.width, this.y + 0.5 * this.height);
@@ -6204,6 +6211,8 @@
    * prefix and sufix can be string or a StringList
    */
   StringList.prototype.getSurrounded = function(prefix, sufix) {//to be deprecated
+    sufix = sufix==null?"":sufix;
+    
     var newStringList = new StringList();
     newStringList.name = this.name;
     var i;
@@ -9391,7 +9400,7 @@
   ListOperators.getInformationGain = function(feature, supervised) {
     if(feature == null || supervised == null || feature.length != supervised.length) return null;
 
-    var ig = ListOperators.getListEntropy(supervised);
+    var ig = supervised.infoObject==null?ListOperators.getListEntropy(supervised):supervised.infoObject.entropy;
     var childrenObject = {};
     var childrenLists = new Table();
     var i;
@@ -9424,7 +9433,7 @@
       //console.log("     childrenLists[i].length", childrenLists[i].length);
       //console.log("     (childrenLists[i].length / n_total)", (childrenLists[i].length / n_total));
       //console.log("     (childrenLists[i].length / n_total) * ListOperators.getListEntropy(childrenLists[i])", (childrenLists[i].length / n_total) * ListOperators.getListEntropy(childrenLists[i]));
-      ig -= (childrenLists[i].length / n_total) * ListOperators.getListEntropy(childrenLists[i]);
+      ig -= (childrenLists[i].length / n_total) * (childrenLists[i].infoObject==null?ListOperators.getListEntropy(childrenLists[i]):childrenLists[i].infoObject.entropy);
     }
     //});
 
@@ -17478,7 +17487,7 @@
 
         }
       case 4:
-        return europeQuadrigram(weights);
+        //return europeQuadrigram(weights);
       case 5:
         param = param || 0;
         var nLists;
@@ -20027,8 +20036,6 @@
     var indexes = NumberListGenerators.createSortedNumberList(supervised.length);
     var tree = new Tree();
 
-    console.log('TableOperators.buildDecisionTree');
-
     TableOperators._buildDecisionTreeNode(tree, variablesTable, supervised, 0, min_entropy, min_size_node, min_info_gain, null, null, supervisedValue, indexes, generatePattern, colorScale);
 
     return tree;
@@ -20095,22 +20102,22 @@
     node.valueFollowingProbability = supervised._P_valueFollowing;
     node.lift = node.valueFollowingProbability / tree.nodeList[0].valueFollowingProbability; //Math.log(node.valueFollowingProbability/tree.nodeList[0].valueFollowingProbability)/Math.log(2);
 
-    if(level < 4) {
-      console.log('supervisedValue', supervisedValue);
-      console.log('supervised.countElement(supervisedValue)', supervised.countElement(supervisedValue));
-      console.log('value', value);
-      console.log('name', name);
-      console.log('supervised.name', supervised.name);
-      console.log('supervised.length', supervised.length);
-      console.log('supervised._biggestProbability, supervised._P_valueFollowing', supervised._biggestProbability, supervised._P_valueFollowing);
-      console.log('node.valueFollowingProbability (=supervised._P_valueFollowing):', node.valueFollowingProbability);
-      console.log('tree.nodeList[0].valueFollowingProbability', tree.nodeList[0].valueFollowingProbability);
-      console.log('node.biggestProbability (=_biggestProbability):', node.biggestProbability);
-      console.log('node.mostRepresentedValue:', node.mostRepresentedValue);
-      console.log('node.mostRepresentedValue==supervisedValue', node.mostRepresentedValue == supervisedValue);
-    }
+    // if(level < 4) {
+    //   console.log('supervisedValue', supervisedValue);
+    //   console.log('supervised.countElement(supervisedValue)', supervised.countElement(supervisedValue));
+    //   console.log('value', value);
+    //   console.log('name', name);
+    //   console.log('supervised.name', supervised.name);
+    //   console.log('supervised.length', supervised.length);
+    //   console.log('supervised._biggestProbability, supervised._P_valueFollowing', supervised._biggestProbability, supervised._P_valueFollowing);
+    //   console.log('node.valueFollowingProbability (=supervised._P_valueFollowing):', node.valueFollowingProbability);
+    //   console.log('tree.nodeList[0].valueFollowingProbability', tree.nodeList[0].valueFollowingProbability);
+    //   console.log('node.biggestProbability (=_biggestProbability):', node.biggestProbability);
+    //   console.log('node.mostRepresentedValue:', node.mostRepresentedValue);
+    //   console.log('node.mostRepresentedValue==supervisedValue', node.mostRepresentedValue == supervisedValue);
+    // }
 
-    node._color = colorScale(node.valueFollowingProbability); //TableOperators._decisionTreeColorScale(1 - node.valueFollowingProbability, colorScale);
+    node._color = colorScale(1-node.valueFollowingProbability); //TableOperators._decisionTreeColorScale(1 - node.valueFollowingProbability, colorScale);
 
     if(generatePattern) {
       var newCanvas = document.createElement("canvas");
@@ -25658,7 +25665,7 @@
    * @param {StringList} names optional, names of Nodes
    * @param {Number} threshold (default: 0.3)
    * @param {Number} weightMode relations weight mode<br>0: weight<br>1:weight -  threshold<br>2:(weight -  threshold)/(1 - threshold)
-   * @param {Boolean} symmetric (default:true) if false, assumes the function is not symmetric and creates asymmetric relations (A ->> B and B ->> A)
+   * @param {Boolean} symmetric (default:false) if false, assumes the function is not symmetric and creates asymmetric relations (A ->> B and B ->> A)
    * @return {Network} a network with number of nodes equal to the length of the List
    * tags:
    */
@@ -25674,7 +25681,10 @@
     threshold = threshold==null?0.3:threshold;
 
     for(i=0; i<n; i++){
-      network.addNode(new Node("n_"+i, names == null ? "n_"+i : names[i]));
+      node = new Node("n_"+i, names == null ? "n_"+i : names[i]);
+      node.element = list[i];
+      node.i = i;
+      network.addNode(node);
     }
 
     if(symmetric){
@@ -34514,17 +34524,27 @@
   TreeDraw._generateRectanglesDecision = function(node, hLevel) {
 
     var weights = new NumberList();
-    node.toNodeList.forEach(function(node) {
-      weights.push(node.weight);
-    });
+    var child;
+
+    for(var i =0; i<node.toNodeList.length; i++){
+      child = node.toNodeList[i];
+      weights[i] = child.weight;
+    }
+
+    //node.toNodeList.forEach(function(node) {
+    //  weights.push(node.weight);
+    //});
 
     var rectangles = TreeDraw._horizontalRectanglesDecision(node._inRectangle, weights);
 
-    node.toNodeList.forEach(function(child, i) {
+    //node.toNodeList.forEach(function(child, i) {
+    for(i =0; i<node.toNodeList.length; i++){
+      child = node.toNodeList[i];
       child._outRectangle = rectangles[i];
       child._inRectangle = TreeDraw._inRectFromOutRectDecision(child._outRectangle, hLevel);
       TreeDraw._generateRectanglesDecision(child, hLevel);
-    });
+    }
+    //});
   };
 
   /**
