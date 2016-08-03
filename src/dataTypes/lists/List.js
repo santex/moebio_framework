@@ -640,10 +640,18 @@ List.prototype.countElement = function(element) {
  */
 List.prototype.countOccurrences = function() { //TODO: more efficient
   var occurrences = new NumberList();
+  var dictionary = {};
   var l = this.length;
+  
   for(var i = 0; i<l; i++) {
-    occurrences[i] = this.indexesOf(this[i]).length;
+    if(dictionary[this[i]]==null) dictionary[this[i]] = 0;
+    dictionary[this[i]]++;
   }
+
+  for(i = 0; i<l; i++) {
+    occurrences[i] = dictionary[this[i]];
+  }
+
   return occurrences;
 };
 
