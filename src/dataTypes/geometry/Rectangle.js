@@ -212,12 +212,11 @@ Rectangle.prototype.containsRectangle=function(rectangle){
 };
 
 /**
- * Expands Rectangle by multiplying dimensions by the given expansion around a
- * given center point. If no center point is provided, the new Rectangle is
- * expanded around the center of the current Rectangle.
- * @param {Number} expansion Factor to expand by.
- * @param {Point} centerPoint Center point of the expansion. Center of Rectangle by default.
- * @return {Rectangle} Expanded Rectangle.
+ * Expands Rectangle by multiplying dimensions by the given expansion around a given center point. If no center point is provided, the new Rectangle is expanded around the center of the current Rectangle.
+ * @param {Number} expansion Factor to expand by
+ *
+ * @param {Point} centerPoint Center point of the expansion. Center of Rectangle by default
+ * @return {Rectangle} Expanded Rectangle
  */
 Rectangle.prototype.expand = function(expansion, centerPoint) {
   centerPoint = centerPoint || new Point(this.x + 0.5 * this.width, this.y + 0.5 * this.height);
