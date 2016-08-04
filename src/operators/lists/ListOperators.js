@@ -1527,11 +1527,14 @@ ListOperators._groupElements_Base = function(list, propertyName, sortedByValue, 
 /**
  * builds an object with statistical information about the list (infoObject property will be added to the list)
  * @param  {List} list
+ *
+ * @param  {Boolean} bUseExistingObjectIfPresent (default is false)
  * @return {Object}
  */
-ListOperators.buildInformationObject = function(list){
+ListOperators.buildInformationObject = function(list, bUseExistingObjectIfPresent){
   if(list==null) return;
-
+  if(bUseExistingObjectIfPresent == true && list.infoObject != null)
+    return list.infoObject;
   var n = list.length;
   var i, val;
 
