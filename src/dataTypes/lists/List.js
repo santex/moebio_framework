@@ -1482,7 +1482,7 @@ List.prototype.getFilteredByFunction = function(func) {
  * @return {List}
  * tags:
  */
-List.prototype.addElements = function(element0, element1, element2, element3, element4, element5, element6, element7, element8, element9) {
+List.prototype.addElements = function(element0, element1, element2, element3, element4, element5, element6, element7, element8, element9, element10, element11) {//@todo: use arguments
   var array = [];
 
   if(element0!=null) array.push(element0);
@@ -1495,6 +1495,8 @@ List.prototype.addElements = function(element0, element1, element2, element3, el
   if(element7!=null) array.push(element7);
   if(element8!=null) array.push(element8);
   if(element9!=null) array.push(element9);
+  if(element10!=null) array.push(element10);
+  if(element11!=null) array.push(element11);
 
   var newList = List.fromArray(this.concat(array)).getImproved();
   newList.name = this.name;
