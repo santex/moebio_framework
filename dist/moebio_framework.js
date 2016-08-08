@@ -2216,7 +2216,7 @@
    * @return {List}
    * tags:
    */
-  List.prototype.addElements = function(element0, element1, element2, element3, element4, element5, element6, element7, element8, element9) {
+  List.prototype.addElements = function(element0, element1, element2, element3, element4, element5, element6, element7, element8, element9, element10, element11) {//@todo: use arguments
     var array = [];
 
     if(element0!=null) array.push(element0);
@@ -2229,6 +2229,8 @@
     if(element7!=null) array.push(element7);
     if(element8!=null) array.push(element8);
     if(element9!=null) array.push(element9);
+    if(element10!=null) array.push(element10);
+    if(element11!=null) array.push(element11);
 
     var newList = List.fromArray(this.concat(array)).getImproved();
     newList.name = this.name;
@@ -5015,6 +5017,30 @@
   Rectangle.prototype.expand = function(expansion, centerPoint) {
     centerPoint = centerPoint || new _Point(this.x + 0.5 * this.width, this.y + 0.5 * this.height);
     return new Rectangle((this.x - centerPoint.x) * expansion + centerPoint.x, (this.y - centerPoint.y) * expansion + centerPoint.y, this.width * expansion, this.height * expansion);
+  };
+
+  /**
+   * Horizontally expands Rectangle by multiplying width by the given expansion around a given center value. If no center point is provided, the new Rectangle is expanded around the center of the current Rectangle.
+   * @param {Number} expansion Factor to expand by
+   *
+   * @param {Number} x Center point of the expansion. Center of Rectangle by default
+   * @return {Rectangle} Expanded Rectangle
+   */
+  Rectangle.prototype.expandHorizontal = function(expansion, x) {
+    x = x || this.x + 0.5 * this.width;
+    return new Rectangle((this.x - x)*expansion + x, this.y, this.width*expansion, this.height);
+  };
+
+  /**
+   * Vertically expands Rectangle by multiplying width by the given expansion around a given center value. If no center point is provided, the new Rectangle is expanded around the center of the current Rectangle.
+   * @param {Number} expansion Factor to expand by
+   *
+   * @param {Number} x Center point of the expansion. Center of Rectangle by default
+   * @return {Rectangle} Expanded Rectangle
+   */
+  Rectangle.prototype.expandVertical = function(expansion, y) {
+    y = y || this.y + 0.5 * this.height;
+    return new Rectangle(this.x, (this.y - y)*expansion + y, this.width, this.height*expansion);
   };
 
   /**
@@ -7900,6 +7926,13 @@
   /**
    * @todo write docs
    */
+  ColorScales.lightTemperature = function(value) {
+    return ColorScales.temperature(0.1+value*0.9);
+  };
+
+  /**
+   * @todo write docs
+   */
   ColorScales.sqrtTemperature = function(value) {
     return ColorScales.temperature(Math.sqrt(value));
   };
@@ -9349,6 +9382,8 @@
       }
       return 0;
     }
+
+    if(list.infoObject!=null) freqTable = list.infoObject.frequenciesTable;
 
     if(freqTable==null) freqTable = list.getFrequenciesTable(true);// ListOperators.countElementsRepetitionOnList(list, true);
 
@@ -14890,6 +14925,27 @@
     this._update();
   };
 
+  /**
+   * horizontally scales arrival frame from point (expressed in arrival coordinates)
+   * @param {Number} dS ampunt of scale, typically a number close to 1
+   *
+   * @param  {Number} x horizontal position of center for scaling, in terms of arrival frame (by default: center of arrival frame)
+   */
+  Axis2D.prototype.scaleX = function(dS, x){
+    this.arrivalFrame = this.arrivalFrame.expandHorizontal(dS, x);
+    this._update();
+  };
+
+  /**
+   * vertically scales arrival frame from point (expressed in arrival coordinates)
+   * @param {Number} dS ampunt of scale, typically a number close to 1
+   *
+   * @param  {Number} y vertical position of center for scaling, in terms of arrival frame (by default: center of arrival frame)
+   */
+  Axis2D.prototype.scaleY = function(dS, y){
+    this.arrivalFrame = this.arrivalFrame.expandVertical(dS, y);
+    this._update();
+  };
 
   /**
    * modifies arrivalFrame to fit a departure frame into an arrival frame
@@ -31904,6 +31960,22 @@
     }
 
     return clicked;
+  };
+
+
+  /**
+   * draws a simple graph
+   * @param  {Rectangle} frame
+   * @param  {NumberList} weights (that will produce arcs of proportional area)
+   *
+   * @param {ColorList} colors
+   * @param {Number} r0 inner radius
+   * @param {Number} r1 external radius
+   * @param {Boolean} weightsComeNormalized 
+   * @param {Boolean} grayWhen1 
+   */
+  NumberListDraw.drawDonut = function(frame, weights, colors, r0, r1, weightsComeNormalized, grayWhen1){
+    
   };
 
   function IntervalTableDraw() {}
