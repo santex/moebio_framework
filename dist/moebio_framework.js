@@ -18340,7 +18340,7 @@
     if(operator==null) operator='=c';
     if(operator == '=') operator = '==';
     var nLKeep = new NumberList();
-    var nRows = table.getListLength();
+    var nRows = table.getLengths().getMax();
     var r,c,val,val0,bKeep;
     var cStart=0;
     var cEnd=table.length;
@@ -18549,8 +18549,14 @@
           }
         }
     }
-    var newTable = table.getSubListsByIndexes(nLKeep);
-    return newTable;
+    var newTable = new Table();
+    newTable.name = table.name;
+    var len = table.length;
+
+    for(c=0; c<len; c++){
+      newTable.push(table[c].getElements(nLKeep,true)); // need second parm to handle null elements properly
+    }
+    return newTable.getImproved();
   };
 
 
@@ -31960,22 +31966,6 @@
     }
 
     return clicked;
-  };
-
-
-  /**
-   * draws a simple graph
-   * @param  {Rectangle} frame
-   * @param  {NumberList} weights (that will produce arcs of proportional area)
-   *
-   * @param {ColorList} colors
-   * @param {Number} r0 inner radius
-   * @param {Number} r1 external radius
-   * @param {Boolean} weightsComeNormalized 
-   * @param {Boolean} grayWhen1 
-   */
-  NumberListDraw.drawDonut = function(frame, weights, colors, r0, r1, weightsComeNormalized, grayWhen1){
-    
   };
 
   function IntervalTableDraw() {}
