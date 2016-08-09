@@ -1303,6 +1303,8 @@ ListOperators.getListEntropy = function(list, valueFollowing, freqTable) {
     return 0;
   }
 
+  if(list.infoObject!=null) freqTable = list.infoObject.frequenciesTable;
+
   if(freqTable==null) freqTable = list.getFrequenciesTable(true);// ListOperators.countElementsRepetitionOnList(list, true);
 
   list._mostRepresentedValue = freqTable[0][0];
