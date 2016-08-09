@@ -100,7 +100,7 @@ TableOperators.filterTable = function(table, operator, value, listToCheck, value
   if(operator==null) operator='=c';
   if(operator == '=') operator = '==';
   var nLKeep = new NumberList();
-  var nRows = table.getListLength();
+  var nRows = table.getLengths().getMax();
   var r,c,val,val0,bKeep;
   var cStart=0;
   var cEnd=table.length;
@@ -309,8 +309,14 @@ TableOperators.filterTable = function(table, operator, value, listToCheck, value
         }
       }
   }
-  var newTable = table.getSubListsByIndexes(nLKeep);
-  return newTable;
+  var newTable = new Table();
+  newTable.name = table.name;
+  var len = table.length;
+
+  for(c=0; c<len; c++){
+    newTable.push(table[c].getElements(nLKeep,true)); // need second parm to handle null elements properly
+  }
+  return newTable.getImproved();
 };
 
 
