@@ -57,6 +57,13 @@ ColorScales.temperature = function(value) { //todo:make it efficient
 /**
  * @todo write docs
  */
+ColorScales.lightTemperature = function(value) {
+  return ColorScales.temperature(0.1+value*0.9);
+};
+
+/**
+ * @todo write docs
+ */
 ColorScales.sqrtTemperature = function(value) {
   return ColorScales.temperature(Math.sqrt(value));
 };
