@@ -224,6 +224,30 @@ Rectangle.prototype.expand = function(expansion, centerPoint) {
 };
 
 /**
+ * Horizontally expands Rectangle by multiplying width by the given expansion around a given center value. If no center point is provided, the new Rectangle is expanded around the center of the current Rectangle.
+ * @param {Number} expansion Factor to expand by
+ *
+ * @param {Number} x Center point of the expansion. Center of Rectangle by default
+ * @return {Rectangle} Expanded Rectangle
+ */
+Rectangle.prototype.expandHorizontal = function(expansion, x) {
+  x = x || this.x + 0.5 * this.width;
+  return new Rectangle((this.x - x)*expansion + x, this.y, this.width*expansion, this.height);
+};
+
+/**
+ * Vertically expands Rectangle by multiplying width by the given expansion around a given center value. If no center point is provided, the new Rectangle is expanded around the center of the current Rectangle.
+ * @param {Number} expansion Factor to expand by
+ *
+ * @param {Number} x Center point of the expansion. Center of Rectangle by default
+ * @return {Rectangle} Expanded Rectangle
+ */
+Rectangle.prototype.expandVertical = function(expansion, y) {
+  y = y || this.y + 0.5 * this.height;
+  return new Rectangle(this.x, (this.y - y)*expansion + y, this.width, this.height*expansion);
+};
+
+/**
  * Returns true if this Rectangle is equal to the provided Rectangle.
  * @param  {Rectangle} rectangle Rectangle to compare.
  * @return {Boolean} true if two Rectangles are equal.
