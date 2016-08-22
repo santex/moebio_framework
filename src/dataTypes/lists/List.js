@@ -14,6 +14,7 @@ import ListOperators from "src/operators/lists/ListOperators";
 import ColorListGenerators from "src/operators/graphic/ColorListGenerators";
 import NumberListOperators from "src/operators/numeric/numberList/NumberListOperators";
 import NumberOperators from "src/operators/numeric/NumberOperators";
+import NumberListGenerators from "src/operators/numeric/numberList/NumberListGenerators";
 import { instantiateWithSameType, typeOf, instantiate } from "src/tools/utils/code/ClassUtils";
 
 List.prototype = new DataModel();
@@ -837,15 +838,40 @@ List.prototype.getRandomElements = function(n, avoidRepetitions, randomSeed, kee
   var element;
 
   if(keepOrder){
-    var prob = n/this.length;
-    for(var i=0; i<this.length; i++){
-      if(Math.random()<prob) newList.push(this[i]);
+    var list = this;
+    if(avoidRepetitions){
+      var listNoReps = this.getWithoutRepetitions();
+      list = listNoReps;
     }
+    n = Math.min(n, list.length);
+    var table = new Table();
+    table.push(NumberListGenerators.createSortedNumberList(list.length,0,1));
+    table.push(NumberListGenerators.createNumberListWithinInterval(list.length,new Interval(0, 1),0,randomSeed));
+    // put in random order
+    table = table.getListsSortedByList(1);
+    // take first n rows
+    table = table.sliceRows(0,n-1);
+    // put back in original order
+    table = table.getListsSortedByList(0);
+    // get elements from starting list by indexes
+    newList = list.getElements(table[0]);
   } else {
-    while(newList.length < n) {
-      element = this[Math.floor(this.length * random())];
-      if(!avoidRepetitions || newList.indexOf(element) == -1) newList.push(element);
+    if(avoidRepetitions){
+      // older algorithm below can loop forever or be very slow in some cases
+      // but can be faster when we don't care about repetitions
+      var listNoReps = this.getWithoutRepetitions();
+      n = Math.min(n, listNoReps.length);
+      var listRandom = NumberListGenerators.createNumberListWithinInterval(listNoReps.length,new Interval(0, 1),0,randomSeed);
+      var listChoose = listNoReps.getSortedByList(listRandom);
+      for(var i=0;i < n;i++) {
+        newList.push(listChoose[i]);
+      }
     }
+    else
+      while(newList.length < n) {
+        element = this[Math.floor(this.length * random())];
+        newList.push(element);
+      }
   }
   newList.name = this.name;
   return newList;

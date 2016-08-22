@@ -38,13 +38,14 @@ NumberListGenerators.createSortedNumberList = function(nValues, start, step) {
  *
  * @param  {Interval} interval range of the numberList
  * @param  {Number} mode <br>0:random <br>1:evenly distributed (not yet deployed)
- * @param  {Number} seed optional seed for random numbers ([!] not yet working @todo: finish)
+ * @param  {Number} seed optional seed for random numbers
  * @return {NumberList}
  * tags:random,generator
  */
 NumberListGenerators.createNumberListWithinInterval = function(nValues, interval, mode, randomSeed) {
   if(interval == null) interval = new Interval(0, 1);
   mode = mode==null?0:mode;
+  var random = randomSeed!=null ? new NumberOperators._Alea("my", randomSeed, "seeds") : Math.random;
 
   var numberList = new NumberList();
   var range = interval.getAmplitude();
@@ -53,7 +54,7 @@ NumberListGenerators.createNumberListWithinInterval = function(nValues, interval
   switch(mode){
     case 0://random
       for(i = 0; i < nValues; i++) {
-        numberList.push(min + Number(Math.random() * range));
+        numberList.push(min + Number(random() * range));
       }
       break;
   }

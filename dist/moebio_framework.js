@@ -1571,15 +1571,40 @@
     var element;
 
     if(keepOrder){
-      var prob = n/this.length;
-      for(var i=0; i<this.length; i++){
-        if(Math.random()<prob) newList.push(this[i]);
+      var list = this;
+      if(avoidRepetitions){
+        var listNoReps = this.getWithoutRepetitions();
+        list = listNoReps;
       }
+      n = Math.min(n, list.length);
+      var table = new Table();
+      table.push(NumberListGenerators.createSortedNumberList(list.length,0,1));
+      table.push(NumberListGenerators.createNumberListWithinInterval(list.length,new Interval(0, 1),0,randomSeed));
+      // put in random order
+      table = table.getListsSortedByList(1);
+      // take first n rows
+      table = table.sliceRows(0,n-1);
+      // put back in original order
+      table = table.getListsSortedByList(0);
+      // get elements from starting list by indexes
+      newList = list.getElements(table[0]);
     } else {
-      while(newList.length < n) {
-        element = this[Math.floor(this.length * random())];
-        if(!avoidRepetitions || newList.indexOf(element) == -1) newList.push(element);
+      if(avoidRepetitions){
+        // older algorithm below can loop forever or be very slow in some cases
+        // but can be faster when we don't care about repetitions
+        var listNoReps = this.getWithoutRepetitions();
+        n = Math.min(n, listNoReps.length);
+        var listRandom = NumberListGenerators.createNumberListWithinInterval(listNoReps.length,new Interval(0, 1),0,randomSeed);
+        var listChoose = listNoReps.getSortedByList(listRandom);
+        for(var i=0;i < n;i++) {
+          newList.push(listChoose[i]);
+        }
       }
+      else
+        while(newList.length < n) {
+          element = this[Math.floor(this.length * random())];
+          newList.push(element);
+        }
     }
     newList.name = this.name;
     return newList;
@@ -6717,13 +6742,14 @@
    *
    * @param  {Interval} interval range of the numberList
    * @param  {Number} mode <br>0:random <br>1:evenly distributed (not yet deployed)
-   * @param  {Number} seed optional seed for random numbers ([!] not yet working @todo: finish)
+   * @param  {Number} seed optional seed for random numbers
    * @return {NumberList}
    * tags:random,generator
    */
   NumberListGenerators.createNumberListWithinInterval = function(nValues, interval, mode, randomSeed) {
     if(interval == null) interval = new Interval(0, 1);
     mode = mode==null?0:mode;
+    var random = randomSeed!=null ? new NumberOperators._Alea("my", randomSeed, "seeds") : Math.random;
 
     var numberList = new NumberList();
     var range = interval.getAmplitude();
@@ -6732,7 +6758,7 @@
     switch(mode){
       case 0://random
         for(i = 0; i < nValues; i++) {
-          numberList.push(min + Number(Math.random() * range));
+          numberList.push(min + Number(random() * range));
         }
         break;
     }
