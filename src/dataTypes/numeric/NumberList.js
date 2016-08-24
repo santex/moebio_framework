@@ -442,6 +442,7 @@ NumberList.prototype.getQuantiles = function(nQuantiles, mode) {//TODO: defines 
   var entProp = Math.floor(prop);
   var onIndex = prop == entProp;
   var quantiles = new NumberList();
+  quantiles.name = "quantiles";
   var i;
 
   for(i = 0; i < nQuantiles - 1; i++) {
@@ -545,7 +546,7 @@ NumberList.prototype.getSortIndexes = function(descending) {
  * returns a NumberList normalized to min-max interval
  *
  * @param {Number} factor Optional multiplier to modify the normalized values by. Defaults to 1.
- * @return {NumberList}
+ * @return {NumberList} (adds an interval property with original list min max interval)
  * tags:
  */
 NumberList.prototype.getNormalized = function(factor) {
@@ -559,10 +560,12 @@ NumberList.prototype.getNormalized = function(factor) {
   var interval = this.getInterval();
   var a = interval.getAmplitude();
   var newNumberList = new NumberList();
+  factor /= a;
   for(i = 0; i < this.length; i++) {
-    newNumberList[i] = factor * ((this[i] - interval.x) / a);
+    newNumberList[i] = factor*(this[i] - interval.x);
   }
   newNumberList.name = this.name;
+  newNumberList.interval = interval;
   return newNumberList;
 };
 
