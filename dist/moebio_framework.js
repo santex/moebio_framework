@@ -2241,7 +2241,7 @@
    * @return {List}
    * tags:
    */
-  List.prototype.addElements = function(element0, element1, element2, element3, element4, element5, element6, element7, element8, element9, element10, element11) {//@todo: use arguments
+  List.prototype.addElements = function(element0, element1, element2, element3, element4, element5, element6, element7, element8, element9, element10, element11, element12, element13, element14, element15, element16) {//@todo: use arguments
     var array = [];
 
     if(element0!=null) array.push(element0);
@@ -2256,6 +2256,11 @@
     if(element9!=null) array.push(element9);
     if(element10!=null) array.push(element10);
     if(element11!=null) array.push(element11);
+    if(element12!=null) array.push(element12);
+    if(element13!=null) array.push(element13);
+    if(element14!=null) array.push(element14);
+    if(element15!=null) array.push(element15);
+    if(element16!=null) array.push(element16);
 
     var newList = List.fromArray(this.concat(array)).getImproved();
     newList.name = this.name;
@@ -2899,6 +2904,7 @@
     var entProp = Math.floor(prop);
     var onIndex = prop == entProp;
     var quantiles = new NumberList();
+    quantiles.name = "quantiles";
     var i;
 
     for(i = 0; i < nQuantiles - 1; i++) {
@@ -3002,7 +3008,7 @@
    * returns a NumberList normalized to min-max interval
    *
    * @param {Number} factor Optional multiplier to modify the normalized values by. Defaults to 1.
-   * @return {NumberList}
+   * @return {NumberList} (adds an interval property with original list min max interval)
    * tags:
    */
   NumberList.prototype.getNormalized = function(factor) {
@@ -3016,10 +3022,12 @@
     var interval = this.getInterval();
     var a = interval.getAmplitude();
     var newNumberList = new NumberList();
+    factor /= a;
     for(i = 0; i < this.length; i++) {
-      newNumberList[i] = factor * ((this[i] - interval.x) / a);
+      newNumberList[i] = factor*(this[i] - interval.x);
     }
     newNumberList.name = this.name;
+    newNumberList.interval = interval;
     return newNumberList;
   };
 
