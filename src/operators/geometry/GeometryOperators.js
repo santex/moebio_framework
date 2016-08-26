@@ -1,8 +1,10 @@
 import Point from "src/dataTypes/geometry/Point";
 import Point3D from "src/dataTypes/geometry/Point3D";
 import PointOperators from "src/operators/geometry/PointOperators";
+import Polygon from "src/dataTypes/geometry/Polygon";
 import Polygon3D from "src/dataTypes/geometry/Polygon3D";
 import NumberList from "src/dataTypes/numeric/NumberList";
+import Rectangle from "src/dataTypes/geometry/Rectangle";
 
 /**
  * @classdesc Provides a set of tools that work with Geometric data.
@@ -222,6 +224,51 @@ GeometryOperators.intersectionLines = function(line0, line1) {
   return new Point(xx, line0.x * xx + line0.y);
 };
 
+/**
+ * Returns the intersection points of a line with a Rectangle.
+ * @param  {Point} point0 One end of the line.
+ * @param  {Point} point1 Second end of the line.
+ * @param  {Rectangle} rect Rectangle to intersect with.
+ *
+ * @param  {Boolean} bLineInfinite If true use an infinite extended line. Default is false.
+ * @return {Polygon} list of points of intersection - it could be an empty list.
+ * tags:geometry
+ */
+GeometryOperators.intersectionLineRectangle = function(point0, point1, rect, bLineInfinite){
+  bLineInfinite = bLineInfinite == null ? false : bLineInfinite;
+  var lineTest = GeometryOperators.lineFromTwoPoints(point0,point1);
+  // test each side of rectangle
+  var lineTop = GeometryOperators.lineFromTwoPoints(rect.getTopLeft(),rect.getTopRight());
+  var lineRight = GeometryOperators.lineFromTwoPoints(rect.getTopRight(),rect.getBottomRight());
+  var lineBottom = GeometryOperators.lineFromTwoPoints(rect.getBottomLeft(),rect.getBottomRight());
+  var lineLeft = GeometryOperators.lineFromTwoPoints(rect.getTopLeft(),rect.getBottomLeft());
+  var pt;
+  var polyResults = new Polygon();
+  pt = GeometryOperators.intersectionLines(lineTest,lineTop);
+  if(pt != null && rect.pointIsOnBorder(pt)) polyResults.push(pt);
+  pt = GeometryOperators.intersectionLines(lineTest,lineRight);
+  if(pt != null && rect.pointIsOnBorder(pt)) polyResults.push(pt);
+  pt = GeometryOperators.intersectionLines(lineTest,lineBottom);
+  if(pt != null && rect.pointIsOnBorder(pt)) polyResults.push(pt);
+  pt = GeometryOperators.intersectionLines(lineTest,lineLeft);
+  if(pt != null && rect.pointIsOnBorder(pt)) polyResults.push(pt);
+  // Could be multiple results and may be intersection with infinite line
+  if(!bLineInfinite){
+    var polyKeep = new Polygon();
+    for(var i=0;i<polyResults.length;i++){
+      pt = polyResults[i];
+      if(pt.x >= Math.min(point0.x,point1.x) &&
+         pt.x <= Math.max(point0.x,point1.x) &&
+         pt.y >= Math.min(point0.y,point1.y) &&
+         pt.y <= Math.max(point0.y,point1.y) ){
+        // inside the segment defined by point0 -> point1
+        polyKeep.push(pt);
+      }
+    }
+    polyResults = polyKeep;
+  }
+  return polyResults;
+}
 
 /**
  * @todo write docs
