@@ -15668,7 +15668,7 @@
   };
 
   GeometryOperators.distanceToBezierCurve = function(x0, y0, c0x, c0y, c1x, c1y, x1, y1, p, returnPoint) {
-    var steps = (Math.abs(x0-x1) + Math.abs(y0-y1) ) / 50;
+    var steps = Math.round((Math.abs(x0-x1) + Math.abs(y0-y1) ) / 50);
     steps = Math.min(50,Math.max(10,steps));
     var pt0,ptm;
     var dm = Number.MAX_VALUE;
