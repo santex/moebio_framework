@@ -93,46 +93,38 @@ GeometryOperators.bezierCurveHeightHorizontalControlPoints = function(y0, c0x, c
   return(0.5 + 0.5 * (Math.pow(cosinus * sign, 0.6) * sign)) * (y1 - y0) + y0;
 };
 
-/**
- * unefficient method (uses Newton strategy)
- */
 GeometryOperators.distanceToBezierCurve = function(x0, y0, c0x, c0y, c1x, c1y, x1, y1, p, returnPoint) {
-  var minDT = 0.01;
-  var t0 = 0;
-  var t1 = 1;
-  var p0 = new Point(x0, y0);
-  var p0I = GeometryOperators.bezierCurvePoints(x0, y0, c0x, c0y, c1x, c1y, x1, y1, minDT);
-  var p1 = new Point(x1, y1);
-  var d0 = Math.pow(p0.x - p.x, 2) + Math.pow(p0.y - p.y, 2);
-  var d0I = Math.pow(p0I.x - p.x, 2) + Math.pow(p0I.y - p.y, 2);
-  var d1 = Math.pow(p1.x - p.x, 2) + Math.pow(p1.y - p.y, 2);
-
-  var i;
-
-  var pM;
-  var pMI;
-
-  for(i = 0; i < 10; i++) {
-    pM = GeometryOperators.bezierCurvePoints(x0, y0, c0x, c0y, c1x, c1y, x1, y1, (t0 + t1) * 0.5);
-    pMI = GeometryOperators.bezierCurvePoints(x0, y0, c0x, c0y, c1x, c1y, x1, y1, (t0 + t1) * 0.5 + minDT);
-
-    d0 = Math.pow(pM.x - p.x, 2) + Math.pow(pM.y - p.y, 2);
-    d0I = Math.pow(pMI.x - p.x, 2) + Math.pow(pMI.y - p.y, 2);
-
-    if(d0 < d0I) {
-      t1 = (t0 + t1) * 0.5;
-      p1 = GeometryOperators.bezierCurvePoints(x0, y0, c0x, c0y, c1x, c1y, x1, y1, t1);
-      d1 = Math.pow(p1.x - p.x, 2) + Math.pow(p1.y - p.y, 2);
-    } else {
-      t0 = (t0 + t1) * 0.5;
-      p0 = GeometryOperators.bezierCurvePoints(x0, y0, c0x, c0y, c1x, c1y, x1, y1, t0);
-      d0 = Math.pow(p0.x - p.x, 2) + Math.pow(p0.y - p.y, 2);
+  var steps = (Math.abs(x0-x1) + Math.abs(y0-y1) ) / 50;
+  steps = Math.min(50,Math.max(10,steps));
+  var pt0,ptm;
+  var dm = Number.MAX_VALUE;
+  var d0,tm;
+  // coarse check
+  for(var s=0;s<=steps;s++){
+    pt0 = GeometryOperators.bezierCurvePoints(x0, y0, c0x, c0y, c1x, c1y, x1, y1, s/steps);
+    d0 = Math.pow(pt0.x - p.x, 2) + Math.pow(pt0.y - p.y, 2);
+    if(d0<dm){
+      dm=d0;
+      tm=s/steps;
     }
   }
-
-  if(returnPoint) return p1;
-  return Math.sqrt(Math.min(d0, d1));
+  // fine check
+  dm = Number.MAX_VALUE;
+  var tDelta = 0.1/steps;
+  var tStart = Math.max(0,tm - 1/steps);
+  var tEnd   = Math.min(1,tm + 1/steps);
+  for(var t=tStart; t <= tEnd; t += tDelta){
+    pt0 = GeometryOperators.bezierCurvePoints(x0, y0, c0x, c0y, c1x, c1y, x1, y1, t);
+    d0 = Math.pow(pt0.x - p.x, 2) + Math.pow(pt0.y - p.y, 2);
+    if(d0<dm){
+      dm=d0;
+      ptm=pt0;
+    }
+  }
+  if(returnPoint) return ptm;
+  return Math.sqrt(dm);
 };
+
 
 /**
  * @todo write docs
