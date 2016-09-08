@@ -198,6 +198,37 @@ ObjectOperators.getReportHtml = function(object) {
   return text;
 };
 
+/**
+ * return a string characterizing the object by the properties inside it
+ * @param {Object} object
+ * @return {String} string representing properties of the object
+ * tags:
+ */
+ObjectOperators.getObjectStructure = function(object){
+  var objSkeleton = ObjectOperators.replaceValuesByNull(object);
+  return ObjectConversions.objectToString(objSkeleton);
+};
+
+/**
+ * return an instance of the object with values replaced by null (recursive)
+ * @param {Object} object
+ * @return {Object} object with properties set to null
+ * tags:
+ */
+ObjectOperators.replaceValuesByNull = function(object){
+  var oNew = {};
+  for (var i in object) {
+    if (object.hasOwnProperty(i)) {
+      if(typeof object[i] == "object" && object[i]!= null){
+        oNew[i] = ObjectOperators.replaceValuesByNull(object[i]);
+        continue;
+      }
+      // replace all values with null
+      oNew[i] = null;
+    }
+  }
+  return oNew;
+};
 
 /**
  * return length of list, string or Object with length property
