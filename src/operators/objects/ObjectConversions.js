@@ -1,6 +1,7 @@
 import { typeOf } from "src/tools/utils/code/ClassUtils";
 import Point from "src/dataTypes/geometry/Point";
 import DateOperators from "src/operators/dates/DateOperators";
+import ObjectOperators from "src/operators/objects/ObjectOperators";
 import Polygon from "src/dataTypes/geometry/Polygon";
 import ColorScales from "src/operators/graphic/ColorScales";
 import TableEncodings from "src/operators/lists/TableEncodings";
@@ -86,7 +87,7 @@ ObjectConversions.ObjectToTable = function(object, fields) {
 
 
   // Create table and columns
-  var column, i, f;
+  var column, i, f, j;
   var result = new Table();
   for(i = 0; i < fields.length; i++) {
     var fieldName = fields[i];
@@ -112,6 +113,44 @@ ObjectConversions.ObjectToTable = function(object, fields) {
       }
     }
   }
+  // sometimes the list elements are Objects with their own properties.
+  // In that case we flatten list of Objects into a new table of multiple lists and insert it
+  // into the original table in place of the single list of Objects.
+  for(i = 0; i < result.length; i++) {
+    var colType = result[i].getTypeOfElements();
+    if(colType == '' || colType == 'Object'){
+      // check to see if mixture of 'Object' and nulls
+      var bObjectMixture = true;
+      // also check that object type is consistent
+      var sObjectStructure = '';
+      for(j = 0; j < result[i].length && bObjectMixture; j++){
+        if(result[i][j] === null) continue;
+        if(typeOf(result[i][j]) != 'Object'){
+          bObjectMixture = false;
+          break;
+        }
+        // we have an object, test for consistent structure
+        if(sObjectStructure == '')
+          sObjectStructure = ObjectOperators.getObjectStructure(result[i][j]);
+        else if(sObjectStructure != ObjectOperators.getObjectStructure(result[i][j]))
+          bObjectMixture = false; // objects will be left in column
+      }
+      if(bObjectMixture)
+        colType == 'Object';
+      else
+        colType = ''; // in case of inconsistent Object types
+    }
+    if(colType == 'Object'){
+      var subTable = ObjectConversions.ObjectToTable(result[i]);
+      var nameTop = result[i].name;
+      for(j=0; j < subTable.length; j++)
+        subTable[j].name = nameTop + '_' + subTable[j].name;
+      // remove list of objects and replace with columns from subtable
+      result = Table.fromArray(result.slice(0, i).concat(subTable).concat(result.slice(i+1)));
+      i--; // so we check the newly inserted lists also. They may be object lists as well
+    }
+  }
+
 
   // Improve columns
   for(i = 0; i < result.length; i++) {

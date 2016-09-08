@@ -23808,465 +23808,6 @@
   };
 
   /**
-   * @classdesc Includes functions to convert Networks into other DataTypes.
-   *
-   * @namespace
-   * @category networks
-   */
-  function NetworkConversions() {}
-  /**
-   * Builds the adjacent matrix of a network.
-   * @param {Network} network
-   *
-   * @param {Boolean} useIds use nodes ids (default), or nodes names as labels
-   * @param {Boolean} includeLabelsList (default: false) first list is labels (nodes ids or names)
-   * @param {Number} countMode 0:count number of relations<br>1:add relations weights
-   * @return {Table} if labels are not added the result is a NumberTable
-   * tags:conversion
-   */
-  NetworkConversions.NetworkToTable = function(network, useIds, includeLabelsList, countMode){
-    if(network==null) return;
-
-    useIds = useIds==null?true:useIds;
-    countMode = countMode==null?0:countMode;
-
-    var table = includeLabelsList?new Table():new NumberTable();
-    var labels = useIds?network.nodeList.getIds():network.nodeList.getNames();
-    labels.name = "node names";
-    if(includeLabelsList) table[0] = labels;
-
-    var list;
-    var nNodes = network.nodeList.length;
-    var nRelations = network.relationList.length;
-    var i;
-    var relation;
-    var indexesDictionary = {};
-
-    var indexOffset = includeLabelsList?1:0;
-
-    for(i=0; i<nNodes; i++){
-      list = ListGenerators.createListWithSameElement(nNodes, 0);
-      list.name = labels[i];
-      table.push(list);
-      indexesDictionary[network.nodeList[i].id] = i;
-    }
-
-    for(i=0; i<nRelations; i++){
-      relation = network.relationList[i];
-      if(countMode===0){
-        table[indexesDictionary[relation.node0.id]+indexOffset][indexesDictionary[relation.node1.id]]++;
-      } else {
-        table[indexesDictionary[relation.node0.id]+indexOffset][indexesDictionary[relation.node1.id]]+=relation.weight;
-      }
-    }
-
-    return table;
-  };
-
-
-  /**
-   * Builds a Network based on a two columns Table, creating relations on co-occurrences, or a square NumberTable read as an adjacentMatrix.
-   * @param {Table} table table with at least two columns (categories that will generate the nodes)
-   *
-   * @param {NumberList} numberList Weights of relations.
-   * @param {Number} threshold Minimum weight or number of co-occurrences to create a relation.
-   * @param {Boolean} allowMultipleRelations (false by default)
-   * @param {Number} minRelationsInNode Remove nodes with number of relations below threshold.
-   * @param {StringList} stringList Contents of relations, or names of nodes in case of table being an adjacent matrix (square NumberTable)
-   * @return {Network}
-   * tags:conversion
-   */
-  NetworkConversions.TableToNetwork = function(table, numberList, threshold, allowMultipleRelations, minRelationsInNode, stringList) {
-    if(table == null || !table.isTable || table[0] == null || table[1] == null) return;
-
-    var nElements;
-    var node0;
-    var node1;
-    var name0;
-    var name1;
-    var relation;
-    var i, j;
-    var list;
-    var network = new Network();
-
-    threshold = threshold==null?0:threshold;
-
-    console.log(table.type);
-    console.log(table.type == "NumberTable", table.length > 2, table.length==table[0].length);
-
-    if(table.type == "NumberTable" && table.length > 2  && table.length==table[0].length){
-      nElements = table.length;
-
-      for(i=0; i<nElements; i++){
-        name0 = stringList==null?( (table[i].name==null || table[i].name=="")?"node_"+i:table[i].name ):stringList[i];
-        node0 = new Node(name0, name0);
-        network.addNode(node0);
-      }
-
-      for(i=0; i<nElements; i++){
-        list = table[i];
-        node0 = network.nodeList[i];
-        for(j=0; j<nElements; j++){
-          node1 = network.nodeList[j];
-          if(list[j]>threshold){
-            relation = new Relation(i+"_"+j,i+"_"+j,node0, node1, list[j]);
-            network.addRelation(relation);
-          }
-        }
-      }
-
-      return network;
-    }
-
-
-    //trace("••••••• createNetworkFromPairsTable", table);
-    if(allowMultipleRelations == null) allowMultipleRelations = false;
-    if(table.length < 2) return null;
-    
-    
-
-    if(numberList == null) {
-      nElements = Math.min(table[0].length, table[1].length);
-    } else {
-      nElements = Math.min(table[0].length, table[1].length, numberList.length);
-    }
-
-    //trace("nElements", nElements);
-
-    if(numberList == null && table.length > 2 && _typeOf(table[2]) == "NumberList" && table[2].length >= nElements) numberList = table[2];
-
-
-    if(_typeOf(table[0]) == NodeList && _typeOf(table[1]) == NodeList) {
-      //....    different methodology here
-    }
-
-    
-    for(i = 0; i < nElements; i++) {
-      name0 = "" + table[0][i];
-      name1 = "" + table[1][i];
-      //trace("______________ i, name0, name1:", i, name0, name1);
-      node0 = network.nodeList.getNodeById(name0);
-      if(node0 == null) {
-        node0 = new Node(name0, name0);
-        network.addNode(node0);
-      } else {
-        node0.weight++;
-      }
-      node1 = network.nodeList.getNodeById(name1);
-      if(node1 == null) {
-        node1 = new Node(name1, name1);
-        network.addNode(node1);
-      } else {
-        node1.weight++;
-      }
-      if(numberList == null) {
-        relation = network.relationList.getFirstRelationByIds(node0.id, node1.id, false);
-        if(relation == null ||  allowMultipleRelations) {
-          relation = new Relation(name0 + "_" + name1 + network.relationList.length, name0 + "_" + name1, node0, node1, 1);
-          network.addRelation(relation);
-        } else {
-          relation.weight++;
-        }
-      } else if(numberList[i] > threshold) {
-        relation = new Relation(name0 + "_" + name1, name0 + "_" + name1, node0, node1, numberList[i]);
-        network.addRelation(relation);
-      }
-
-      if(stringList) relation.content = stringList[i];
-    }
-
-    if(minRelationsInNode) {
-      for(i = 0; network.nodeList[i] != null; i++) {
-        if(network.nodeList[i].relationList.length < minRelationsInNode) {
-          network.removeNode(network.nodeList[i]);
-          i--;
-        }
-      }
-    }
-
-    return network;
-  };
-
-  /**
-   * @classdesc  StringList Conversions
-   *
-   * @namespace
-   * @category strings
-   */
-  function StringListConversions() {}
-  /**
-   * Converts StringLIst to numberList
-   *
-   * @param {StringList} stringlist StringList to convert
-   */
-  StringListConversions.toNumberList = function(stringlist) {
-    var numbers = new NumberList();
-    numbers.name = stringlist.name;
-    var i;
-    for(i = 0; stringlist[i] != null; i++) {
-      numbers[i] = Number(stringlist[i]);
-    }
-    return numbers;
-  };
-
-
-  /**
-   * converts a stringList into a dateList
-   *
-   * @param {StringList} stringlist StringList to convert
-   * @param  {String} formatCase format cases:<br>0: MM-DD-YYYY<br>1: YYYY-MM-DD<br>2: MM-DD-YY<br>3: YY-MM-DD<br>4: DD-MM-YY<br>5: DD-MM-YYYY
-   * @param  {String} separator "-" by default
-   * @return {DateList}
-   * tags:
-   */
-  StringListConversions.toDateList = function(stringList, formatCase, separator) {
-    if(stringList==null) return;
-    
-    var dateList = new DateList();
-    dateList.name = stringList.name;
-    var i;
-    var l = stringList.length;
-    for(i = 0; i<l; i++) {
-      dateList.push(DateOperators.stringToDate(stringList[i], formatCase, separator));
-    }
-    return dateList;
-  };
-
-  /**
-   * @classdesc  Object Conversions
-   *
-   * @namespace
-   * @category basics
-   */
-  function ObjectConversions() {}
-  /**
-   * Convert an object (or more typically an Array of objects) into a Table
-   * @param {Object} object or array of objects
-   *
-   * @param {List} list of field names to include (by default will take all from first element in array of objects)
-   * @return {Table} resulting Table
-   * tags:decoder,dani
-   */
-  ObjectConversions.ObjectToTable = function(object, fields) {
-    if(object==null) return null;
-    // Formats:
-    // 1: normal list of objects
-    // 2: Object with single property, containing normal list of obejcts
-    // 3: Object as CSV (each property represents a column)
-    var format;
-    var p;
-
-    // If it's an array, then it's format 1
-    if(Array.isArray(object)) {
-      format = 1;
-      // If not field names supplied, get them from first element
-      if(!fields)
-      {
-        fields = [];
-        for(p in object[0]) {
-          if (object[0].hasOwnProperty(p)) {
-            fields.push(p);
-          }
-        }
-      }
-      // Else (not array), it's an object
-    } else {
-      // Check how many properties the object has
-      var properties = [];
-      for(p in object) {
-        properties.push(p);
-      }
-
-      // If it has only one, and it's an array, it's foramt 2, so assume it's just a capsule
-      // and extract the array as format 1
-      if(properties.length == 1 && Array.isArray(object[properties[0]]))
-      {
-        format = 1;
-        object = object[properties[0]];
-
-        // If not field names supplied, get them from first element
-        if(!fields)
-        {
-          fields = [];
-          for(p in object[0]) {
-            fields.push(p);
-          }
-        }
-      } else {
-        // Finally, if the object has many properties, we assume it's a csv encoded as JSON
-        // ( each property of the object represents a column of the CSV )
-        format = 3;
-
-        // If not fields supplied, use all properties
-        if(!fields)
-          fields = properties;
-      }
-    }
-
-
-    // Create table and columns
-    var column, i, f;
-    var result = new Table();
-    for(i = 0; i < fields.length; i++) {
-      var fieldName = fields[i];
-      column = new List();
-      result[i] = column;
-      column.name = fieldName;
-    }
-
-    // Fill the table
-    if(format == 1)
-    {
-      for(i = 0; i < object.length; i++) {
-        var row = object[i];
-        for(f = 0; f < fields.length; f++) {
-          result[f].push(row[fields[f]]);
-        }
-      }
-    } else {
-      for(f = 0; f < fields.length; f++) {
-        column = object[fields[f]];
-        for(i = 0; i < column.length; i++) {
-          result[f].push(column[i]);
-        }
-      }
-    }
-
-    // Improve columns
-    for(i = 0; i < result.length; i++) {
-      result[i] = result[i].getImproved();
-    }
-
-    //if(result.getLengths.getMax()==1) return result.getRow(0);
-
-    // Improve table
-    result = result.getImproved();
-
-    // Return best possible
-    return result;
-  };
-
-
-  /**
-   * Convert an object (or more typically an Array of objects) into a Table
-   * @param {Object} object or array of objects
-   *
-   * @param {List} list of field names to include (by default will take all from first element in array of objects)
-   * @return {List} resulting list (probably a table)
-   * tags:decoder
-   */
-  ObjectConversions.ObjectToList = function(object, fields) {
-    var result = ObjectConversions.ObjectToTable(object, fields);
-
-    if(result.getLengths.getMax() == 1) return result.getRow(0);
-  };
-
-
-
-  /**
-   * converts an object into a json string (JSON.stringify(object))
-   * @param  {Object} object to convert
-   * @return {String} string in format json. If there is an error, it returns an
-   * error string.
-   * tags:conversion
-   */
-  ObjectConversions.objectToString = function(object){
-    try {
-      return JSON.stringify(object);
-    } catch (e) {
-      return JSON.stringify({"error":"cannot convert."});
-    }
-  };
-
-  /**
-   * converts any Object into the desirde type, using the most obvious conversion (if exists)
-   * @param  {Object} object
-   * @param  {String} toType can be literal (ex: "string", "NumberList") or short (ex: "s", "#L")
-   * @return {Object} Object of the specified type
-   * tags:conversion
-   */
-  ObjectConversions.conversor = function(object, toType) {
-    if(object==null || toType==null) return;
-
-    var i;
-    var type = _typeOf(object);
-    var pairType = type + "_" + toType;
-    var newList;
-
-    console.log('ObjectConversions.conversor, pairType:', pairType);
-
-    switch(pairType) {
-      case 'Array_List':
-        return ObjectConversions.ArrayToList(object);
-      case 'NumberTable_Polygon':
-        var polygon = new _Polygon();
-        var length2 = object.length > 1;
-        for(i = 0; object[0][i] != null; i++) {
-          polygon[i] = new _Point(object[0][i], length2 ? object[1][i] : 0);
-        }
-        return polygon;
-      case 'date_string':
-        return DateOperators.dateToString(object);
-      case 'string_date':
-        return DateOperators.stringToDate(object);
-      case 'date_number':
-        return object.getTime();
-      case 'number_date':
-        return new Date(object);
-      case 'List_StringList':
-      case 'NumberList_StringList':
-        return NumberListConversions.toStringList(object);
-      case 'StringList_NumberList':
-        return StringListConversions.toNumberList(object);
-      case 'Object_string':
-        return JSON.stringify(object, null, "\t");
-      case 'string_Object':
-        return JSON.parse(object);
-      case 'string_ColorScale':
-        return ColorScales[object]; //todo: not working, fix
-      case 'string_Table':
-        return TableEncodings.CSVtoTable(object);
-      case 'StringList_DateList': //TODO: solve cases of lists
-        newList = new DateList();
-        object.forEach(function(string) {
-          newList.push(DateOperators.stringToDate(string));
-        });
-        newList.name = object.name;
-        return newList;
-      case 'DateList_NumberList': //TODO: solve cases of lists
-        return object.getTimes();
-      case 'Table_Network':
-        return NetworkConversions.TableToNetwork(object, null, 0, false);
-
-    }
-
-    switch(toType) {
-      case 'string':
-        return object.toString();
-      case 'number':
-        return Number(object);
-    }
-
-    // var short = TYPES_SHORT_NAMES_DICTIONARY[toType];
-    // if(short!=null && short!=toType){
-    //   return ObjectConversions.conversor(object, short);
-    // }
-
-    return null;
-  };
-
-  /**
-   * converts an array into an improved List
-   * @param {Array} array
-   * @return {List}
-   * tags:conversion
-   */
-  ObjectConversions.ArrayToList = function(array){
-    if (array == null) return;
-    return List.fromArray(array).getImproved();
-  };
-
-  /**
    * @classdesc  Object Operators
    *
    * @namespace
@@ -25070,6 +24611,503 @@
   };
   ObjectOperators._applyBinaryOperator = function(object0, object1, operator) {
     return operator(object0, object1);
+  };
+
+  /**
+   * @classdesc Includes functions to convert Networks into other DataTypes.
+   *
+   * @namespace
+   * @category networks
+   */
+  function NetworkConversions() {}
+  /**
+   * Builds the adjacent matrix of a network.
+   * @param {Network} network
+   *
+   * @param {Boolean} useIds use nodes ids (default), or nodes names as labels
+   * @param {Boolean} includeLabelsList (default: false) first list is labels (nodes ids or names)
+   * @param {Number} countMode 0:count number of relations<br>1:add relations weights
+   * @return {Table} if labels are not added the result is a NumberTable
+   * tags:conversion
+   */
+  NetworkConversions.NetworkToTable = function(network, useIds, includeLabelsList, countMode){
+    if(network==null) return;
+
+    useIds = useIds==null?true:useIds;
+    countMode = countMode==null?0:countMode;
+
+    var table = includeLabelsList?new Table():new NumberTable();
+    var labels = useIds?network.nodeList.getIds():network.nodeList.getNames();
+    labels.name = "node names";
+    if(includeLabelsList) table[0] = labels;
+
+    var list;
+    var nNodes = network.nodeList.length;
+    var nRelations = network.relationList.length;
+    var i;
+    var relation;
+    var indexesDictionary = {};
+
+    var indexOffset = includeLabelsList?1:0;
+
+    for(i=0; i<nNodes; i++){
+      list = ListGenerators.createListWithSameElement(nNodes, 0);
+      list.name = labels[i];
+      table.push(list);
+      indexesDictionary[network.nodeList[i].id] = i;
+    }
+
+    for(i=0; i<nRelations; i++){
+      relation = network.relationList[i];
+      if(countMode===0){
+        table[indexesDictionary[relation.node0.id]+indexOffset][indexesDictionary[relation.node1.id]]++;
+      } else {
+        table[indexesDictionary[relation.node0.id]+indexOffset][indexesDictionary[relation.node1.id]]+=relation.weight;
+      }
+    }
+
+    return table;
+  };
+
+
+  /**
+   * Builds a Network based on a two columns Table, creating relations on co-occurrences, or a square NumberTable read as an adjacentMatrix.
+   * @param {Table} table table with at least two columns (categories that will generate the nodes)
+   *
+   * @param {NumberList} numberList Weights of relations.
+   * @param {Number} threshold Minimum weight or number of co-occurrences to create a relation.
+   * @param {Boolean} allowMultipleRelations (false by default)
+   * @param {Number} minRelationsInNode Remove nodes with number of relations below threshold.
+   * @param {StringList} stringList Contents of relations, or names of nodes in case of table being an adjacent matrix (square NumberTable)
+   * @return {Network}
+   * tags:conversion
+   */
+  NetworkConversions.TableToNetwork = function(table, numberList, threshold, allowMultipleRelations, minRelationsInNode, stringList) {
+    if(table == null || !table.isTable || table[0] == null || table[1] == null) return;
+
+    var nElements;
+    var node0;
+    var node1;
+    var name0;
+    var name1;
+    var relation;
+    var i, j;
+    var list;
+    var network = new Network();
+
+    threshold = threshold==null?0:threshold;
+
+    console.log(table.type);
+    console.log(table.type == "NumberTable", table.length > 2, table.length==table[0].length);
+
+    if(table.type == "NumberTable" && table.length > 2  && table.length==table[0].length){
+      nElements = table.length;
+
+      for(i=0; i<nElements; i++){
+        name0 = stringList==null?( (table[i].name==null || table[i].name=="")?"node_"+i:table[i].name ):stringList[i];
+        node0 = new Node(name0, name0);
+        network.addNode(node0);
+      }
+
+      for(i=0; i<nElements; i++){
+        list = table[i];
+        node0 = network.nodeList[i];
+        for(j=0; j<nElements; j++){
+          node1 = network.nodeList[j];
+          if(list[j]>threshold){
+            relation = new Relation(i+"_"+j,i+"_"+j,node0, node1, list[j]);
+            network.addRelation(relation);
+          }
+        }
+      }
+
+      return network;
+    }
+
+
+    //trace("••••••• createNetworkFromPairsTable", table);
+    if(allowMultipleRelations == null) allowMultipleRelations = false;
+    if(table.length < 2) return null;
+    
+    
+
+    if(numberList == null) {
+      nElements = Math.min(table[0].length, table[1].length);
+    } else {
+      nElements = Math.min(table[0].length, table[1].length, numberList.length);
+    }
+
+    //trace("nElements", nElements);
+
+    if(numberList == null && table.length > 2 && _typeOf(table[2]) == "NumberList" && table[2].length >= nElements) numberList = table[2];
+
+
+    if(_typeOf(table[0]) == NodeList && _typeOf(table[1]) == NodeList) {
+      //....    different methodology here
+    }
+
+    
+    for(i = 0; i < nElements; i++) {
+      name0 = "" + table[0][i];
+      name1 = "" + table[1][i];
+      //trace("______________ i, name0, name1:", i, name0, name1);
+      node0 = network.nodeList.getNodeById(name0);
+      if(node0 == null) {
+        node0 = new Node(name0, name0);
+        network.addNode(node0);
+      } else {
+        node0.weight++;
+      }
+      node1 = network.nodeList.getNodeById(name1);
+      if(node1 == null) {
+        node1 = new Node(name1, name1);
+        network.addNode(node1);
+      } else {
+        node1.weight++;
+      }
+      if(numberList == null) {
+        relation = network.relationList.getFirstRelationByIds(node0.id, node1.id, false);
+        if(relation == null ||  allowMultipleRelations) {
+          relation = new Relation(name0 + "_" + name1 + network.relationList.length, name0 + "_" + name1, node0, node1, 1);
+          network.addRelation(relation);
+        } else {
+          relation.weight++;
+        }
+      } else if(numberList[i] > threshold) {
+        relation = new Relation(name0 + "_" + name1, name0 + "_" + name1, node0, node1, numberList[i]);
+        network.addRelation(relation);
+      }
+
+      if(stringList) relation.content = stringList[i];
+    }
+
+    if(minRelationsInNode) {
+      for(i = 0; network.nodeList[i] != null; i++) {
+        if(network.nodeList[i].relationList.length < minRelationsInNode) {
+          network.removeNode(network.nodeList[i]);
+          i--;
+        }
+      }
+    }
+
+    return network;
+  };
+
+  /**
+   * @classdesc  StringList Conversions
+   *
+   * @namespace
+   * @category strings
+   */
+  function StringListConversions() {}
+  /**
+   * Converts StringLIst to numberList
+   *
+   * @param {StringList} stringlist StringList to convert
+   */
+  StringListConversions.toNumberList = function(stringlist) {
+    var numbers = new NumberList();
+    numbers.name = stringlist.name;
+    var i;
+    for(i = 0; stringlist[i] != null; i++) {
+      numbers[i] = Number(stringlist[i]);
+    }
+    return numbers;
+  };
+
+
+  /**
+   * converts a stringList into a dateList
+   *
+   * @param {StringList} stringlist StringList to convert
+   * @param  {String} formatCase format cases:<br>0: MM-DD-YYYY<br>1: YYYY-MM-DD<br>2: MM-DD-YY<br>3: YY-MM-DD<br>4: DD-MM-YY<br>5: DD-MM-YYYY
+   * @param  {String} separator "-" by default
+   * @return {DateList}
+   * tags:
+   */
+  StringListConversions.toDateList = function(stringList, formatCase, separator) {
+    if(stringList==null) return;
+    
+    var dateList = new DateList();
+    dateList.name = stringList.name;
+    var i;
+    var l = stringList.length;
+    for(i = 0; i<l; i++) {
+      dateList.push(DateOperators.stringToDate(stringList[i], formatCase, separator));
+    }
+    return dateList;
+  };
+
+  /**
+   * @classdesc  Object Conversions
+   *
+   * @namespace
+   * @category basics
+   */
+  function ObjectConversions() {}
+  /**
+   * Convert an object (or more typically an Array of objects) into a Table
+   * @param {Object} object or array of objects
+   *
+   * @param {List} list of field names to include (by default will take all from first element in array of objects)
+   * @return {Table} resulting Table
+   * tags:decoder,dani
+   */
+  ObjectConversions.ObjectToTable = function(object, fields) {
+    if(object==null) return null;
+    // Formats:
+    // 1: normal list of objects
+    // 2: Object with single property, containing normal list of obejcts
+    // 3: Object as CSV (each property represents a column)
+    var format;
+    var p;
+
+    // If it's an array, then it's format 1
+    if(Array.isArray(object)) {
+      format = 1;
+      // If not field names supplied, get them from first element
+      if(!fields)
+      {
+        fields = [];
+        for(p in object[0]) {
+          if (object[0].hasOwnProperty(p)) {
+            fields.push(p);
+          }
+        }
+      }
+      // Else (not array), it's an object
+    } else {
+      // Check how many properties the object has
+      var properties = [];
+      for(p in object) {
+        properties.push(p);
+      }
+
+      // If it has only one, and it's an array, it's foramt 2, so assume it's just a capsule
+      // and extract the array as format 1
+      if(properties.length == 1 && Array.isArray(object[properties[0]]))
+      {
+        format = 1;
+        object = object[properties[0]];
+
+        // If not field names supplied, get them from first element
+        if(!fields)
+        {
+          fields = [];
+          for(p in object[0]) {
+            fields.push(p);
+          }
+        }
+      } else {
+        // Finally, if the object has many properties, we assume it's a csv encoded as JSON
+        // ( each property of the object represents a column of the CSV )
+        format = 3;
+
+        // If not fields supplied, use all properties
+        if(!fields)
+          fields = properties;
+      }
+    }
+
+
+    // Create table and columns
+    var column, i, f, j;
+    var result = new Table();
+    for(i = 0; i < fields.length; i++) {
+      var fieldName = fields[i];
+      column = new List();
+      result[i] = column;
+      column.name = fieldName;
+    }
+
+    // Fill the table
+    if(format == 1)
+    {
+      for(i = 0; i < object.length; i++) {
+        var row = object[i];
+        for(f = 0; f < fields.length; f++) {
+          result[f].push(row[fields[f]]);
+        }
+      }
+    } else {
+      for(f = 0; f < fields.length; f++) {
+        column = object[fields[f]];
+        for(i = 0; i < column.length; i++) {
+          result[f].push(column[i]);
+        }
+      }
+    }
+    // sometimes the list elements are Objects with their own properties.
+    // In that case we flatten list of Objects into a new table of multiple lists and insert it
+    // into the original table in place of the single list of Objects.
+    for(i = 0; i < result.length; i++) {
+      var colType = result[i].getTypeOfElements();
+      if(colType == '' || colType == 'Object'){
+        // check to see if mixture of 'Object' and nulls
+        var bObjectMixture = true;
+        // also check that object type is consistent
+        var sObjectStructure = '';
+        for(j = 0; j < result[i].length && bObjectMixture; j++){
+          if(result[i][j] === null) continue;
+          if(_typeOf(result[i][j]) != 'Object'){
+            bObjectMixture = false;
+            break;
+          }
+          // we have an object, test for consistent structure
+          if(sObjectStructure == '')
+            sObjectStructure = ObjectOperators.getObjectStructure(result[i][j]);
+          else if(sObjectStructure != ObjectOperators.getObjectStructure(result[i][j]))
+            bObjectMixture = false; // objects will be left in column
+        }
+        if(bObjectMixture)
+          colType == 'Object';
+        else
+          colType = ''; // in case of inconsistent Object types
+      }
+      if(colType == 'Object'){
+        var subTable = ObjectConversions.ObjectToTable(result[i]);
+        var nameTop = result[i].name;
+        for(j=0; j < subTable.length; j++)
+          subTable[j].name = nameTop + '_' + subTable[j].name;
+        // remove list of objects and replace with columns from subtable
+        result = Table.fromArray(result.slice(0, i).concat(subTable).concat(result.slice(i+1)));
+        i--; // so we check the newly inserted lists also. They may be object lists as well
+      }
+    }
+
+
+    // Improve columns
+    for(i = 0; i < result.length; i++) {
+      result[i] = result[i].getImproved();
+    }
+
+    //if(result.getLengths.getMax()==1) return result.getRow(0);
+
+    // Improve table
+    result = result.getImproved();
+
+    // Return best possible
+    return result;
+  };
+
+
+  /**
+   * Convert an object (or more typically an Array of objects) into a Table
+   * @param {Object} object or array of objects
+   *
+   * @param {List} list of field names to include (by default will take all from first element in array of objects)
+   * @return {List} resulting list (probably a table)
+   * tags:decoder
+   */
+  ObjectConversions.ObjectToList = function(object, fields) {
+    var result = ObjectConversions.ObjectToTable(object, fields);
+
+    if(result.getLengths.getMax() == 1) return result.getRow(0);
+  };
+
+
+
+  /**
+   * converts an object into a json string (JSON.stringify(object))
+   * @param  {Object} object to convert
+   * @return {String} string in format json. If there is an error, it returns an
+   * error string.
+   * tags:conversion
+   */
+  ObjectConversions.objectToString = function(object){
+    try {
+      return JSON.stringify(object);
+    } catch (e) {
+      return JSON.stringify({"error":"cannot convert."});
+    }
+  };
+
+  /**
+   * converts any Object into the desirde type, using the most obvious conversion (if exists)
+   * @param  {Object} object
+   * @param  {String} toType can be literal (ex: "string", "NumberList") or short (ex: "s", "#L")
+   * @return {Object} Object of the specified type
+   * tags:conversion
+   */
+  ObjectConversions.conversor = function(object, toType) {
+    if(object==null || toType==null) return;
+
+    var i;
+    var type = _typeOf(object);
+    var pairType = type + "_" + toType;
+    var newList;
+
+    console.log('ObjectConversions.conversor, pairType:', pairType);
+
+    switch(pairType) {
+      case 'Array_List':
+        return ObjectConversions.ArrayToList(object);
+      case 'NumberTable_Polygon':
+        var polygon = new _Polygon();
+        var length2 = object.length > 1;
+        for(i = 0; object[0][i] != null; i++) {
+          polygon[i] = new _Point(object[0][i], length2 ? object[1][i] : 0);
+        }
+        return polygon;
+      case 'date_string':
+        return DateOperators.dateToString(object);
+      case 'string_date':
+        return DateOperators.stringToDate(object);
+      case 'date_number':
+        return object.getTime();
+      case 'number_date':
+        return new Date(object);
+      case 'List_StringList':
+      case 'NumberList_StringList':
+        return NumberListConversions.toStringList(object);
+      case 'StringList_NumberList':
+        return StringListConversions.toNumberList(object);
+      case 'Object_string':
+        return JSON.stringify(object, null, "\t");
+      case 'string_Object':
+        return JSON.parse(object);
+      case 'string_ColorScale':
+        return ColorScales[object]; //todo: not working, fix
+      case 'string_Table':
+        return TableEncodings.CSVtoTable(object);
+      case 'StringList_DateList': //TODO: solve cases of lists
+        newList = new DateList();
+        object.forEach(function(string) {
+          newList.push(DateOperators.stringToDate(string));
+        });
+        newList.name = object.name;
+        return newList;
+      case 'DateList_NumberList': //TODO: solve cases of lists
+        return object.getTimes();
+      case 'Table_Network':
+        return NetworkConversions.TableToNetwork(object, null, 0, false);
+
+    }
+
+    switch(toType) {
+      case 'string':
+        return object.toString();
+      case 'number':
+        return Number(object);
+    }
+
+    // var short = TYPES_SHORT_NAMES_DICTIONARY[toType];
+    // if(short!=null && short!=toType){
+    //   return ObjectConversions.conversor(object, short);
+    // }
+
+    return null;
+  };
+
+  /**
+   * converts an array into an improved List
+   * @param {Array} array
+   * @return {List}
+   * tags:conversion
+   */
+  ObjectConversions.ArrayToList = function(array){
+    if (array == null) return;
+    return List.fromArray(array).getImproved();
   };
 
   /**
