@@ -442,7 +442,7 @@ NumberList.prototype.getQuantiles = function(nQuantiles, mode) {//TODO: defines 
   var entProp = Math.floor(prop);
   var onIndex = prop == entProp;
   var quantiles = new NumberList();
-  quantiles.name = "quantiles";
+  quantiles.name = this.name;
   var i;
 
   for(i = 0; i < nQuantiles - 1; i++) {
@@ -456,6 +456,7 @@ NumberList.prototype.getQuantiles = function(nQuantiles, mode) {//TODO: defines 
   if(mode===0) return quantiles;
 
   var numberQuantil = new NumberList();
+  numberQuantil.name = this.name;
   var j;
 
   for(i=0; i<l; i++){
