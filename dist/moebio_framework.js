@@ -2904,7 +2904,7 @@
     var entProp = Math.floor(prop);
     var onIndex = prop == entProp;
     var quantiles = new NumberList();
-    quantiles.name = "quantiles";
+    quantiles.name = this.name;
     var i;
 
     for(i = 0; i < nQuantiles - 1; i++) {
@@ -2918,6 +2918,7 @@
     if(mode===0) return quantiles;
 
     var numberQuantil = new NumberList();
+    numberQuantil.name = this.name;
     var j;
 
     for(i=0; i<l; i++){
@@ -27809,7 +27810,7 @@
         titles[i] = "text "+i;
       }
     }
-    var net = NetworkGenerators.createNetworkFromListAndFunction(freqTablesList, TableOperators.cosineSimilarityDataTables, titles, threshold, 2);
+    var net = NetworkGenerators.createNetworkFromListAndFunction(freqTablesList, TableOperators.cosineSimilarityDataTables, titles, threshold, 2, true);
     for(i=0; i<nTexts; i++){
       net.nodeList[i].text = stringList[i];
       net.nodeList[i].freqTable = freqTablesList[i];
