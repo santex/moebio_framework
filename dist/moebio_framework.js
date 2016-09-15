@@ -2904,7 +2904,7 @@
     var entProp = Math.floor(prop);
     var onIndex = prop == entProp;
     var quantiles = new NumberList();
-    quantiles.name = "quantiles";
+    quantiles.name = this.name;
     var i;
 
     for(i = 0; i < nQuantiles - 1; i++) {
@@ -2918,6 +2918,7 @@
     if(mode===0) return quantiles;
 
     var numberQuantil = new NumberList();
+    numberQuantil.name = this.name;
     var j;
 
     for(i=0; i<l; i++){
@@ -21161,8 +21162,45 @@
     return newTable;
   };
 
+  /**
+   * filter a table selecting rows that have particular values in specific lists, all values must match
+   * @param  {Table} table
+   * @param  {NumberList} lists is the set of list indexes to test for matching values
+   * @param  {List} values are the set of values to test for
+   *
+   * @param {Boolean} keepMatchingRows if true (default value) the rows are kept if all the lists match the given values, if false matching rows are discarded
+   * @return {Table}
+   * tags:filter
+   */
+  TableOperators.selectRows = function(table, lists, values, keepMatchingRows) {
+    if(table == null ||  table.length <= 0) return;
+    keepMatchingRows = keepMatchingRows==null?true:keepMatchingRows;
+    if(lists == null || values == null || lists.length == undefined) return keepMatchingRows ? table : null;
+    if(lists.length != values.length) return;
 
+    var nLMatch = new NumberList();
+    var nRows = table[0].length;
 
+    for(var r=0; r < nRows; r++){
+      var bMatch = true;
+      for(var c=0; c < lists.length && bMatch; c++){
+        if(isNaN(lists[c]) || lists[c] < 0 || lists[c] >= table.length)
+          return; // invalid input
+        if(table[lists[c]][r] != values[c])
+          bMatch = false;
+      }
+      if(bMatch)
+        nLMatch.push(r);
+    }
+
+    var newTable;
+    if(keepMatchingRows)
+      newTable = table.getRows(nLMatch);
+    else
+      newTable = table.getWithoutRows(nLMatch);
+
+    return newTable;
+  };
 
   /**
    * builds the vector of values from a data table and the complete list of categories
@@ -27809,7 +27847,7 @@
         titles[i] = "text "+i;
       }
     }
-    var net = NetworkGenerators.createNetworkFromListAndFunction(freqTablesList, TableOperators.cosineSimilarityDataTables, titles, threshold, 2);
+    var net = NetworkGenerators.createNetworkFromListAndFunction(freqTablesList, TableOperators.cosineSimilarityDataTables, titles, threshold, 2, true);
     for(i=0; i<nTexts; i++){
       net.nodeList[i].text = stringList[i];
       net.nodeList[i].freqTable = freqTablesList[i];

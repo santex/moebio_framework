@@ -203,7 +203,7 @@ NetworkGenerators.createNetworkFromTexts = function(stringList, threshold, title
       titles[i] = "text "+i;
     }
   }
-  var net = NetworkGenerators.createNetworkFromListAndFunction(freqTablesList, TableOperators.cosineSimilarityDataTables, titles, threshold, 2);
+  var net = NetworkGenerators.createNetworkFromListAndFunction(freqTablesList, TableOperators.cosineSimilarityDataTables, titles, threshold, 2, true);
   for(i=0; i<nTexts; i++){
     net.nodeList[i].text = stringList[i];
     net.nodeList[i].freqTable = freqTablesList[i];
