@@ -90,10 +90,11 @@ TableOperators.getSubTable = function(table, x, y, width, height) {
  * @param  {Number|String|List} listToCheck it could be one of the following option:<br>null (default) means it checks every list, a row is kept if at least one its values verify the condition<br>a number, an index of the list to check<br>a string, the name of the list to check<br>a list (with same sizes as the lists in the table) that will be used to check conditions on elements and filter the table.
  * @param  {Object} value2 only used for "between" operator
  * @param  {Boolean} bIgnoreCase for string compares, defaults to true
+ * @param  {Boolean} returnIndexes return indexes of rows instead of filtered table (default false)
  * @return {Table}
  * tags:filter
  */
-TableOperators.filterTable = function(table, operator, value, listToCheck, value2, bIgnoreCase){
+TableOperators.filterTable = function(table, operator, value, listToCheck, value2, bIgnoreCase, returnIndexes){
   // input validation and defaults
   if(table==null || table.length === 0 || table[0]==null) return;
   if(operator === undefined && value === undefined) return table;
@@ -312,6 +313,8 @@ TableOperators.filterTable = function(table, operator, value, listToCheck, value
   var newTable = new Table();
   newTable.name = table.name;
   var len = table.length;
+
+  if(returnIndexes) return nLKeep;
 
   for(c=0; c<len; c++){
     newTable.push(table[c].getElements(nLKeep,true)); // need second parm to handle null elements properly
