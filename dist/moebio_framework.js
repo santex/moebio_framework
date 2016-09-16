@@ -21169,7 +21169,7 @@
    * filter a table selecting rows that have particular values in specific lists, all values must match
    * @param  {Table} table
    * @param  {NumberList} lists is the set of list indexes to test for matching values
-   * @param  {List} values are the set of values to test for
+   * @param  {List} values are the set of values to test for. If only 1 list is tested and there are multiple values then any of those values are accepted.
    *
    * @param {Boolean} keepMatchingRows if true (default value) the rows are kept if all the lists match the given values, if false matching rows are discarded
    * @return {Table}
@@ -21179,18 +21179,28 @@
     if(table == null ||  table.length <= 0) return;
     keepMatchingRows = keepMatchingRows==null?true:keepMatchingRows;
     if(lists == null || values == null || lists.length == undefined) return keepMatchingRows ? table : null;
-    if(lists.length != values.length) return;
+    if(lists.length != values.length && lists.length != 1) return;
 
     var nLMatch = new NumberList();
     var nRows = table[0].length;
+    var bOrValues = lists.length == 1 && values.length > 1;
 
     for(var r=0; r < nRows; r++){
       var bMatch = true;
       for(var c=0; c < lists.length && bMatch; c++){
         if(isNaN(lists[c]) || lists[c] < 0 || lists[c] >= table.length)
           return; // invalid input
-        if(table[lists[c]][r] != values[c])
+        if(table[lists[c]][r] != values[c]){
           bMatch = false;
+          if(bOrValues){
+            for(var cv=1; cv < values.length; cv++){
+              if(table[lists[c]][r] == values[cv]){
+                bMatch = true;
+                break;
+              }
+            }
+          }
+        }
       }
       if(bMatch)
         nLMatch.push(r);
