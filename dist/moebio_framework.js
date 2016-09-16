@@ -1062,7 +1062,7 @@
   };
 
   /**
-   * Compares elements with another list, if all elements are identical, the lists are equivalent and return true. A List is always equivalente to itslef, and two different lists could be equivalent.
+   * Compares elements with another list, if all elements are identical, the lists are equivalent and return true. A List is always equivalent to itself, and two different lists could be equivalent.
    * @param  {List} list to compare.
    * @return {Boolean} true if all elements are identical
    * tags:
@@ -1072,6 +1072,12 @@
 
     var i;
     var l = this.length;
+    if(this.isTable){
+      for(i = 0; i<l; i++) {
+        if(!this[i].isEquivalent(list[i])) return false;
+      }
+      return true;
+    }
     for(i = 0; i<l; i++) {
       if(this[i] != list[i]) return false;
     }
