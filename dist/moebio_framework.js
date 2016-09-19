@@ -11076,8 +11076,10 @@
    * tags:
    */
   StringOperators.removeEnters = function(string, replaceBy) {
+    if(string==null) return null;
     replaceBy = replaceBy==null?"":replaceBy;
-    return string.replace(/(\StringOperators.ENTER|\StringOperators.ENTER2|\StringOperators.ENTER3)/gi, replaceBy);
+    var r = new RegExp('\\'+StringOperators.ENTER+'|\\'+StringOperators.ENTER2+'|\\'+StringOperators.ENTER3,'gi');
+    return string.replace(r, replaceBy);
   };
 
   /**
@@ -11089,8 +11091,10 @@
    * tags:
    */
   StringOperators.removeTabs = function(string, replaceBy) {
+    if(string==null) return null;
     replaceBy = replaceBy || "";
-    return string.replace(/(\StringOperators.TAB|\StringOperators.TAB2|\t)/gi, replaceBy);
+    var r = new RegExp('\\'+StringOperators.TAB+'|\\'+StringOperators.TAB2+'|\\t','gi');
+    return string.replace(r, replaceBy);
   };
 
   /**
@@ -11102,6 +11106,7 @@
    * tags:
    */
   StringOperators.removePunctuation = function(string, replaceBy) {
+    if(string==null) return null;
     replaceBy = replaceBy || "";
     return string.replace(/[:,.;?!\(\)\"\']/gi, replaceBy);
   };
@@ -11113,6 +11118,7 @@
    * tags:
    */
   StringOperators.removeDoubleSpaces = function(string) {
+    if(string==null) return null;
     var retString = string;
     var regExpr = RegExp(/  /);
     while(regExpr.test(retString)) {
@@ -11125,6 +11131,7 @@
    * @todo finish docs
    */
   StringOperators.removeInitialRepeatedCharacter = function(string, character) {
+    if(string==null) return null;
     while(string.charAt(0) == character) string = string.substr(1);
     return string;
   };
