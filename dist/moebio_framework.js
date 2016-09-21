@@ -11477,6 +11477,8 @@
           sLSequences.push(sSeq);
           if(limit !== 0 && sLSequences.length == limit) break;
         }
+        else
+          sSeq = sSeq + ' ' + words[j];
       }
       if(limit !== 0 && sLSequences.length == limit) break;
     }
