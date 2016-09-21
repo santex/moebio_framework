@@ -953,3 +953,49 @@ StringOperators.isAbsoluteUrl = function(string){
   return false;
 };
 
+/**
+ * builds a stringList of word sequences contained in the text
+ * @param  {String} string text to be analyzed
+ *
+ * @param  {Number} minSequenceSize least amount of words in sequence (default:2)
+ * @param  {Number} maxSequenceSize most amount of words in sequence (default:2)
+ * @param  {Boolean|StringList} stopWords do not allow stop words (true for default stop words, or stringList of words)
+ * @param  {Number} limit to the number of sequences
+ * @param  {Number} minSizeWords minimal number of characters of words
+ * @return {StringList}
+ * tags:
+ */
+StringOperators.getNgrams = function(string, minSequenceSize, maxSequenceSize, stopWords, limit, minSizeWords) {
+  
+  minSequenceSize = minSequenceSize || 2;
+  maxSequenceSize = maxSequenceSize || 2;
+  if(maxSequenceSize < minSequenceSize) maxSequenceSize = minSequenceSize;
+  minSizeWords = minSizeWords || 0;
+  limit = limit == null ? 0 : limit;
+  if(stopWords===true) stopWords = StringOperators.STOP_WORDS;
+
+  var i, j, sSeq;
+
+  // get all the words
+  var words = StringOperators.getWords(string, false, false, false, false, null, 1);
+  var sLSequences = new StringList();
+  if(words == null) return sLSequences;
+
+  for(i=0; i<words.length; i++){
+    sSeq = words[i];
+    if(stopWords && stopWords.indexOf(words[i]) != -1) continue;
+    if(minSizeWords && words[i].length < minSizeWords) continue;
+    for(j=i+1; j < words.length && j < i+maxSequenceSize; j++){
+      if(stopWords && stopWords.indexOf(words[j]) != -1) break;
+      if(minSizeWords && words[j].length < minSizeWords) break;
+      if(j >= i + minSequenceSize - 1){
+        sSeq = sSeq + ' ' + words[j];
+        sLSequences.push(sSeq);
+        if(limit !== 0 && sLSequences.length == limit) break;
+      }
+    }
+    if(limit !== 0 && sLSequences.length == limit) break;
+  }
+  return sLSequences;
+}
+
