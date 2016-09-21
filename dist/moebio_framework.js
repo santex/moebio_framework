@@ -25423,23 +25423,47 @@
     sortByTotalWeight = (sortByTotalWeight || true);
     minSizeWords = minSizeWords == null ? 3 : minSizeWords;
 
-    if(texts[0]===""){
-      matrix = new Table();
-      matrix.push(new StringList(""));
-      matrix.push(new NumberList(0));
-    } else {
-      matrix = StringOperators.getWordsOccurrencesTable(texts[0], stopWords, includeLinks, wordsLimitPerString, minSizeWords);
-    }
-
-
+    // new algorithm for combining results
     var table;
-    for(i = 1; i<nTexts; i++){
-      if(texts[i]===""){
-        matrix.push(ListGenerators.createListWithSameElement(matrix[0].length, 0));
-      } else {
-        table = StringOperators.getWordsOccurrencesTable(texts[i], stopWords, includeLinks, wordsLimitPerString, minSizeWords);
-        matrix = TableOperators.mergeDataTables(matrix, table);
+    var oWordCounts = {};
+    var tabCounts;
+    for(i = 0; i<nTexts; i++){
+      table = StringOperators.getWordsOccurrencesTable(texts[i], stopWords, includeLinks, wordsLimitPerString, minSizeWords);
+      for(j = 0; j<table[0].length; j++){
+        tabCounts = oWordCounts[table[0][j]];
+        if(tabCounts == undefined){
+          tabCounts = new NumberTable();
+          tabCounts.push(new NumberList()); // text indexes
+          tabCounts.push(new NumberList()); // counts of this word in this text item
+          oWordCounts[table[0][j]] = tabCounts;
+        }
+        tabCounts[0].push(i);
+        tabCounts[1].push(table[1][j]);
       }
+    }
+    var sLWords = new StringList();
+    for(var key in oWordCounts){
+      if(!oWordCounts.hasOwnProperty(key)) continue;
+      sLWords.push(key);
+    }
+    matrix = TableGenerators.createTableWithSameElement(nTexts+1,sLWords.length,0);
+    // set list names
+    for(i = 0; i < matrix.length; i++){
+      if(i==0)
+        matrix[i] = ListGenerators.createListWithSameElement(sLWords.length,'','words');
+      else
+        matrix[i].name = 'text ' + (i-1);
+    }
+    // fill with data
+    var iWord = 0;
+    for(var key in oWordCounts){
+      if(!oWordCounts.hasOwnProperty(key)) continue;
+      matrix[0][iWord] = key;
+      tabCounts = oWordCounts[key];
+      for(i = 0; i < tabCounts[0].length; i++){
+        matrix[tabCounts[0][i]+1][iWord] += tabCounts[1][i];
+      }
+      iWord++;
     }
 
 
@@ -25518,7 +25542,7 @@
     }
 
 
-    if(totalWordsLimit > 0) matrix = matrix.sliceRows(0, totalWordsLimit - 1);
+    if(totalWordsLimit > 0 && totalWordsLimit < matrix[0].length) matrix = matrix.sliceRows(0, totalWordsLimit - 1);
 
     return matrix;
   };
