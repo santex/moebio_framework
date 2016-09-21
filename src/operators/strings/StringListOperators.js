@@ -234,10 +234,11 @@ StringListOperators.countStringsOccurrencesOnTexts = function(strings, texts, as
  * @param {Boolean} sortByTotalWeight sort all columns by total weights of words (default: true)
  * @param {Number} minSizeWords
  * @param {Boolean} addTotalList adds a numberList with sums of weights for each word (this is ths list used optionally to sort the lists of the table) (default: false)
+ * @param {Number} minSupportFraction a number in range [0,1] which if specified only words appearing in at least that fraction of input texts will be included
  * @return {Table}
  * tags:count
  */
-StringListOperators.getWordsInTextsOccurrencesTable = function(texts, weightsMode, stopWords, includeLinks, wordsLimitPerString, totalWordsLimit, sortByTotalWeight, minSizeWords, addTotalList) {
+StringListOperators.getWordsInTextsOccurrencesTable = function(texts, weightsMode, stopWords, includeLinks, wordsLimitPerString, totalWordsLimit, sortByTotalWeight, minSizeWords, addTotalList, minSupportFraction) {
   if(texts == null) return;
 
   var i, j;
@@ -252,6 +253,7 @@ StringListOperators.getWordsInTextsOccurrencesTable = function(texts, weightsMod
   var tfidf = weightsMode==2 || weightsMode==3 || weightsMode==4;
   sortByTotalWeight = (sortByTotalWeight || true);
   minSizeWords = minSizeWords == null ? 3 : minSizeWords;
+  minSupportFraction = minSupportFraction == null ? 0 : minSupportFraction;
 
   // new algorithm for combining results
   var table;
@@ -274,6 +276,11 @@ StringListOperators.getWordsInTextsOccurrencesTable = function(texts, weightsMod
   var sLWords = new StringList();
   for(var key in oWordCounts){
     if(!oWordCounts.hasOwnProperty(key)) continue;
+    if(oWordCounts[key][0].length < minSupportFraction*nTexts){
+      // not enough support, do not include
+      delete oWordCounts[key];
+      continue;
+    }
     sLWords.push(key);
   }
   matrix = TableGenerators.createTableWithSameElement(nTexts+1,sLWords.length,0);
