@@ -10689,14 +10689,14 @@
     if(sortedByFrequency) {
       if(withoutRepetitions) {
         list = list.getFrequenciesTable(true)[0];// //ListOperators.countElementsRepetitionOnList(list, true)[0];
-        if(limit !== 0) list = list.substr(0, limit);
+        if(limit !== 0) list = list.splice(0, limit);
 
         return list;
       }
 
       var occurrences = list.getFrequenciesTable();
       list = list.getSortedByList(occurrences);
-      if(limit !== 0) list = list.substr(0, limit);
+      if(limit !== 0) list = list.splice(0, limit);
 
       return list;
     }
