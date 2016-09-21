@@ -975,26 +975,33 @@ StringOperators.getNgrams = function(string, minSequenceSize, maxSequenceSize, s
   if(stopWords===true) stopWords = StringOperators.STOP_WORDS;
 
   var i, j, sSeq;
-
-  // get all the words
-  var words = StringOperators.getWords(string, false, false, false, false, null, 1);
   var sLSequences = new StringList();
-  if(words == null) return sLSequences;
+  if(string == null || typeof string != 'string') return sLSequences;
 
-  for(i=0; i<words.length; i++){
-    sSeq = words[i];
-    if(stopWords && stopWords.indexOf(words[i]) != -1) continue;
-    if(minSizeWords && words[i].length < minSizeWords) continue;
-    for(j=i+1; j < words.length && j < i+maxSequenceSize; j++){
-      if(stopWords && stopWords.indexOf(words[j]) != -1) break;
-      if(minSizeWords && words[j].length < minSizeWords) break;
+  // get all the tokens
+  string = string.toLowerCase().replace(StringOperators.LINK_REGEX, "");
+  var tokens = string.match(/\w+|[\.,-\/#!$%\^&\*;:{}=\-_`~()@\+\?><\[\]\+]/g);
+  if(tokens == null) return sLSequences;
+  tokens = StringList.fromArray(tokens);
+
+  var rePunct = /[\.,-\/#!$%\^&\*;:{}=\-_`~()@\+\?><\[\]\+]/;
+
+  for(i=0; i<tokens.length; i++){
+    sSeq = tokens[i];
+    if(stopWords && stopWords.indexOf(tokens[i]) != -1) continue;
+    if(minSizeWords && tokens[i].length < minSizeWords) continue;
+    if(tokens[i].length == 1 && tokens[i].match(rePunct)) continue;
+    for(j=i+1; j < tokens.length && j < i+maxSequenceSize; j++){
+      if(stopWords && stopWords.indexOf(tokens[j]) != -1) break;
+      if(minSizeWords && tokens[j].length < minSizeWords) break;
+      if(tokens[j].length == 1 && tokens[j].match(rePunct)) break;
       if(j >= i + minSequenceSize - 1){
-        sSeq = sSeq + ' ' + words[j];
+        sSeq = sSeq + ' ' + tokens[j];
         sLSequences.push(sSeq);
         if(limit !== 0 && sLSequences.length == limit) break;
       }
       else
-        sSeq = sSeq + ' ' + words[j];
+        sSeq = sSeq + ' ' + tokens[j];
     }
     if(limit !== 0 && sLSequences.length == limit) break;
   }
