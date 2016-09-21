@@ -991,6 +991,7 @@ StringOperators.getNgrams = function(string, minSequenceSize, maxSequenceSize, s
     if(stopWords && stopWords.indexOf(tokens[i]) != -1) continue;
     if(minSizeWords && tokens[i].length < minSizeWords) continue;
     if(tokens[i].length == 1 && tokens[i].match(rePunct)) continue;
+    if(maxSequenceSize == 1) sLSequences.push(sSeq);
     for(j=i+1; j < tokens.length && j < i+maxSequenceSize; j++){
       if(stopWords && stopWords.indexOf(tokens[j]) != -1) break;
       if(minSizeWords && tokens[j].length < minSizeWords) break;
