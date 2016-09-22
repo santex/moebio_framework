@@ -1679,14 +1679,14 @@ List.prototype.replace = function(elementToFind, elementToInsert) {
  */
 List.prototype.assignNames = function(names) {
   if(names == null) return this;
-  var n = names.length;
-  var l = this.length;
+
+  var l = Math.min(this.length, names.length);
   var i;
 
   for(i=0; i<l; i++){
-    this[i].name = names[i % n];
+    this[i].name = names[i];
   }
-
+  
   return this;
 };
 
