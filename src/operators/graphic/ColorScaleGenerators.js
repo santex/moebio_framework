@@ -9,9 +9,9 @@ export default ColorScaleGenerators;
 
 
 /**
- * creates a ColorScale function from colors and positions, a numberList with values in (0,1) (positions lenth must be colorList length minus 2)
+ * creates a ColorScale function from colors and positions, a numberList with values in (0,1) (positions length must be colorList length minus 2)
  * @param  {ColorList} colorList
- * @param  {NumberList} positions
+ * @param  {NumberList} positions length must be colorList length minus 2
  * @return {ColorScale}
  * tags:generator
  */
