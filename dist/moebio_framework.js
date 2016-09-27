@@ -1062,7 +1062,7 @@
   };
 
   /**
-   * Compares elements with another list, if all elements are identical, the lists are equivalent and return true. A List is always equivalente to itslef, and two different lists could be equivalent.
+   * Compares elements with another list, if all elements are identical, the lists are equivalent and return true. A List is always equivalent to itself, and two different lists could be equivalent.
    * @param  {List} list to compare.
    * @return {Boolean} true if all elements are identical
    * tags:
@@ -1072,6 +1072,12 @@
 
     var i;
     var l = this.length;
+    if(this.isTable){
+      for(i = 0; i<l; i++) {
+        if(!this[i].isEquivalent(list[i])) return false;
+      }
+      return true;
+    }
     for(i = 0; i<l; i++) {
       if(this[i] != list[i]) return false;
     }
@@ -7072,12 +7078,21 @@
    */
   function TableGenerators() {}
   /**
-   * @todo finish docs
+   * filter a table selecting rows that have particular values in specific lists, all values must match
+   * @param  {Number} nLists is the number of lists to create in the table
+   * @param  {Number} nRows is the number of rows to insert
+   * @param  {Object} element object to be placed in all positions
+   *
+   * @param {StringList} sLNames optionally gives the names of the lists in the new table
+   * @return {Table}
+   * tags:generator
    */
-  TableGenerators.createTableWithSameElement = function(nLists, nRows, element) {
+  TableGenerators.createTableWithSameElement = function(nLists, nRows, element, sLNames) {
     var table = new Table();
     for(var i = 0; i < nLists; i++) {
       table[i] = ListGenerators.createListWithSameElement(nRows, element);
+      if(sLNames && sLNames[i])
+      	table[i].name = sLNames[i];
     }
     return table.getImproved();
   };
@@ -10674,14 +10689,14 @@
     if(sortedByFrequency) {
       if(withoutRepetitions) {
         list = list.getFrequenciesTable(true)[0];// //ListOperators.countElementsRepetitionOnList(list, true)[0];
-        if(limit !== 0) list = list.substr(0, limit);
+        if(limit !== 0) list = list.splice(0, limit);
 
         return list;
       }
 
       var occurrences = list.getFrequenciesTable();
       list = list.getSortedByList(occurrences);
-      if(limit !== 0) list = list.substr(0, limit);
+      if(limit !== 0) list = list.splice(0, limit);
 
       return list;
     }
@@ -11061,8 +11076,10 @@
    * tags:
    */
   StringOperators.removeEnters = function(string, replaceBy) {
+    if(string==null) return null;
     replaceBy = replaceBy==null?"":replaceBy;
-    return string.replace(/(\StringOperators.ENTER|\StringOperators.ENTER2|\StringOperators.ENTER3)/gi, replaceBy);
+    var r = new RegExp('\\'+StringOperators.ENTER+'|\\'+StringOperators.ENTER2+'|\\'+StringOperators.ENTER3,'gi');
+    return string.replace(r, replaceBy);
   };
 
   /**
@@ -11074,8 +11091,10 @@
    * tags:
    */
   StringOperators.removeTabs = function(string, replaceBy) {
+    if(string==null) return null;
     replaceBy = replaceBy || "";
-    return string.replace(/(\StringOperators.TAB|\StringOperators.TAB2|\t)/gi, replaceBy);
+    var r = new RegExp('\\'+StringOperators.TAB+'|\\'+StringOperators.TAB2+'|\\t','gi');
+    return string.replace(r, replaceBy);
   };
 
   /**
@@ -11087,6 +11106,7 @@
    * tags:
    */
   StringOperators.removePunctuation = function(string, replaceBy) {
+    if(string==null) return null;
     replaceBy = replaceBy || "";
     return string.replace(/[:,.;?!\(\)\"\']/gi, replaceBy);
   };
@@ -11098,6 +11118,7 @@
    * tags:
    */
   StringOperators.removeDoubleSpaces = function(string) {
+    if(string==null) return null;
     var retString = string;
     var regExpr = RegExp(/  /);
     while(regExpr.test(retString)) {
@@ -11110,6 +11131,7 @@
    * @todo finish docs
    */
   StringOperators.removeInitialRepeatedCharacter = function(string, character) {
+    if(string==null) return null;
     while(string.charAt(0) == character) string = string.substr(1);
     return string;
   };
@@ -11414,6 +11436,62 @@
 
     return false;
   };
+
+  /**
+   * builds a stringList of word sequences contained in the text
+   * @param  {String} string text to be analyzed
+   *
+   * @param  {Number} minSequenceSize least amount of words in sequence (default:2)
+   * @param  {Number} maxSequenceSize most amount of words in sequence (default:2)
+   * @param  {Boolean|StringList} stopWords do not allow stop words (true for default stop words, or stringList of words)
+   * @param  {Number} limit to the number of sequences
+   * @param  {Number} minSizeWords minimal number of characters of words
+   * @return {StringList}
+   * tags:
+   */
+  StringOperators.getNgrams = function(string, minSequenceSize, maxSequenceSize, stopWords, limit, minSizeWords) {
+    
+    minSequenceSize = minSequenceSize || 2;
+    maxSequenceSize = maxSequenceSize || 2;
+    if(maxSequenceSize < minSequenceSize) maxSequenceSize = minSequenceSize;
+    minSizeWords = minSizeWords || 0;
+    limit = limit == null ? 0 : limit;
+    if(stopWords===true) stopWords = StringOperators.STOP_WORDS;
+
+    var i, j, sSeq;
+    var sLSequences = new StringList();
+    if(string == null || typeof string != 'string') return sLSequences;
+
+    // get all the tokens
+    string = string.toLowerCase().replace(StringOperators.LINK_REGEX, "");
+    var tokens = string.match(/\w+|[\.,-\/#!$%\^&\*;:{}=\-_`~()@\+\?><\[\]\+]/g);
+    if(tokens == null) return sLSequences;
+    tokens = StringList.fromArray(tokens);
+
+    var rePunct = /[\.,-\/#!$%\^&\*;:{}=\-_`~()@\+\?><\[\]\+]/;
+
+    for(i=0; i<tokens.length; i++){
+      sSeq = tokens[i];
+      if(stopWords && stopWords.indexOf(tokens[i]) != -1) continue;
+      if(minSizeWords && tokens[i].length < minSizeWords) continue;
+      if(tokens[i].length == 1 && tokens[i].match(rePunct)) continue;
+      if(maxSequenceSize == 1) sLSequences.push(sSeq);
+      for(j=i+1; j < tokens.length && j < i+maxSequenceSize; j++){
+        if(stopWords && stopWords.indexOf(tokens[j]) != -1) break;
+        if(minSizeWords && tokens[j].length < minSizeWords) break;
+        if(tokens[j].length == 1 && tokens[j].match(rePunct)) break;
+        if(j >= i + minSequenceSize - 1){
+          sSeq = sSeq + ' ' + tokens[j];
+          sLSequences.push(sSeq);
+          if(limit !== 0 && sLSequences.length == limit) break;
+        }
+        else
+          sSeq = sSeq + ' ' + tokens[j];
+      }
+      if(limit !== 0 && sLSequences.length == limit) break;
+    }
+    return sLSequences;
+  }
 
   /**
    * @classdesc Provides a set of tools that work with Dates.
@@ -21169,7 +21247,7 @@
    * filter a table selecting rows that have particular values in specific lists, all values must match
    * @param  {Table} table
    * @param  {NumberList} lists is the set of list indexes to test for matching values
-   * @param  {List} values are the set of values to test for
+   * @param  {List} values are the set of values to test for. If only 1 list is tested and there are multiple values then any of those values are accepted.
    *
    * @param {Boolean} keepMatchingRows if true (default value) the rows are kept if all the lists match the given values, if false matching rows are discarded
    * @return {Table}
@@ -21179,18 +21257,28 @@
     if(table == null ||  table.length <= 0) return;
     keepMatchingRows = keepMatchingRows==null?true:keepMatchingRows;
     if(lists == null || values == null || lists.length == undefined) return keepMatchingRows ? table : null;
-    if(lists.length != values.length) return;
+    if(lists.length != values.length && lists.length != 1) return;
 
     var nLMatch = new NumberList();
     var nRows = table[0].length;
+    var bOrValues = lists.length == 1 && values.length > 1;
 
     for(var r=0; r < nRows; r++){
       var bMatch = true;
       for(var c=0; c < lists.length && bMatch; c++){
         if(isNaN(lists[c]) || lists[c] < 0 || lists[c] >= table.length)
           return; // invalid input
-        if(table[lists[c]][r] != values[c])
+        if(table[lists[c]][r] != values[c]){
           bMatch = false;
+          if(bOrValues){
+            for(var cv=1; cv < values.length; cv++){
+              if(table[lists[c]][r] == values[cv]){
+                bMatch = true;
+                break;
+              }
+            }
+          }
+        }
       }
       if(bMatch)
         nLMatch.push(r);
@@ -25372,10 +25460,11 @@
    * @param {Boolean} sortByTotalWeight sort all columns by total weights of words (default: true)
    * @param {Number} minSizeWords
    * @param {Boolean} addTotalList adds a numberList with sums of weights for each word (this is ths list used optionally to sort the lists of the table) (default: false)
+   * @param {Number} minSupportFraction a number in range [0,1] which if specified only words appearing in at least that fraction of input texts will be included
    * @return {Table}
    * tags:count
    */
-  StringListOperators.getWordsInTextsOccurrencesTable = function(texts, weightsMode, stopWords, includeLinks, wordsLimitPerString, totalWordsLimit, sortByTotalWeight, minSizeWords, addTotalList) {
+  StringListOperators.getWordsInTextsOccurrencesTable = function(texts, weightsMode, stopWords, includeLinks, wordsLimitPerString, totalWordsLimit, sortByTotalWeight, minSizeWords, addTotalList, minSupportFraction) {
     if(texts == null) return;
 
     var i, j;
@@ -25390,24 +25479,54 @@
     var tfidf = weightsMode==2 || weightsMode==3 || weightsMode==4;
     sortByTotalWeight = (sortByTotalWeight || true);
     minSizeWords = minSizeWords == null ? 3 : minSizeWords;
+    minSupportFraction = minSupportFraction == null ? 0 : minSupportFraction;
 
-    if(texts[0]===""){
-      matrix = new Table();
-      matrix.push(new StringList(""));
-      matrix.push(new NumberList(0));
-    } else {
-      matrix = StringOperators.getWordsOccurrencesTable(texts[0], stopWords, includeLinks, wordsLimitPerString, minSizeWords);
-    }
-
-
+    // new algorithm for combining results
     var table;
-    for(i = 1; i<nTexts; i++){
-      if(texts[i]===""){
-        matrix.push(ListGenerators.createListWithSameElement(matrix[0].length, 0));
-      } else {
-        table = StringOperators.getWordsOccurrencesTable(texts[i], stopWords, includeLinks, wordsLimitPerString, minSizeWords);
-        matrix = TableOperators.mergeDataTables(matrix, table);
+    var oWordCounts = {};
+    var tabCounts;
+    for(i = 0; i<nTexts; i++){
+      table = StringOperators.getWordsOccurrencesTable(texts[i], stopWords, includeLinks, wordsLimitPerString, minSizeWords);
+      for(j = 0; j<table[0].length; j++){
+        tabCounts = oWordCounts[table[0][j]];
+        if(tabCounts == undefined){
+          tabCounts = new NumberTable();
+          tabCounts.push(new NumberList()); // text indexes
+          tabCounts.push(new NumberList()); // counts of this word in this text item
+          oWordCounts[table[0][j]] = tabCounts;
+        }
+        tabCounts[0].push(i);
+        tabCounts[1].push(table[1][j]);
       }
+    }
+    var sLWords = new StringList();
+    for(var key in oWordCounts){
+      if(!oWordCounts.hasOwnProperty(key)) continue;
+      if(oWordCounts[key][0].length < minSupportFraction*nTexts){
+        // not enough support, do not include
+        delete oWordCounts[key];
+        continue;
+      }
+      sLWords.push(key);
+    }
+    matrix = TableGenerators.createTableWithSameElement(nTexts+1,sLWords.length,0);
+    // set list names
+    for(i = 0; i < matrix.length; i++){
+      if(i==0)
+        matrix[i] = ListGenerators.createListWithSameElement(sLWords.length,'','words');
+      else
+        matrix[i].name = 'text ' + (i-1);
+    }
+    // fill with data
+    var iWord = 0;
+    for(var key in oWordCounts){
+      if(!oWordCounts.hasOwnProperty(key)) continue;
+      matrix[0][iWord] = key;
+      tabCounts = oWordCounts[key];
+      for(i = 0; i < tabCounts[0].length; i++){
+        matrix[tabCounts[0][i]+1][iWord] += tabCounts[1][i];
+      }
+      iWord++;
     }
 
 
@@ -25486,7 +25605,7 @@
     }
 
 
-    if(totalWordsLimit > 0) matrix = matrix.sliceRows(0, totalWordsLimit - 1);
+    if(totalWordsLimit > 0 && totalWordsLimit < matrix[0].length) matrix = matrix.sliceRows(0, totalWordsLimit - 1);
 
     return matrix;
   };

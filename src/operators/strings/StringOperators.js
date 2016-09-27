@@ -205,14 +205,14 @@ StringOperators.getWords = function(string, withoutRepetitions, stopWords, sorte
   if(sortedByFrequency) {
     if(withoutRepetitions) {
       list = list.getFrequenciesTable(true)[0];// //ListOperators.countElementsRepetitionOnList(list, true)[0];
-      if(limit !== 0) list = list.substr(0, limit);
+      if(limit !== 0) list = list.splice(0, limit);
 
       return list;
     }
 
     var occurrences = list.getFrequenciesTable();
     list = list.getSortedByList(occurrences);
-    if(limit !== 0) list = list.substr(0, limit);
+    if(limit !== 0) list = list.splice(0, limit);
 
     return list;
   }
@@ -592,8 +592,10 @@ StringOperators.cleanText = function(string, removeEnters, removeTabs, replaceTa
  * tags:
  */
 StringOperators.removeEnters = function(string, replaceBy) {
+  if(string==null) return null;
   replaceBy = replaceBy==null?"":replaceBy;
-  return string.replace(/(\StringOperators.ENTER|\StringOperators.ENTER2|\StringOperators.ENTER3)/gi, replaceBy);
+  var r = new RegExp('\\'+StringOperators.ENTER+'|\\'+StringOperators.ENTER2+'|\\'+StringOperators.ENTER3,'gi');
+  return string.replace(r, replaceBy);
 };
 
 /**
@@ -605,8 +607,10 @@ StringOperators.removeEnters = function(string, replaceBy) {
  * tags:
  */
 StringOperators.removeTabs = function(string, replaceBy) {
+  if(string==null) return null;
   replaceBy = replaceBy || "";
-  return string.replace(/(\StringOperators.TAB|\StringOperators.TAB2|\t)/gi, replaceBy);
+  var r = new RegExp('\\'+StringOperators.TAB+'|\\'+StringOperators.TAB2+'|\\t','gi');
+  return string.replace(r, replaceBy);
 };
 
 /**
@@ -618,6 +622,7 @@ StringOperators.removeTabs = function(string, replaceBy) {
  * tags:
  */
 StringOperators.removePunctuation = function(string, replaceBy) {
+  if(string==null) return null;
   replaceBy = replaceBy || "";
   return string.replace(/[:,.;?!\(\)\"\']/gi, replaceBy);
 };
@@ -629,6 +634,7 @@ StringOperators.removePunctuation = function(string, replaceBy) {
  * tags:
  */
 StringOperators.removeDoubleSpaces = function(string) {
+  if(string==null) return null;
   var retString = string;
   var regExpr = RegExp(/  /);
   while(regExpr.test(retString)) {
@@ -641,6 +647,7 @@ StringOperators.removeDoubleSpaces = function(string) {
  * @todo finish docs
  */
 StringOperators.removeInitialRepeatedCharacter = function(string, character) {
+  if(string==null) return null;
   while(string.charAt(0) == character) string = string.substr(1);
   return string;
 };
@@ -945,4 +952,60 @@ StringOperators.isAbsoluteUrl = function(string){
 
   return false;
 };
+
+/**
+ * builds a stringList of word sequences contained in the text
+ * @param  {String} string text to be analyzed
+ *
+ * @param  {Number} minSequenceSize least amount of words in sequence (default:2)
+ * @param  {Number} maxSequenceSize most amount of words in sequence (default:2)
+ * @param  {Boolean|StringList} stopWords do not allow stop words (true for default stop words, or stringList of words)
+ * @param  {Number} limit to the number of sequences
+ * @param  {Number} minSizeWords minimal number of characters of words
+ * @return {StringList}
+ * tags:
+ */
+StringOperators.getNgrams = function(string, minSequenceSize, maxSequenceSize, stopWords, limit, minSizeWords) {
+  
+  minSequenceSize = minSequenceSize || 2;
+  maxSequenceSize = maxSequenceSize || 2;
+  if(maxSequenceSize < minSequenceSize) maxSequenceSize = minSequenceSize;
+  minSizeWords = minSizeWords || 0;
+  limit = limit == null ? 0 : limit;
+  if(stopWords===true) stopWords = StringOperators.STOP_WORDS;
+
+  var i, j, sSeq;
+  var sLSequences = new StringList();
+  if(string == null || typeof string != 'string') return sLSequences;
+
+  // get all the tokens
+  string = string.toLowerCase().replace(StringOperators.LINK_REGEX, "");
+  var tokens = string.match(/\w+|[\.,-\/#!$%\^&\*;:{}=\-_`~()@\+\?><\[\]\+]/g);
+  if(tokens == null) return sLSequences;
+  tokens = StringList.fromArray(tokens);
+
+  var rePunct = /[\.,-\/#!$%\^&\*;:{}=\-_`~()@\+\?><\[\]\+]/;
+
+  for(i=0; i<tokens.length; i++){
+    sSeq = tokens[i];
+    if(stopWords && stopWords.indexOf(tokens[i]) != -1) continue;
+    if(minSizeWords && tokens[i].length < minSizeWords) continue;
+    if(tokens[i].length == 1 && tokens[i].match(rePunct)) continue;
+    if(maxSequenceSize == 1) sLSequences.push(sSeq);
+    for(j=i+1; j < tokens.length && j < i+maxSequenceSize; j++){
+      if(stopWords && stopWords.indexOf(tokens[j]) != -1) break;
+      if(minSizeWords && tokens[j].length < minSizeWords) break;
+      if(tokens[j].length == 1 && tokens[j].match(rePunct)) break;
+      if(j >= i + minSequenceSize - 1){
+        sSeq = sSeq + ' ' + tokens[j];
+        sLSequences.push(sSeq);
+        if(limit !== 0 && sLSequences.length == limit) break;
+      }
+      else
+        sSeq = sSeq + ' ' + tokens[j];
+    }
+    if(limit !== 0 && sLSequences.length == limit) break;
+  }
+  return sLSequences;
+}
 

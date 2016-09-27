@@ -9,7 +9,7 @@ import Relation from "src/dataTypes/structures/elements/Relation";
 import Node from "src/dataTypes/structures/elements/Node";
 import NumberListOperators from "src/operators/numeric/numberList/NumberListOperators";
 import Table from "src/dataTypes/lists/Table";
-
+import TableGenerators from "src/operators/lists/TableGenerators";
 
 /**
  * @classdesc  StringList Operators
@@ -234,10 +234,11 @@ StringListOperators.countStringsOccurrencesOnTexts = function(strings, texts, as
  * @param {Boolean} sortByTotalWeight sort all columns by total weights of words (default: true)
  * @param {Number} minSizeWords
  * @param {Boolean} addTotalList adds a numberList with sums of weights for each word (this is ths list used optionally to sort the lists of the table) (default: false)
+ * @param {Number} minSupportFraction a number in range [0,1] which if specified only words appearing in at least that fraction of input texts will be included
  * @return {Table}
  * tags:count
  */
-StringListOperators.getWordsInTextsOccurrencesTable = function(texts, weightsMode, stopWords, includeLinks, wordsLimitPerString, totalWordsLimit, sortByTotalWeight, minSizeWords, addTotalList) {
+StringListOperators.getWordsInTextsOccurrencesTable = function(texts, weightsMode, stopWords, includeLinks, wordsLimitPerString, totalWordsLimit, sortByTotalWeight, minSizeWords, addTotalList, minSupportFraction) {
   if(texts == null) return;
 
   var i, j;
@@ -252,24 +253,54 @@ StringListOperators.getWordsInTextsOccurrencesTable = function(texts, weightsMod
   var tfidf = weightsMode==2 || weightsMode==3 || weightsMode==4;
   sortByTotalWeight = (sortByTotalWeight || true);
   minSizeWords = minSizeWords == null ? 3 : minSizeWords;
+  minSupportFraction = minSupportFraction == null ? 0 : minSupportFraction;
 
-  if(texts[0]===""){
-    matrix = new Table();
-    matrix.push(new StringList(""));
-    matrix.push(new NumberList(0));
-  } else {
-    matrix = StringOperators.getWordsOccurrencesTable(texts[0], stopWords, includeLinks, wordsLimitPerString, minSizeWords);
-  }
-
-
+  // new algorithm for combining results
   var table;
-  for(i = 1; i<nTexts; i++){
-    if(texts[i]===""){
-      matrix.push(ListGenerators.createListWithSameElement(matrix[0].length, 0));
-    } else {
-      table = StringOperators.getWordsOccurrencesTable(texts[i], stopWords, includeLinks, wordsLimitPerString, minSizeWords);
-      matrix = TableOperators.mergeDataTables(matrix, table);
+  var oWordCounts = {};
+  var tabCounts;
+  for(i = 0; i<nTexts; i++){
+    table = StringOperators.getWordsOccurrencesTable(texts[i], stopWords, includeLinks, wordsLimitPerString, minSizeWords);
+    for(j = 0; j<table[0].length; j++){
+      tabCounts = oWordCounts[table[0][j]];
+      if(tabCounts == undefined){
+        tabCounts = new NumberTable();
+        tabCounts.push(new NumberList()); // text indexes
+        tabCounts.push(new NumberList()); // counts of this word in this text item
+        oWordCounts[table[0][j]] = tabCounts;
+      }
+      tabCounts[0].push(i);
+      tabCounts[1].push(table[1][j]);
     }
+  }
+  var sLWords = new StringList();
+  for(var key in oWordCounts){
+    if(!oWordCounts.hasOwnProperty(key)) continue;
+    if(oWordCounts[key][0].length < minSupportFraction*nTexts){
+      // not enough support, do not include
+      delete oWordCounts[key];
+      continue;
+    }
+    sLWords.push(key);
+  }
+  matrix = TableGenerators.createTableWithSameElement(nTexts+1,sLWords.length,0);
+  // set list names
+  for(i = 0; i < matrix.length; i++){
+    if(i==0)
+      matrix[i] = ListGenerators.createListWithSameElement(sLWords.length,'','words');
+    else
+      matrix[i].name = 'text ' + (i-1);
+  }
+  // fill with data
+  var iWord = 0;
+  for(var key in oWordCounts){
+    if(!oWordCounts.hasOwnProperty(key)) continue;
+    matrix[0][iWord] = key;
+    tabCounts = oWordCounts[key];
+    for(i = 0; i < tabCounts[0].length; i++){
+      matrix[tabCounts[0][i]+1][iWord] += tabCounts[1][i];
+    }
+    iWord++;
   }
 
 
@@ -348,7 +379,7 @@ StringListOperators.getWordsInTextsOccurrencesTable = function(texts, weightsMod
   }
 
 
-  if(totalWordsLimit > 0) matrix = matrix.sliceRows(0, totalWordsLimit - 1);
+  if(totalWordsLimit > 0 && totalWordsLimit < matrix[0].length) matrix = matrix.sliceRows(0, totalWordsLimit - 1);
 
   return matrix;
 };
