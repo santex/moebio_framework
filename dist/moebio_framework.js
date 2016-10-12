@@ -1040,7 +1040,7 @@
       list = name?this.getElementByName(indexesOrNames[i]):this[indexesOrNames[i]];
 
       if(list==null){
-        if(nullIfNotFound) newList.push(null);
+        if(nullIfNotFound || (!name && this[indexesOrNames[i]] === null) ) newList.push(null);
       } else {
         newList.push(list);
       }
