@@ -1300,14 +1300,16 @@
 
   /**
    * creates a new List without repeating elements.
+   *
+   * @param {Boolean} bReturnIndexes return unique indexes instead of values (default:false)
    * @return {List}
    * tags:filter
    */
-  List.prototype.getWithoutRepetitions = function() {
+  List.prototype.getWithoutRepetitions = function(bReturnIndexes) {
     var i;
     var dictionary;
 
-    var newList = instantiateWithSameType(this);
+    var newList = bReturnIndexes ? new NumberList() : instantiateWithSameType(this);
     var l = this.length;
 
     newList.name = this.name;
@@ -1316,7 +1318,7 @@
     dictionary = {};
     for(i = 0; i<l; i++) {
       if(!dictionary[this[i]]) {
-        newList.push(this[i]);
+        newList.push(bReturnIndexes ? i : this[i]);
         dictionary[this[i]] = true;
       }
     }
