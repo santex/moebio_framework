@@ -5333,6 +5333,388 @@
     return newPolygon;
   };
 
+  StringList.prototype = new List();
+  StringList.prototype.constructor = StringList;
+
+  /**
+   * @classdesc {@link List} for storing Strings.
+   *
+   * Additional functions that work on StringList can be found in:
+   * <ul>
+   *  <li>Operators:   {@link StringListOperators}</li>
+   *  <li>Conversions: {@link StringListConversions}</li>
+   * </ul>
+   *
+   * @constructor
+   * @description Creates a new StringList
+   *
+   * @category strings
+   */
+  function StringList() {
+    var args = [];
+
+    for(var i = 0; i < arguments.length; i++) {
+      args[i] = String(arguments[i]);
+    }
+    var array = List.apply(this, args);
+    array = StringList.fromArray(array);
+    
+    return array;
+  }
+  /**
+   * @todo write docs
+   */
+  StringList.fromArray = function(array, forceToString) {
+    forceToString = forceToString == null ? true : forceToString;
+
+    var result = List.fromArray(array);
+    if(forceToString) {
+      for(var i = 0; i < result.length; i++) {
+        result[i] = String(result[i]);
+      }
+    }
+    result.type = "StringList";
+
+    //assign methods to array:
+    result.getLengths = StringList.prototype.getLengths;
+    result.toLowerCase = StringList.prototype.toLowerCase;
+    result.toUpperCase = StringList.prototype.toUpperCase;
+    result.append = StringList.prototype.append;
+    result.getSurrounded = StringList.prototype.getSurrounded;
+    result.replace = StringList.prototype.replace;
+    result.getConcatenated = StringList.prototype.getConcatenated;
+    result.trim = StringList.prototype.trim;
+
+    //override
+    result.clone = StringList.prototype.clone;
+
+    return result;
+  };
+
+  /**
+   * overrides List.prototype.getLengths (see comments there)
+   */
+  StringList.prototype.getLengths = function() {
+    var lengths = new NumberList();
+
+    this.forEach(function(string) {
+      lengths.push(string.length);
+    });
+
+    return lengths;
+  };
+
+  /**
+   * @todo write docs
+   */
+  StringList.prototype.append = function(sufix, after) {
+    after = after == null ? true : after;
+    var newStringList = new StringList();
+    newStringList.name = this.name;
+    var sufixIsStringList = _typeOf(sufix) == "StringList";
+    var i;
+    if(after) {
+      for(i = 0; this[i] != null; i++) {
+        newStringList[i] = this[i] + (sufixIsStringList ? sufix[i] : sufix);
+      }
+    } else {
+      for(i = 0; this[i] != null; i++) {
+        newStringList[i] = (sufixIsStringList ? sufix[i] : sufix) + this[i];
+      }
+    }
+    return newStringList;
+  };
+
+  /**
+   * prefix and sufix can be string or a StringList
+   */
+  StringList.prototype.getSurrounded = function(prefix, sufix) {//to be deprecated
+    sufix = sufix==null?"":sufix;
+    
+    var newStringList = new StringList();
+    newStringList.name = this.name;
+    var i;
+
+    var prefixIsStringList = Array.isArray(prefix);
+    var sufixIsStringList = Array.isArray(sufix);
+
+    for(i = 0; this[i] != null; i++) {
+      newStringList[i] = (prefixIsStringList ? prefix[i] : prefix) + this[i] + (sufixIsStringList ? sufix[i] : sufix);
+    }
+
+    return newStringList;
+  };
+
+
+  //deprectaed, replaced by replaceInStrings
+  /**
+   * @ignore
+   */
+  StringList.prototype.replace = function(regExp, string) {
+    if(regExp==null) return this;
+
+    var newStringList = new StringList();
+    var i;
+    var l = this.length;
+
+    newStringList.name = this.name;
+
+    for(i = 0; i<l; i++){
+      newStringList[i] = this[i].replace(regExp, string);
+    }
+
+    return newStringList;
+  };
+
+  /**
+   * @todo write docs
+   */
+  StringList.prototype.getConcatenated = function(separator) {
+    var i;
+    var string = "";
+    var l = this.length;
+    for(i = 0; i<l; i++) {
+      string += this[i];
+      if(i < this.length - 1) string += separator;
+    }
+    return string;
+  };
+
+  /**
+   * applies toLowercase to all strings
+   * @return {StringList}
+   * tags:
+   */
+  StringList.prototype.toLowerCase = function() {
+    var newStringList = new StringList();
+    newStringList.name = this.name;
+    var i;
+    var l = this.length;
+    for(i = 0; i<l; i++) {
+      newStringList[i] = this[i].toLowerCase();
+    }
+    return newStringList;
+  };
+
+  /**
+   * applies toUpperCase to all strings
+   * @return {StringList}
+   * tags:
+   */
+  StringList.prototype.toUpperCase = function() {
+    var newStringList = new StringList();
+    newStringList.name = this.name;
+    var i;
+    var l = this.length;
+    for(i = 0; i<l; i++) {
+      newStringList[i] = this[i].toUpperCase();
+    }
+    return newStringList;
+  };
+
+  /**
+   * trims all the strings on the stringList
+   * @return {StringList}
+   * tags:
+   */
+  StringList.prototype.trim = function() {
+    var i;
+    var l = this.length;
+    var newStringList = new StringList();
+    for(i = 0; i<l; i++) {
+      newStringList[i] = this[i].trim();
+    }
+    newStringList.name = this.name;
+    return newStringList;
+  };
+
+  ///////overriding
+
+  /**
+   * @todo write docs
+   */
+  StringList.prototype.clone = function() {
+    var newList = StringList.fromArray(this.slice(), false);
+    newList.name = this.name;
+    return newList;
+  };
+
+  RectangleList.prototype = new List();
+  RectangleList.prototype.constructor = RectangleList;
+  /**
+   * @classdesc A {@link List} structure for storing {@link Rectangle} instances.
+   *
+   * @description Creates a new RectangleList.
+   * @constructor
+   * @category geometry
+   */
+  function RectangleList() {
+    var array = List.apply(this, arguments);
+    array = RectangleList.fromArray(array);
+    return array;
+  }
+  /**
+   * @todo write docs
+   */
+  RectangleList.fromArray = function(array) {
+    var result = List.fromArray(array);
+    result.type = "RectangleList";
+
+    result.getFrame = RectangleList.prototype.getFrame;
+    result.add = RectangleList.prototype.add;
+    result.clone = RectangleList.prototype.clone;
+    result.factor = RectangleList.prototype.factor;
+    result.getAddedArea = RectangleList.prototype.getAddedArea;
+    result.getIntersectionArea = RectangleList.prototype.getIntersectionArea;
+
+    return result;
+  };
+
+
+  /**
+   * @todo write docs
+   */
+  RectangleList.prototype.getFrame = function() {//TODO: use RectangleOperators.minRect
+    if(this.length === 0) return null;
+
+    var frame = this[0].clone();
+    frame.width = frame.getRight();
+    frame.height = frame.getBottom();
+    for(var i = 1; this[i] != null; i++) {
+      frame.x = Math.min(frame.x, this[i].x);
+      frame.y = Math.min(frame.y, this[i].y);
+
+      frame.width = Math.max(this[i].getRight(), frame.width);
+      frame.height = Math.max(this[i].getBottom(), frame.height);
+    }
+
+    frame.width -= frame.x;
+    frame.height -= frame.y;
+
+    return frame;
+  };
+
+  // TODO:finish RectangleList methods
+
+  /**
+   * @todo write docs
+   */
+  RectangleList.prototype.clone = function() {
+    var newRectangleList = new RectangleList();
+    for(var i = 0; this[i] != null; i++) {
+      newRectangleList[i] = this[i].clone();
+    }
+    newRectangleList.name = this.name;
+    return newRectangleList;
+  };
+
+  /**
+   * @ignore
+   */
+  RectangleList.prototype.add = function() {
+
+  };
+
+  /**
+   * @ignore
+   */
+  RectangleList.prototype.factor = function() {
+
+  };
+
+
+  /**
+   * @ignore
+   */
+  RectangleList.prototype.getAddedArea = function() {};
+
+  /**
+   * @todo write docs
+   */
+  RectangleList.prototype.getIntersectionArea = function() {
+    var rect0;
+    var rect1;
+    var intersectionArea = 0;
+    var intersection;
+    for(var i = 0; this[i + 1] != null; i++) {
+      rect0 = this[i];
+      for(var j = i + 1; this[j] != null; j++) {
+        rect1 = this[j];
+        intersection = rect0.getIntersection(rect1);
+        intersectionArea += intersection == null ? 0 : intersection.getArea();
+      }
+    }
+
+    return intersectionArea;
+  };
+
+  /**
+   * @classdesc Create default lists
+   *
+   * @namespace
+   * @category basics
+   */
+  function ListGenerators() {}
+  /**
+   * Generates a List made of several copies of same element (returned List is improved)
+   * @param {Object} nValues length of the List
+   * @param {Object} element object to be placed in all positions
+   *
+   * @param {String} name optional name for the list
+   * @return {List} generated List
+   * tags:generator
+   */
+  ListGenerators.createListWithSameElement = function(nValues, element, name) {
+    var list;
+    switch(_typeOf(element)) {
+      case 'number':
+        list = new NumberList();
+        break;
+      case 'List':
+        list = new Table();
+        break;
+      case 'NumberList':
+        list = new NumberTable();
+        break;
+      case 'Rectangle':
+        list = new RectangleList();
+        break;
+      case 'string':
+        list = new StringList();
+        break;
+      case 'boolean':
+        list = new List(); //TODO:update once BooleanList exists
+        break;
+      default:
+        list = new List();
+    }
+
+    var i;
+
+    for(i = 0; i < nValues; i++) {
+      list[i] = element;
+    }
+
+    list.name = name;
+    return list;
+  };
+
+  /**
+   * Generates a List built froma seed element and a function that will be applied iteratively
+   * @param {Object} nValues length of the List
+   * @param {Object} firstElement first element
+   * @param {Object} dynamicFunction sequence generator function, elementN+1 =  dynamicFunction(elementN)
+   * @return {List} generated List
+   * tags:generator
+   */
+  ListGenerators.createIterationSequence = function(nValues, firstElement, dynamicFunction) {
+    var list = ListGenerators.createListWithSameElement(1, firstElement);
+    for(var i = 1; i < nValues; i++) {
+      list[i] = dynamicFunction(list[i - 1]);
+    }
+    return list;
+  };
+
   //
 
   Table.prototype = new List();
@@ -5967,7 +6349,10 @@
     result.add = NumberTable.prototype.add;
     result.getMax = NumberTable.prototype.getMax;
     result.getMaxValues = NumberTable.prototype.getMaxValues;
+    result.getMaxCell = NumberTable.prototype.getMaxCell;
     result.getMin = NumberTable.prototype.getMin;
+    result.getMinValues = NumberTable.prototype.getMinValues;
+    result.getMinCell = NumberTable.prototype.getMinCell;
     result.getInterval = NumberTable.prototype.getInterval;
     result.getCovarianceMatrix = NumberTable.prototype.getCovarianceMatrix;
 
@@ -6010,6 +6395,29 @@
   };
 
   /**
+   * returns list and row of the cell with the maximum value
+   * @return {NumberList} with first element having list and second element the row containing the max value
+   * tags:
+   */
+  NumberTable.prototype.getMaxCell = function() {
+    if(this.length === 0) return null;
+
+    var location = ListGenerators.createListWithSameElement(2,0);
+    var i,j,m;
+    m = this[0][0];
+    for(i = 0;i < this.length;i++){
+      for(j = 0;j < this[i].length;j++){
+        if(this[i][j] > m){
+          m = this[i][j];
+          location[0] = i;
+          location[1] = j;
+        }
+      }
+    }
+    return location;
+  };
+
+  /**
    * @todo write docs
    */
   NumberTable.prototype.getMin = function() {
@@ -6040,6 +6448,29 @@
     }
 
     return mins;
+  };
+
+  /**
+   * returns list and row of the cell with the minimum value
+   * @return {NumberList} with first element having list and second element the row containing the min value
+   * tags:
+   */
+  NumberTable.prototype.getMinCell = function() {
+    if(this.length === 0) return null;
+
+    var location = ListGenerators.createListWithSameElement(2,0);
+    var i,j,m;
+    m = this[0][0];
+    for(i = 0;i < this.length;i++){
+      for(j = 0;j < this[i].length;j++){
+        if(this[i][j] < m){
+          m = this[i][j];
+          location[0] = i;
+          location[1] = j;
+        }
+      }
+    }
+    return location;
   };
 
   /**
@@ -6181,212 +6612,6 @@
 
     newTable.name = this.name;
     return newTable;
-  };
-
-  StringList.prototype = new List();
-  StringList.prototype.constructor = StringList;
-
-  /**
-   * @classdesc {@link List} for storing Strings.
-   *
-   * Additional functions that work on StringList can be found in:
-   * <ul>
-   *  <li>Operators:   {@link StringListOperators}</li>
-   *  <li>Conversions: {@link StringListConversions}</li>
-   * </ul>
-   *
-   * @constructor
-   * @description Creates a new StringList
-   *
-   * @category strings
-   */
-  function StringList() {
-    var args = [];
-
-    for(var i = 0; i < arguments.length; i++) {
-      args[i] = String(arguments[i]);
-    }
-    var array = List.apply(this, args);
-    array = StringList.fromArray(array);
-    
-    return array;
-  }
-  /**
-   * @todo write docs
-   */
-  StringList.fromArray = function(array, forceToString) {
-    forceToString = forceToString == null ? true : forceToString;
-
-    var result = List.fromArray(array);
-    if(forceToString) {
-      for(var i = 0; i < result.length; i++) {
-        result[i] = String(result[i]);
-      }
-    }
-    result.type = "StringList";
-
-    //assign methods to array:
-    result.getLengths = StringList.prototype.getLengths;
-    result.toLowerCase = StringList.prototype.toLowerCase;
-    result.toUpperCase = StringList.prototype.toUpperCase;
-    result.append = StringList.prototype.append;
-    result.getSurrounded = StringList.prototype.getSurrounded;
-    result.replace = StringList.prototype.replace;
-    result.getConcatenated = StringList.prototype.getConcatenated;
-    result.trim = StringList.prototype.trim;
-
-    //override
-    result.clone = StringList.prototype.clone;
-
-    return result;
-  };
-
-  /**
-   * overrides List.prototype.getLengths (see comments there)
-   */
-  StringList.prototype.getLengths = function() {
-    var lengths = new NumberList();
-
-    this.forEach(function(string) {
-      lengths.push(string.length);
-    });
-
-    return lengths;
-  };
-
-  /**
-   * @todo write docs
-   */
-  StringList.prototype.append = function(sufix, after) {
-    after = after == null ? true : after;
-    var newStringList = new StringList();
-    newStringList.name = this.name;
-    var sufixIsStringList = _typeOf(sufix) == "StringList";
-    var i;
-    if(after) {
-      for(i = 0; this[i] != null; i++) {
-        newStringList[i] = this[i] + (sufixIsStringList ? sufix[i] : sufix);
-      }
-    } else {
-      for(i = 0; this[i] != null; i++) {
-        newStringList[i] = (sufixIsStringList ? sufix[i] : sufix) + this[i];
-      }
-    }
-    return newStringList;
-  };
-
-  /**
-   * prefix and sufix can be string or a StringList
-   */
-  StringList.prototype.getSurrounded = function(prefix, sufix) {//to be deprecated
-    sufix = sufix==null?"":sufix;
-    
-    var newStringList = new StringList();
-    newStringList.name = this.name;
-    var i;
-
-    var prefixIsStringList = Array.isArray(prefix);
-    var sufixIsStringList = Array.isArray(sufix);
-
-    for(i = 0; this[i] != null; i++) {
-      newStringList[i] = (prefixIsStringList ? prefix[i] : prefix) + this[i] + (sufixIsStringList ? sufix[i] : sufix);
-    }
-
-    return newStringList;
-  };
-
-
-  //deprectaed, replaced by replaceInStrings
-  /**
-   * @ignore
-   */
-  StringList.prototype.replace = function(regExp, string) {
-    if(regExp==null) return this;
-
-    var newStringList = new StringList();
-    var i;
-    var l = this.length;
-
-    newStringList.name = this.name;
-
-    for(i = 0; i<l; i++){
-      newStringList[i] = this[i].replace(regExp, string);
-    }
-
-    return newStringList;
-  };
-
-  /**
-   * @todo write docs
-   */
-  StringList.prototype.getConcatenated = function(separator) {
-    var i;
-    var string = "";
-    var l = this.length;
-    for(i = 0; i<l; i++) {
-      string += this[i];
-      if(i < this.length - 1) string += separator;
-    }
-    return string;
-  };
-
-  /**
-   * applies toLowercase to all strings
-   * @return {StringList}
-   * tags:
-   */
-  StringList.prototype.toLowerCase = function() {
-    var newStringList = new StringList();
-    newStringList.name = this.name;
-    var i;
-    var l = this.length;
-    for(i = 0; i<l; i++) {
-      newStringList[i] = this[i].toLowerCase();
-    }
-    return newStringList;
-  };
-
-  /**
-   * applies toUpperCase to all strings
-   * @return {StringList}
-   * tags:
-   */
-  StringList.prototype.toUpperCase = function() {
-    var newStringList = new StringList();
-    newStringList.name = this.name;
-    var i;
-    var l = this.length;
-    for(i = 0; i<l; i++) {
-      newStringList[i] = this[i].toUpperCase();
-    }
-    return newStringList;
-  };
-
-  /**
-   * trims all the strings on the stringList
-   * @return {StringList}
-   * tags:
-   */
-  StringList.prototype.trim = function() {
-    var i;
-    var l = this.length;
-    var newStringList = new StringList();
-    for(i = 0; i<l; i++) {
-      newStringList[i] = this[i].trim();
-    }
-    newStringList.name = this.name;
-    return newStringList;
-  };
-
-  ///////overriding
-
-  /**
-   * @todo write docs
-   */
-  StringList.prototype.clone = function() {
-    var newList = StringList.fromArray(this.slice(), false);
-    newList.name = this.name;
-    return newList;
   };
 
   Relation.prototype = Object.create(Node.prototype);
@@ -6894,182 +7119,6 @@
     }
 
     return numberList;
-  };
-
-  RectangleList.prototype = new List();
-  RectangleList.prototype.constructor = RectangleList;
-  /**
-   * @classdesc A {@link List} structure for storing {@link Rectangle} instances.
-   *
-   * @description Creates a new RectangleList.
-   * @constructor
-   * @category geometry
-   */
-  function RectangleList() {
-    var array = List.apply(this, arguments);
-    array = RectangleList.fromArray(array);
-    return array;
-  }
-  /**
-   * @todo write docs
-   */
-  RectangleList.fromArray = function(array) {
-    var result = List.fromArray(array);
-    result.type = "RectangleList";
-
-    result.getFrame = RectangleList.prototype.getFrame;
-    result.add = RectangleList.prototype.add;
-    result.clone = RectangleList.prototype.clone;
-    result.factor = RectangleList.prototype.factor;
-    result.getAddedArea = RectangleList.prototype.getAddedArea;
-    result.getIntersectionArea = RectangleList.prototype.getIntersectionArea;
-
-    return result;
-  };
-
-
-  /**
-   * @todo write docs
-   */
-  RectangleList.prototype.getFrame = function() {//TODO: use RectangleOperators.minRect
-    if(this.length === 0) return null;
-
-    var frame = this[0].clone();
-    frame.width = frame.getRight();
-    frame.height = frame.getBottom();
-    for(var i = 1; this[i] != null; i++) {
-      frame.x = Math.min(frame.x, this[i].x);
-      frame.y = Math.min(frame.y, this[i].y);
-
-      frame.width = Math.max(this[i].getRight(), frame.width);
-      frame.height = Math.max(this[i].getBottom(), frame.height);
-    }
-
-    frame.width -= frame.x;
-    frame.height -= frame.y;
-
-    return frame;
-  };
-
-  // TODO:finish RectangleList methods
-
-  /**
-   * @todo write docs
-   */
-  RectangleList.prototype.clone = function() {
-    var newRectangleList = new RectangleList();
-    for(var i = 0; this[i] != null; i++) {
-      newRectangleList[i] = this[i].clone();
-    }
-    newRectangleList.name = this.name;
-    return newRectangleList;
-  };
-
-  /**
-   * @ignore
-   */
-  RectangleList.prototype.add = function() {
-
-  };
-
-  /**
-   * @ignore
-   */
-  RectangleList.prototype.factor = function() {
-
-  };
-
-
-  /**
-   * @ignore
-   */
-  RectangleList.prototype.getAddedArea = function() {};
-
-  /**
-   * @todo write docs
-   */
-  RectangleList.prototype.getIntersectionArea = function() {
-    var rect0;
-    var rect1;
-    var intersectionArea = 0;
-    var intersection;
-    for(var i = 0; this[i + 1] != null; i++) {
-      rect0 = this[i];
-      for(var j = i + 1; this[j] != null; j++) {
-        rect1 = this[j];
-        intersection = rect0.getIntersection(rect1);
-        intersectionArea += intersection == null ? 0 : intersection.getArea();
-      }
-    }
-
-    return intersectionArea;
-  };
-
-  /**
-   * @classdesc Create default lists
-   *
-   * @namespace
-   * @category basics
-   */
-  function ListGenerators() {}
-  /**
-   * Generates a List made of several copies of same element (returned List is improved)
-   * @param {Object} nValues length of the List
-   * @param {Object} element object to be placed in all positions
-   *
-   * @param {String} name optional name for the list
-   * @return {List} generated List
-   * tags:generator
-   */
-  ListGenerators.createListWithSameElement = function(nValues, element, name) {
-    var list;
-    switch(_typeOf(element)) {
-      case 'number':
-        list = new NumberList();
-        break;
-      case 'List':
-        list = new Table();
-        break;
-      case 'NumberList':
-        list = new NumberTable();
-        break;
-      case 'Rectangle':
-        list = new RectangleList();
-        break;
-      case 'string':
-        list = new StringList();
-        break;
-      case 'boolean':
-        list = new List(); //TODO:update once BooleanList exists
-        break;
-      default:
-        list = new List();
-    }
-
-    var i;
-
-    for(i = 0; i < nValues; i++) {
-      list[i] = element;
-    }
-
-    list.name = name;
-    return list;
-  };
-
-  /**
-   * Generates a List built froma seed element and a function that will be applied iteratively
-   * @param {Object} nValues length of the List
-   * @param {Object} firstElement first element
-   * @param {Object} dynamicFunction sequence generator function, elementN+1 =  dynamicFunction(elementN)
-   * @return {List} generated List
-   * tags:generator
-   */
-  ListGenerators.createIterationSequence = function(nValues, firstElement, dynamicFunction) {
-    var list = ListGenerators.createListWithSameElement(1, firstElement);
-    for(var i = 1; i < nValues; i++) {
-      list[i] = dynamicFunction(list[i - 1]);
-    }
-    return list;
   };
 
   /**
@@ -23538,6 +23587,44 @@
   NumberTableOperators.getCovarianceMatrix = function(numberTable){//TODO:build more efficient method
     if(numberTable==null) return;
     return NumberTableOperators.product(numberTable, numberTable.getTransposed()).factor(1/numberTable.length);
+  };
+
+  /**
+   * returns a table of assignments that minimizes (approximately) the cost of assigning column to row elements
+   * @param  {NumberTable} tabCost is a table of costs for the assignment. Element [i][j] has the cost for matching list1[i] with list2[j]
+   *
+   * @return {NumberTable} containing 2 lists having the indexes for the matches in the order list,row and a 3rd having the cost
+   * tags:combinatorics
+   */
+  NumberTableOperators.linearAssignmentGreedySearch = function(tabCost){
+    var tabMatches = new NumberTable();
+    tabMatches.push(new NumberList());
+    tabMatches[0].name = 'list1 index';
+    tabMatches.push(new NumberList());
+    tabMatches[1].name = 'list2 index';
+    tabMatches.push(new NumberList());
+    tabMatches[2].name = 'cost';
+
+    if(tabCost == null || tabCost.length == 0 || tabCost[0].length == 0) return tabMatches;
+    tabCost = tabCost.clone(); // since we change it below we don't want to destroy the input
+
+    // now find minimum cost in matrix and where it is.
+    var locMin = tabCost.getMinCell();
+    while(tabCost[locMin[0]][locMin[1]] < Number.MAX_VALUE){
+      // save the match
+      tabMatches[0].push(locMin[0]);
+      tabMatches[1].push(locMin[1]);
+      tabMatches[2].push(tabCost[locMin[0]][locMin[1]]);
+      // remove other items from further consideration in same row / col
+      for(var i=0; i < tabCost.length; i++){
+        tabCost[i][locMin[1]] = Number.MAX_VALUE;
+      }
+      for(var j=0; j < tabCost[0].length; j++){
+        tabCost[locMin[0]][j] = Number.MAX_VALUE;
+      }
+      locMin = tabCost.getMinCell();
+    }
+    return tabMatches;
   };
 
   /**
