@@ -523,3 +523,41 @@ NumberTableOperators.getCovarianceMatrix = function(numberTable){//TODO:build mo
   if(numberTable==null) return;
   return NumberTableOperators.product(numberTable, numberTable.getTransposed()).factor(1/numberTable.length);
 };
+
+/**
+ * returns a table of assignments that minimizes (approximately) the cost of assigning column to row elements
+ * @param  {NumberTable} tabCost is a table of costs for the assignment. Element [i][j] has the cost for matching list1[i] with list2[j]
+ *
+ * @return {NumberTable} containing 2 lists having the indexes for the matches in the order list,row and a 3rd having the cost
+ * tags:combinatorics
+ */
+NumberTableOperators.linearAssignmentGreedySearch = function(tabCost){
+  var tabMatches = new NumberTable();
+  tabMatches.push(new NumberList());
+  tabMatches[0].name = 'list1 index';
+  tabMatches.push(new NumberList());
+  tabMatches[1].name = 'list2 index';
+  tabMatches.push(new NumberList());
+  tabMatches[2].name = 'cost';
+
+  if(tabCost == null || tabCost.length == 0 || tabCost[0].length == 0) return tabMatches;
+  tabCost = tabCost.clone(); // since we change it below we don't want to destroy the input
+
+  // now find minimum cost in matrix and where it is.
+  var locMin = tabCost.getMinCell();
+  while(tabCost[locMin[0]][locMin[1]] < Number.MAX_VALUE){
+    // save the match
+    tabMatches[0].push(locMin[0]);
+    tabMatches[1].push(locMin[1]);
+    tabMatches[2].push(tabCost[locMin[0]][locMin[1]]);
+    // remove other items from further consideration in same row / col
+    for(var i=0; i < tabCost.length; i++){
+      tabCost[i][locMin[1]] = Number.MAX_VALUE;
+    }
+    for(var j=0; j < tabCost[0].length; j++){
+      tabCost[locMin[0]][j] = Number.MAX_VALUE;
+    }
+    locMin = tabCost.getMinCell();
+  }
+  return tabMatches;
+};
