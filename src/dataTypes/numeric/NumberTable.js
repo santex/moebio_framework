@@ -1,6 +1,7 @@
 import Table from "src/dataTypes/lists/Table";
 import NumberList from "src/dataTypes/numeric/NumberList";
 import List from "src/dataTypes/lists/List";
+import ListGenerators from "src/operators/lists/ListGenerators";
 import { typeOf } from "src/tools/utils/code/ClassUtils";
 
 NumberTable.prototype = new Table();
@@ -129,7 +130,10 @@ NumberTable.fromArray = function(array) {
   result.add = NumberTable.prototype.add;
   result.getMax = NumberTable.prototype.getMax;
   result.getMaxValues = NumberTable.prototype.getMaxValues;
+  result.getMaxCell = NumberTable.prototype.getMaxCell;
   result.getMin = NumberTable.prototype.getMin;
+  result.getMinValues = NumberTable.prototype.getMinValues;
+  result.getMinCell = NumberTable.prototype.getMinCell;
   result.getInterval = NumberTable.prototype.getInterval;
   result.getCovarianceMatrix = NumberTable.prototype.getCovarianceMatrix;
 
@@ -172,6 +176,29 @@ NumberTable.prototype.getMaxValues = function() {
 };
 
 /**
+ * returns list and row of the cell with the maximum value
+ * @return {NumberList} with first element having list and second element the row containing the max value
+ * tags:
+ */
+NumberTable.prototype.getMaxCell = function() {
+  if(this.length === 0) return null;
+
+  var location = ListGenerators.createListWithSameElement(2,0);
+  var i,j,m;
+  m = this[0][0];
+  for(i = 0;i < this.length;i++){
+    for(j = 0;j < this[i].length;j++){
+      if(this[i][j] > m){
+        m = this[i][j];
+        location[0] = i;
+        location[1] = j;
+      }
+    }
+  }
+  return location;
+};
+
+/**
  * @todo write docs
  */
 NumberTable.prototype.getMin = function() {
@@ -202,6 +229,29 @@ NumberTable.prototype.getMinValues = function() {
   }
 
   return mins;
+};
+
+/**
+ * returns list and row of the cell with the minimum value
+ * @return {NumberList} with first element having list and second element the row containing the min value
+ * tags:
+ */
+NumberTable.prototype.getMinCell = function() {
+  if(this.length === 0) return null;
+
+  var location = ListGenerators.createListWithSameElement(2,0);
+  var i,j,m;
+  m = this[0][0];
+  for(i = 0;i < this.length;i++){
+    for(j = 0;j < this[i].length;j++){
+      if(this[i][j] < m){
+        m = this[i][j];
+        location[0] = i;
+        location[1] = j;
+      }
+    }
+  }
+  return location;
 };
 
 /**
