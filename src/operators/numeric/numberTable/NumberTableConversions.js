@@ -22,7 +22,7 @@ export default NumberTableConversions;
  * tags:conversion
  */
 NumberTableConversions.numberTableToPolygon = function(numberTable) {
-  if(numberTable.length < 2) return null;
+  if(numberTable == null || numberTable.length < 2) return null;
 
   var i;
   var n = Math.min(numberTable[0].length, numberTable[1].length);
