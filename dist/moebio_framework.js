@@ -20874,7 +20874,7 @@
   /**
    * filter the rows of a table by a criteria defined by an operator applied to all lists or a selected list
    * @param  {Table} table Table
-   * @param  {String} operator "=c"(default, exact match for numbers, contains for strings), "==", "<", "<=", ">", ">=", "!=", "contains", "between", "init" Function that returns a boolean
+   * @param  {String} operator "=c"(default, exact match for numbers, contains for strings), "==", "<", "<=", ">", ">=", "!=", "contains", "between", "!contains", "init" Function that returns a boolean
    * @param  {Object} value to compare against
    *
    * @param  {Number|String|List} listToCheck it could be one of the following option:<br>null (default) means it checks every list, a row is kept if at least one its values verify the condition<br>a number, an index of the list to check<br>a string, the name of the list to check<br>a list (with same sizes as the lists in the table) that will be used to check conditions on elements and filter the table.
@@ -20888,6 +20888,7 @@
     // input validation and defaults
     if(table==null || table.length === 0 || table[0]==null) return;
     if(operator === undefined && value === undefined) return table;
+    if(operator === '!contains' && value === undefined || value === '') return table;
     if(operator==null) operator='=c';
     if(operator == '=') operator = '==';
     var nLKeep = new NumberList();
@@ -21018,6 +21019,21 @@
               break;
             }
           }
+        }
+        break;
+      case "!contains":
+        for(r=0; r<nRows; r++){
+          bKeep=true;
+          for(c=cStart; c<cEnd; c++){
+            val0 = bExternalList ? listToCheck[r] : table[c][r];
+            val = bIgnoreCase ? String(val0).toLowerCase() : String(val0);
+            if(val.indexOf(String(value)) > -1){
+              bKeep=false;
+              break;
+            }
+          }
+          if(bKeep)
+            nLKeep.push(r);
         }
         break;
       case "init":
