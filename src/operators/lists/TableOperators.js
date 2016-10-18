@@ -443,7 +443,7 @@ TableOperators.getSubTableByElementsOnList = function(table, nList, list){
  * creates a Table by randomly sampling rows from the input table.
  * @param  {Table} input table
  *
- * @param  {Number} f fraction of rows to randomly select [0,1] (Default is .5)
+ * @param  {Number} f fraction of rows to randomly select [0,1] (Default is .5)<br>If f > 1 then used as count of rows to return
  * @param  {Boolean} avoidRepetitions (Default is true)
  * @return {Table}
  * tags:filter,sampling
@@ -453,9 +453,13 @@ TableOperators.getRandomRows = function(table, f, avoidRepetitions) {
   avoidRepetitions = avoidRepetitions == null ? true : avoidRepetitions;
   if(table == null || table[0] == null) return null;
   if(f == null) f=0.5;
-  if(f < 0 || f > 1) return null;
+  if(f < 0) return null;
   var nRows = table[0].length;
-  var n=Math.round(f*nRows);
+  var n;
+  if(f <= 1)
+    n=Math.round(f*nRows);
+  else
+    n=Math.round(f);
   var listIndexes = NumberListGenerators.createSortedNumberList(nRows, 0, 1);
   listIndexes = listIndexes.getRandomElements(n, avoidRepetitions);
   listIndexes = listIndexes.getSorted();
