@@ -908,6 +908,10 @@ WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEM
 HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
+  
+  // treat null like empty string
+  a = a == null ? '' : a;
+  b = b == null ? '' : b;
   if(a.length === 0) return b.length; 
   if(b.length === 0) return a.length; 
 
@@ -941,6 +945,20 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
   return matrix[b.length][a.length];
 };
 
+/**
+ * calculate the Normalized Levenshtein (aka edit) Distance between two strings. It ranges from 0 - identical to 1 - completely different
+ * @param {String} text1
+ * @param {String} text2
+ *
+ * @return {Number} normalized edit distance
+ * tags:distance
+ */
+StringOperators.getNormalizedLevenshteinDistance = function(a, b) {
+  var la = a == null ? 0: a.length;
+  var lb = b == null ? 0: b.length;
+  var levn = StringOperators.getLevenshteinDistance(a,b)/Math.max(la,lb,1);
+  return levn.toFixed(5); // no need to get really precise
+}
 
 StringOperators.isAbsoluteUrl = function(string){
   if(string==null) return null;
