@@ -892,10 +892,11 @@ StringOperators.createsCategoricalColorsBlocksHtml = function(normalizedWeights,
  * @param {String} text1
  * @param {String} text2
  *
+ * @param {Boolean} bNormalized if true normalize by maximum input length so number varies from 0 (identical) to 1 (completely different)
  * @return {Number} edit distance
  * tags:distance
  */
-StringOperators.getLevenshteinDistance = function(a, b) {
+StringOperators.getLevenshteinDistance = function(a, b, bNormalized) {
 /*
 Copyright (c) 2011 Andrei Mackenzie
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
@@ -908,12 +909,13 @@ WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEM
 HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
-  
+
   // treat null like empty string
   a = a == null ? '' : a;
   b = b == null ? '' : b;
-  if(a.length === 0) return b.length; 
-  if(b.length === 0) return a.length; 
+  if(a.length === 0 && b.length === 0) return 0;
+  if(a.length === 0) return bNormalized ? 1 : b.length;
+  if(b.length === 0) return bNormalized ? 1 : a.length;
 
   var matrix = [];
 
@@ -942,23 +944,14 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
     }
   }
 
+  if(bNormalized){
+    var levn = matrix[b.length][a.length]/Math.max(a.length,b.length);
+    return Number(levn.toFixed(5)); // no need to get really precise
+  }
+
   return matrix[b.length][a.length];
 };
 
-/**
- * calculate the Normalized Levenshtein (aka edit) Distance between two strings. It ranges from 0 - identical to 1 - completely different
- * @param {String} text1
- * @param {String} text2
- *
- * @return {Number} normalized edit distance
- * tags:distance
- */
-StringOperators.getNormalizedLevenshteinDistance = function(a, b) {
-  var la = a == null ? 0: a.length;
-  var lb = b == null ? 0: b.length;
-  var levn = StringOperators.getLevenshteinDistance(a,b)/Math.max(la,lb,1);
-  return levn.toFixed(5); // no need to get really precise
-}
 
 StringOperators.isAbsoluteUrl = function(string){
   if(string==null) return null;
