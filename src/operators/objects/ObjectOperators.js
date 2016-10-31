@@ -4,6 +4,7 @@ import Table from "src/dataTypes/lists/Table";
 import { typeOf } from "src/tools/utils/code/ClassUtils";
 import Point from "src/dataTypes/geometry/Point";
 import Point3D from "src/dataTypes/geometry/Point3D";
+import Polygon from "src/dataTypes/geometry/Polygon";
 import Rectangle from "src/dataTypes/geometry/Rectangle";
 import Interval from "src/dataTypes/numeric/Interval";
 import DateInterval from "src/dataTypes/dates/DateInterval";
@@ -12,6 +13,7 @@ import NumberList from "src/dataTypes/numeric/NumberList";
 import ObjectConversions from "src/operators/objects/ObjectConversions";
 import ListOperators from "src/operators/lists/ListOperators";
 import TableOperators from "src/operators/lists/TableOperators";
+import PointOperators from "src/operators/geometry/PointOperators";
 import NumberTableOperators from "src/operators/numeric/numberTable/NumberTableOperators";
 
 /**
@@ -336,11 +338,11 @@ ObjectOperators.setPropertyValue = function(object, property_name, property_valu
 
 
 /**
- * interpolates two different objects of the same type<br>currently working with numbers, intervals and numberLists
+ * interpolates two different objects of the same type<br>currently working with numbers, intervals, numberLists, and polygons
  * @param  {Object} object0
  * @param  {Object} object1
  *
- * @param  {Number} value
+ * @param  {Number} value typically in range [0,1], defaults to 0.5
  * @param {Number} minDistance if objects are close enough, it delivers the orginal object
  * @return {Object}
  * tags:
@@ -368,6 +370,14 @@ ObjectOperators.interpolateObjects = function(object0, object1, value, minDistan
         newNumberList[i] = antivalue * object0[i] + value * object1[i];
       }
       return newNumberList;
+    case 'Polygon':
+      if(minDistance && object0.distanceToPoint(object1) <= minDistance) return object0;
+      var minL = Math.min(object0.length, object1.length);
+      var newPolygon = new Polygon();
+      for(i = 0; i < minL; i++) {
+        newPolygon[i] = PointOperators.twoPointsInterpolation(object0[i],object1[i],value);
+      }
+      return newPolygon;
   }
   return null;
 };
