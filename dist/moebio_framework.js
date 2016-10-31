@@ -24532,11 +24532,11 @@
 
 
   /**
-   * interpolates two different objects of the same type<br>currently working with numbers, intervals and numberLists
+   * interpolates two different objects of the same type<br>currently working with numbers, intervals, numberLists, and polygons
    * @param  {Object} object0
    * @param  {Object} object1
    *
-   * @param  {Number} value
+   * @param  {Number} value typically in range [0,1], defaults to 0.5
    * @param {Number} minDistance if objects are close enough, it delivers the orginal object
    * @return {Object}
    * tags:
@@ -24564,6 +24564,14 @@
           newNumberList[i] = antivalue * object0[i] + value * object1[i];
         }
         return newNumberList;
+      case 'Polygon':
+        if(minDistance && object0.distanceToPoint(object1) <= minDistance) return object0;
+        var minL = Math.min(object0.length, object1.length);
+        var newPolygon = new _Polygon();
+        for(i = 0; i < minL; i++) {
+          newPolygon[i] = PointOperators.twoPointsInterpolation(object0[i],object1[i],value);
+        }
+        return newPolygon;
     }
     return null;
   };
