@@ -2859,3 +2859,77 @@ TableOperators.uncertaintyCoefficient = function(list0, list1, iDirection){
       throw new Error("TableOperators.uncertaintyCoefficient - invalid value for iDirection: "+iDirection);
   }
 };
+
+/**
+ * Find the cell nearest some target col,row location with a particular value
+ * @param  {Table} table to search
+ * @param  {Number} colTarget is the target column location
+ * @param  {Number} rowTarget is the target row location
+ * @param  {Object} value is the value to find. Typically a string or number.
+ *
+ * @return {NumberList} NumberList with col and row coordinates of closest cell to target containing the desired value
+ * tags: search
+ */
+TableOperators.findNearestCellWithValue = function(table, colTarget, rowTarget, value){
+  var nLCoords = new NumberList();
+  if(table==null) return null;
+  // assumes all lists are same length
+  if(colTarget < 0) colTarget=0;
+  if(colTarget >= table.length) colTarget=table.length-1;
+  if(rowTarget < 0) rowTarget=0;
+  if(rowTarget >= table[0].length) rowTarget=table[0].length-1;
+  
+  if(table[colTarget][rowTarget] == value) return NumberList.fromArray([colTarget,rowTarget]);
+  var r = 1;
+  var nChecked = 1;
+  var nCells = table.length * table[0].length;
+  var col,row;
+  var dir = 0; // 0 - right, 1 - down, 2 - left, 3 - up
+  col = colTarget-r;
+  row = rowTarget-r;
+  while(nChecked < nCells){
+    // we are traversing the outer edges of the square r units from the target
+    // test for out of range coords
+    if(col >= 0 && col < table.length && row >= 0 && row < table[col].length){
+      if(table[col][row] == value) return NumberList.fromArray([col,row]);
+      nChecked++;
+    }
+    if(dir == 0){ // right
+      col++;
+      if(col > colTarget+r){
+        dir++; // change to go down
+        col--;
+        row++;
+      }
+    }
+    else if(dir == 1){ // down
+      row++;
+      if(row > rowTarget+r){
+        dir++; // change to go left
+        row--;
+        col--;
+      }
+    }
+    else if(dir == 2){ // left
+      col--;
+      if(col < colTarget-r){
+        dir++; // change to go up
+        col++;
+        row--;
+      }
+    }
+    else if(dir == 3){ // up
+      row--;
+      if(row <= rowTarget-r){ // need = to make sure we do not check original starting point
+        // done for this value of r, increase
+        dir = 0;
+        r++;
+        col = colTarget-r;
+        row = rowTarget-r;
+      }
+    }
+  }
+  // checked all the cells without finding any with desired value
+  return null;
+};
+
