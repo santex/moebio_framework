@@ -10,6 +10,7 @@ import NumberListGenerators from "src/operators/numeric/numberList/NumberListGen
 import PolygonList from "src/dataTypes/geometry/PolygonList";
 import TableGenerators from "src/operators/lists/TableGenerators";
 import NumberTableOperators from "src/operators/numeric/numberTable/NumberTableOperators";
+import TableOperators from "src/operators/lists/TableOperators";
 import { TwoPi } from "src/Global";
 
 /**
@@ -2196,10 +2197,11 @@ PolygonOperators.voronoi = function(pts, rBoundary) {
  * @param  {Rectangle} rFrame optional rectangle to use for the grid. If not specified the frame of the input polygon is used.
  * @param  {Number} cols is the number of columns to use in the grid. If not specified the smallest squarelike rectangle that can hold the points is used.
  * @param  {Number} rows is the number of rows to use in the grid. If not specified the smallest squarelike rectangle that can hold the points is used.
+ * @param  {Number} method 0: GreedySearch is more accurate but slow for large grids (default when cols*rows <= 100)<br> 1: RingSearch (default when cols*rows > 100)
  * @return {Polygon} polygon of new positions. Points are in same order as input.
  * tags:geometry
  */
-PolygonOperators.gridify = function(polygon, rFrame, cols, rows) {
+PolygonOperators.gridify = function(polygon, rFrame, cols, rows, method) {
   if(polygon == null || cols === 0 || rows === 0) return null;
   rFrame = rFrame == null ? polygon.getFrame() : rFrame;
   var n = polygon.length;
@@ -2217,6 +2219,8 @@ PolygonOperators.gridify = function(polygon, rFrame, cols, rows) {
     cols = Math.ceil(Math.sqrt(n));
     rows = Math.ceil(n/cols);
   }
+  method = method == null ? (cols*rows <= 100 ? 0 : 1) : method;
+
   var tabGridPts = TableGenerators.createTableWithSameElement(cols,rows,new Point(0,0));
   var colWidth = rFrame.width/(cols-1);
   var rowHeight = rFrame.height/(rows-1);
@@ -2225,6 +2229,27 @@ PolygonOperators.gridify = function(polygon, rFrame, cols, rows) {
       tabGridPts[col][row] = new Point(rFrame.x + col*colWidth,rFrame.y + row*rowHeight);
     }
   }
+
+  if(method == 1){
+    var tabGridPtsUsed = TableGenerators.createTableWithSameElement(cols,rows,-1);
+    var polgonAdjusted = polygon.clone();
+    for(var i=0; i < n;i++){
+      // find target col and row for this point
+      var colTarget = Math.floor((polygon[i].x - rFrame.x) / colWidth);
+      var rowTarget = Math.floor((polygon[i].y - rFrame.y) / rowHeight);
+      var nLLoc = TableOperators.findNearestCellWithValue(tabGridPtsUsed,colTarget,rowTarget,-1);
+      if(nLLoc == null){
+        console.log('Error!'); // shouldn't happen
+      }
+      else{
+        tabGridPtsUsed[nLLoc[0]][nLLoc[1]] = 1; // mark it used
+        polgonAdjusted[i].x = tabGridPts[nLLoc[0]][nLLoc[1]].x;
+        polgonAdjusted[i].y = tabGridPts[nLLoc[0]][nLLoc[1]].y;
+      }
+    }
+    return polgonAdjusted;
+  }
+
   // Build the cost table
   var tabCost = TableGenerators.createTableWithSameElement(cols*rows,n,0);
   for(var i=0; i < tabCost.length; i++){
@@ -2246,5 +2271,5 @@ PolygonOperators.gridify = function(polygon, rFrame, cols, rows) {
     polgonAdjusted[i2] = tabGridPts[col][row];
   }
   return polgonAdjusted;
-}
+};
 
