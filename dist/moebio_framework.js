@@ -24565,7 +24565,6 @@
         }
         return newNumberList;
       case 'Polygon':
-        if(minDistance && object0.distanceToPoint(object1) <= minDistance) return object0;
         var minL = Math.min(object0.length, object1.length);
         var newPolygon = new _Polygon();
         for(i = 0; i < minL; i++) {
