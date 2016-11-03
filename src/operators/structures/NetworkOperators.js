@@ -7,6 +7,7 @@ import Node from "src/dataTypes/structures/elements/Node";
 import NumberList from "src/dataTypes/numeric/NumberList";
 import Tree from "src/dataTypes/structures/networks/Tree";
 import Relation from "src/dataTypes/structures/elements/Relation";
+import ColorList from "src/dataTypes/graphic/ColorList";
 import ColorListGenerators from "src/operators/graphic/ColorListGenerators";
 import NetworkEncodings from "src/operators/structures/NetworkEncodings";
 import Network from "src/dataTypes/structures/networks/Network";
@@ -685,6 +686,28 @@ NetworkOperators.getNodes = function(object){
   if(typeOf(object)=="Relation") return new NodeList(object.node0, object.node1);
 
   return null;
+}
+
+/**
+ * get the colors of the nodes in a network
+ * @param  {Network} network that contains nodes
+ * 
+ * @param  {String} clrDefault is the color to use for nodes that have no color defined (default: rgb(128,128,128))
+ * @return {NodeList}
+ * tags:colors
+ */
+NetworkOperators.getNodeColors = function(network, clrDefault){
+  if(network == null || network.nodeList == null) return null;
+  clrDefault = clrDefault == null ? 'rgb(128,128,128)' : clrDefault;
+
+  var colors = new ColorList();
+  for(var i=0; i < network.nodeList.length; i++){
+    if(network.nodeList[i].color == null)
+      colors.push(clrDefault);
+    else
+      colors.push(network.nodeList[i].color);
+  }
+  return colors;
 }
 
 /**

@@ -6,6 +6,7 @@ import Table from "src/dataTypes/lists/Table";
 import StringOperators from "src/operators/strings/StringOperators";
 import StringListOperators from "src/operators/strings/StringListOperators";
 import NumberListOperators from "src/operators/numeric/numberList/NumberListOperators";
+import Rectangle from "src/dataTypes/geometry/Rectangle";
 import TableOperators from "src/operators/lists/TableOperators";
 import NumberOperators from "src/operators/numeric/NumberOperators";
 import StringList from "src/dataTypes/strings/StringList";
@@ -394,5 +395,56 @@ NetworkGenerators.createNetworkFromTextAndWords = function(text, nounPhrases, sp
     });
   });
 
+  return network;
+};
+
+/**
+ * Creates a network using a polygon connecting points within a threshold distance
+ * @param {Polygon} polygon containing Point objects
+ *
+ * @param {StringList} names optional, names of Nodes
+ * @param {Number} threshold in range [0,1] (default: 0.1)<br>Nodes are connected if the distance between them is below this value. Interpreted as fraction of distance between farthest points in set.
+ * @param {Number} weightMode relations weight mode<br>0: weight<br>1:weight -  threshold<br>2:(weight -  threshold)/(1 - threshold)
+ * @return {Network} a network with number of nodes equal to the number of points in the Polygon
+ * tags: generators
+ */
+NetworkGenerators.createNetworkFromPolygon = function(polygon, names, threshold, weightMode) {
+  if(polygon==null) return;
+
+  threshold = threshold==null || isNaN(threshold) || threshold<0 || threshold>1 ?0.1:threshold;
+
+  var i, j;
+  var w;
+  var node, node1;
+  var network = new Network();
+  var n = polygon.length;
+  var rFrame = polygon.getFrame();
+  var dMaxSquared = (rFrame.width*rFrame.width+rFrame.height*rFrame.height);
+  var dMax = Math.sqrt(dMaxSquared);
+  var d,dSquared;
+
+  var dThreshold = threshold*dMax;
+  var dThresholdSquared = dThreshold*dThreshold;
+
+  for(i=0; i<n; i++){
+    node = new Node("n_"+i, names == null ? "n_"+i : names[i]);
+    node.element = polygon[i];
+    node.i = i;
+    network.addNode(node);
+  }
+
+  for(i=0; i<n; i++){
+    node = network.nodeList[i];
+    for(j=i+1; j<n; j++){
+      node1 = network.nodeList[j];
+      // avoid doing sqrt until necessary
+      dSquared = polygon[i].distanceToPointSquared(polygon[j]);
+      if(dSquared < dThresholdSquared) {
+        d = Math.sqrt(dSquared);
+        w = (threshold - d/dMax) / threshold;
+        network.addRelation(new Relation(i + "_" + j, i + "_" + j, node, node1, w));
+      }
+    }
+  }
   return network;
 };
