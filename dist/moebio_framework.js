@@ -27001,6 +27001,28 @@
   }
 
   /**
+   * get the colors of the nodes in a network
+   * @param  {Network} network that contains nodes
+   * 
+   * @param  {String} clrDefault is the color to use for nodes that have no color defined (default: rgb(128,128,128))
+   * @return {NodeList}
+   * tags:colors
+   */
+  NetworkOperators.getNodeColors = function(network, clrDefault){
+    if(network == null || network.nodeList == null) return null;
+    clrDefault = clrDefault == null ? 'rgb(128,128,128)' : clrDefault;
+
+    var colors = new ColorList();
+    for(var i=0; i < network.nodeList.length; i++){
+      if(network.nodeList[i].color == null)
+        colors.push(clrDefault);
+      else
+        colors.push(network.nodeList[i].color);
+    }
+    return colors;
+  }
+
+  /**
    * Builds a hierarchical clustering resulting in a dendrogram from a Network; the distance between groups is defined by the average of strength of relations divided by the number os possible relations
    *
    * @param  {Network} network
@@ -28443,6 +28465,57 @@
       });
     });
 
+    return network;
+  };
+
+  /**
+   * Creates a network using a polygon connecting points within a threshold distance
+   * @param {Polygon} polygon containing Point objects
+   *
+   * @param {StringList} names optional, names of Nodes
+   * @param {Number} threshold in range [0,1] (default: 0.1)<br>Nodes are connected if the distance between them is below this value. Interpreted as fraction of distance between farthest points in set.
+   * @param {Number} weightMode relations weight mode<br>0: weight<br>1:weight -  threshold<br>2:(weight -  threshold)/(1 - threshold)
+   * @return {Network} a network with number of nodes equal to the number of points in the Polygon
+   * tags: generators
+   */
+  NetworkGenerators.createNetworkFromPolygon = function(polygon, names, threshold, weightMode) {
+    if(polygon==null) return;
+
+    threshold = threshold==null || isNaN(threshold) || threshold<0 || threshold>1 ?0.1:threshold;
+
+    var i, j;
+    var w;
+    var node, node1;
+    var network = new Network();
+    var n = polygon.length;
+    var rFrame = polygon.getFrame();
+    var dMaxSquared = (rFrame.width*rFrame.width+rFrame.height*rFrame.height);
+    var dMax = Math.sqrt(dMaxSquared);
+    var d,dSquared;
+
+    var dThreshold = threshold*dMax;
+    var dThresholdSquared = dThreshold*dThreshold;
+
+    for(i=0; i<n; i++){
+      node = new Node("n_"+i, names == null ? "n_"+i : names[i]);
+      node.element = polygon[i];
+      node.i = i;
+      network.addNode(node);
+    }
+
+    for(i=0; i<n; i++){
+      node = network.nodeList[i];
+      for(j=i+1; j<n; j++){
+        node1 = network.nodeList[j];
+        // avoid doing sqrt until necessary
+        dSquared = polygon[i].distanceToPointSquared(polygon[j]);
+        if(dSquared < dThresholdSquared) {
+          d = Math.sqrt(dSquared);
+          w = (threshold - d/dMax) / threshold;
+          network.addRelation(new Relation(i + "_" + j, i + "_" + j, node, node1, w));
+        }
+      }
+    }
     return network;
   };
 
