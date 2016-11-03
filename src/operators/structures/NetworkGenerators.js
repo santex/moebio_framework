@@ -430,6 +430,8 @@ NetworkGenerators.createNetworkFromPolygon = function(polygon, names, threshold,
     node = new Node("n_"+i, names == null ? "n_"+i : names[i]);
     node.element = polygon[i];
     node.i = i;
+    node.x = polygon[i].x;
+    node.y = polygon[i].y;
     network.addNode(node);
   }
 
