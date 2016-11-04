@@ -409,7 +409,7 @@ NetworkGenerators.createNetworkFromTextAndWords = function(text, nounPhrases, sp
  * tags: generators
  */
 NetworkGenerators.createNetworkFromPolygon = function(polygon, names, threshold, weightMode) {
-  if(polygon==null) return;
+  if(polygon==null || polygon.length == 0) return;
 
   threshold = threshold==null || isNaN(threshold) || threshold<0 || threshold>1 ?0.1:threshold;
 

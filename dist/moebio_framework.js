@@ -21922,7 +21922,7 @@
    * tags:geometry
    */
   PolygonOperators.gridify = function(polygon, rFrame, cols, rows, method) {
-    if(polygon == null || cols === 0 || rows === 0) return null;
+    if(polygon == null || cols === 0 || rows === 0 || polygon.length == 0) return null;
     rFrame = rFrame == null ? polygon.getFrame() : rFrame;
     var n = polygon.length;
     if(cols != null) cols = Math.round(cols);
@@ -28495,7 +28495,7 @@
    * tags: generators
    */
   NetworkGenerators.createNetworkFromPolygon = function(polygon, names, threshold, weightMode) {
-    if(polygon==null) return;
+    if(polygon==null || polygon.length == 0) return;
 
     threshold = threshold==null || isNaN(threshold) || threshold<0 || threshold>1 ?0.1:threshold;
 
