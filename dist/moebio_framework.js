@@ -21925,6 +21925,8 @@
     if(polygon == null || cols === 0 || rows === 0) return null;
     rFrame = rFrame == null ? polygon.getFrame() : rFrame;
     var n = polygon.length;
+    if(cols != null) cols = Math.round(cols);
+    if(rows != null) rows = Math.round(rows);
     if(cols == null && rows != null){
       cols = Math.ceil(n/rows);
     }
@@ -21953,18 +21955,32 @@
     if(method == 1){
       var tabGridPtsUsed = TableGenerators.createTableWithSameElement(cols,rows,-1);
       var polgonAdjusted = polygon.clone();
+      // we want to consider the points in an orderly fashion sort by YX
+      // this helps reduce the number of points placed at bad locations at the end of the list
+      var pairsArray = [];
+      for(i = 0; i<n; i++) {
+        pairsArray[i] = [polgonAdjusted[i],i];
+      }
+      pairsArray = pairsArray.sort(function(a, b) {
+        if(a[0].y < b[0].y) return -1;
+        if(a[0].y == b[0].y && a[0].x < b[0].x) return -1;
+        return 1;
+        }
+      );
       for(var i=0; i < n;i++){
+        var i0 = pairsArray[i][1];
         // find target col and row for this point
-        var colTarget = Math.floor((polygon[i].x - rFrame.x) / colWidth);
-        var rowTarget = Math.floor((polygon[i].y - rFrame.y) / rowHeight);
+        var colTarget = Math.floor((polygon[i0].x - rFrame.x) / colWidth);
+        var rowTarget = Math.floor((polygon[i0].y - rFrame.y) / rowHeight);
+        // first try downwards only
         var nLLoc = TableOperators.findNearestCellWithValue(tabGridPtsUsed,colTarget,rowTarget,-1);
         if(nLLoc == null){
           console.log('Error!'); // shouldn't happen
         }
         else{
           tabGridPtsUsed[nLLoc[0]][nLLoc[1]] = 1; // mark it used
-          polgonAdjusted[i].x = tabGridPts[nLLoc[0]][nLLoc[1]].x;
-          polgonAdjusted[i].y = tabGridPts[nLLoc[0]][nLLoc[1]].y;
+          polgonAdjusted[i0].x = tabGridPts[nLLoc[0]][nLLoc[1]].x;
+          polgonAdjusted[i0].y = tabGridPts[nLLoc[0]][nLLoc[1]].y;
         }
       }
       return polgonAdjusted;
