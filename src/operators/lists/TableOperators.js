@@ -2867,19 +2867,21 @@ TableOperators.uncertaintyCoefficient = function(list0, list1, iDirection){
  * @param  {Number} rowTarget is the target row location
  * @param  {Object} value is the value to find. Typically a string or number.
  *
+ * @param  {Boolean} bNotEqual if true return nearest cell != value (default false)
  * @return {NumberList} NumberList with col and row coordinates of closest cell to target containing the desired value
  * tags: search
  */
-TableOperators.findNearestCellWithValue = function(table, colTarget, rowTarget, value){
+TableOperators.findNearestCellWithValue = function(table, colTarget, rowTarget, value, bNotEqual){
   var nLCoords = new NumberList();
   if(table==null) return null;
+  bNotEqual = bNotEqual == null ? false : bNotEqual;
   // assumes all lists are same length
   if(colTarget < 0) colTarget=0;
   if(colTarget >= table.length) colTarget=table.length-1;
   if(rowTarget < 0) rowTarget=0;
   if(rowTarget >= table[0].length) rowTarget=table[0].length-1;
   
-  if(table[colTarget][rowTarget] == value) return NumberList.fromArray([colTarget,rowTarget]);
+  if((bNotEqual && table[colTarget][rowTarget] != value) || (!bNotEqual && table[colTarget][rowTarget] == value) ) return NumberList.fromArray([colTarget,rowTarget]);
   var r = 1;
   var nChecked = 1;
   var nCells = table.length * table[0].length;
@@ -2891,7 +2893,7 @@ TableOperators.findNearestCellWithValue = function(table, colTarget, rowTarget, 
     // we are traversing the outer edges of the square r units from the target
     // test for out of range coords
     if(col >= 0 && col < table.length && row >= 0 && row < table[col].length){
-      if(table[col][row] == value) return NumberList.fromArray([col,row]);
+      if((bNotEqual && table[col][row] != value) || (!bNotEqual && table[col][row] == value)) return NumberList.fromArray([col,row]);
       nChecked++;
     }
     if(dir == 0){ // right
