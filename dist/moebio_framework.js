@@ -21948,6 +21948,8 @@
     var tabGridPts = TableGenerators.createTableWithSameElement(cols,rows,new _Point(0,0));
     var colWidth = rFrame.width/(cols-1);
     var rowHeight = rFrame.height/(rows-1);
+    if(cols == 1) colWidth = 1;
+    if(rows == 1) rowHeight = 1;
     for(var col=0; col < cols; col++){
       for(var row=0; row < rows; row++){
         tabGridPts[col][row] = new _Point(rFrame.x + col*colWidth,rFrame.y + row*rowHeight);
@@ -29566,6 +29568,42 @@
     var angle = p0.angleToPoint(p1);
     var height = p0.distanceToPoint(p1);
     graphics.drawTriangleFromBase(p0.x, p0.y, base, height, angle);
+  };
+
+  function ImageOperators() {}
+  /**
+   * imageToTableOfRGBA
+   * @param  {Image} img
+   * @return {Table} Table with [r,g,b,a] arrays at each cell of table
+   * tags:
+   */
+  ImageOperators.imageToTableOfRGBA = function(img, brgbaStringsInCells) {
+    if(img == null || img.width <= 0) return null;
+    brgbaStringsInCells = brgbaStringsInCells == null ? false : brgbaStringsInCells;
+    var tab = TableGenerators.createTableWithSameElement(img.width,img.height,[]);
+    var data;
+    try {
+      var canvas = document.createElement('canvas');
+      var context = canvas.getContext('2d');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      context.drawImage(img, 0, 0 );
+      data = context.getImageData(0, 0, img.width, img.height).data;
+    }
+    catch(err){
+      throw(err);
+    }
+    // var i = (y * width + x) * 4;
+    var x,y,r,g,b,a;
+    for(var i=0;i<data.length;i+=4){
+      x = (i / 4) % img.width;
+      y = Math.floor((i / 4) / img.width);
+      if(brgbaStringsInCells)
+        tab[x][y] = 'rgba('+data[i]+','+data[i+1]+','+data[i+2]+','+data[i+3]/255+')';
+      else
+        tab[x][y] = [data[i],data[i+1],data[i+2],data[i+3]/255];
+    }
+    return tab;
   };
 
   /**
@@ -37558,6 +37596,7 @@
   exports.DrawTexts = DrawTexts;
   exports.DrawTextsAdvanced = DrawTextsAdvanced;
   exports.Graphics = Graphics;
+  exports.ImageOperators = ImageOperators;
   exports.DragDetection = DragDetection;
   exports.InputTextFieldHTML = InputTextFieldHTML;
   exports.TextBox = TextBox;

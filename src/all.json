@@ -92,6 +92,7 @@
   "tools/graphic/DrawTexts.js",
   "tools/graphic/DrawTextsAdvanced.js",
   "tools/graphic/SimpleGraphics.js",
+  "tools/graphic/ImageOperators.js",
   "tools/interaction/DragDetection.js",
   "tools/interaction/InputTextFieldHTML.js",
   "tools/interaction/TextBox.js",

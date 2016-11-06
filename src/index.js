@@ -160,7 +160,8 @@ import DrawTextsAdvanced from "src/tools/graphic/DrawTextsAdvanced";
 export { Draw, DrawSimpleVis, DrawTexts, DrawTextsAdvanced };
 
 import Graphics from "src/tools/graphic/Graphics";
-export { Graphics };
+import ImageOperators from "src/tools/graphic/ImageOperators";
+export { Graphics, ImageOperators };
 
 // tools/interaction
 import DragDetection from "src/tools/interaction/DragDetection";
