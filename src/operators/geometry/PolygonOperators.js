@@ -2227,6 +2227,8 @@ PolygonOperators.gridify = function(polygon, rFrame, cols, rows, method) {
   var tabGridPts = TableGenerators.createTableWithSameElement(cols,rows,new Point(0,0));
   var colWidth = rFrame.width/(cols-1);
   var rowHeight = rFrame.height/(rows-1);
+  if(cols == 1) colWidth = 1;
+  if(rows == 1) rowHeight = 1;
   for(var col=0; col < cols; col++){
     for(var row=0; row < rows; row++){
       tabGridPts[col][row] = new Point(rFrame.x + col*colWidth,rFrame.y + row*rowHeight);
