@@ -358,7 +358,7 @@ Table.prototype.getWithoutRows = function(rowsIndexes) {// @todo improve efficie
   var nElements;
   newTable.name = this.name;
   for(var i = 0; i<l; i++) {
-    newTable[i] = new List();
+    newTable[i] = instantiateWithSameType(this[i]);
     nElements = this[i].length;
     for(var j = 0; j<nElements; j++) {
       if(rowsIndexes.indexOf(j) == -1) newTable[i].push(this[i][j]);
