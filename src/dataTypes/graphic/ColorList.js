@@ -40,6 +40,7 @@ export default ColorList;
 ColorList.fromArray = function(array) {
   var result = List.fromArray(array);
   result.type = "ColorList";
+  result.name = array.name || "";
   result.getRgbArrays = ColorList.prototype.getRgbArrays;
   result.getInterpolated = ColorList.prototype.getInterpolated;
   result.getMix = ColorList.prototype.getMix;
