@@ -4037,9 +4037,8 @@
   };
 
   /**
-   * return a color between color0 and color1
-   * 0 -> color0
-   * 1 -> color1
+   * return a value indicating how different the two colors are. 
+   * 0 means identical, 1 means maximally different.
    * @param {Array} color0 RGB with elements in range [0,255]
    * @param {Array} color1 RGB with elements in range [0,255]
    * @return {Number} color distance. 0 means identical, 1 is maximally different.
@@ -29703,8 +29702,8 @@
     }
     tab = tab.getListsSortedByList(1,false);
     // combine similar colors together
+    var nLRemove = new NumberList();
     if(distUnique > 0){
-      var nLRemove = new NumberList();
       for(i=1; i < tab[0].length; i++){
         // compare to all previous items in list
         var distClosest = Number.MAX_VALUE;
@@ -29720,16 +29719,20 @@
           }
         }
         if(distClosest < distUnique){
-          nLRemove.push(i); // mark entry for removal
+          if(i < maxColors)
+            nLRemove.push(i); // mark entry for removal, if >= maxColors it gets sliced off anyways
           tab[2][i][0] = -1; // indicator that this has been removed so we do not combine subsequent items into it
           tab[1][iClosest] += tab[1][i];
         }
       }
-      // remove all rows from table for elements in nLRemove
-      tab = tab.getWithoutRows(nLRemove);
     }
     if(tab[0].length > maxColors){
       tab = tab.sliceRows(0,maxColors-1);
+    }
+    // do the remove after slice for performance reasons
+    if(nLRemove.length > 0){
+      // remove all rows from table for elements in nLRemove
+      tab = tab.getWithoutRows(nLRemove);
     }
     // re-sort since numbers were changed 
     tab = tab.getListsSortedByList(1,false);
@@ -29738,8 +29741,8 @@
 
   /**
    * colorFrequencyTableDistance gives the distance in range [0,1] between two color frequency tables
-   * @param  {Table} tab1 A color frequency table 
-   * @param  {Table} tab2 A second color frequency table 
+   * @param  {Table} tab1 A color frequency table
+   * @param  {Table} tab2 A second color frequency table
    *
    * @return {Number} distance is a number in range [0,1] representing how different the palettes are. Value of 0 is identical, 1 absolutely different.
    * tags: image
@@ -29774,10 +29777,61 @@
       dist += colorDiff; // for now ignore freq values
     }
     // through in an arbitrary 4* since experimentally dist are usually much smaller than 1 otherwise
-    dist = Math.min(1,4*dist/(n)); 
+    dist = Math.min(1,4*dist/(n));
     // console.log('dist=' + dist);
     return Number(dist.toFixed(4));
-  }
+  };
+
+  /**
+   * getColorFrequencyTable
+   * @param  {Image} img
+   * @param  {Number} quality is number 1 or greater. Higher numbers are faster to compute but lower quality (default:5)
+   * @param  {Number} bins is the number of hue segments. Best if divides evenly into 360. (Default: 360)
+   * @param  {Boolean} bNormalizeCount if true normalize counts so they sum to 1 (default:true)
+    *
+   * @return {Table} table with column 0 having color values and column 1 the freq
+   * tags: image
+   */
+  ImageOperators.getHueHistogram = function(img, quality, bins, bNormalizeCount) {
+    if(img == null || img.width <= 0) return null;
+    quality = quality == null || quality == 0 ? 5 : Math.round(quality);
+    bins = bins == null || bins == 0 ? 360 : Math.round(bins);
+    bNormalizeCount = bNormalizeCount == null ? true : bNormalizeCount;
+
+    var data = ImageOperators._getPixelData(img);
+    if(data == null) return null;
+
+    var sCol,o,hsv,i,j,b,h,rgb;
+    var tab = new Table();
+    tab.push(new ColorList());
+    tab.push(new NumberList());
+    tab.push(new List());
+    tab[0].name = 'Color';
+    tab[1].name = 'Frequency';
+    tab[2].name = 'Color Array';
+    for(b=0;b<bins;b++){
+      h = Math.floor(b*360/bins);
+      rgb = ColorOperators.HSVtoRGB(h,1,1);
+      tab[0].push('rgba('+rgb[0]+','+rgb[1]+','+rgb[2]+',1)');
+      tab[1].push(0);
+      tab[2].push([rgb[0],rgb[1],rgb[2],1]);
+    }
+
+    for(i=0;i<data.length;i+=4*quality){
+      hsv = ColorOperators.RGBtoHSV(data[i],data[i+1],data[i+2]);
+      // find the bin
+      b = Math.floor(hsv[0]*bins/360);
+      tab[1][b] += quality; // so total equals number of pixels in image
+    }
+    if(bNormalizeCount){
+      var sumcounts = tab[1].getSum();
+      if(sumcounts != 0){
+        for(i=0;i<tab[1].length;i++)
+          tab[1][i] = Number( (tab[1][i]/sumcounts).toFixed(4) );
+      }
+    }
+    return tab;
+  };
 
   /**
    * This method just returns the pixel data, null if the image is not accessible
@@ -34605,13 +34659,15 @@
    *
    * @param {Number} margin
    * @param {Object} xValues horizontal values, could be a stringList, a numberList or an Interval
+   * @param {Boolean} bShowHues
    * @return {Number} index of element clicked
    * tags:draw
    */
-  NumberListDraw.drawSimpleGraph = function(frame, numberList, margin, xValues, graphics) {
+  NumberListDraw.drawSimpleGraph = function(frame, numberList, margin, xValues, bShowHues, graphics) {
     if(numberList == null || NumberListOperators.normalized(numberList) == null) return;
 
     if(graphics==null) graphics = frame.graphics; //momentary fix
+    bShowHues = bShowHues == null ? false : bShowHues;
 
     margin = margin || 0;
 
@@ -34661,6 +34717,11 @@
         } else {
           graphics.setFill(normalColor);
         }
+        if(bShowHues){
+          var h = Math.floor(i*360/numberList.length);
+          var rgb = ColorOperators.RGBArrayToString(ColorOperators.HSVtoRGB(h,(!mouseOnFrame || i == overI ) ? 1 : .5,1));
+          graphics.setFill(rgb);
+        }
         graphics.fRect(subframe.x + i * dx, zeroY, w, -subframe.height * (frame.memory.normalizedList[i] - frame.memory.zero));
       }
     } else {
@@ -34671,6 +34732,11 @@
           graphics.setFill('black');
         } else {
           graphics.setFill(normalColor);
+        }
+        if(bShowHues){
+          var h = Math.floor(i*360/numberList.length);
+          var rgb = ColorOperators.RGBArrayToString(ColorOperators.HSVtoRGB(h,(!mouseOnFrame || i == overI ) ? 1 : .5,1));
+          graphics.setFill(rgb);
         }
         graphics.fRect(x, subframe.bottom, w, -subframe.height * frame.memory.normalizedList[i]);
       }

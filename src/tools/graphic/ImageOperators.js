@@ -206,7 +206,58 @@ ImageOperators.colorFrequencyTableDistance = function(tab1, tab2) {
   dist = Math.min(1,4*dist/(n));
   // console.log('dist=' + dist);
   return Number(dist.toFixed(4));
-}
+};
+
+/**
+ * getColorFrequencyTable
+ * @param  {Image} img
+ * @param  {Number} quality is number 1 or greater. Higher numbers are faster to compute but lower quality (default:5)
+ * @param  {Number} bins is the number of hue segments. Best if divides evenly into 360. (Default: 360)
+ * @param  {Boolean} bNormalizeCount if true normalize counts so they sum to 1 (default:true)
+  *
+ * @return {Table} table with column 0 having color values and column 1 the freq
+ * tags: image
+ */
+ImageOperators.getHueHistogram = function(img, quality, bins, bNormalizeCount) {
+  if(img == null || img.width <= 0) return null;
+  quality = quality == null || quality == 0 ? 5 : Math.round(quality);
+  bins = bins == null || bins == 0 ? 360 : Math.round(bins);
+  bNormalizeCount = bNormalizeCount == null ? true : bNormalizeCount;
+
+  var data = ImageOperators._getPixelData(img);
+  if(data == null) return null;
+
+  var sCol,o,hsv,i,j,b,h,rgb;
+  var tab = new Table();
+  tab.push(new ColorList());
+  tab.push(new NumberList());
+  tab.push(new List());
+  tab[0].name = 'Color';
+  tab[1].name = 'Frequency';
+  tab[2].name = 'Color Array';
+  for(b=0;b<bins;b++){
+    h = Math.floor(b*360/bins);
+    rgb = ColorOperators.HSVtoRGB(h,1,1);
+    tab[0].push('rgba('+rgb[0]+','+rgb[1]+','+rgb[2]+',1)');
+    tab[1].push(0);
+    tab[2].push([rgb[0],rgb[1],rgb[2],1]);
+  }
+
+  for(i=0;i<data.length;i+=4*quality){
+    hsv = ColorOperators.RGBtoHSV(data[i],data[i+1],data[i+2]);
+    // find the bin
+    b = Math.floor(hsv[0]*bins/360);
+    tab[1][b] += quality; // so total equals number of pixels in image
+  }
+  if(bNormalizeCount){
+    var sumcounts = tab[1].getSum();
+    if(sumcounts != 0){
+      for(i=0;i<tab[1].length;i++)
+        tab[1][i] = Number( (tab[1][i]/sumcounts).toFixed(4) );
+    }
+  }
+  return tab;
+};
 
 /**
  * This method just returns the pixel data, null if the image is not accessible

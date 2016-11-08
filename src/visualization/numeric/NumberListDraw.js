@@ -1,6 +1,7 @@
 import Rectangle from "src/dataTypes/geometry/Rectangle";
 import StringList from "src/dataTypes/strings/StringList";
 import NumberListOperators from "src/operators/numeric/numberList/NumberListOperators";
+import ColorOperators from "src/operators/graphic/ColorOperators";
 
 function NumberListDraw() {}
 export default NumberListDraw;
@@ -12,13 +13,15 @@ export default NumberListDraw;
  *
  * @param {Number} margin
  * @param {Object} xValues horizontal values, could be a stringList, a numberList or an Interval
+ * @param {Boolean} bShowHues
  * @return {Number} index of element clicked
  * tags:draw
  */
-NumberListDraw.drawSimpleGraph = function(frame, numberList, margin, xValues, graphics) {
+NumberListDraw.drawSimpleGraph = function(frame, numberList, margin, xValues, bShowHues, graphics) {
   if(numberList == null || NumberListOperators.normalized(numberList) == null) return;
 
   if(graphics==null) graphics = frame.graphics; //momentary fix
+  bShowHues = bShowHues == null ? false : bShowHues;
 
   margin = margin || 0;
 
@@ -68,6 +71,11 @@ NumberListDraw.drawSimpleGraph = function(frame, numberList, margin, xValues, gr
       } else {
         graphics.setFill(normalColor);
       }
+      if(bShowHues){
+        var h = Math.floor(i*360/numberList.length);
+        var rgb = ColorOperators.RGBArrayToString(ColorOperators.HSVtoRGB(h,(!mouseOnFrame || i == overI ) ? 1 : .5,1));
+        graphics.setFill(rgb);
+      }
       graphics.fRect(subframe.x + i * dx, zeroY, w, -subframe.height * (frame.memory.normalizedList[i] - frame.memory.zero));
     }
   } else {
@@ -78,6 +86,11 @@ NumberListDraw.drawSimpleGraph = function(frame, numberList, margin, xValues, gr
         graphics.setFill('black');
       } else {
         graphics.setFill(normalColor);
+      }
+      if(bShowHues){
+        var h = Math.floor(i*360/numberList.length);
+        var rgb = ColorOperators.RGBArrayToString(ColorOperators.HSVtoRGB(h,(!mouseOnFrame || i == overI ) ? 1 : .5,1));
+        graphics.setFill(rgb);
       }
       graphics.fRect(x, subframe.bottom, w, -subframe.height * frame.memory.normalizedList[i]);
     }
