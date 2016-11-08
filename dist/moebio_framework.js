@@ -4036,6 +4036,20 @@
     return [Math.floor(s * color0[0] + value * color1[0]), Math.floor(s * color0[1] + value * color1[1]), Math.floor(s * color0[2] + value * color1[2])];
   };
 
+  /**
+   * return a color between color0 and color1
+   * 0 -> color0
+   * 1 -> color1
+   * @param {Array} color0 RGB with elements in range [0,255]
+   * @param {Array} color1 RGB with elements in range [0,255]
+   * @return {Number} color distance. 0 means identical, 1 is maximally different.
+   *
+   */
+  ColorOperators.distanceColorsRGB = function(color0, color1) {
+    var d = Math.abs(color0[0]-color1[0]) + Math.abs(color0[1]-color1[1]) + Math.abs(color0[2]-color1[2]);
+    return Number((d/(765)).toFixed(4)); // 765 = 3*255, the max diff
+  };
+
 
   /**
    * @todo write docs
@@ -29644,9 +29658,9 @@
   /**
    * getColorFrequencyTable
    * @param  {Image} img
-   * @param  {Number} quality is number 1 or greater. Higher numbers are faster to compute but lower quality (default:1)
+   * @param  {Number} quality is number 1 or greater. Higher numbers are faster to compute but lower quality (default:5)
    * @param  {Number} distNeutral Level of neutral colors (black, white, grey) to ignore.<br>Range is [0,256], 0 means keep all neutrals (default:10)
-   * @param  {Number} distUnique Number controlling how different colors must be to get combined in the results.<br>Range is [0,765], 0 means do not combine any (default:16)
+   * @param  {Number} distUnique Number controlling how different colors must be to get combined in the results.<br>Range is [0,765], 0 means do not combine any (default:64)
    * @param  {Number} maxColors is the maximum number of colors to keep in the results table (default:8) 
    *
    * @return {Table} table with column 0 having color values and column 1 the freq
@@ -29654,9 +29668,9 @@
    */
   ImageOperators.getColorFrequencyTable = function(img, quality, distNeutral, distUnique, maxColors) {
     if(img == null || img.width <= 0) return null;
-    quality = quality == null || quality == 0 ? 1 : Math.round(quality);
+    quality = quality == null || quality == 0 ? 5 : Math.round(quality);
     distNeutral = distNeutral == null ? 10 : distNeutral;
-    distUnique = distUnique == null ? 16 : distUnique;
+    distUnique = distUnique == null ? 64 : distUnique;
     maxColors = maxColors == null ? 8 : maxColors;
     var data = ImageOperators._getPixelData(img);
     if(data == null) return null;
@@ -29721,6 +29735,49 @@
     tab = tab.getListsSortedByList(1,false);
     return tab;
   };
+
+  /**
+   * colorFrequencyTableDistance gives the distance in range [0,1] between two color frequency tables
+   * @param  {Table} tab1 A color frequency table 
+   * @param  {Table} tab2 A second color frequency table 
+   *
+   * @return {Number} distance is a number in range [0,1] representing how different the palettes are. Value of 0 is identical, 1 absolutely different.
+   * tags: image
+   */
+  ImageOperators.colorFrequencyTableDistance = function(tab1, tab2) {
+    if(tab1 == null || tab2 == null) return null;
+    // First find which colors match the best in the two tables. We consider the minimum cost as a whole.
+    // Build the cost table
+    var n = Math.min(tab1[1].length,tab2[1].length);
+    if(n < 1) return 1;
+    var tabCost = TableGenerators.createTableWithSameElement(tab1[1].length,tab2[1].length,0);
+    for(var i=0; i < tabCost.length; i++){
+      // i (cols) is for tab1
+      for(var j=0; j < tab2[1].length; j++){
+        // cost is absolute diff of r,g,b values
+        tabCost[i][j] = ColorOperators.distanceColorsRGB(tab1[2][i],tab2[2][j]);
+      }
+    }
+    // build normalized versions of the frequency counts so image size doesn't matter
+    var freq1 = tab1[1].factor(1/tab1[1].getSum());
+    var freq2 = tab2[1].factor(1/tab2[1].getSum());
+    // find best combination of matching colors, 1 from each palette
+    var tabMatches = NumberTableOperators.linearAssignmentGreedySearch(tabCost);
+    var dist = 0;
+    for(var i=0; i < tabMatches[0].length; i++){
+      var i1 = tabMatches[0][i]; // index into tab1 palette
+      var i2 = tabMatches[1][i]; // index into tab2 palette
+      var colorDiff = ColorOperators.distanceColorsRGB(tab1[2][i1],tab2[2][i2]);
+      var freqDiff = Math.abs(freq1[i1]-freq2[i2]);
+      // both colorDiff and freqDiff are in range [0,1], the bigger the farther apart
+      // console.log('colorDiff='+colorDiff + ' freqDiff='+freqDiff);
+      dist += colorDiff; // for now ignore freq values
+    }
+    // through in an arbitrary 4* since experimentally dist are usually much smaller than 1 otherwise
+    dist = Math.min(1,4*dist/(n)); 
+    // console.log('dist=' + dist);
+    return Number(dist.toFixed(4));
+  }
 
   /**
    * This method just returns the pixel data, null if the image is not accessible

@@ -39,6 +39,19 @@ ColorOperators.interpolateColorsRGB = function(color0, color1, value) {
   return [Math.floor(s * color0[0] + value * color1[0]), Math.floor(s * color0[1] + value * color1[1]), Math.floor(s * color0[2] + value * color1[2])];
 };
 
+/**
+ * return a value indicating how different the two colors are. 
+ * 0 means identical, 1 means maximally different.
+ * @param {Array} color0 RGB with elements in range [0,255]
+ * @param {Array} color1 RGB with elements in range [0,255]
+ * @return {Number} color distance. 0 means identical, 1 is maximally different.
+ *
+ */
+ColorOperators.distanceColorsRGB = function(color0, color1) {
+  var d = Math.abs(color0[0]-color1[0]) + Math.abs(color0[1]-color1[1]) + Math.abs(color0[2]-color1[2]);
+  return Number((d/(765)).toFixed(4)); // 765 = 3*255, the max diff
+};
+
 
 /**
  * @todo write docs
