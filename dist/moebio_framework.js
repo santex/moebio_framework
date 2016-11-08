@@ -29783,53 +29783,87 @@
   };
 
   /**
-   * getColorFrequencyTable
+   * getHSVHistograms
    * @param  {Image} img
+   *
    * @param  {Number} quality is number 1 or greater. Higher numbers are faster to compute but lower quality (default:5)
-   * @param  {Number} bins is the number of hue segments. Best if divides evenly into 360. (Default: 360)
+   * @param  {Number} bins is the number of segments (Default: 16)
    * @param  {Boolean} bNormalizeCount if true normalize counts so they sum to 1 (default:true)
+   * @param  {Number} satMin is the minimum saturation value a pixel must have to be included for hue histogram only. range is [0,1] Default: 0.1)
+   * @param  {Number} valMin is the minimum brightness value a pixel must have to be included for hue histogram only. range is [0,1] Default: 0.3)
     *
    * @return {Table} table with column 0 having color values and column 1 the freq
    * tags: image
    */
-  ImageOperators.getHueHistogram = function(img, quality, bins, bNormalizeCount) {
+  ImageOperators.getHSVHistograms = function(img, quality, bins, bNormalizeCount, satMin, valMin) {
     if(img == null || img.width <= 0) return null;
     quality = quality == null || quality == 0 ? 5 : Math.round(quality);
-    bins = bins == null || bins == 0 ? 360 : Math.round(bins);
+    bins = bins == null || bins == 0 ? 16 : Math.round(bins);
     bNormalizeCount = bNormalizeCount == null ? true : bNormalizeCount;
+    satMin = satMin == null ? 0.1 : satMin;
+    valMin = valMin == null ? 0.3 : valMin;
 
     var data = ImageOperators._getPixelData(img);
     if(data == null) return null;
 
     var sCol,o,hsv,i,j,b,h,rgb;
     var tab = new Table();
-    tab.push(new ColorList());
     tab.push(new NumberList());
-    tab.push(new List());
-    tab[0].name = 'Color';
-    tab[1].name = 'Frequency';
-    tab[2].name = 'Color Array';
+    tab.push(new NumberList());
+    tab.push(new NumberList());
+    tab.push(new ColorList());
+    tab.push(new NumberList()); // for avg sat of hues
+    tab.push(new NumberList()); // for avg val of hues
+    tab[0].name = 'Hue Frequency';
+    tab[1].name = 'Saturation Frequency';
+    tab[2].name = 'Brightness Frequency';
+    tab[3].name = 'Typical Color';
     for(b=0;b<bins;b++){
-      h = Math.floor(b*360/bins);
-      rgb = ColorOperators.HSVtoRGB(h,1,1);
-      tab[0].push('rgba('+rgb[0]+','+rgb[1]+','+rgb[2]+',1)');
+      tab[0].push(0);
       tab[1].push(0);
-      tab[2].push([rgb[0],rgb[1],rgb[2],1]);
+      tab[2].push(0);
+      tab[3].push('rgba(255,255,255,1)');
+      tab[4].push(0);
+      tab[5].push(0);
     }
 
     for(i=0;i<data.length;i+=4*quality){
       hsv = ColorOperators.RGBtoHSV(data[i],data[i+1],data[i+2]);
       // find the bin
       b = Math.floor(hsv[0]*bins/360);
-      tab[1][b] += quality; // so total equals number of pixels in image
+      // so total equals number of pixels in image (except for those filtered out)
+      if(hsv[1] >= satMin && hsv[2] >= valMin){
+        tab[0][b] += quality;
+        tab[4][b] += quality*hsv[1];
+        tab[5][b] += quality*hsv[2];
+      }
+      b = Math.floor(hsv[1]*bins);
+      if(b==bins)b--;
+      tab[1][b] += quality;
+      b = Math.floor(hsv[2]*bins);
+      if(b==bins)b--;
+      tab[2][b] += quality;
     }
-    if(bNormalizeCount){
-      var sumcounts = tab[1].getSum();
+    for(j=0; j < 3; j++){
+      var sumcounts = tab[j].getSum();
       if(sumcounts != 0){
-        for(i=0;i<tab[1].length;i++)
-          tab[1][i] = Number( (tab[1][i]/sumcounts).toFixed(4) );
+        for(i=0;i<tab[j].length;i++){
+          if(j==0 && tab[0][i] != 0){
+            // find average sat and val for each hue bucket
+            tab[4][i] = Number( (tab[4][i]/tab[0][i]).toFixed(4) );
+            tab[5][i] = Number( (tab[5][i]/tab[0][i]).toFixed(4) );
+            // set typical color for this hue
+            var h = Math.floor(i*360/tab[0].length);
+            rgb = ColorOperators.HSVtoRGB(h,tab[4][i],tab[5][i]);
+            tab[3][i] = ColorOperators.RGBArrayToString(rgb);
+          }
+          if(bNormalizeCount)
+            tab[j][i] = Number( (tab[j][i]/sumcounts).toFixed(4) );
+        }
       }
     }
+    // remove the extra cols we don't want to return
+    tab = tab.getColumns(NumberList.fromArray([0,1,2,3]));
     return tab;
   };
 
