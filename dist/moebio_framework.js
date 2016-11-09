@@ -29868,6 +29868,48 @@
   };
 
   /**
+   * getDominantHues gives the n most common hues in the image
+   * @param  {Image} img
+   *
+   * @param  {Number} quality is number 1 or greater. Higher numbers are faster to compute but lower quality (default:5)
+   * @param  {Number} n is the number of hues to return (default: 4)
+   *
+   * @return {Table} table with column 0 having typical color values, and the next 3 columns having the h,s,v values
+   * tags: image
+   */
+  ImageOperators.getDominantHues = function(img, quality, n) {
+    if(img == null || img.width <= 0) return null;
+    quality = quality == null || quality == 0 ? 5 : Math.round(quality);
+    n = n == null || n == 0 ? 4 : Math.round(n);
+
+    var tabHSVHist = ImageOperators.getHSVHistograms(img,quality,Math.max(18,n));
+    if(tabHSVHist == null) return null;
+
+    var tab = new Table();
+    tab.push(new ColorList());
+    tab.push(new NumberList()); // hue number
+    tab.push(new NumberList()); // sat number
+    tab.push(new NumberList()); // val number
+    tab[0].name = 'Color';
+    tab[1].name = 'Hue';
+    tab[2].name = 'Saturation';
+    tab[3].name = 'Value';
+
+    tabHSVHist = tabHSVHist.getListsSortedByList(0,false);
+    var i,rgb,hsv;
+    for(i=0; i < n; i++){
+      tab[0].push(tabHSVHist[3][i]);
+      rgb = ColorOperators.colorStringToRGB(tabHSVHist[3][i]);
+      hsv = ColorOperators.RGBtoHSV(rgb[0],rgb[1],[rgb[2]]);
+      tab[1].push(Math.round(hsv[0]));
+      tab[2].push(Number(hsv[1].toFixed(4)));
+      tab[3].push(Number(hsv[2].toFixed(4)));
+    }
+
+    return tab;
+  };
+
+  /**
    * This method just returns the pixel data, null if the image is not accessible
    *
    * @param  {Image} img
