@@ -94,7 +94,7 @@ ImageOperators.invertImageColors = function(img) {
  */
 ImageOperators.getColorFrequencyTable = function(img, quality, distNeutral, distUnique, maxColors) {
   if(img == null || img.width <= 0) return null;
-  quality = quality == null || quality == 0 ? 5 : Math.round(quality);
+  quality = quality == null || Math.round(quality) <= 0 ? 5 : Math.round(quality);
   distNeutral = distNeutral == null ? 10 : distNeutral;
   distUnique = distUnique == null ? 64 : distUnique;
   maxColors = maxColors == null ? 8 : maxColors;
@@ -224,7 +224,7 @@ ImageOperators.colorFrequencyTableDistance = function(tab1, tab2) {
  */
 ImageOperators.getHSVHistograms = function(img, quality, bins, bNormalizeCount, satMin, valMin) {
   if(img == null || img.width <= 0) return null;
-  quality = quality == null || quality == 0 ? 5 : Math.round(quality);
+  quality = quality == null || Math.round(quality) <= 0 ? 5 : Math.round(quality);
   bins = bins == null || bins == 0 ? 16 : Math.round(bins);
   bNormalizeCount = bNormalizeCount == null ? true : bNormalizeCount;
   satMin = satMin == null ? 0.1 : satMin;
@@ -306,7 +306,7 @@ ImageOperators.getHSVHistograms = function(img, quality, bins, bNormalizeCount, 
  */
 ImageOperators.getDominantHues = function(img, quality, n) {
   if(img == null || img.width <= 0) return null;
-  quality = quality == null || quality == 0 ? 5 : Math.round(quality);
+  quality = quality == null || Math.round(quality) <= 0 ? 5 : Math.round(quality);
   n = n == null || n == 0 ? 4 : Math.round(n);
 
   var tabHSVHist = ImageOperators.getHSVHistograms(img,quality,Math.max(18,n));
@@ -334,6 +334,32 @@ ImageOperators.getDominantHues = function(img, quality, n) {
   }
 
   return tab;
+};
+
+/**
+ * getAverageBrightness for the image
+ * @param  {Image} img
+ *
+ * @param  {Number} quality is number 1 or greater. Higher numbers are faster to compute but lower quality (default:5)
+ *
+ * @return {Number} Number in range [0,1] where 0 is black and 1 white
+ * tags: image
+ */
+ImageOperators.getAverageBrightness = function(img, quality) {
+  if(img == null || img.width <= 0) return null;
+  quality = quality == null || Math.round(quality) <= 0 ? 5 : Math.round(quality);
+
+  var data = ImageOperators._getPixelData(img);
+  if(data == null) return null;
+
+  var tot = 0;
+  var count = 0;
+  for(var i=0;i<data.length;i+=4*quality){
+    tot += 0.34 * data[i] + 0.5 * data[i + 1] + 0.16 * data[i + 2];
+    count++;
+  }
+  var brightness = (tot/count)/255;
+  return Number(brightness.toFixed(2));
 };
 
 /**
