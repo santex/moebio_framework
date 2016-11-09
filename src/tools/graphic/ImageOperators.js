@@ -119,6 +119,10 @@ ImageOperators.getColorFrequencyTable = function(img, quality, distNeutral, dist
   // combine similar colors together
   var nLRemove = new NumberList();
   if(distUnique > 0){
+    // before we do combination chop the table at some reasonable level
+    if(tab[0].length > 100*maxColors){
+      tab = tab.sliceRows(0,100*maxColors-1);
+    }
     for(i=1; i < tab[0].length; i++){
       // compare to all previous items in list
       var distClosest = Number.MAX_VALUE;
