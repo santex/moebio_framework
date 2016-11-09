@@ -65,20 +65,8 @@ ImageOperators.invertImageColors = function(img) {
     data[i+1] = 255 - data[i+1];
     data[i+2] = 255 - data[i+2];
   }
-  try {
-    var canvas = document.createElement('canvas');
-    var context = canvas.getContext('2d');
-    canvas.width = img.width;
-    canvas.height = img.height;
-    var inverted = new ImageData(data, img.width, img.height);
-    context.putImageData(inverted, 0, 0 );
-    var img2 = document.createElement('img');
-    img2.src = canvas.toDataURL("image/png");
-  }
-  catch(err){
-    throw(err);
-  }
-  return img2;
+  var inverted = new ImageData(data, img.width, img.height);
+  return ImageOperators._makeImageFromData(inverted);
 };
 
 /**
@@ -359,7 +347,52 @@ ImageOperators.getAverageBrightness = function(img, quality) {
     count++;
   }
   var brightness = (tot/count)/255;
-  return Number(brightness.toFixed(2));
+  return Number(brightness.toFixed(4));
+};
+
+/**
+ * splitImage into a list or table of subimages
+ * @param  {Image} img
+ *
+ * @param  {Number} nAcross is the number of tiles across to split the image (Default:4)
+ * @param  {Number} nDown   is the number of tiles down to split the image (Default:4)
+ * @param  {Boolean} bReturnList if true (default) return a list of images. Otherwise return a Table
+ *
+ * @return {List|Table} list or table of subimages
+ * tags: image
+ */
+ImageOperators.splitImage = function(img, nAcross, nDown, bReturnList) {
+  if(img == null || img.width <= 0) return null;
+  nAcross = nAcross == null || isNaN(nAcross) || Math.round(nAcross) <= 0 ? 4 : Math.round(nAcross);
+  nDown = nDown == null || isNaN(nDown) || Math.round(nDown) <= 0 ? 4 : Math.round(nDown);
+  bReturnList = bReturnList == null ? true : bReturnList;
+
+  var Lout = bReturnList ? new List() : TableGenerators.createTableWithSameElement(nAcross,nDown,{});;
+
+  try {
+    var canvas = document.createElement('canvas');
+    var context = canvas.getContext('2d');
+    canvas.width = img.width;
+    canvas.height = img.height;
+    context.drawImage(img, 0, 0 );
+    var tileWidth = Math.floor(img.width/nAcross);
+    var tileHeight = Math.floor(img.height/nDown);
+    for(var i=0; i<nAcross; i++)
+    {
+      for(var j=nDown-1; j >= 0; j--)
+      { 
+        var odata = context.getImageData(i*tileWidth, j*tileHeight, tileWidth, tileHeight);
+        if(bReturnList)          
+          Lout.push(ImageOperators._makeImageFromData(odata));
+        else
+          Lout[i][j] = ImageOperators._makeImageFromData(odata);
+      }
+    }
+  }
+  catch(err){
+    throw(err);
+  }
+  return Lout;
 };
 
 /**
@@ -384,3 +417,28 @@ ImageOperators._getPixelData = function(img) {
   }
   return data;
 };
+
+/**
+ * _makeImageFromData
+ * @param  {Object} img data object
+ *
+ * @return {Image} image
+ * @ignore
+ */
+ImageOperators._makeImageFromData = function(imgData) {
+  if(imgData == null || imgData.width == null || imgData.width <= 0 || imgData.height <=0) return null;
+  try {
+    var canvas = document.createElement('canvas');
+    var context = canvas.getContext('2d');
+    canvas.width = imgData.width;
+    canvas.height = imgData.height;
+    context.putImageData(imgData, 0, 0 );
+    var img2 = document.createElement('img');
+    img2.src = canvas.toDataURL("image/png");
+  }
+  catch(err){
+    throw(err);
+  }
+  return img2;
+};
+
