@@ -117,18 +117,15 @@ ImageOperators.getColorFrequencyTable = function(img, quality, distNeutral, dist
   }
   tab = tab.getListsSortedByList(1,false);
   // combine similar colors together
-  var nLRemove = new NumberList();
   if(distUnique > 0){
-    // before we do combination chop the table at some reasonable level
-    if(tab[0].length > 100*maxColors){
-      tab = tab.sliceRows(0,100*maxColors-1);
-    }
-    for(i=1; i < tab[0].length; i++){
-      // compare to all previous items in list
+    var nLKeep = new NumberList();
+    nLKeep.push(0);
+    for(i=1; i < tab[0].length && nLKeep.length < 2 * maxColors; i++){
+      // compare to all previous kept items
       var distClosest = Number.MAX_VALUE;
       var iClosest = -1;
-      for(j=0; j < i; j++){
-        if(tab[2][j][0] == -1) continue; // previously combined
+      for(var k=0; k < nLKeep.length; k++){
+        j = nLKeep[k];
         var d = Math.abs(tab[2][i][0] - tab[2][j][0]); // r
         d +=    Math.abs(tab[2][i][1] - tab[2][j][1]); // g
         d +=    Math.abs(tab[2][i][2] - tab[2][j][2]); // b
@@ -138,23 +135,21 @@ ImageOperators.getColorFrequencyTable = function(img, quality, distNeutral, dist
         }
       }
       if(distClosest < distUnique){
-        if(i < maxColors)
-          nLRemove.push(i); // mark entry for removal, if >= maxColors it gets sliced off anyways
         tab[2][i][0] = -1; // indicator that this has been removed so we do not combine subsequent items into it
         tab[1][iClosest] += tab[1][i];
       }
+      else
+        nLKeep.push(i);
     }
-  }
-  if(tab[0].length > maxColors){
-    tab = tab.sliceRows(0,maxColors-1);
-  }
-  // do the remove after slice for performance reasons
-  if(nLRemove.length > 0){
-    // remove all rows from table for elements in nLRemove
-    tab = tab.getWithoutRows(nLRemove);
+    tab = tab.getRows(nLKeep);
+    // getRows loses the ColorList
+    tab[0] = ColorList.fromArray(tab[0]);
   }
   // re-sort since numbers were changed 
   tab = tab.getListsSortedByList(1,false);
+  if(tab[0].length > maxColors){
+    tab = tab.sliceRows(0,maxColors-1);
+  }
   return tab;
 };
 
