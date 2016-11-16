@@ -2563,6 +2563,7 @@
     result.log = NumberList.prototype.log;
     result.floor = NumberList.prototype.floor;
     result.isEquivalent = NumberList.prototype.isEquivalent;
+    result.addRandom = NumberList.prototype.addRandom;
 
     //transform
     result.approach = NumberList.prototype.approach;
@@ -3295,10 +3296,8 @@
   };
 
   /**
-   * Returns true if values in the input NumberList are the same
-   * as the values in the current list.
-   *
-   * @param numberList2 Second NumberList to compare.
+   * Returns true if values in the input NumberList are the same as the values in the current list.
+   * @param  {NumberList} numberList2 Second NumberList to compare.
    * @return {Boolean} True if all values in both lists match.
    */
   NumberList.prototype.isEquivalent = function(numberList) {
@@ -3310,6 +3309,28 @@
       if(this[i] != numberList[i]) return false;
     }
     return true;
+  };
+
+  /**
+   * adds random numbers to numbers in a numberList
+   *
+   * @param {Interval} optional interval for random numbers ([0,1] by default)
+   * @return {NumberList}
+   * tags:
+   */
+  NumberList.prototype.addRandom = function(interval){
+    if(interval == null) interval = new Interval(0,1);
+    var i;
+    var newNumberList = new NumberList();
+    var l = this.length;
+    var a = interval.getAmplitude();
+
+    for(i = 0; i < l; i++) {
+      newNumberList[i] =  this[i] + Math.random()*a + interval.x;
+    }
+    
+    newNumberList.name = this.name;
+    return newNumberList;
   };
 
   //transform
@@ -16900,7 +16921,7 @@
   /**
    * filter the rows of a table by a criteria defined by an operator applied to all lists or a selected list
    * @param  {Table} table Table
-   * @param  {String} operator "=c"(default, exact match for numbers, contains for strings), "==", "<", "<=", ">", ">=", "!=", "contains", "between", "!contains", "init" Function that returns a boolean
+   * @param  {String} operator "=c"(default, exact match for numbers, contains for strings), "==", "<", "<=", ">", ">=", "!=", "contains", "between", "!contains", "init" Function that returns a boolean, "unique"
    * @param  {Object} value to compare against
    *
    * @param  {Number|String|List} listToCheck it could be one of the following option:<br>null (default) means it checks every list, a row is kept if at least one its values verify the condition<br>a number, an index of the list to check<br>a string, the name of the list to check<br>a list (with same sizes as the lists in the table) that will be used to check conditions on elements and filter the table.
@@ -17127,6 +17148,22 @@
               nLKeep.push(r);
               break;
             }
+          }
+        }
+        break;
+      case "unique":
+        // this operator will keep only rows with unique combinations of values in the target lists
+        var dict = {};
+        for(r=0; r<nRows; r++){
+          var sCheck='';
+          for(c=cStart; c<cEnd; c++){
+            val0 = bExternalList ? listToCheck[r] : table[c][r];
+            val = bIgnoreCase ? String(val0).toLowerCase() : String(val0);
+            sCheck = sCheck + '|' + val;
+          }
+          if(dict[sCheck] == null){
+            dict[sCheck] = true;
+            nLKeep.push(r);
           }
         }
         break;
