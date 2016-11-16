@@ -93,6 +93,7 @@ NumberList.fromArray = function(array, forceToNumber) {
   result.log = NumberList.prototype.log;
   result.floor = NumberList.prototype.floor;
   result.isEquivalent = NumberList.prototype.isEquivalent;
+  result.addRandom = NumberList.prototype.addRandom;
 
   //transform
   result.approach = NumberList.prototype.approach;
@@ -840,6 +841,21 @@ NumberList.prototype.isEquivalent = function(numberList) {
     if(this[i] != numberList[i]) return false;
   }
   return true;
+};
+
+
+NumberList.prototype.addRandom = function(interval){
+  if(interval == null) interval = new Interval(0,1);
+  var i;
+  var newNumberList = new NumberList();
+  var l = this.length;
+  var a = interval.getAmplitude();
+
+  for(i = 0; i < l; i++) {
+    newNumberList.push(Math.random()*a + interval.x);
+  }
+  newNumberList.name = this.name;
+  return newNumberList;
 };
 
 //transform
