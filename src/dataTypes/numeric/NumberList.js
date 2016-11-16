@@ -856,8 +856,9 @@ NumberList.prototype.addRandom = function(interval){
   var a = interval.getAmplitude();
 
   for(i = 0; i < l; i++) {
-    newNumberList.push(Math.random()*a + interval.x);
+    newNumberList[i] =  this[i] + Math.random()*a + interval.x;
   }
+  
   newNumberList.name = this.name;
   return newNumberList;
 };
