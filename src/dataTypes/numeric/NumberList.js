@@ -826,10 +826,8 @@ NumberList.prototype.approach = function(destinty, speed) {
 };
 
 /**
- * Returns true if values in the input NumberList are the same
- * as the values in the current list.
- *
- * @param numberList2 Second NumberList to compare.
+ * Returns true if values in the input NumberList are the same as the values in the current list.
+ * @param  {NumberList} numberList2 Second NumberList to compare.
  * @return {Boolean} True if all values in both lists match.
  */
 NumberList.prototype.isEquivalent = function(numberList) {
@@ -843,7 +841,13 @@ NumberList.prototype.isEquivalent = function(numberList) {
   return true;
 };
 
-
+/**
+ * adds random numbers to numbers in a numberList
+ *
+ * @param {Interval} optional interval for random numbers ([0,1] by default)
+ * @return {NumberList}
+ * tags:
+ */
 NumberList.prototype.addRandom = function(interval){
   if(interval == null) interval = new Interval(0,1);
   var i;
