@@ -1716,16 +1716,17 @@ TableOperators.splitTableByCategoricList = function(table, list) {
  * builds a network from columns or rows, taking into account similarity in numbers (correlation) and other elements (Jaccard) (adds i property to nodes, position of list or row)
  * @param  {Table} table
  *
- * @param  {Boolean} nodesAreRows if true (default value) each node corresponds to a row in the table, and rows are compared, if false lists are compared ([!] working only for NumberTable, using pearson correlation)
- * @param  {StringList|Number} names optionally add names to nodes with a list that could be part of the table or not; receives a StringList for names, or an index (Number) for a list in the providade table
+ * @param {Boolean} nodesAreRows if true (default value) each node corresponds to a row in the table, and rows are compared, if false lists are compared ([!] working only for NumberTable, using pearson correlation)
+ * @param {StringList|Number} names optionally add names to nodes with a list that could be part of the table or not; receives a StringList for names, or an index (Number) for a list in the providade table
  * @param {List|Number} colorsByList optionally add color to nodes from a NumberList (for scale), any List (for categorical colors) that could be part of the table or not; receives a List or an index if the list is in the providade table
  * @param {Number} correlationThreshold 0.3 by default, above that level a relation is created
- * @param  {Boolean} negativeCorrelation takes into account negative correlations for building relations
+ * @param {Boolean} negativeCorrelation takes into account negative correlations for building relations
  * @param {Number} numericMode numeric correlation mode<br>0:Pearson correlation (default)<br>1:cosine similarity
+ * @param {NumberList|Number} weightByList optionally add weight to nodes from a NumberList; receives a numberList or an index if the list is in the providade table
  * @return {Network}
  * tags:
  */
-TableOperators.buildCorrelationsNetwork = function(table, nodesAreRows, names, colorsByList, correlationThreshold, negativeCorrelation, numericMode){
+TableOperators.buildCorrelationsNetwork = function(table, nodesAreRows, names, colorsByList, correlationThreshold, negativeCorrelation, numericMode, weightByList){
   if(table==null) return null;
 
   nodesAreRows = nodesAreRows==null?true:Boolean(nodesAreRows);
@@ -1786,6 +1787,20 @@ TableOperators.buildCorrelationsNetwork = function(table, nodesAreRows, names, c
       }
     }
   }
+
+  if(weightByList!=null){
+
+    var weights = new NumberList();
+
+    if(typeOf(weightByList)=="number"){
+      if(weightByList<=l){
+        weights = table[weightByList];
+        if(weights.type!="NumberList") weights = null;
+      }
+    } else if(weightByList["isList"] && weightByList.type=="NumberList"){
+      if(weightByList.length>=l) weights = weightByList;
+    }
+  }
   
 
   if(names!=null && typeOf(names)=="number" && names<l) names = table[names];
@@ -1802,6 +1817,7 @@ TableOperators.buildCorrelationsNetwork = function(table, nodesAreRows, names, c
         node.numbers = table[i];
 
         if(colors) node.color = colors[i];
+        if(weights) node.weight = weights[i];
       }
 
       for(i=0; i<l; i++){
@@ -1837,6 +1853,7 @@ TableOperators.buildCorrelationsNetwork = function(table, nodesAreRows, names, c
       node.texts = new StringList();
 
       if(colors) node.color = colors[i];
+      if(weights) node.weight = weights[i];
 
       for(j=0; j<l; j++){
         //types[j]==="NumberList"?node.numbers.push(node.row[j]):node.categories.push(node.row[j]);
