@@ -1177,7 +1177,9 @@ ListOperators.aggregateList = function(aggregatorList, toAggregateList, mode, in
       table[1] = new List();
       elementsTable = ListOperators.aggregateList(aggregatorList, toAggregateList, 7, indexesTable);
       //elementsTable[1].forEach(function(elements){
-      for(i=0;i<elementsTable[1].length;i++){
+      for(i=0; i<elementsTable[1].length; i++){
+        elements = elementsTable[1][i];
+        console.log('elements:', elements);
         table[1].push(elements.getMostRepeatedElement());
       }
       table[1] = table[1].getImproved();
