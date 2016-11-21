@@ -26227,6 +26227,62 @@
   };
 
   /**
+   * splits each string by a separator so the output is a Table of the resulting components
+   * @param  {StringList} texts  list of strings to split
+   *
+   * @param  {String} separator to use (default: ,)
+   * @param  {Number} maxComponents to keep in own column (default: 4)
+   * @param  {Boolean} bMergeExtraComponents if true (default), keep any excess components by including in the last one
+   * @param  {String} sLabel to use for first level Null (default: '')
+   * @return {Table}
+   * tags:
+   */
+  StringListOperators.splitStrings = function(texts, separator, maxComponents, bMergeExtraComponents, sLabel) {
+    if(texts==null) return null;
+    if(separator == null) separator = ',';
+    if(maxComponents == null) maxComponents = 4;
+    bMergeExtraComponents = bMergeExtraComponents == null ? true: bMergeExtraComponents;
+    sLabel = sLabel == null ? '': sLabel;
+
+    var tab = new Table();
+    var i,j,k;
+    for(i=0;i<maxComponents;i++){
+      tab.push(new StringList());
+      tab[i].name = 'Level ' + (i+1);
+    }
+    var nLUsed = new NumberList();
+    for(i=0; i<texts.length; i++){
+      var sComps = StringOperators.splitString(texts[i],separator);
+      if(sComps == null){
+        for(j=0; j<maxComponents; j++)
+          tab[j][i] = j==0 ? sLabel : null;
+        continue;
+      }
+      sComps = sComps.trim();
+      for(j=0; j<maxComponents; j++){
+        if(j < sComps.length){
+          tab[j][i] = sComps[j];
+          if(j >= nLUsed.length)
+            nLUsed.push(j);
+        }
+        else
+          tab[j][i] = null;
+        if(bMergeExtraComponents && j == maxComponents-1 && sComps.length > maxComponents){
+          // cannot easily support reg exp separators because we just append them back again in a simple fashion
+          for(k = j+1; k < sComps.length; k++){
+            tab[j][i] += separator + sComps[k];
+          }
+        }
+      }
+    }
+    if(nLUsed.length == 0) tab = new Table(); // empty
+    else if(nLUsed.length < tab.length){
+      tab = tab.getColumns(nLUsed);
+    }
+    return tab;
+  };
+
+  /**
    * @classdesc  String Conversions
    *
    * @namespace
