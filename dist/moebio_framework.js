@@ -21996,6 +21996,8 @@
   PolygonOperators.gridify = function(polygon, rFrame, cols, rows, method) {
     if(polygon == null || cols === 0 || rows === 0 || polygon.length == 0) return null;
     rFrame = rFrame == null ? polygon.getFrame() : rFrame;
+    if(rFrame.width == 0) rFrame.width = 1;
+    if(rFrame.height == 0) rFrame.height = 1;
     var n = polygon.length;
     if(cols != null) cols = Math.round(cols);
     if(rows != null) rows = Math.round(rows);
